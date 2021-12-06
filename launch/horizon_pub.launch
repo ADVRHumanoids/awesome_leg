@@ -1,0 +1,5 @@
+<launch>
+
+    <node name="horizon_pub" pkg="awesome_leg" type="horizon_pub.py" /> <!-- start the publisher node-->
+
+</launch>

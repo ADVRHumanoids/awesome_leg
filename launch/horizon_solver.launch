@@ -1,0 +1,5 @@
+<launch>
+
+  <node name="horizon_leg_solver" pkg="awesome_leg" type="horizon_leg_solver.py" />
+
+</launch>

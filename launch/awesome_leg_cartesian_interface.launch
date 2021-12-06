@@ -1,0 +1,38 @@
+<launch>
+
+    <arg name="prefix" default=""/>
+    <arg name="gui" default="true"/>
+
+    <param name="model_description/robot_description"
+        textfile="$(find awesome_leg)/description/urdf/awesome_leg_complete.urdf"/>
+
+    <param name="model_description/robot_description_semantic"
+        textfile="$(find awesome_leg)/description/srdf/awesome_leg_complete.srdf"/>
+
+    <param name="robot_description"
+        textfile="$(find awesome_leg)/description/urdf/awesome_leg.urdf"/>
+
+    <param name="robot_description_semantic"
+        textfile="$(find awesome_leg)/description/srdf/awesome_leg.srdf"/>
+
+    <param name="cartesian/problem_description"
+        textfile="$(find awesome_leg)/config/awesome_leg_cartesian_interface.yaml"/>
+
+    <include file="$(find awesome_leg)/launch/cartesio_modified.launch">
+        <!-- Control frequency (Hz) -->
+        <arg name="rate" value="100.0"/>
+        <!-- Spawn RviZ interacrive markers -->
+        <arg name="markers" value="true"/>
+        <arg name="prefix" value="$(arg prefix)"/>
+        <!-- Set to false for fixed base  -->
+        <arg name="is_model_floating_base" value="false"/>
+    </include>
+
+    <node if="$(arg gui)"
+            type="rviz"
+            name="rviz"
+            pkg="rviz"
+            args="-d $(find awesome_leg)/rviz/cartesian_interface.rviz"/>
+            output="screen"/>
+
+</launch>

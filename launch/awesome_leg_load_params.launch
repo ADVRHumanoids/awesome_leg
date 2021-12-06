@@ -1,0 +1,5 @@
+<launch>
+  
+  <rosparam command="load" file="$(find awesome_leg)/config/awesome_leg_horizon_gazebo_cosim.yaml" /> <!-- loading parameters-->
+
+</launch>
