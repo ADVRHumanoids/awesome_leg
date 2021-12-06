@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.3)
-project(awesome_leg)
+project(awesome_leg_pholus)
 
 find_package(catkin REQUIRED COMPONENTS roscpp rospy urdf sensor_msgs xbot_msgs)
 
@@ -7,8 +7,8 @@ catkin_package()
 
 include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_executable(cartesio2gazebo_bridge src/cartesio2gazebo_bridge.cpp)
-target_link_libraries(cartesio2gazebo_bridge ${catkin_LIBRARIES})
+add_executable(cart2gazebo_bridge src/cartesio2gazebo_bridge.cpp)
+target_link_libraries(cart2gazebo_bridge ${catkin_LIBRARIES})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY worlds DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})

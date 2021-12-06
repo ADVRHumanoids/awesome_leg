@@ -11,7 +11,7 @@ constraints: ["LegJointPositionLimits", "LegJointVelocityLimits"]
 HipHeight:
     type: "Cartesian"
     name: "hip_height"
-    distal_link: "LF_HIP"
+    distal_link: "pelvis"
     base_link: "test_rig"
     active: true
     lambda: 1
@@ -22,7 +22,7 @@ HipHeight:
 ContactCoherence:
     type: "Cartesian"
     name: "contact_coherence"
-    distal_link: "LF_FOOT"
+    distal_link: "tip"
     # base_link: "test_rig"
     active: true
     lambda: 0.1

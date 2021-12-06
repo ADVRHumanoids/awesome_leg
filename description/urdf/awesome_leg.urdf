@@ -3,202 +3,156 @@
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- ################### MATERIAL DEFINITIONS ################### -->
-Ì
-    <material name="awesome_leg_material">
-        <color rgba="0.7 0.7 0.7 1.0" />
+
+    <material name="black">
+        <color rgba="0.4 0.4 0.4 1"/>
     </material>
-    <material name="test_rig_material">
-        <color rgba="0.647 0.655 0.678 1.0" />
+    <material name="dark">
+        <color rgba="0.1 0.1 0.1 1"/>
+    </material>
+     <material name="dark_grey">
+        <color rgba="0.6627 0.6627 0.6627 1"/>
     </material>
 
     <!-- ################### LINKS ################### -->
   
-    <link name="LF_HIP">
-        <visual>
-            <origin rpy="0 0 0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package:// awesome_leg/description/meshes/anymal_hip_l.dae" scale="0.001 0.001 0.001" />
-            </geometry>
-            <material name="awesome_leg_material" />
-        </visual>
-        <collision>
-            <!-- Protector -->
-            <origin rpy="1.57079632679 0 0" xyz="0.0635 -0.009 0.0" />
-            <geometry>
-                <cylinder length="0.1" radius="0.08" />
-            </geometry>
-        </collision>
-        <collision>
-            <!-- Heatfins -->
-            <origin rpy="1.57079632679 0 0" xyz="0.0635 -0.074 0.0" />
-            <geometry>
-                <cylinder length="0.03" radius="0.045" />
-            </geometry>
-        </collision>
-        
+    <link name="pelvis">
         <inertial>
-            <origin rpy="0 0 0" xyz="0.064516258147 -0.003787101702 -0.000152184388" />
-            <mass value="1.42462064" />
-            <inertia ixx="0.00243023349564" ixy="-1.53023971e-05" ixz="-2.1819095354e-05" iyy="0.00230257239103" iyz="2.6473021273e-05" izz="0.0019806759227" />
+        <mass value="1.0"/>
+        <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
         </inertial>
-
+        <visual>
+        <geometry>
+            <cylinder length="0.1" radius="0.1"/>
+        </geometry>
+        </visual>
+        <visual>
+        <geometry>
+            <cylinder length="0.1" radius="0.1"/>
+        </geometry>
+        </visual>
     </link>
 
-    <link name="LF_THIGH">
+    <link name="hip1_1">
+        <inertial>
+        <origin xyz="0.010214199 0.0 0.038090987"/>
+        <mass value="1.9194403"/>
+        <!-- org: 2 -->
+        <inertia ixx="0.0047439572" ixy="-0.0" ixz="-0.0003784138" iyy="0.0040551878" iyz="-0.0" izz="0.0034146219"/>
+        <!-- <inertia ixx="0.01" ixy="0.01" ixz="0.01" iyy="0.01" iyz="0.01" izz="0.01"/> -->
+        </inertial>
         <visual>
-            <origin rpy="0 0 0.0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package:// awesome_leg/description/meshes/anymal_thigh_l.dae" scale="0.001 0.001     0.001" />
-            </geometry>
-            <material name="awesome_leg_material" />
+        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
+        <geometry>
+            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/hip-yaw.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        <material name="dark_grey"/>
         </visual>
         <collision>
-            <!-- thigh with heat fins -->
-            <origin rpy="0.145 0 0" xyz="0 0.035 -0.125" />
-            <geometry>
-                <box size="0.08 0.04 0.25" />
-            </geometry>
+        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
+        <geometry>
+            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/hip-yaw.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
         </collision>
-        <collision>
-            <!-- KFE actuator -->
-            <origin rpy="1.57079632679 0 0" xyz="0.0 0.069 -0.25" />
-            <geometry>
-                <cylinder length="0.12" radius="0.06" />
-            </geometry>
-        </collision>
-        <collision>
-            <!-- upper protector -->
-            <origin rpy="1.71579632679 0 0" xyz="0 -0.005 0" />
-            <geometry>
-                <cylinder length="0.12" radius="0.066" />
-            </geometry>
-        </collision>
-        
-        <inertial>
-            <origin rpy="0 0 0" xyz="-0.003897968082 0.054226618537 -0.214583373795" />
-            <mass value="1.634976467" />
-            <inertia ixx="0.0120367944369" ixy="6.762065206e-05" ixz="0.000287806340448" iyy="0.0120643637939" iyz="-0.00140610131218" izz="0.00249422574881" />
-        </inertial>
-
     </link>
 
-    <link name="LF_SHANK">
+    <link name="hip2_1">
+        <inertial>
+        <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
+        <mass value="2.7264471"/>
+        <!-- org: 4.5 -->
+        <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
+        <!-- <inertia ixx="0.01" ixy="0.01" ixz="0.01" iyy="0.01" iyz="0.01" izz="0.01"/> -->
+        </inertial>
         <visual>
-            <origin rpy="0 0 0.0" xyz="0 0 0" />
-            <geometry>
-                <mesh filename="package:// awesome_leg/description/meshes/anymal_shank_l.dae" scale="0.001 0.001     0.001" />
-            </geometry>
-            <material name="awesome_leg_material" />
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        <geometry>
+            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/hip-pitch.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
         </visual>
         <collision>
-            <origin rpy="0 1.57079632679 0" xyz="0.065 -0.015 0.01" />
-            <geometry>
-                <box size="0.08 0.07 0.13" />
-            </geometry>
+        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+        <geometry>
+            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/hip-pitch.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
         </collision>
-        
-        <inertial>
-            <origin rpy="0 0 0" xyz="0.030816858139 -0.004617229294 0.000893125713" />
-            <mass value="0.207204302" />
-            <inertia ixx="0.0002104880248" ixy="-5.6750980345e-05" ixz="1.0127699391e-05" iyy="0.000676270210023" iyz="-8.22869024e-07" izz="0.000545032674924" />
-        </inertial>
+    </link>
 
+    <link name="knee_1">
+        <inertial>
+        <mass value="1.1927236"/>
+        <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>
+        <!--origin xyz="${1.4549221e+01*mmTom} ${-2.0785942e+01*mmTom} ${-1.9572282e+02*mmTom}" rpy="0.0 0.0 0.0"/-->
+        <!--inertia ixx="${3.5313402e+04*mm2Tom2}"  ixy="${0.0*mm2Tom2}"  ixz="${1.1029574e-01*mm2Tom2}" iyy="${3.5530025e+04*mm2Tom2}" iyz="${-6.0307457e+02*mm2Tom2}" izz="${1.3302597e+03*mm2Tom2}" /-->
+        <inertia ixx="0.0013302597" ixy="0.00060307457" ixz="0.0" iyy="0.035313402" iyz="-1.1029574e-07" izz="0.035530025"/>
+        </inertial>
+        <visual>
+        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
+        <material name="black"/>
+        <geometry name="1_stick_visual">
+            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        </visual>
+        <collision>
+        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
+        <geometry name="1_stick_collision">
+            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
+        </geometry>
+        </collision>
     </link>
     
-    <link name="LF_ADAPTER">
-        <visual>
-            <origin rpy="0 0 0.0" xyz="0 0 0.032" />
-            <geometry>
-                <mesh filename="package:// awesome_leg/description/meshes/anymal_foot.dae" scale="0.001 0.001     0.001" />
-            </geometry>
-            <material name="awesome_leg_material" />
-        </visual>
-        <collision>
-            <origin rpy="0 0 0" xyz="0 0 -0.160625" />
-            <geometry>
-                <cylinder length="0.32125" radius="0.015" />
-            </geometry>
-            <material name="awesome_leg_material" />
-        </collision>
-        
-        <inertial>
-            <origin rpy="0 0 0" xyz="-8.66e-10 -1.472e-09 -0.244345749188" />
-            <mass value="0.140170767" />
-            <inertia ixx="0.00159938741862" ixy="-9.32e-13" ixz="1.039e-11" iyy="0.00159938741932" iyz="1.7563e-11" izz="5.4423177329e-05" />
-        </inertial>
-
-    </link>
-
-    <link name="LF_FOOT">
-        <collision>
-            <origin xyz="0 0 0.02325" />
-            <geometry>
-                <sphere radius="0.031" />
-            </geometry>
-        </collision>
-        
-        <inertial>
-            <mass value="0.1" />
-            <inertia ixx="0.03" iyy="0.03" izz="0.03" ixy="0.0" ixz="0.0" iyz="0.0" />
-        </inertial>
-
-    </link>
+    <link name="tip"/> <!-- just for reference-->
 
     <!-- ################### JOINTS ################### -->
-   
-    <!-- Thigh joint -->
-    <joint name="LF_HFE" type="revolute">
-        <parent link="LF_HIP" />
-        <child link="LF_THIGH" />
-        <origin xyz="0.0635 0.041 0.0" />
-        <axis xyz="0 1 0"/>
-        <limit command_effort="40" current="10" effort="80" gear_velocity="10" lower="-9.42" upper="9.42" velocity="15.0" />
-        <dynamics damping="0.0" friction="0.0" />
+
+    <joint name="hip_yaw_1" type="fixed">
+        <parent link="pelvis"/>
+        <child link="hip1_1"/>
+        <origin rpy="3.14159265359 0.0 0.0" xyz="0.0 -0.0 -0.0566"/>
     </joint>
 
-    <!-- Shank joint -->
-    <joint name="LF_KFE" type="revolute">
-        <parent link="LF_THIGH" />
-        <child link="LF_SHANK" />
-        <origin xyz="0.0 0.109 -0.25" />
-        <axis xyz="0 1 0" />
-        <limit command_effort="40" current="10" effort="80" gear_velocity="10" lower="-9.42" upper="9.42" velocity="15.0" />
-        <dynamics damping="0.0" friction="0.0" />
+    <joint name="hip_pitch_1" type="revolute">
+        <parent link="hip1_1"/>
+        <child link="hip2_1"/>
+        <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="3040" lower="-2.0226" upper="2.02748" velocity="28.8"/>
     </joint>
 
-    <!-- Shank to Adapter joint -->
-    <joint name="LF_SHANK_TO_ADAPTER" type="fixed">
-        <parent link="LF_SHANK" />
-        <child link="LF_ADAPTER" />
-        <origin rpy="0.0 0.0 0.0" xyz="0.1 -0.02 0.0" />
+    <joint name="knee_pitch_1" type="revolute">
+        <parent link="hip2_1"/>
+        <child link="knee_1"/>
+        <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="3040" lower="-2.4056" upper="2.3994" velocity="28.8"/>
+        <!-- 200 Nm, 1 rad/s-->
     </joint>
 
-    <!-- Adapter to Foot joint -->
-    <joint name="LF_ADAPTER_TO_FOOT" type="fixed">
-        <parent link="LF_ADAPTER" />
-        <child link="LF_FOOT" />
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 -0.32125" />
+    <joint name="tip_joint" type="fixed">
+        <parent link="knee_1"/>
+        <child link="tip"/>
+        <origin xyz="0.45 0.0 -0.02"/>
     </joint>
-    
+        
     <!-- ################### TRANSMISSION ELEMENTS ################### -->
 
    
-    <transmission name="trans_LF_HFE">
+    <transmission name="hip_trans">
         <type>transmission_interface/SimpleTransmission</type>
-        <joint name="LF_HFE">
+        <joint name="hip_pitch_1">
             <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
         </joint>
-        <actuator name="LF_HFE_motor">
+        <actuator name="hip_motor">
             <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
     </transmission>
-    <transmission name="trans_LF_KFE">
+    <transmission name="knee_trans">
         <type>transmission_interface/SimpleTransmission</type>
-        <joint name="LF_KFE">
+        <joint name="knee_pitch_1">
             <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
         </joint>
-        <actuator name="LF_KFE_motor">
+        <actuator name="knee_motor">
             <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
             <mechanicalReduction>1</mechanicalReduction>
         </actuator>
@@ -223,9 +177,9 @@
                 <gain name="big_mot"    p="3000" d="10"/>
                 <gain name="wheel_mot"  p="0" d="30"/>
 
-                <gain name="test_rig_LF_HIP" profile="null_mode"/>
-                <gain name="LF_HFE" profile="medium_mot"/>
-                <gain name="LF_KFE" profile="medium_mot"/>
+                <gain name="test_rig2HIP" profile="null_mode"/>
+                <gain name="hip_actuation" profile="medium_mot"/>
+                <gain name="knee_actuation" profile="medium_mot"/>
             </pid>
         </plugin>
     </gazebo>
@@ -242,11 +196,19 @@
 
     <!-- ################### OTHER STUFF ################### -->
 
-    <gazebo reference="LF_FOOT"> <!-- Foot contact parameters -->
-        <kp>1000000.0</kp>
-        <kd>100.0</kd>
-        <mu1>0.8</mu1>
-        <mu2>0.8</mu2>
-    </gazebo>
+    <!--Gazebo-specific tags-->
 
-</robot>
+    <gazebo reference="pelvis">
+    <material>Gazebo/LightBlueLaser</material>
+    </gazebo>
+    <gazebo reference="hip1_1">
+        <material>Gazebo/LightBlueLaser</material>
+    </gazebo>
+    <gazebo reference="hip2_1">
+        <material>Gazebo/BlackTransparent</material>
+    </gazebo>
+    <gazebo reference="knee_1">
+        <material>Gazebo/LightBlueLaser</material>
+    </gazebo>
+  
+  </robot>
