@@ -136,7 +136,7 @@
     <child link="test_rig"/>
     </joint>
 
-    <joint name="test_rig_LF_HIP" type="prismatic">
+    <joint name="passive_joint" type="prismatic">
       <parent link="test_rig" />
       <child link="pelvis" />
       <origin xyz="0 0 0.1" />

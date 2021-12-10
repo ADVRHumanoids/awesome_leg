@@ -34,15 +34,13 @@ LegJointPositionLimits:
     type: "JointLimits"
     bound_scaling: 1.0
     limits:
-        # LF_HFE: [-1.57, 1.57]
-        # LF_KFE: [-1.57, 1.57]  
+
 
 LegJointVelocityLimits:
     type: "VelocityLimits"
     bound_scaling: 1 
     limits:
-        # LF_HFE: 1.57
-        # LF_KFE: 1.57
+       
 
 
 
