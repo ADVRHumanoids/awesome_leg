@@ -1,0 +1,10 @@
+<launch>
+
+  <!-- loading some parameters used by the horizon publisher-->
+  <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_gazebo_cosim.yaml" /> 
+  <!-- loading some horizon solver parameters-->
+  <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_solver.yaml" /> 
+  <!-- loading some useful actuators parameters-->
+  <rosparam command="load" file="$(find awesome_leg_pholus)/config/actuators.yaml" /> 
+
+</launch>

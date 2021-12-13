@@ -1,0 +1,23 @@
+<launch>
+   <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
+   
+  <!-- Simply load all the necessary parameters into the parameter server -->
+  <include file="$(find awesome_leg_pholus)/launch/load_params.launch" />
+
+  <!-- Simply launch Gazebo, with the custom world file and spawn the model, while preserving all the arguments of the source launch file -->
+  <include file="$(find awesome_leg_pholus)/launch/gazebo.launch" pass_all_args="true" />
+  
+  <group if="$(arg isxbot2_interface)">
+    <!-- Launching the xbot2-core command -->
+    <node name="xbot2_core" pkg="awesome_leg_pholus" type="start_xbot2-core.sh" />
+    <!-- Enabling the joint control -->
+    <node name="xbot2_cntrl" pkg="awesome_leg_pholus" type="start_xbot2-cntrl.sh" />
+  </group>
+
+  <!-- Launching the horizon solver node; this is used to compute the optimized trajectory/inputs -->
+  <include file="$(find awesome_leg_pholus)/launch/horizon_solver.launch" />
+
+  <!-- Launching the horizon-xbot2 publisher  -->
+  <!-- <include file="$(find awesome_leg_pholus)/launch/horizon_pub.launch" /> -->
+
+</launch>

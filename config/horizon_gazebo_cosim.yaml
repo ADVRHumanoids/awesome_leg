@@ -1,0 +1,10 @@
+horizon:
+ joints:
+  hip_joint:
+   control_mode: "position" 
+   stiffness: 1000.0
+   damping: 0.0
+  knee_joint:
+   control_mode: "position"
+   stiffness: 1000.0
+   damping: 0.0
