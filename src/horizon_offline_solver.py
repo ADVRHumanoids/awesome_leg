@@ -173,3 +173,5 @@ ms.store(useful_solutions) # saving solution data to file
 #                              solution["q_p"])  # replaying the trajectory and the forces on (it publishes on ROS topics)
 # rpl_traj.sleep(1.0)
 # rpl_traj.replay(is_floating_base=False)
+
+print(solution["q_p_ddot"][1:3,:])

@@ -116,7 +116,7 @@
         <child link="hip2_1"/>
         <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
         <axis xyz="0 0 1"/>
-        <limit effort="100" lower="-2.0226" upper="2.02748" velocity="30.0"/>
+        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>
 
     <joint name="knee_pitch_1" type="revolute">
@@ -124,8 +124,7 @@
         <child link="knee_1"/>
         <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
         <axis xyz="0 0 1"/>
-        <limit effort="100" lower="-2.4056" upper="2.3994" velocity="30.0"/>
-        <!-- 200 Nm, 1 rad/s-->
+        <limit effort="112" lower="-2.4056" upper="2.3994" velocity="20.0"/>
     </joint>
 
     <joint name="tip_joint" type="fixed">

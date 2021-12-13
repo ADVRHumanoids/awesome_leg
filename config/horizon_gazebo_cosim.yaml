@@ -1,7 +1,7 @@
 horizon:
  joints:
   hip_joint:
-   control_mode: "position" 
+   control_mode: "position" # "position", "velocity", "effort"
    stiffness: 1000.0
    damping: 0.0
   knee_joint:
