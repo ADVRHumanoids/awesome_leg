@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-####################### IMPORTS ########################
+###############################################
+
 import time
 
 import rospy
@@ -15,44 +16,28 @@ import casadi_kin_dyn
 
 import numpy as np
 
-# from horizon.ros.replay_trajectory import *
-
 ##############################################
 
 rospackage=rospkg.RosPack()
-
 # Only for taking the path to the leg package
 ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/sim_results/horizon_offline_solver.mat")
 
-# "Loading the "URDF"
-urdf_path = rospackage.get_path("awesome_leg_pholus")+"/description/urdf/awesome_leg_complete.urdf"
-urdf = open(urdf_path, "r").read()
-urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
-
-n_q = urdf_awesome_leg.nq()  # number of joints
-n_v = urdf_awesome_leg.nv()  # number of dofs
-
-# Setting some of the problem's parameters
-
+################### Loading some problem paramters from the ROS parameter server ###########################
+ 
 T_f = rospy.get_param("/horizon/problem/T_f_horizon")  # optimization horizon
 T_takeoff =rospy.get_param("/horizon/problem/T_takeoff_horizon")   # instant of takeoff
 T_touchdown =rospy.get_param("/horizon/problem/T_touchdown_horizon")   # instant of touchdown
 dt = rospy.get_param("/horizon/problem/dt")   # optimization dt [s]
 
-n_nodes = round(T_f / dt)
-n_takeoff = round(T_takeoff / dt)  # node index at takeoff
-n_touchdown = round(T_touchdown / dt)  # node index at touchdown
-
-rospy.set_param('/horizon/problem/n_nodes', n_nodes) # setting ros parameters (might be useful for other nodes)
-rospy.set_param('/horizon/problem/n_takeoff', n_takeoff)
-rospy.set_param('/horizon/problem/n_touchdown', n_touchdown)
-
 test_rig_lb= rospy.get_param("/horizon/test_rig/lb") # lower bound of the test rig excursion
 test_rig_ub=rospy.get_param("/horizon/test_rig/ub") # upper bound of the test rig excursion
-hip_tau_lim=rospy.get_param("/horizon/hip/tau_lim") # hip effort limit [Nm]
-knee_tau_lim=rospy.get_param("/horizon/knee/tau_lim") # knee effort limit [Nm]
-tau_lim = np.array([0, hip_tau_lim, knee_tau_lim])  # effort limits (test_rig passive joint effort limit)
+# hip_lb= rospy.get_param("/horizon/hip/lb") # lower bound of the hip joint
+# hip_ub=rospy.get_param("/horizon/hip/ub") # upper bound of the hip joint
+# top_lb= rospy.get_param("/horizon/knee/lb") # lower bound of the hip joint
+# top_ub=rospy.get_param("/horizon/knee/ub") # upper bound of the hip joint
+
 # initial joint config (ideally it would be given from measurements)
+
 q_p_init = rospy.get_param("/horizon/initial_conditions/q_p")
 q_p_dot_init = rospy.get_param("/horizon/initial_conditions/q_p_dot")
 
@@ -66,7 +51,74 @@ weight_hip_height_jump = rospy.get_param("/horizon/cost_weights/big_hip_jump") #
 slvr_opt = {"ipopt.tol": rospy.get_param("/horizon/problem/solver/tolerance"), "ipopt.max_iter": rospy.get_param("/horizon/problem/solver/max_iter"), "ipopt.linear_solver": rospy.get_param("/horizon/problem/solver/linear_solver_name")}
 slvr_name=rospy.get_param("/horizon/problem/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
 
+##################### Getting the properties of the actuator from the ROS parameter server ########################
+
+# hip actuator
+hip_axial_MoI=rospy.get_param("/actuators/hip/axial_MoI")
+hip_mass=rospy.get_param("/actuators/hip/mass")
+hip_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
+hip_efficiency=rospy.get_param("/actuators/hip/efficiency")
+hip_K_t=rospy.get_param("/actuators/hip/K_t")
+hip_K_bmf=rospy.get_param("/actuators/hip/K_bmf")
+hip_R=rospy.get_param("/actuators/hip/R")
+hip_tau_max_br=rospy.get_param("/actuators/hip/tau_max_br")
+hip_tau_max_ar=rospy.get_param("/actuators/hip/tau_max_ar")
+hip_tau_peak_br=rospy.get_param("/actuators/hip/tau_peak_br")
+hip_tau_peak_ar=rospy.get_param("/actuators/hip/tau_peak_ar")
+hip_I_max=rospy.get_param("/actuators/hip/I_max")
+hip_I_peak=rospy.get_param("/actuators/hip/I_peak")
+
+print("\n")
+print(hip_I_peak)
+print("\n")
+
+hip_omega_max_nl_bf=rospy.get_param("/actuators/hip/omega_max_nl_bf")
+hip_omega_max_nl_af=rospy.get_param("/actuators/hip/omega_max_nl_af")
+hip_omega_max_nl_af44=rospy.get_param("/actuators/hip/omega_max_nl_af44")
+hip_omega_max_nl_af112=rospy.get_param("/actuators/hip/omega_max_nl_af112")
+
+# knee actuator
+knee_axial_MoI=rospy.get_param("/actuators/knee/axial_MoI")
+knee_mass=rospy.get_param("/actuators/knee/mass")
+knee_red_ratio=rospy.get_param("/actuators/knee/red_ratio")
+knee_efficiency=rospy.get_param("/actuators/knee/efficiency")
+knee_K_t=rospy.get_param("/actuators/knee/K_t")
+knee_K_bmf=rospy.get_param("/actuators/knee/K_bmf")
+knee_R=rospy.get_param("/actuators/knee/R")
+knee_tau_max_br=rospy.get_param("/actuators/knee/tau_max_br")
+knee_tau_max_ar=rospy.get_param("/actuators/knee/tau_max_ar")
+knee_tau_peak_br=rospy.get_param("/actuators/knee/tau_peak_br")
+knee_tau_peak_ar=rospy.get_param("/actuators/knee/tau_peak_ar")
+knee_I_max=rospy.get_param("/actuators/knee/I_max")
+knee_I_peak=rospy.get_param("/actuators/knee/I_peak")
+knee_omega_max_nl_bf=rospy.get_param("/actuators/knee/omega_max_nl_bf")
+knee_omega_max_nl_af=rospy.get_param("/actuators/knee/omega_max_nl_af")
+knee_omega_max_nl_af44=rospy.get_param("/actuators/knee/omega_max_nl_af44")
+knee_omega_max_nl_af112=rospy.get_param("/actuators/knee/omega_max_nl_af112")
+
 ##############################################
+# Loading the URDF
+urdf_path = rospackage.get_path("awesome_leg_pholus")+"/description/urdf/awesome_leg_complete.urdf"
+urdf = open(urdf_path, "r").read()
+urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
+
+n_q = urdf_awesome_leg.nq()  # number of joints
+n_v = urdf_awesome_leg.nv()  # number of dofs
+
+
+##############################################
+
+# Setting some of the problem's parameters
+n_nodes = round(T_f / dt)
+n_takeoff = round(T_takeoff / dt)  # node index at takeoff
+n_touchdown = round(T_touchdown / dt)  # node index at touchdown
+rospy.set_param('/horizon/problem/n_nodes', n_nodes) # setting ros parameters (might be useful for other nodes)
+rospy.set_param('/horizon/problem/n_takeoff', n_takeoff)
+rospy.set_param('/horizon/problem/n_touchdown', n_touchdown)
+
+##############################################
+
+tau_lim = np.array([0, hip_tau_max_ar, knee_tau_max_ar])  # effort limits (test_rig passive joint effort limit)
 
 prb = Problem(n_nodes)  # initialization of a problem object
 prb.setDt(dt)  # setting problem's dt
@@ -132,6 +184,13 @@ prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_touchdown))  # 0 GRF during flight
 prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still at the end of the optimization horizon
 
+i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
+
+i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
+
+i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
+i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
+
 ##############################################
 
 # costs 
@@ -153,23 +212,20 @@ solution_time = time.time() - t
 print(f'solved in {solution_time} s')
 
 solution = slvr.getSolutionDict() # extracting solution
-# dt_opt = slvr.getDt() # extracting dt --> returns an array with the dt for each node
+
 
 joint_names = urdf_awesome_leg.joint_names()
 joint_names.remove("universe")  # removing the "universe joint"
 
 cnstr_opt = slvr.getConstraintSolutionDict()
 
+i_q=(hip_axial_MoI*solution["q_p_ddot"][1:3,:]/hip_red_ratio+cnstr_opt["dynamics_feas"][1:3,:]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
+
 solution_GRF = solution["f_contact"]
 solution_q_p = solution["q_p"]
 solution_p_foot_tip = fk_foot(q=solution_q_p)["ee_pos"]  # foot position
 solution_hip_position = fk_hip(q=solution_q_p)["ee_pos"]  # hip position
 
-useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:], "tau":cnstr_opt["dynamics_feas"][1:3,:], "f_contact":solution["f_contact"], "sol_time":solution_time}
+useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:], "tau":cnstr_opt["dynamics_feas"][1:3,:], "f_contact":solution["f_contact"], "i_q":i_q, "sol_time":solution_time}
 
 ms.store(useful_solutions) # saving solution data to file
-
-# rpl_traj = replay_trajectory(dt, joint_names,
-#                              solution["q_p"])  # replaying the trajectory and the forces on (it publishes on ROS topics)
-# rpl_traj.sleep(1.0)
-# rpl_traj.replay(is_floating_base=False)

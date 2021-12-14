@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-####################### IMPORTS ########################
+###############################################
+
 import time
 
 import rospy
@@ -14,8 +15,6 @@ import casadi as cs
 import casadi_kin_dyn
 
 import numpy as np
-
-# from horizon.ros.replay_trajectory import *
 
 ##############################################
 
@@ -52,7 +51,9 @@ test_rig_ub=rospy.get_param("/horizon/test_rig/ub") # upper bound of the test ri
 hip_tau_lim=rospy.get_param("/horizon/hip/tau_lim") # hip effort limit [Nm]
 knee_tau_lim=rospy.get_param("/horizon/knee/tau_lim") # knee effort limit [Nm]
 tau_lim = np.array([0, hip_tau_lim, knee_tau_lim])  # effort limits (test_rig passive joint effort limit)
+
 # initial joint config (ideally it would be given from measurements)
+
 q_p_init = rospy.get_param("/horizon/initial_conditions/q_p")
 q_p_dot_init = rospy.get_param("/horizon/initial_conditions/q_p_dot")
 
@@ -65,6 +66,44 @@ weight_hip_height_jump = rospy.get_param("/horizon/cost_weights/big_hip_jump") #
 # solver options
 slvr_opt = {"ipopt.tol": rospy.get_param("/horizon/problem/solver/tolerance"), "ipopt.max_iter": rospy.get_param("/horizon/problem/solver/max_iter"), "ipopt.linear_solver": rospy.get_param("/horizon/problem/solver/linear_solver_name")}
 slvr_name=rospy.get_param("/horizon/problem/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
+
+# hip actuator
+hip_axial_MoI=rospy.get_param("/actuators/hip/axial_MoI")
+hip_mass=rospy.get_param("/actuators/hip/mass")
+hip_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
+hip_efficiency=rospy.get_param("/actuators/hip/efficiency")
+hip_K_t=rospy.get_param("/actuators/hip/K_t")
+hip_K_bmf=rospy.get_param("/actuators/hip/K_bmf")
+hip_R=rospy.get_param("/actuators/hip/R")
+hip_tau_max_br=rospy.get_param("/actuators/hip/tau_max_br")
+hip_tau_max_ar=rospy.get_param("/actuators/hip/tau_max_ar")
+hip_tau_peak_br=rospy.get_param("/actuators/hip/tau_peak_br")
+hip_tau_peak_ar=rospy.get_param("/actuators/hip/tau_peak_ar")
+hip_I_max=rospy.get_param("/actuators/hip/I_max")
+hip_I_peak=rospy.get_param("/actuators/hip/I_peak")
+hip_omega_max_nl_bf=rospy.get_param("/actuators/hip/omega_max_nl_bf")
+hip_omega_max_nl_af=rospy.get_param("/actuators/hip/omega_max_nl_af")
+hip_omega_max_nl_af44=rospy.get_param("/actuators/hip/omega_max_nl_af44")
+hip_omega_max_nl_af112=rospy.get_param("/actuators/hip/omega_max_nl_af112")
+
+# knee actuator
+knee_axial_MoI=rospy.get_param("/actuators/knee/axial_MoI")
+knee_mass=rospy.get_param("/actuators/knee/mass")
+knee_red_ratio=rospy.get_param("/actuators/knee/red_ratio")
+knee_efficiency=rospy.get_param("/actuators/knee/efficiency")
+knee_K_t=rospy.get_param("/actuators/knee/K_t")
+knee_K_bmf=rospy.get_param("/actuators/knee/K_bmf")
+knee_R=rospy.get_param("/actuators/knee/R")
+knee_tau_max_br=rospy.get_param("/actuators/knee/tau_max_br")
+knee_tau_max_ar=rospy.get_param("/actuators/knee/tau_max_ar")
+knee_tau_peak_br=rospy.get_param("/actuators/knee/tau_peak_br")
+knee_tau_peak_ar=rospy.get_param("/actuators/knee/tau_peak_ar")
+knee_I_max=rospy.get_param("/actuators/knee/I_max")
+knee_I_peak=rospy.get_param("/actuators/knee/I_peak")
+knee_omega_max_nl_bf=rospy.get_param("/actuators/knee/omega_max_nl_bf")
+knee_omega_max_nl_af=rospy.get_param("/actuators/knee/omega_max_nl_af")
+knee_omega_max_nl_af44=rospy.get_param("/actuators/knee/omega_max_nl_af44")
+knee_omega_max_nl_af112=rospy.get_param("/actuators/knee/omega_max_nl_af112")
 
 ##############################################
 
@@ -132,6 +171,11 @@ prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_touchdown))  # 0 GRF during flight
 prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still at the end of the optimization horizon
 
+
+i_q_hip=prb.createConstraint("quadrature_current_hip", (hip_axial_MoI*q_p_ddot/hip_red_ratio+tau*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
+i_q_knee=prb.createConstraint("quadrature_current_knee", (knee_axial_MoI*q_p_ddot/knee_red_ratio+tau*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
+# i_q_hip.setBounds(-np.ones(n_nodes-1)*hip_I_max, np.ones(n_nodes-1)*hip_I_max)  # setting input limits
+# i_q_knee.setBounds(-np.ones(n_nodes-1)*knee_I_max, np.ones(n_nodes-1)*knee_I_max)  # setting input limits
 ##############################################
 
 # costs 
@@ -173,3 +217,5 @@ ms.store(useful_solutions) # saving solution data to file
 #                              solution["q_p"])  # replaying the trajectory and the forces on (it publishes on ROS topics)
 # rpl_traj.sleep(1.0)
 # rpl_traj.replay(is_floating_base=False)
+
+print(time_vector)

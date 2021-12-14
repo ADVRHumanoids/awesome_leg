@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 ###############################################
+
 import rospy
 import rospkg
 
@@ -9,10 +10,8 @@ from xbot_msgs.msg import JointCommand
 from horizon.utils import mat_storer
 
 import numpy as np
+
 ###############################################
-# csi-> reduction ratio
-# eta-> harmonic drive efficiency
-# i_d=[Izz omega_dot+tau*csi/eta]*1/K_t
 
 rospackage=rospkg.RosPack()
 ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/sim_results/horizon_offline_solver.mat")
@@ -68,23 +67,40 @@ i_d_est_hip=np.zeros([n_nodes-1])
 i_d_est_knee=np.zeros([n_nodes-1])
 was_max_vel_exceeded_hip=np.zeros([n_nodes-1])
 was_max_vel_exceeded_knee=np.zeros([n_nodes-1])
+was_max_i_d_exceeded_hip=np.zeros([n_nodes-1])
+was_max_i_d_exceeded_knee=np.zeros([n_nodes-1])
 
 for i in range(n_nodes-1): 
 
-    i_d_est_hip[i]=(hip_axial_MoI*q_p_ddot[0,i+1]+tau[0,i]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
-    i_d_est_knee[i]=(knee_axial_MoI*q_p_ddot[1,i+1]+tau[1,i]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t
+    i_d_est_hip[i]=(hip_axial_MoI*q_p_ddot[0,i+1]/hip_red_ratio+tau[0,i]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
+    i_d_est_knee[i]=(knee_axial_MoI*q_p_ddot[1,i+1]/knee_red_ratio+tau[1,i]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t
 
-    if  q_p_dot[0,i+1]>hip_omega_max_nl_af44 : was_max_vel_exceeded_hip[i]=1
+    if  abs(q_p_dot[0,i+1])>hip_omega_max_nl_af44 : was_max_vel_exceeded_hip[i]=1
     else: was_max_vel_exceeded_hip[i]=0
-    if  q_p_dot[1,i+1]>knee_omega_max_nl_af44 : was_max_vel_exceeded_knee[i]=1
+
+    if  abs(q_p_dot[1,i+1])>knee_omega_max_nl_af44 : was_max_vel_exceeded_knee[i]=1
     else: was_max_vel_exceeded_knee[i]=0
 
-actuators_debug_test_hip={"i_d_est":i_d_est_hip,"was_max_vel_exceeded":was_max_vel_exceeded_hip}
-actuators_debug_test_knee={"i_d_est":i_d_est_knee,"was_max_vel_exceeded":was_max_vel_exceeded_knee}
+    if  abs(i_d_est_hip[i])>=hip_I_max and abs(i_d_est_hip[i])<hip_I_peak: 
+        was_max_i_d_exceeded_hip[i]=1
+    elif abs(i_d_est_hip[i])>=hip_I_peak:
+        was_max_i_d_exceeded_hip[i]=2
+        
+    else: was_max_i_d_exceeded_hip[i]=0
+
+    if  abs(i_d_est_knee[i])>=knee_I_max and abs(i_d_est_knee[i])<knee_I_peak: 
+        was_max_i_d_exceeded_knee[i]=1
+    elif abs(i_d_est_knee[i])>=knee_I_peak:
+        was_max_i_d_exceeded_knee[i]=2
+    else: was_max_i_d_exceeded_knee[i]=0
+
+actuators_debug_test_hip={"i_d_est":i_d_est_hip,"was_max_vel_exceeded":was_max_vel_exceeded_hip,"was_max_i_d_exceeded_hip":was_max_i_d_exceeded_hip}
+actuators_debug_test_knee={"i_d_est":i_d_est_knee,"was_max_vel_exceeded":was_max_vel_exceeded_knee, "was_max_i_d_exceeded_knee":was_max_i_d_exceeded_knee}
 actuators_debug_test={"hip":actuators_debug_test_hip, "knee":actuators_debug_test_knee}
 
 ms_test.store(actuators_debug_test) # saving solution data to file
 
-print(actuators_debug_test)
-
-
+print(actuators_debug_test_hip)
+print("\n")
+print(actuators_debug_test_knee)
+print("\n")

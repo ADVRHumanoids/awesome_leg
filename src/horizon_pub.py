@@ -6,6 +6,7 @@ import rospy
 import rospkg
 
 from xbot_msgs.msg import JointCommand
+from xbot_interface import xbot_interface as xbot
 
 from horizon.utils import mat_storer
 
@@ -36,6 +37,10 @@ joint_command.stiffness=[hip_joint_stffnss,knee_joint_stffnss]
 joint_command.damping=[hip_joint_damp,knee_joint_damp]
 
 ctrl_mode=[1,1] # default is position control
+
+ctrl_mode_override = {'joint1': xbot.ControlMode.Position() + xbot.ControlMode.Effort()}
+
+robot.setControlMode(ctrl_mode_override)
 
 if hip_cntrl_mode=="position":
     ctrl_mode[0]=1

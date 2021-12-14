@@ -1,8 +1,8 @@
 horizon:
   problem:
-    T_f_horizon: 5.0
-    T_takeoff_horizon: 3.0
-    T_touchdown_horizon: 3.5
+    T_f_horizon: 5
+    T_takeoff_horizon: 3
+    T_touchdown_horizon: 3.3
     adaptive_dt: false
     dt: 0.08
     solver:
@@ -14,12 +14,12 @@ horizon:
   test_rig:
     lb: -0.4
     ub:  0.4
-
   hip:
-    tau_lim: 50.0
-
+    lb: 
+    ub: 
   knee:
-    tau_lim: 50.0
+    lb: 
+    ub: 
 
   initial_conditions:
     q_p:     [0.0, 0.0, 0.0]
@@ -29,7 +29,8 @@ horizon:
     contact_force: 0.01
     terminal_postural: 1000
     small_q_p_ddot: 1
-    big_hip_jump: 100
+    big_hip_jump: 5
+   
 
 
 
