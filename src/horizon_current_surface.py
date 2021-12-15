@@ -20,7 +20,7 @@ solution=ms_loaded.load() # loading the solution dictionary
 
 q_p_ddot=solution["q_p_ddot"]
 tau=solution["tau"]
-dt = rospy.get_param("/horizon/problem/dt")   # optimization dt [s]
+dt = rospy.get_param("/horizon_solver/constant_dt/problem_settings/dt")   # optimization dt [s]
 
 time_vector = np.zeros([tau[0,:].size+1])
 for i in range(tau[0,:].size):

@@ -1,5 +1,5 @@
 <launch>
 
-  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_v2.py" />
+  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver.py" />
 
 </launch>

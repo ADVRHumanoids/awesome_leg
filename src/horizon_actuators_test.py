@@ -22,7 +22,7 @@ q_p_dot=solution["q_p_dot"]
 q_p_ddot=solution["q_p_ddot"]
 tau=solution["tau"]
 
-n_nodes = rospy.get_param("/horizon/problem/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+n_nodes = rospy.get_param("/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
 hip_cntrl_mode = rospy.get_param("/horizon/joints/hip_joint/control_mode") # control mode (position, velocity, effort)
 
 # hip actuator
@@ -99,8 +99,3 @@ actuators_debug_test_knee={"i_d_est":i_d_est_knee,"was_max_vel_exceeded":was_max
 actuators_debug_test={"hip":actuators_debug_test_hip, "knee":actuators_debug_test_knee}
 
 ms_test.store(actuators_debug_test) # saving solution data to file
-
-print(actuators_debug_test_hip)
-print("\n")
-print(actuators_debug_test_knee)
-print("\n")

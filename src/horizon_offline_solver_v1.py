@@ -3,7 +3,7 @@
 ###############################################
 
 #   =============================================
-# ||              VARIABLE dt                    || 
+# ||              CONSTANT dt                    || 
 #   =============================================
 
 ###############################################
@@ -25,53 +25,41 @@ import casadi_kin_dyn
 import numpy as np
 
 ##############################################
-save_sol_as_init = rospy.get_param("/horizon_solver/save_sol_as_init")  # if true, the solution is also saved as a candidate for future optimization initializations
-employ_opt_init = rospy.get_param("/horizon_solver/employ_opt_init")  # if true, the solution is also saved as a candidate for future optimization initializations
 
 rospackage=rospkg.RosPack()
 # Only for taking the path to the leg package
-if employ_opt_init:
-    ms_load = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/sim_results/horizon_offline_solver_init.mat")
-    loaded_sol=ms_load.load() # loading the solution dictionary
-
 ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/sim_results/horizon_offline_solver.mat")
-if save_sol_as_init:
-    ms_opt_init = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/sim_results/horizon_offline_solver_init.mat")
 
 ##############################################
 
 # Loading some problem paramters from the ROS parameter server
 
-n_nodes = rospy.get_param("/horizon_solver/variable_dt/problem_settings/n_nodes")  # optimization horizon
-n_takeoff =rospy.get_param("/horizon_solver/variable_dt/problem_settings/n_takeoff")   # instant of takeoff
-n_touchdown =rospy.get_param("/horizon_solver/variable_dt/problem_settings/n_touchdown")   # instant of touchdown
-n_pre_takeoff =rospy.get_param("/horizon_solver/variable_dt/problem_settings/n_pre_takeoff")   # instant of takeoff
-n_post_touchdown =rospy.get_param("/horizon_solver/variable_dt/problem_settings/n_post_touchdown")   # instant of touchdown
+T_f = rospy.get_param("/horizon_solver/constant_dt/problem_settings/T_f_horizon")  # optimization horizon
+T_takeoff =rospy.get_param("/horizon_solver/constant_dt/problem_settings/T_takeoff_horizon")   # instant of takeoff
+T_touchdown =rospy.get_param("/horizon_solver/constant_dt/problem_settings/T_touchdown_horizon")   # instant of touchdown
+dt = rospy.get_param("/horizon_solver/constant_dt/problem_settings/dt")   # optimization dt [s]
 
-dt_lb=rospy.get_param("/horizon_solver/variable_dt/problem_settings/dt_lb")   # dt lower bound 
-dt_ub=rospy.get_param("/horizon_solver/variable_dt/problem_settings/dt_ub")   # dt upper bound
+test_rig_lb= rospy.get_param("/horizon_solver/constant_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
+test_rig_ub=rospy.get_param("/horizon_solver/constant_dt/problem_settings/test_rig/ub") # upper bound of the test rig excursion
+# hip_lb= rospy.get_param("/horizon_solver/constant_dt/problem_settings/hip/lb") # lower bound of the hip joint
+# hip_ub=rospy.get_param("/horizon_solver/constant_dt/problem_settings/hip/ub") # upper bound of the hip joint
+# top_lb= rospy.get_param("/horizon_solver/constant_dt/problem_settings/knee/lb") # lower bound of the hip joint
+# top_ub=rospy.get_param("/horizon_solver/constant_dt/problem_settings/knee/ub") # upper bound of the hip joint
 
-test_rig_lb= rospy.get_param("horizon_solver/variable_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
-test_rig_ub=rospy.get_param("/horizon_solver/variable_dt/problem_settings/test_rig/ub") # upper bound of the test rig excursion
-# hip_lb= rospy.get_param("/horizon_solver/variable_dt/problem_settings/hip/lb") # lower bound of the hip joint
-# hip_ub=rospy.get_param("/horizon_solver/variable_dt/problem_settings/hip/ub") # upper bound of the hip joint
-# top_lb= rospy.get_param("/horizon_solver/variable_dt/problem_settings/knee/lb") # lower bound of the hip joint
-# top_ub=rospy.get_param("/horizon_solver/variable_dt/problem_settings/knee/ub") # upper bound of the hip joint
-
-q_p_init = rospy.get_param("/horizon_solver/variable_dt/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
-q_p_dot_init = rospy.get_param("/horizon_solver/variable_dt/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
+q_p_init = rospy.get_param("/horizon_solver/constant_dt/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
+q_p_dot_init = rospy.get_param("/horizon_solver/constant_dt/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
 
 # cost weights
 
-weight_contact_cost = rospy.get_param("/horizon_solver/variable_dt/problem_settings/cost_weights/contact_force")  # minimizing the contact force
-weight_postural_cost = rospy.get_param("/horizon_solver/variable_dt/problem_settings/cost_weights/terminal_postural") # cost to restore the initial position at the end of the control horizon
-weight_q_ddot = rospy.get_param("/horizon_solver/variable_dt/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
-weight_hip_height_jump = rospy.get_param("/horizon_solver/variable_dt/problem_settings/cost_weights/big_hip_jump") # maximizing the jump height (measured at the hip)
+weight_contact_cost = rospy.get_param("/horizon_solver/constant_dt/problem_settings/cost_weights/contact_force")  # minimizing the contact force
+weight_postural_cost = rospy.get_param("/horizon_solver/constant_dt/problem_settings/cost_weights/terminal_postural") # cost to restore the initial position at the end of the control horizon
+weight_q_ddot = rospy.get_param("/horizon_solver/constant_dt/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
+weight_hip_height_jump = rospy.get_param("/horizon_solver/constant_dt/problem_settings/cost_weights/big_hip_jump") # maximizing the jump height (measured at the hip)
 
 # solver options
 
-slvr_opt = {"ipopt.tol": rospy.get_param("/horizon_solver/variable_dt/problem_settings/solver/tolerance"), "ipopt.max_iter": rospy.get_param("/horizon_solver/variable_dt/problem_settings/solver/max_iter"), "ipopt.linear_solver": rospy.get_param("/horizon_solver/variable_dt/problem_settings/solver/linear_solver_name")}
-slvr_name=rospy.get_param("/horizon_solver/variable_dt/problem_settings/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
+slvr_opt = {"ipopt.tol": rospy.get_param("/horizon_solver/constant_dt/problem_settings/solver/tolerance"), "ipopt.max_iter": rospy.get_param("/horizon_solver/constant_dt/problem_settings/solver/max_iter"), "ipopt.linear_solver": rospy.get_param("/horizon_solver/constant_dt/problem_settings/solver/linear_solver_name")}
+slvr_name=rospy.get_param("/horizon_solver/constant_dt/problem_settings/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
 
 ###############################################
 
@@ -91,6 +79,10 @@ hip_tau_peak_br=rospy.get_param("/actuators/hip/tau_peak_br")
 hip_tau_peak_ar=rospy.get_param("/actuators/hip/tau_peak_ar")
 hip_I_max=rospy.get_param("/actuators/hip/I_max")
 hip_I_peak=rospy.get_param("/actuators/hip/I_peak")
+
+print("\n")
+print(hip_I_peak)
+print("\n")
 
 hip_omega_max_nl_bf=rospy.get_param("/actuators/hip/omega_max_nl_bf")
 hip_omega_max_nl_af=rospy.get_param("/actuators/hip/omega_max_nl_af")
@@ -126,41 +118,33 @@ urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
 n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
+
+##############################################
+
+## Setting some of the problem's parameters
+n_nodes = round(T_f / dt)
+n_takeoff = round(T_takeoff / dt)  # node index at takeoff
+n_touchdown = round(T_touchdown / dt)  # node index at touchdown
+rospy.set_param('/horizon_solver/constant_dt/problem_settings/n_nodes', n_nodes) # setting ros parameters (might be useful for other nodes)
+rospy.set_param('/horizon_solver/constant_dt/problem_settings/n_takeoff', n_takeoff)
+rospy.set_param('/horizon_solver/constant_dt/problem_settings/n_touchdown', n_touchdown)
+
 ##############################################
 
 tau_lim = np.array([0, hip_tau_max_ar, knee_tau_max_ar])  # effort limits (test_rig passive joint effort limit)
 
 prb = Problem(n_nodes)  # initialization of a problem object
+prb.setDt(dt)  # setting problem's dt
 
 transcriptor_name = "multiple_shooting"  # other option: "direct_collocation"
 trans_opt = dict(integrator="RK4")  # dictionary with the chosen integrator name
 
 ##############################################
 
-dt1 = prb.createSingleVariable("dt1", 1)  # dt before the takeoff
-dt2 = prb.createSingleVariable("dt2", 1)  # dt during flight
-dt3 = prb.createSingleVariable("dt3", 1)  # dt after touchdown
-dt2_bis = prb.createSingleVariable("dt2_bis", 1)  # dt during flight
-dt3_bis = prb.createSingleVariable("dt3_bis", 1)  # dt after touchdown
-
-dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
-dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
-dt3.setBounds(dt_lb, dt_ub)  # bounds on dt3
-dt2_bis.setBounds(dt_lb, dt_ub)  # bounds on dt2
-dt3_bis.setBounds(dt_lb, dt_ub)  # bounds on dt3
-
-Dt=[dt1]*n_pre_takeoff+[dt2_bis]*(n_takeoff-n_pre_takeoff)+[dt2]*(n_touchdown-n_takeoff)+[dt3_bis]*(n_post_touchdown-n_touchdown)+[dt3]*(n_nodes-n_post_touchdown) # holds the complete time list
-
-prb.setDt(Dt)
 # Creating the state variables
 q_p = prb.createStateVariable("q_p", n_q)
-if employ_opt_init:
-    q_p[1:].setInitialGuess(loaded_sol["q_p"])
-
 q_p_dot = prb.createStateVariable("q_p_dot",
                                   n_v)  # here q_p_dot is actually not the derivative of the lagrangian state vector
-if employ_opt_init:
-    q_p_dot[1:].setInitialGuess(loaded_sol["q_p_dot"])
 
 q_p[0].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
 q_p.setBounds(q_p_init, q_p_init, 0)  # imposing the initial conditions (q_p) on the first node ("0")
@@ -168,18 +152,11 @@ q_p_dot.setBounds(q_p_dot_init, q_p_dot_init, 0)  # zero initial "velocity"
 
 # Defining the input/s (joint accelerations)
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
-if employ_opt_init:
-    q_p_ddot[1:].setInitialGuess(loaded_sol["q_p_ddot"])
-
 x, xdot = utils.double_integrator(q_p, q_p_dot, q_p_ddot)  # building the full state
 
 # Creating an additional input variable for the contact forces on the foot tip
 f_contact = prb.createInputVariable("f_contact", 3)  # dimension 3
-if employ_opt_init:
-    f_contact.setInitialGuess(loaded_sol["f_contact"])
-else:
-    f_contact[2].setInitialGuess(100.0)
-
+f_contact[2].setInitialGuess(100)  # initial guess (set to leg's weight)
 f_contact[2].setLowerBounds(0)  # the vertical component of f_contact needs to be always positive
 contact_map = dict(tip=f_contact)  # creating a contact map for applying the input to the foot
 
@@ -267,5 +244,3 @@ solution_hip_position = fk_hip(q=solution_q_p)["ee_pos"]  # hip position
 useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:], "tau":cnstr_opt["dynamics_feas"][1:3,:], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(), "sol_time":solution_time}
 
 ms.store(useful_solutions) # saving solution data to file
-if save_sol_as_init:
-    ms_opt_init.store(useful_solutions) # saving initialization data to file

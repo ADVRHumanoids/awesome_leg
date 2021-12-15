@@ -10,6 +10,8 @@ from xbot_interface import xbot_interface as xbot
 
 from horizon.utils import mat_storer
 
+import numpy as np
+
 ###############################################
 
 rospackage=rospkg.RosPack()
@@ -22,9 +24,13 @@ q_p_ddot=solution["q_p_ddot"]
 tau=solution["tau"]
 f_contact=solution["f_contact"]
 solution_time=solution["sol_time"]
+dt=solution["dt_opt"].flatten() 
 
-dt = rospy.get_param("/horizon/problem/dt") # optimization dt [s]
-n_nodes = rospy.get_param("/horizon/problem/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+time_vector = np.zeros(dt.size+1)
+for i in range(dt.size):
+    time_vector[i+1] = time_vector[i] + dt[i]
+
+n_nodes = rospy.get_param("/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
 hip_cntrl_mode = rospy.get_param("/horizon/joints/hip_joint/control_mode") # control mode (position, velocity, effort)
 knee_cntrl_mode = rospy.get_param("/horizon/joints/knee_joint/control_mode") # control mode (position, velocity, effort)
 hip_joint_stffnss = rospy.get_param("/horizon/joints/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot)
@@ -37,10 +43,6 @@ joint_command.stiffness=[hip_joint_stffnss,knee_joint_stffnss]
 joint_command.damping=[hip_joint_damp,knee_joint_damp]
 
 ctrl_mode=[1,1] # default is position control
-
-ctrl_mode_override = {'joint1': xbot.ControlMode.Position() + xbot.ControlMode.Effort()}
-
-robot.setControlMode(ctrl_mode_override)
 
 if hip_cntrl_mode=="position":
     ctrl_mode[0]=1
@@ -77,11 +79,15 @@ def horizon_pub():
     pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10)
     rospy.init_node('horizon_publisher', anonymous=True)
 
-    rate = rospy.Rate(1/dt) 
+    
 
-    while not rospy.is_shutdown():
-        if pub_iterator>(n_nodes-1): pub_iterator=0 # replaying trajectory after end
+    while not rospy.is_shutdown(): 
+        if pub_iterator>(n_nodes-1):
+            pub_iterator=0 # replaying trajectory after end
+            rospy.sleep(0.5) # sleep between replayed trajectories
         pub_iterator=pub_iterator+1 # incrementing publishing counter
+
+        rate = rospy.Rate(1/dt[pub_iterator-1])
         pack_xbot2_message()
         pub.publish(joint_command)  
         rate.sleep()
