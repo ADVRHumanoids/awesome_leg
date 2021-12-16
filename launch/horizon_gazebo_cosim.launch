@@ -15,7 +15,7 @@
   </group>
 
   <!-- Launching the horizon solver node; this is used to compute the optimized trajectory/inputs -->
-  <include file="$(find awesome_leg_pholus)/launch/horizon_solver.launch" />
+  <include file="$(find awesome_leg_pholus)/launch/horizon_solver.launch "  pass_all_args="true"/>
 
   <!-- Launching the horizon-xbot2 publisher  -->
   <!-- <include file="$(find awesome_leg_pholus)/launch/horizon_pub.launch" /> -->

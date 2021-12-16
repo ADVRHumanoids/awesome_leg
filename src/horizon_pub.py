@@ -13,7 +13,6 @@ from horizon.utils import mat_storer
 import numpy as np
 
 ###############################################
-
 rospackage=rospkg.RosPack()
 ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/sim_results/horizon_offline_solver.mat")
 solution=ms.load() # loading the solution dictionary
@@ -30,7 +29,17 @@ time_vector = np.zeros(dt.size+1)
 for i in range(dt.size):
     time_vector[i+1] = time_vector[i] + dt[i]
 
-n_nodes = rospy.get_param("/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+is_adaptive_dt = rospy.get_param("/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
+is_single_dt = rospy.get_param("/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
+
+if is_adaptive_dt:
+    if is_single_dt:
+        n_nodes = rospy.get_param("/horizon_solver/variable_dt/single_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+    else:
+        n_nodes = rospy.get_param("/horizon_solver/variable_dt/multiple_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+else:
+    n_nodes = rospy.get_param("/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+
 hip_cntrl_mode = rospy.get_param("/horizon/joints/hip_joint/control_mode") # control mode (position, velocity, effort)
 knee_cntrl_mode = rospy.get_param("/horizon/joints/knee_joint/control_mode") # control mode (position, velocity, effort)
 hip_joint_stffnss = rospy.get_param("/horizon/joints/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot)
@@ -66,6 +75,7 @@ pub_iterator=0 # used to slide thorugh the solution
 
 
 ###############################################
+
 def pack_xbot2_message():
     if pub_iterator<=(n_nodes-1): # continue sliding and publishing until the end of the solution is reached
         joint_command.name=["hip_pitch_1","knee_pitch_1"]
@@ -79,15 +89,14 @@ def horizon_pub():
     pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10)
     rospy.init_node('horizon_publisher', anonymous=True)
 
-    
-
     while not rospy.is_shutdown(): 
         if pub_iterator>(n_nodes-1):
             pub_iterator=0 # replaying trajectory after end
-            rospy.sleep(0.5) # sleep between replayed trajectories
+            rospy.sleep(2) # sleep between replayed trajectories
         pub_iterator=pub_iterator+1 # incrementing publishing counter
 
         rate = rospy.Rate(1/dt[pub_iterator-1])
+        print(1/dt[pub_iterator-1])
         pack_xbot2_message()
         pub.publish(joint_command)  
         rate.sleep()
