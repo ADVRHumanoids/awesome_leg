@@ -1,8 +1,10 @@
 <launch>
+
    <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
-   
+   <arg name="task_type" default="jump" /> <!-- task type to be executed. Allowed values: "jump", "trot" -->
+
   <!-- Simply load all the necessary parameters into the parameter server -->
-  <include file="$(find awesome_leg_pholus)/launch/load_params.launch" />
+  <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>
 
   <!-- Simply launch Gazebo, with the custom world file and spawn the model, while preserving all the arguments of the source launch file -->
   <include file="$(find awesome_leg_pholus)/launch/gazebo.launch" pass_all_args="true" />

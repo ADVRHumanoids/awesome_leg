@@ -1,6 +1,8 @@
+# USED FOR LOADING ACTUATOR PARAMETERS
+
 actuators:
  hip:
-  axial_MoI: 7.6e-4 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
+  axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
   mass: 0.27 # mass of the actuator ([Kg])
   
   red_ratio: 0.02 # gear reduction ratio of the actuator (always <=1)
@@ -28,7 +30,7 @@ actuators:
   
   
  knee:
-  axial_MoI: 7.6e-4 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
+  axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
   mass: 0.27 # mass of the actuator ([Kg])
   
   red_ratio: 0.02 # gear reduction ratio of the actuator (always <=1)

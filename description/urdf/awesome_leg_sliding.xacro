@@ -39,9 +39,10 @@
   <!--%%%%%%%%%%%%%%%% LOCALLY DEFINED JOINTS (not included through URDFs) %%%%%%%%%%%%%%%%-->
 
   <!-- fixing the test rig to the world -->
-  <joint name="world_test_rig" type="fixed">
+  <joint name="world_test_rig" type="prismatic">
         <parent link="world" />
         <child link="test_rig" />
+        <axis xyz="0 1 0" />
         <origin xyz="0 0 0.5" />
   </joint>
 

@@ -1,5 +1,14 @@
 <launch>
 
-  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver.py" />
+  <!-- Switching between task types -->
+
+  <group if="$(eval arg('task_type')=='jump')">
+    <!-- loading some horizon solver parameters-->
+  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_jump.py" />
+  </group>
+  <group if="$(eval arg('task_type')=='trot')">
+    <!-- loading some horizon solver parameters-->
+  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot.py" />
+  </group>
 
 </launch>

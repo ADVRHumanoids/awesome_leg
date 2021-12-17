@@ -131,9 +131,10 @@
 
     <!-- ################### JOINTS ################### -->
     
-    <joint name="world_to_test_rig" type="fixed">
+    <joint name="world_to_test_rig" type="prismatic">
     <parent link="world"/>
     <child link="test_rig"/>
+    <axis xyz="0 1 0" />
     </joint>
 
     <joint name="passive_joint" type="prismatic">
