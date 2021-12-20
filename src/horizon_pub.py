@@ -69,12 +69,12 @@ time_vector = np.zeros(dt.size+1)
 for i in range(dt.size):
     time_vector[i+1] = time_vector[i] + dt[i]
 
-hip_cntrl_mode = rospy.get_param("/horizon/joints/hip_joint/control_mode") # control mode (position, velocity, effort)
-knee_cntrl_mode = rospy.get_param("/horizon/joints/knee_joint/control_mode") # control mode (position, velocity, effort)
-hip_joint_stffnss = rospy.get_param("/horizon/joints/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot)
-knee_joint_stffnss = rospy.get_param("/horizon/joints/knee_joint/stiffness") # knee joint stiffness setting (to be used by Xbot)
-hip_joint_damp = rospy.get_param("/horizon/joints/hip_joint/damping") # hip joint damping setting (to be used by Xbot)
-knee_joint_damp = rospy.get_param("/horizon/joints/knee_joint/damping") # knee joint damping setting (to be used by Xbot)
+hip_cntrl_mode = rospy.get_param("/horizon/joint_cntrl/hip_joint/control_mode") # control mode (position, velocity, effort)
+knee_cntrl_mode = rospy.get_param("/horizon/joint_cntrl/knee_joint/control_mode") # control mode (position, velocity, effort)
+hip_joint_stffnss = rospy.get_param("/horizon/joint_cntrl/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot)
+knee_joint_stffnss = rospy.get_param("/horizon/joint_cntrl/knee_joint/stiffness") # knee joint stiffness setting (to be used by Xbot)
+hip_joint_damp = rospy.get_param("/horizon/joint_cntrl/hip_joint/damping") # hip joint damping setting (to be used by Xbot)
+knee_joint_damp = rospy.get_param("/horizon/joint_cntrl/knee_joint/damping") # knee joint damping setting (to be used by Xbot)
 
 joint_command=JointCommand() # initializing object for holding the joint command
 joint_command.stiffness=[hip_joint_stffnss,knee_joint_stffnss]

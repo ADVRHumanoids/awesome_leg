@@ -7,58 +7,124 @@ horizon:
 
   opt_results_rel_path: "/opt_results/horizon_jump"
 
-  joints:
+  joint_cntrl:
 
     hip_joint:
 
-     control_mode: "position" # "position", "velocity", "effort"
-     stiffness: 250.0
-     damping: 5.0
+      control_mode: "position" # "position", "velocity", "effort"
+      stiffness: 250.0
+      damping: 5.0
 
     knee_joint:
-  
-     control_mode: "position"
-     stiffness: 250.0
-     damping: 5.0
 
-   horizon_solver:
+      control_mode: "position"
+      stiffness: 250.0
+      damping: 5.0
 
-     save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
+  horizon_solver:
 
-     employ_opt_init: false # whether to use the initial guess or not
+    save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
 
-     variable_dt:
+    employ_opt_init: false # whether to use the initial guess or not
 
-         problem_settings:  
+    fixed_hip:
 
-           n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
-           n_takeoff: 40
-           n_touchdown: 75
+        problem_settings:  
 
-           dt_lb: 0.01
-           dt_ub: 0.1
+          n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
+          n_takeoff: 40
+          n_touchdown: 75
+
+          dt_lb: 0.01
+          dt_ub: 0.1
  
-           solver:
-             name: "ipopt"
-             tolerance: 0.0001
-             max_iter: 1000
-             linear_solver_name: "ma57"    
+          solver:
+            name: "ipopt"
+            tolerance: 0.0001
+            max_iter: 1000
+            linear_solver_name: "ma57"    
 
            test_rig:
-             lb: -0.4
-             ub:  0.4      
+            lb: -0.4
+            ub:  0.4      
 
            initial_conditions: 
-             q_p:     [0.0, 0.0, 0.0]
-             q_p_dot: [0.0, 0.0, 0.0]
+            q_p:     [0.0, 0.0, 0.0]
+            q_p_dot: [0.0, 0.0, 0.0]
 
            cost_weights:
-             contact_force: 0.01
-             small_q_p_ddot: 1
-             big_hip_jump: 100
-             big_foot_tip_clearance: 10
-             weight_hip_i_d: 1.0
-             weight_knee_i_d: 1.0
+            contact_force: 0.01
+            small_q_p_ddot: 1
+            big_hip_jump: 100
+            big_foot_tip_clearance: 10
+            weight_hip_i_d: 1.0
+            weight_knee_i_d: 1.0
+    
+    sliding_hip:
+
+        problem_settings:  
+
+          n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
+          n_takeoff: 40
+          n_touchdown: 75
+
+          dt_lb: 0.01
+          dt_ub: 0.1
+ 
+           solver:
+            name: "ipopt"
+            tolerance: 0.0001
+            max_iter: 1000
+            linear_solver_name: "ma57"    
+
+           test_rig:
+            lb: -0.4
+            ub:  0.4      
+
+           initial_conditions: 
+            q_p:     [0.0, 0.0, 0.0]
+            q_p_dot: [0.0, 0.0, 0.0]
+
+           cost_weights:
+            contact_force: 0.01
+            small_q_p_ddot: 1
+            big_hip_jump: 100
+            big_foot_tip_clearance: 10
+            weight_hip_i_d: 1.0
+            weight_knee_i_d: 1.0
+    
+    sliding_all:
+
+        problem_settings:  
+
+          n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
+          n_takeoff: 40
+          n_touchdown: 75
+
+          dt_lb: 0.01
+          dt_ub: 0.1
+ 
+           solver:
+            name: "ipopt"
+            tolerance: 0.0001
+            max_iter: 1000
+            linear_solver_name: "ma57"    
+
+           test_rig:
+            lb: -0.4
+            ub:  0.4      
+
+           initial_conditions: 
+            q_p:     [0.0, 0.0, 0.0]
+            q_p_dot: [0.0, 0.0, 0.0]
+
+           cost_weights:
+            contact_force: 0.01
+            small_q_p_ddot: 1
+            big_hip_jump: 100
+            big_foot_tip_clearance: 10
+            weight_hip_i_d: 1.0
+            weight_knee_i_d: 1.0
    
       
     

@@ -1,0 +1,63 @@
+# USED FOR SETTINGS SOME SOLVER OPTIONS
+horizon:
+
+  urdf_relative_path: "/description/urdf/awesome_leg_complete_fixed.urdf" # urdf relative path (wrt to the package)
+ 
+  media_relative_path: "/media/horizon_jump" # relative path where graphs, etc.. are saved
+
+  opt_results_rel_path: "/opt_results/horizon_jump"
+
+  joint_cntrl:
+
+    hip_joint:
+
+      control_mode: "position" # "position", "velocity", "effort"
+      stiffness: 250.0
+      damping: 5.0
+
+    knee_joint:
+
+      control_mode: "position"
+      stiffness: 250.0
+      damping: 5.0
+
+  horizon_solver:
+
+    save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
+
+    employ_opt_init: false # whether to use the initial guess or not
+    
+    urdf_type
+
+    variable_dt:
+
+        problem_settings:  
+
+          n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
+          n_takeoff: 40
+          n_touchdown: 75
+
+          dt_lb: 0.01
+          dt_ub: 0.1
+ 
+          solver:
+            name: "ipopt"
+            tolerance: 0.0001
+            max_iter: 1000
+            linear_solver_name: "ma57"    
+
+           test_rig:
+            lb: -0.4
+            ub:  0.4      
+
+           initial_conditions: 
+            q_p:     [0.0, 0.0, 0.0]
+            q_p_dot: [0.0, 0.0, 0.0]
+
+           cost_weights:
+            contact_force: 0.01
+            small_q_p_ddot: 1
+            big_hip_jump: 100
+            big_foot_tip_clearance: 10
+            weight_hip_i_d: 1.0
+            weight_knee_i_d: 1.0
