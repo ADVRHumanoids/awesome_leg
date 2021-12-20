@@ -27,15 +27,14 @@ horizon:
 
     employ_opt_init: false # whether to use the initial guess or not
     
-    urdf_type
-
     variable_dt:
 
       problem_settings:  
 
         n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
         n_takeoff: 40
-        n_touchdown: 75
+
+        tip_vel: 0.05
 
         dt_lb: 0.01
         dt_ub: 0.1

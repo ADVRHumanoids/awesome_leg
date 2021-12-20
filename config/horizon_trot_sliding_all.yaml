@@ -34,7 +34,7 @@ horizon:
         n_nodes: 100
         n_takeoff: 50
 
-        forward_vel: 0.2 
+        forward_vel: 0.05
 
         dt_lb: 0.01
         dt_ub: 0.1

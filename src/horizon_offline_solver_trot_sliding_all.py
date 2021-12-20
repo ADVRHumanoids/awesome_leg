@@ -168,7 +168,6 @@ dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
 dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
 
 Dt=[dt1]*n_takeoff+[dt2]*(n_nodes-n_takeoff) # holds the complete time list
-print(Dt)
 prb.setDt(Dt)
 
 # Creating the state variables
@@ -202,6 +201,7 @@ contact_map = dict(tip=f_contact)  # creating a contact map for applying the inp
 
 # 
 q_p_init = prb.createSingleVariable("q_p_init", n_q)  # single variable for leaving the initial condition free
+q_p_dot_init = prb.createSingleVariable("q_p_dot_init", n_q)  # single variable for leaving the initial condition free
 
 ##############################################
 
@@ -244,15 +244,16 @@ tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 prb.createConstraint("foot_tip_on_ground", foot_tip_position[2],
                      nodes=range(0, n_takeoff + 1))  # foot on the ground during the contact phase
 
-prb.createConstraint("foot_vel_bf_takeoff", v_foot_tip[2],
-                     nodes=range(0, n_takeoff + 1))  # no VERTICAL velocity of the foot before takeoff
+# prb.createConstraint("foot_vel_bf_takeoff", v_foot_tip[2],
+#                      nodes=range(0, n_takeoff + 1))  # no VERTICAL velocity of the foot before takeoff
 
 prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
 
 prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_nodes))  # 0 GRF during flight
 
-prb.createFinalConstraint("leg_pose_restoration", q_p[1:4] - q_p_init[1:4]) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
 
 i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[2]/hip_red_ratio+tau[2]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
 i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
@@ -341,8 +342,6 @@ p_res, v_res, a_res, frame_res_force_mapping, tau_res = resampler_trajectory.res
                                                                                               casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED)
 
 rpl_traj = replay_trajectory(dt_res, joint_names, p_res)  # replaying the (resampled) trajectory
-
-print("sdivbnsidcnisdncs")
 
 time_vector_res = np.zeros([p_res.shape[1]])
 for i in range(1, p_res.shape[1] - 1):
