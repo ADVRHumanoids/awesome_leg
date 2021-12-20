@@ -92,19 +92,19 @@ for i in range(tau[0,:].size):
     time_vector[i+1] = time_vector[i] + dt[i]
 
 # hip actuator
-hip_axial_MoI=rospy.get_param("/actuators/hip/axial_MoI")
+hip_rotor_axial_MoI=rospy.get_param("/actuators/hip/rotor_axial_MoI")
 hip_efficiency=rospy.get_param("/actuators/hip/efficiency")
 hip_K_t=rospy.get_param("/actuators/hip/K_t")
 hip_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
 
 # knee actuator
-knee_axial_MoI=rospy.get_param("/actuators/knee/axial_MoI")
+knee_rotor_axial_MoI=rospy.get_param("/actuators/knee/rotor_axial_MoI")
 knee_efficiency=rospy.get_param("/actuators/knee/efficiency")
 knee_K_t=rospy.get_param("/actuators/knee/K_t")
 knee_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
 
-P_hip=(hip_axial_MoI*q_p_ddot[0,:]/hip_red_ratio+tau[0,:]*hip_red_ratio/hip_efficiency)*q_p_dot[0,:-1]/hip_red_ratio # mechanical power at the rotor axis
-P_knee=(knee_axial_MoI*q_p_ddot[1,:]/knee_red_ratio+tau[1,:]*knee_red_ratio/knee_efficiency)*q_p_dot[1,:-1]/hip_red_ratio
+P_hip=(hip_rotor_axial_MoI*q_p_ddot[0,:]/hip_red_ratio+tau[0,:]*hip_red_ratio/hip_efficiency)*q_p_dot[0,:-1]/hip_red_ratio # mechanical power at the rotor axis
+P_knee=(knee_rotor_axial_MoI*q_p_ddot[1,:]/knee_red_ratio+tau[1,:]*knee_red_ratio/knee_efficiency)*q_p_dot[1,:-1]/hip_red_ratio
 
 ########################## SOME PLOTS ##########################
 

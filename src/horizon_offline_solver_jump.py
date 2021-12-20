@@ -225,8 +225,8 @@ else: # using a fixed dt (chosen in the YAML configuration file)
 ################# Getting the properties of the actuator from the ROS parameter server #########################
 
 ## hip actuator:
-hip_axial_MoI=rospy.get_param("/actuators/hip/axial_MoI")
-hip_mass=rospy.get_param("/actuators/hip/mass")
+hip_rotor_axial_MoI=rospy.get_param("/actuators/hip/rotor_axial_MoI")
+hip_rotor_mass=rospy.get_param("/actuators/hip/rotor_mass")
 hip_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
 hip_efficiency=rospy.get_param("/actuators/hip/efficiency")
 hip_K_t=rospy.get_param("/actuators/hip/K_t")
@@ -245,8 +245,8 @@ hip_omega_max_nl_af44=rospy.get_param("/actuators/hip/omega_max_nl_af44")
 hip_omega_max_nl_af112=rospy.get_param("/actuators/hip/omega_max_nl_af112")
 
 ## knee actuator:
-knee_axial_MoI=rospy.get_param("/actuators/knee/axial_MoI")
-knee_mass=rospy.get_param("/actuators/knee/mass")
+knee_rotor_axial_MoI=rospy.get_param("/actuators/knee/rotor_axial_MoI")
+knee_rotor_mass=rospy.get_param("/actuators/knee/rotor_mass")
 knee_red_ratio=rospy.get_param("/actuators/knee/red_ratio")
 knee_efficiency=rospy.get_param("/actuators/knee/efficiency")
 knee_K_t=rospy.get_param("/actuators/knee/K_t")
@@ -377,10 +377,10 @@ prb.createFinalConstraint("leg_pose_restoration", q_p - q_p_init)
 
 prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still at the end of the optimization horizon
 
-i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
+i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
 i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 
-i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
+i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
 i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
 ##############################################
@@ -399,8 +399,8 @@ prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.su
 prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2])),
                            nodes=range(n_takeoff, n_touchdown))
 
-# prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
-# prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))
+# prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
+# prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))
 
 ##############################################
 
@@ -420,7 +420,7 @@ joint_names.remove("universe")  # removing the "universe joint"
 
 cnstr_opt = slvr.getConstraintSolutionDict()
 
-i_q=(hip_axial_MoI*solution["q_p_ddot"][1:3,:]/hip_red_ratio+cnstr_opt["tau_limits"]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
+i_q=(hip_rotor_axial_MoI*solution["q_p_ddot"][1:3,:]/hip_red_ratio+cnstr_opt["tau_limits"]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
 
 solution_GRF = solution["f_contact"]
 solution_q_p = solution["q_p"]
@@ -439,6 +439,31 @@ useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3
 
 ##
 ms.store(useful_solutions) # saving solution data to file
-if save_sol_as_init:
-    ms_opt_init.store(useful_solutions) # saving initialization data to file
+    
+if is_adaptive_dt: # using dt as an optimization variable
+
+    if is_single_dt: # using only a single variable dt 
+
+        target=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/single_dt/"
+        shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/single_dt/horizon_offline_solver.mat", target+"horizon_offline_solver.mat")
+       
+        if save_sol_as_init: # save the solution as the initialization for the next sim
+            ms_opt_init.store(useful_solutions) # saving initialization data to file    
+            shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/single_dt/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
+
+    else: # using multiple dts as variables (3, in particular)
+        target=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/multiple_dt/"
+        shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/multiple_dt/horizon_offline_solver.mat", target+"horizon_offline_solver.mat")
+
+        if save_sol_as_init: # save the solution as the initialization for the next sim
+            ms_opt_init.store(useful_solutions) # saving initialization data to file    
+            shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/multiple_dt/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
+
+else: # using a fixed dt (chosen in the YAML configuration file)
+    target=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/fixed_dt/"
+    shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/fixed_dt/horizon_offline_solver.mat", target+"horizon_offline_solver.mat")
+    
+    if save_sol_as_init: # save the solution as the initialization for the next sim
+            ms_opt_init.store(useful_solutions) # saving initialization data to file    
+            shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/fixed_dt/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
 

@@ -1,5 +1,4 @@
 <launch>
-
   <!-- Switching between task types -->
 
   <group if="$(eval arg('task_type')=='jump')">
@@ -8,7 +7,15 @@
   </group>
   <group if="$(eval arg('task_type')=='trot')">
     <!-- loading some horizon solver parameters-->
-  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot.py" />
+    <group if="$(eval arg('trot_type')=='fixed_hip')">
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_fixed_hip.py" />
+    </group>
+    <group if="$(eval arg('trot_type')=='sliding_hip')">
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_hip.py" />
+    </group>
+    <group if="$(eval arg('trot_type')=='sliding_all')">
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_all.py" />
+    </group>
   </group>
 
 </launch>

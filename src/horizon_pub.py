@@ -12,6 +12,7 @@ from horizon.utils import mat_storer
 import numpy as np
 
 import warnings
+
 ###############################################
 rospackage=rospkg.RosPack()
 
@@ -52,7 +53,7 @@ if task_type=="jump":
 elif task_type=="trot":
 
     n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-    ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/first_version/horizon_offline_solver.mat")
+    ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/horizon_offline_solver.mat")
 
 
 solution=ms.load() # loading the solution dictionary
@@ -102,7 +103,6 @@ else: warnings.warn("\nInvalid hip control mode. The control mode will be set to
 joint_command.ctrl_mode=ctrl_mode
 
 pub_iterator=0 # used to slide thorugh the solution
-
 
 ###############################################
 
