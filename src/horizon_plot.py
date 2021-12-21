@@ -61,14 +61,12 @@ if task_type=="jump":
 elif task_type=="trot":
     
     ## Creating folders for saving data (if not already existing)
+
     if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)):
-        scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)
+        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)
 
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/first_version")):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/first_version")
-
-        ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"first_version/horizon_offline_solver.mat")
-        save_path=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/first_version/"
+    ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/horizon_offline_solver.mat")
+    save_path=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/"
        
 else:
     raise Exception('You did not specify a valid task type')
@@ -86,6 +84,7 @@ dt=solution["dt_opt"].flatten()
 hip_height=solution["hip_height"]
 foot_tip_height=solution["foot_tip_height"]
 foot_tip_vel=solution["tip_velocity"]
+hip_vel=solution["hip_velocity"]
 
 time_vector = np.zeros([tau[0,:].size+1])
 for i in range(tau[0,:].size):
@@ -230,6 +229,19 @@ plt.title("Foot tip velocity (cartesian components)", fontdict=None, loc='center
 plt.grid()
 if do_save_fig:
     plt.savefig(save_path+"foot_tip_vel.pdf", format="pdf") 
+
+f12=plt.figure()
+plt.plot(time_vector, hip_vel[0,:],label="hip vel. x")
+plt.plot(time_vector, hip_vel[1,:],label="hip vel. y")
+plt.plot(time_vector, hip_vel[2,:],label="hip vel. z")
+
+plt.legend(loc="upper left")
+plt.xlabel(r"t [s]")
+plt.ylabel(r"[m/s]")
+plt.title("Hip velocity (cartesian components)", fontdict=None, loc='center')
+plt.grid()
+if do_save_fig:
+    plt.savefig(save_path+"hip_vel.pdf", format="pdf") 
 
 plt.show()
 

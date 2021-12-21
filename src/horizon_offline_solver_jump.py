@@ -8,7 +8,7 @@ import rospy
 import rospkg
 
 from horizon.problem import Problem
-from horizon.utils import kin_dyn, utils, mat_storer,resampler_trajectory
+from horizon.utils import kin_dyn, utils, mat_storer, resampler_trajectory
 from horizon.transcriptions import transcriptor
 from horizon.solvers import solver
 import casadi as cs
@@ -347,6 +347,11 @@ fk_hip = cs.Function.deserialize(urdf_awesome_leg.fk("hip1_1"))  # deserializing
 hip_position_initial = fk_hip(q=q_p_init)["ee_pos"]  # initial hip position (numerical)
 hip_position = fk_hip(q=q_p)["ee_pos"]  # hip position (symbolic)
 
+# hip vel
+dfk_hip = cs.Function.deserialize(
+    urdf_awesome_leg.frameVelocity("hip1_1", casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED))
+v_hip = dfk_hip(q=q_p, qdot=q_p_dot)["ee_vel_linear"]  # foot velocity
+
 # foot tip pos
 fk_foot = cs.Function.deserialize(urdf_awesome_leg.fk("tip"))
 foot_tip_position_init = fk_foot(q=q_p_init)["ee_pos"]  # foot initial position
@@ -383,6 +388,7 @@ i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
 i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
+# no_tip_ground_penetration=prb.createIntermediateConstraint("no_tip_ground_penetration", foot_tip_position[2]-foot_tip_position_init[2])
 ##############################################
 
 ## Costs
@@ -429,12 +435,14 @@ solution_hip_position = fk_hip(q=solution_q_p)["ee_pos"][2,:].toarray()   # hip 
 init_solution_foot_tip_position_aux = np.tile(foot_tip_position_init,(1,n_nodes+1))
 init_solution_hip_position_aux = np.tile(hip_position_initial,(1,n_nodes+1))
 solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
+solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
 useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:],
                  "tau":cnstr_opt["tau_limits"], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
                  "hip_height":np.transpose(solution_hip_position-init_solution_hip_position_aux[2,:]), 
                  "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
+                 "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
                  "sol_time":solution_time}
 
 ##
@@ -466,4 +474,29 @@ else: # using a fixed dt (chosen in the YAML configuration file)
     if save_sol_as_init: # save the solution as the initialization for the next sim
             ms_opt_init.store(useful_solutions) # saving initialization data to file    
             shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/fixed_dt/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
+
+################### RESAMPLING (necessary because dt is variable) #####################à
+q_sym = cs.SX.sym('q', n_q)
+q_dot_sym = cs.SX.sym('q_dot', n_v)
+q_ddot_sym = cs.SX.sym('q_ddot', n_v)
+x, x_dot = utils.double_integrator(q_sym, q_dot_sym, q_ddot_sym)
+
+dae = {'x': x, 'p': q_ddot_sym, 'ode': x_dot, 'quad': 1}
+
+dt_res = 0.0001
+sol_contact_map = dict(tip=solution["f_contact"])  # creating a contact map for applying the input to the foot
+
+# print(solution)
+
+p_res, v_res, a_res, frame_res_force_mapping, tau_res = resampler_trajectory.resample_torques(solution["q_p"],
+                                                                                              solution["q_p_dot"],
+                                                                                              solution["q_p_ddot"],
+                                                                                              slvr.getDt().flatten(),
+                                                                                              dt_res,
+                                                                                              dae, sol_contact_map,
+                                                                                              urdf_awesome_leg,
+                                                                                              casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED)
+
+rpl_traj = replay_trajectory(dt_res, joint_names, p_res)  # replaying the (resampled) trajectory
+rpl_traj.replay(is_floating_base=False)
 

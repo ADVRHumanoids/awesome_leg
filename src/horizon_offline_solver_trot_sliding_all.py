@@ -77,22 +77,15 @@ dt_lb=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_lb
 dt_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_ub")   # dt upper bound
 test_rig_lb= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
 test_rig_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/test_rig/ub") # upper bound of the test rig excursion
-# hip_lb= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/hip/lb") # lower bound of the hip joint
-# hip_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/hip/ub") # upper bound of the hip joint
-# top_lb= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/knee/lb") # lower bound of the hip joint
-# top_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/knee/ub") # upper bound of the hip joint
-q_p_init = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
-q_p_dot_init = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
 
 # cost weights
 
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/contact_force")  # minimizing the contact force
 # weight_postural_cost = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/terminal_postural") # cost to restore the initial position at the end of the control horizon
 weight_q_ddot = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
-weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/big_hip_jump") # maximizing the jump height (measured at the hip)
-weight_tip_clearance=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/big_foot_tip_clearance") # maximizing the jump height (measured at the tip)
 # weight_hip_i_d=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_hip_i_d") # minimizing hip i_d
 # weight_knee_i_d=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_knee_i_d") # minimizing hip i_d
+weight_forward_vel=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_forward_vel") # maximizing the jump height (measured at the tip)
 
 # solver options
 
@@ -168,7 +161,9 @@ dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
 dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
 
 Dt=[dt1]*n_takeoff+[dt2]*(n_nodes-n_takeoff) # holds the complete time list
-prb.setDt(Dt)
+
+# prb.setDt(Dt)
+prb.setDt(0.01)
 
 # Creating the state variables
 q_p = prb.createStateVariable("q_p", n_q)
@@ -202,6 +197,7 @@ contact_map = dict(tip=f_contact)  # creating a contact map for applying the inp
 # 
 q_p_init = prb.createSingleVariable("q_p_init", n_q)  # single variable for leaving the initial condition free
 q_p_dot_init = prb.createSingleVariable("q_p_dot_init", n_q)  # single variable for leaving the initial condition free
+# q_p_dot_init[2:4].setInitialGuess([2.0,2.0])
 
 ##############################################
 
@@ -244,13 +240,16 @@ tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 prb.createConstraint("foot_tip_on_ground", foot_tip_position[2],
                      nodes=range(0, n_takeoff + 1))  # foot on the ground during the contact phase
 
-# prb.createConstraint("foot_vel_bf_takeoff", v_foot_tip[2],
-#                      nodes=range(0, n_takeoff + 1))  # no VERTICAL velocity of the foot before takeoff
+# no_tip_ground_penetration=prb.createIntermediateConstraint("no_tip_ground_penetration", foot_tip_position[2]-foot_tip_position_init[2],
+#                      nodes=range(n_takeoff+1, n_nodes+1))
+# no_tip_ground_penetration.setLowerBounds(0)
 
-prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
+# prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
 
 prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_nodes))  # 0 GRF during flight
+
+prb.createIntermediateConstraint("no_foot_slip_during_contact", v_foot_tip[1] , nodes=range(0,n_takeoff + 1)) # restore leg position and hip height at the end of the control horizon
 
 prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
 prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
@@ -266,8 +265,9 @@ i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 ## Costs
 prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact))
 
-prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
-    q_p_ddot))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot[2:4]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+
+prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
 # prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
 # prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))
@@ -302,12 +302,14 @@ solution_hip_position = fk_hip(q=solution_q_p)["ee_pos"][2,:].toarray()   # hip 
 init_solution_foot_tip_position_aux = np.tile(foot_tip_position_init_num,(1,n_nodes+1))
 init_solution_hip_position_aux = np.tile(hip_position_init_num,(1,n_nodes+1))
 solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
+solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
-useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:],
-                 "tau":cnstr_opt["tau_limits"], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
+useful_solutions={"q_p":solution["q_p"][2:4,:],"q_p_dot":solution["q_p_dot"][2:4,:], "q_p_ddot":solution["q_p_ddot"][2:4,:],
+                 "tau":cnstr_opt["tau_limits"][2:4,:], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
                  "hip_height":np.transpose(solution_hip_position-init_solution_hip_position_aux[2,:]), 
                  "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
+                 "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
                  "sol_time":solution_time}
 
 ##
@@ -327,7 +329,7 @@ x, x_dot = utils.double_integrator(q_sym, q_dot_sym, q_ddot_sym)
 
 dae = {'x': x, 'p': q_ddot_sym, 'ode': x_dot, 'quad': 1}
 
-dt_res = 0.0001
+dt_res = 0.01
 sol_contact_map = dict(tip=solution["f_contact"])  # creating a contact map for applying the input to the foot
 
 # print(solution)
@@ -343,9 +345,15 @@ p_res, v_res, a_res, frame_res_force_mapping, tau_res = resampler_trajectory.res
 
 rpl_traj = replay_trajectory(dt_res, joint_names, p_res)  # replaying the (resampled) trajectory
 
+# v_hip_forward = dfk_hip(q=p_res,qdot=v_res)["ee_vel_linear"][1,:]  # hip position
+# print(v_hip_forward)
+
+rpl_traj.replay(is_floating_base=False)
+
 time_vector_res = np.zeros([p_res.shape[1]])
 for i in range(1, p_res.shape[1] - 1):
     time_vector_res[i] = time_vector_res[i - 1] + dt_res
 
 p_tip_res = fk_foot(q=p_res)["ee_pos"]  # foot vertical position
 p_hip_res = fk_hip(q=p_res)["ee_pos"]  # hip position
+

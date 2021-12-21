@@ -34,7 +34,7 @@ horizon:
         n_nodes: 100
         n_takeoff: 50
 
-        forward_vel: 0.05
+        forward_vel: 0.2
 
         dt_lb: 0.01
         dt_ub: 0.1
@@ -49,14 +49,9 @@ horizon:
           lb: -0.4
           ub:  0.4      
 
-        initial_conditions: 
-          q_p:     [0.0, 0.0, 0.0]
-          q_p_dot: [0.0, 0.0, 0.0]
-
         cost_weights:
           contact_force: 0.01
-          small_q_p_ddot: 1
-          big_hip_jump: 100
-          big_foot_tip_clearance: 10
+          small_q_p_ddot: 0.01
           weight_hip_i_d: 1.0
           weight_knee_i_d: 1.0
+          weight_forward_vel: 1000000

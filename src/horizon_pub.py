@@ -30,7 +30,6 @@ damp_cntrl_code=16
 task_type = rospy.get_param("/horizon/task_type")  # task type
 
 if task_type=="jump":
-
     is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
     is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
 

@@ -29,12 +29,12 @@ horizon:
     
     variable_dt:
 
-      problem_settings:  
+      problem_settings:
 
-        n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
-        n_takeoff: 40
+        n_nodes: 100
+        n_takeoff: 50
 
-        tip_vel: 0.05
+        forward_vel: 0.01
 
         dt_lb: 0.01
         dt_ub: 0.1
@@ -49,14 +49,8 @@ horizon:
           lb: -0.4
           ub:  0.4      
 
-        initial_conditions: 
-          q_p:     [0.0, 0.0, 0.0]
-          q_p_dot: [0.0, 0.0, 0.0]
-
         cost_weights:
-          contact_force: 0.01
-          small_q_p_ddot: 1
-          big_hip_jump: 100
-          big_foot_tip_clearance: 10
+          small_q_p_ddot: 0.0001
           weight_hip_i_d: 1.0
           weight_knee_i_d: 1.0
+          weight_max_tip_hor_excursion: 100.0
