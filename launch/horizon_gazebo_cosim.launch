@@ -3,7 +3,7 @@
    <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
    <arg name="task_type" default="jump" /> <!-- task type to be executed. Allowed values: "jump", "trot" -->
    <arg name="trot_type" default="fixed_hip" /> <!-- trot type to be solved. Allowed values: "sliding_hip", "sliding_all" -->
-   <arg name="gazebo_model_type" default="sliding_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all" -->
+   <arg name="gazebo_model_type" default="sliding_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all", "sliding_all_underact"  -->
 
   <!-- Simply load all the necessary parameters into the parameter server -->
   <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>

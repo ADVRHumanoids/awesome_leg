@@ -49,7 +49,7 @@ ms_aux = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+media_re
 target=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is
 
 shutil.copyfile(config_path+"actuators.yaml", target+"/actuators.yaml") # saving config files for reference and future debugging
-shutil.copyfile(config_path+"horizon_trot_fixed_hip.yaml", target+"/horizon.yaml")
+shutil.copyfile(config_path+"horizon_trot_sliding_all_underact.yaml", target+"/horizon.yaml")
 shutil.copyfile(config_path+"xbot2.yaml", target+"/xbot2.yaml") 
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
@@ -72,13 +72,15 @@ forward_vel= rospy.get_param("horizon/horizon_solver/variable_dt/problem_setting
 
 dt_lb=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_lb")   # dt lower bound 
 dt_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_ub")   # dt upper bound
+test_rig_lb= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
+test_rig_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/test_rig/ub") # upper bound of the test rig excursion
 
 # cost weights
 
+weight_contact_cost = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/contact_force")  # minimizing the contact force
 weight_q_ddot = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
 # weight_hip_i_d=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_hip_i_d") # minimizing hip i_d
 # weight_knee_i_d=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_knee_i_d") # minimizing hip i_d
-weight_max_tip_hor_excursion= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/small_q_p_ddot") # maximizing the horizontal tip excursion during the sliding phase
 weight_forward_vel=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_forward_vel") # maximizing the jump height (measured at the tip)
 
 # solver options
@@ -140,7 +142,7 @@ n_v = urdf_awesome_leg.nv()  # number of dofs
 
 ##############################################
 
-tau_lim = np.array([cs.inf, cs.inf])  # effort limits (excluding the fictious linear actuations on the hip joint)
+tau_lim = np.array([0, 0, cs.inf, cs.inf])  # effort limits (excluding the fictious linear actuations on the hip joint)
 
 prb = Problem(n_nodes)  # initialization of a problem object
 
@@ -162,35 +164,37 @@ prb.setDt(0.01)
 # Creating the state variables
 q_p = prb.createStateVariable("q_p", n_q)
 if employ_opt_init:
-    q_p.setInitialGuess(loaded_sol["q_p"])
+    q_p[1:].setInitialGuess(loaded_sol["q_p"])
 
 q_p_dot = prb.createStateVariable("q_p_dot",
                                   n_v)  # here q_p_dot is actually not the derivative of the lagrangian state vector
 if employ_opt_init:
-    q_p_dot.setInitialGuess(loaded_sol["q_p_dot"])
+    q_p_dot[1:].setInitialGuess(loaded_sol["q_p_dot"])
+
+q_p[1].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
 
 # Defining the input/s (joint accelerations)
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
 if employ_opt_init:
-    q_p_ddot.setInitialGuess(loaded_sol["q_p_ddot"])
+    q_p_ddot[1:].setInitialGuess(loaded_sol["q_p_ddot"])
 
 x, xdot = utils.double_integrator(q_p, q_p_dot, q_p_ddot)  # building the full state
 
 # Creating an additional input variable for the contact forces on the foot tip
 f_contact = prb.createInputVariable("f_contact", 3)  # dimension 3
-f_contact.setBounds([0, 0, 0],[0, 0, 0])  # zeroing the ground force (fixed hip)
+if employ_opt_init:
+    f_contact.setInitialGuess(loaded_sol["f_contact"])
+else:
+    f_contact[2].setInitialGuess(100.0)
 
+f_contact[2].setLowerBounds(0)  # the vertical component of f_contact needs to be always positive
 contact_map = dict(tip=f_contact)  # creating a contact map for applying the input to the foot
 
 # 
 q_p_init = prb.createSingleVariable("q_p_init", n_q)  # single variable for leaving the initial condition free
 q_p_dot_init = prb.createSingleVariable("q_p_dot_init", n_q)  # single variable for leaving the initial condition free
+# q_p_dot_init[2:4].setInitialGuess([2.0,2.0])
 
-# foot_tip_excursion = prb.createSingleVariable("foot_tip_excursion", 1)  # foot tip horizontal excursion
-# foot_tip_excursion.setInitialGuess(0.3)
-# foot_tip_excursion.setLowerBounds(0.0001) # the excursion is always positive  by definition
-
-foot_tip_excursion=0.3
 ##############################################
 
 prb.setDynamics(xdot)  # setting the dynamics we are interested of in the problem object (xdot)
@@ -229,29 +233,37 @@ tau_cnstrnt = prb.createIntermediateConstraint("dynamics_feas", tau[0])  # dynam
 tau_limits = prb.createIntermediateConstraint("tau_limits", tau) 
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 
-# prb.createIntermediateConstraint("forward_tip_vel", v_foot_tip[1]+forward_vel, nodes=range(0, n_takeoff + 1))  # keep a constant horizontal velocity of the hip center
-prb.createIntermediateConstraint("keep_tip_vel_horizontal", v_foot_tip[2], nodes=range(0, n_takeoff + 1))  # keep a constant horizontal velocity of the hip center
+prb.createConstraint("foot_tip_on_ground", foot_tip_position[2],
+                     nodes=range(0, n_takeoff + 1))  # foot on the ground during the contact phase
 
-prb.createIntermediateConstraint("tip_position_excursion", foot_tip_position[1]-(fk_foot(q=q_p_init)["ee_pos"][1]-foot_tip_excursion), nodes=n_takeoff)  
 
-prb.createIntermediateConstraint("periodic_position", q_p - q_p_init, nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
-prb.createIntermediateConstraint("periodic_velocity", q_p_dot - q_p_dot_init, nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
+# prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
 
-i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[0]/hip_red_ratio+tau[0]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
+prb.createConstraint("GRF_zero", f_contact,
+                     nodes=range(n_takeoff, n_nodes))  # 0 GRF during flight
+
+prb.createIntermediateConstraint("no_foot_slip_during_contact", v_foot_tip[1] , nodes=range(0,n_takeoff + 1)) # restore leg position and hip height at the end of the control horizon
+
+prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
+
+i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[2]/hip_red_ratio+tau[2]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
 i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 
-i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[1]/knee_red_ratio+tau[1]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
+i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[3]/knee_red_ratio+tau[3]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
 i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
 ##############################################
 
 ## Costs
+prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact))
 
-prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot[2:4]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
-# prb.createIntermediateCost("max_tip_hor_excursion", weight_max_tip_hor_excursion * (1/foot_tip_excursion))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
-prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]+forward_vel),nodes=range(0, n_takeoff + 1))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+# prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
+# prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))
 
 ##############################################
 
@@ -271,7 +283,7 @@ joint_names.remove("universe")  # removing the "universe joint"
 
 cnstr_opt = slvr.getConstraintSolutionDict()
 
-i_q=(hip_rotor_axial_MoI*solution["q_p_ddot"]/hip_red_ratio+cnstr_opt["tau_limits"]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
+i_q=(hip_rotor_axial_MoI*solution["q_p_ddot"][2:4,:]/hip_red_ratio+cnstr_opt["tau_limits"][2:4,:]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
 
 foot_tip_position_init_num=fk_foot(q=solution["q_p"][:,0])["ee_pos"]
 hip_position_init_num=fk_hip(q=solution["q_p"][:,0])["ee_pos"]
@@ -285,8 +297,8 @@ init_solution_hip_position_aux = np.tile(hip_position_init_num,(1,n_nodes+1))
 solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
-useful_solutions={"q_p":solution["q_p"],"q_p_dot":solution["q_p_dot"], "q_p_ddot":solution["q_p_ddot"],
-                 "tau":cnstr_opt["tau_limits"], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
+useful_solutions={"q_p":solution["q_p"][2:4,:],"q_p_dot":solution["q_p_dot"][2:4,:], "q_p_ddot":solution["q_p_ddot"][2:4,:],
+                 "tau":cnstr_opt["tau_limits"][2:4,:], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
                  "hip_height":np.transpose(solution_hip_position-init_solution_hip_position_aux[2,:]), 
                  "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),

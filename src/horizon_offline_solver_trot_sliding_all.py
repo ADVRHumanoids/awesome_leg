@@ -44,15 +44,12 @@ config_path=rospackage.get_path("awesome_leg_pholus")+"/config/" # configuration
 if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)):
     scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)
 
-# if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+")):
-#     scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/sliding_all")
-
 ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/horizon_offline_solver.mat")
 ms_aux = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/horizon_offline_solver.mat")
 target=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is
 
 shutil.copyfile(config_path+"actuators.yaml", target+"/actuators.yaml") # saving config files for reference and future debugging
-shutil.copyfile(config_path+"horizon_jump.yaml", target+"/horizon.yaml")
+shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", target+"/horizon.yaml")
 shutil.copyfile(config_path+"xbot2.yaml", target+"/xbot2.yaml") 
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
@@ -70,8 +67,11 @@ if employ_opt_init: # initialize variables with the previously saved solution
 
 n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/n_nodes")  # optimization horizon
 n_takeoff =rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/n_takeoff")   # instant of takeoff
+dt= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt")   # dt
 
 forward_vel= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/forward_vel") 
+
+tip_ground_clearance= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/tip_ground_clearance") 
 
 dt_lb=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_lb")   # dt lower bound 
 dt_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_ub")   # dt upper bound
@@ -81,12 +81,13 @@ test_rig_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings
 # cost weights
 
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/contact_force")  # minimizing the contact force
+weight_fictitious_actuation= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_fictitious_actuation") # minimizing the fictitious actuations
 # weight_postural_cost = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/terminal_postural") # cost to restore the initial position at the end of the control horizon
 weight_q_ddot = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
 # weight_hip_i_d=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_hip_i_d") # minimizing hip i_d
 # weight_knee_i_d=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_knee_i_d") # minimizing hip i_d
 weight_forward_vel=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_forward_vel") # maximizing the jump height (measured at the tip)
-
+weight_large_tip_vert_excursion=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/cost_weights/weight_forward_vel") 
 # solver options
 
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/solver/tolerance"), 
@@ -163,7 +164,7 @@ dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
 Dt=[dt1]*n_takeoff+[dt2]*(n_nodes-n_takeoff) # holds the complete time list
 
 # prb.setDt(Dt)
-prb.setDt(0.01)
+prb.setDt(dt)
 
 # Creating the state variables
 q_p = prb.createStateVariable("q_p", n_q)
@@ -175,7 +176,7 @@ q_p_dot = prb.createStateVariable("q_p_dot",
 if employ_opt_init:
     q_p_dot[1:].setInitialGuess(loaded_sol["q_p_dot"])
 
-q_p[0].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
+q_p[1].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
 
 # Defining the input/s (joint accelerations)
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
@@ -197,7 +198,6 @@ contact_map = dict(tip=f_contact)  # creating a contact map for applying the inp
 # 
 q_p_init = prb.createSingleVariable("q_p_init", n_q)  # single variable for leaving the initial condition free
 q_p_dot_init = prb.createSingleVariable("q_p_dot_init", n_q)  # single variable for leaving the initial condition free
-# q_p_dot_init[2:4].setInitialGuess([2.0,2.0])
 
 ##############################################
 
@@ -240,11 +240,10 @@ tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 prb.createConstraint("foot_tip_on_ground", foot_tip_position[2],
                      nodes=range(0, n_takeoff + 1))  # foot on the ground during the contact phase
 
-# no_tip_ground_penetration=prb.createIntermediateConstraint("no_tip_ground_penetration", foot_tip_position[2]-foot_tip_position_init[2],
-#                      nodes=range(n_takeoff+1, n_nodes+1))
-# no_tip_ground_penetration.setLowerBounds(0)
+no_grnd_tip_penetration = prb.createIntermediateConstraint("no_grnd_tip_penetration", foot_tip_position[2],nodes=range(n_takeoff+1, n_nodes + 1))  # dynamics feasibility constraint
+no_grnd_tip_penetration.setLowerBounds(0)
 
-# prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
+prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
 
 prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_nodes))  # 0 GRF during flight
@@ -260,6 +259,10 @@ i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[3]/knee_red_ratio+tau[3]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
 i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
+print(n_takeoff+round((n_nodes-n_takeoff)/2))
+
+# prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round((n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
+
 ##############################################
 
 ## Costs
@@ -267,7 +270,9 @@ prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_co
 
 prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot[2:4]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
-prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+prb.createIntermediateCost("min_fictitious_actuation", weight_fictitious_actuation * cs.sumsqr(q_p_ddot[0:2]))  # minimizing the fictitious inputs (prismatic guides)
+
+# prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
 # prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
 # prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))

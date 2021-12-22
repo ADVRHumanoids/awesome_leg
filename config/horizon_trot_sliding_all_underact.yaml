@@ -1,11 +1,11 @@
 # USED FOR SETTINGS SOME SOLVER OPTIONS
 horizon:
 
-  urdf_relative_path: "/description/urdf/awesome_leg_complete_fixed.urdf" # urdf relative path (wrt to the package)
+  urdf_relative_path: "/description/urdf/awesome_leg_complete_sliding_all.urdf" # urdf relative path (wrt to the package)
  
-  media_relative_path: "/media/horizon_trot/fixed_hip" # relative path where graphs, etc.. are saved
+  media_relative_path: "/media/horizon_trot/sliding_all_underact" # relative path where graphs, etc.. are saved
 
-  opt_results_rel_path: "/opt_results/horizon_trot/fixed_hip"
+  opt_results_rel_path: "/opt_results/horizon_trot/sliding_all_underact"
 
   joint_cntrl:
 
@@ -34,7 +34,7 @@ horizon:
         n_nodes: 100
         n_takeoff: 50
 
-        forward_vel: 0.1
+        forward_vel: 1
 
         dt_lb: 0.01
         dt_ub: 0.1
@@ -50,8 +50,9 @@ horizon:
           ub:  0.4      
 
         cost_weights:
+          contact_force: 0.01
           small_q_p_ddot: 0.01
           weight_hip_i_d: 1.0
           weight_knee_i_d: 1.0
-          weight_max_tip_hor_excursion: 10000000
-          weight_forward_vel: 1
+          weight_forward_vel: 50.0
+          

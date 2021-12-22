@@ -30,6 +30,11 @@
       <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_trot_sliding_all.yaml" /> 
     </group>
 
+    <group if="$(eval arg('trot_type')=='sliding_all_underact')">
+      <param name="horizon/trot_type" type="string" value="sliding_all" />
+      <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_trot_sliding_all_underact.yaml" /> 
+    </group>
+
   </group>
 
 </launch>

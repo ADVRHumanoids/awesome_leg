@@ -16,6 +16,9 @@
     <group if="$(eval arg('trot_type')=='sliding_all')">
       <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_all.py" />
     </group>
+    <group if="$(eval arg('trot_type')=='sliding_all_underact')">
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_all_underact.py" />
+    </group>
   </group>
 
 </launch>

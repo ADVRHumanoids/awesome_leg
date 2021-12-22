@@ -33,8 +33,11 @@ horizon:
 
         n_nodes: 100
         n_takeoff: 50
+        dt: 0.01
 
-        forward_vel: 0.2
+        forward_vel: 1
+
+        tip_ground_clearance: 0.1
 
         dt_lb: 0.01
         dt_ub: 0.1
@@ -50,8 +53,10 @@ horizon:
           ub:  0.4      
 
         cost_weights:
-          contact_force: 0.01
-          small_q_p_ddot: 0.01
+          contact_force: 0.001
+          weight_fictitious_actuation: 10.0
+          small_q_p_ddot: 0.001
           weight_hip_i_d: 1.0
           weight_knee_i_d: 1.0
-          weight_forward_vel: 1000000
+          weight_forward_vel: 1.0
+          

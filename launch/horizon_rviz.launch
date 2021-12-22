@@ -13,7 +13,9 @@
     <group if="$(eval arg('gazebo_model_type')=='sliding_all')">
         <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf"/>
     </group>
-
+    <group if="$(eval arg('gazebo_model_type')=='sliding_all_underact')">
+        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf"/>
+    </group>
 
     <node if="$(arg gui)"
             type="rviz"
