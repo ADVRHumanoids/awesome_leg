@@ -117,6 +117,7 @@ hip_omega_max_nl_af=rospy.get_param("/actuators/hip/omega_max_nl_af")
 hip_omega_max_nl_af44=rospy.get_param("/actuators/hip/omega_max_nl_af44")
 hip_omega_max_nl_af112=rospy.get_param("/actuators/hip/omega_max_nl_af112")
 
+
 ## knee actuator:
 knee_rotor_axial_MoI=rospy.get_param("/actuators/knee/rotor_axial_MoI")
 knee_rotor_mass=rospy.get_param("/actuators/knee/rotor_mass")
@@ -146,8 +147,10 @@ n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
 ##############################################
+leg_joint_vel_lim=np.array([hip_omega_max_nl_af112,hip_omega_max_nl_af112]) # jont velocity limits (of the leg)
 
 tau_lim = np.array([cs.inf, cs.inf, cs.inf, cs.inf])  # effort limits (excluding the fictious linear actuations on the hip joint)
+tau_lim_stance_phase= np.array([0, 0, tau_lim[2], tau_lim[3]])
 
 prb = Problem(n_nodes)  # initialization of a problem object
 
@@ -175,6 +178,8 @@ q_p_dot = prb.createStateVariable("q_p_dot",
                                   n_v)  # here q_p_dot is actually not the derivative of the lagrangian state vector
 if employ_opt_init:
     q_p_dot[1:].setInitialGuess(loaded_sol["q_p_dot"])
+
+q_p_dot[2:4].setBounds(-leg_joint_vel_lim, leg_joint_vel_lim)
 
 q_p[1].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
 
@@ -232,10 +237,10 @@ v_foot_tip = dfk_foot(q=q_p, qdot=q_p_dot)["ee_vel_linear"]  # foot velocity
 ##############################################
 
 ## Constraints
-tau_cnstrnt = prb.createIntermediateConstraint("dynamics_feas", tau[0])  # dynamics feasibility constraint
 
 tau_limits = prb.createIntermediateConstraint("tau_limits", tau) 
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
+tau_limits.setBounds(-tau_lim_stance_phase, tau_lim_stance_phase, nodes=range(0,n_takeoff-1))  # setting input limits
 
 prb.createConstraint("foot_tip_on_ground", foot_tip_position[2],
                      nodes=range(0, n_takeoff + 1))  # foot on the ground during the contact phase
@@ -339,7 +344,7 @@ x, x_dot = utils.double_integrator(q_sym, q_dot_sym, q_ddot_sym)
 
 dae = {'x': x, 'p': q_ddot_sym, 'ode': x_dot, 'quad': 1}
 
-dt_res = 0.01
+dt_res = 0.001
 sol_contact_map = dict(tip=solution["f_contact"])  # creating a contact map for applying the input to the foot
 
 # print(solution)

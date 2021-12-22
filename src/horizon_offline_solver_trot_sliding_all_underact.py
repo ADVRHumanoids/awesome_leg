@@ -228,7 +228,6 @@ v_foot_tip = dfk_foot(q=q_p, qdot=q_p_dot)["ee_vel_linear"]  # foot velocity
 ##############################################
 
 ## Constraints
-tau_cnstrnt = prb.createIntermediateConstraint("dynamics_feas", tau[0])  # dynamics feasibility constraint
 
 tau_limits = prb.createIntermediateConstraint("tau_limits", tau) 
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
