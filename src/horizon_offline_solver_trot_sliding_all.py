@@ -265,8 +265,6 @@ i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[3]/knee_red_ratio+tau[3]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
 i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
-print(n_takeoff+round((n_nodes-n_takeoff)/2))
-
 prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round(1*(n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
 
 prb.createIntermediateConstraint("vertical_takeoff_vel", v_foot_tip[1], nodes=n_takeoff+1) # restore leg position and hip height at the end of the control horizon

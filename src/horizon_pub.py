@@ -121,11 +121,11 @@ def horizon_pub():
     while not rospy.is_shutdown(): 
         if pub_iterator>(n_nodes-1):
             pub_iterator=0 # replaying trajectory after end
-            rospy.sleep(2) # sleep between replayed trajectories
+            # rospy.sleep(2) # sleep between replayed trajectories
         pub_iterator=pub_iterator+1 # incrementing publishing counter
 
         rate = rospy.Rate(1/dt[pub_iterator-1])
-        print(1/dt[pub_iterator-1])
+        # print(1/dt[pub_iterator-1])
         pack_xbot2_message()
         pub.publish(joint_command)  
         rate.sleep()
