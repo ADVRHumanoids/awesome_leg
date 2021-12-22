@@ -242,6 +242,7 @@ prb.createConstraint("foot_tip_on_ground", foot_tip_position[2],
 
 no_grnd_tip_penetration = prb.createIntermediateConstraint("no_grnd_tip_penetration", foot_tip_position[2],nodes=range(n_takeoff+1, n_nodes + 1))  # dynamics feasibility constraint
 no_grnd_tip_penetration.setLowerBounds(0)
+no_grnd_tip_penetration.setUpperBounds(cs.inf)
 
 prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
 
@@ -261,7 +262,11 @@ i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
 print(n_takeoff+round((n_nodes-n_takeoff)/2))
 
-# prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round((n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round((n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
+
+prb.createIntermediateConstraint("vertical_takeoff_vel", v_foot_tip[1], nodes=n_takeoff+1) # restore leg position and hip height at the end of the control horizon
+
+prb.createIntermediateConstraint("vertical_touchdown_vel", v_foot_tip[1], nodes=n_nodes) # restore leg position and hip height at the end of the control horizon
 
 ##############################################
 
