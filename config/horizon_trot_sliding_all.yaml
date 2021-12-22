@@ -32,10 +32,10 @@ horizon:
       problem_settings:
 
         n_nodes: 100
-        n_takeoff: 50
+        n_takeoff: 60
         dt: 0.005
 
-        forward_vel: 1.6
+        forward_vel: 2
 
         tip_ground_clearance: 0.1
 

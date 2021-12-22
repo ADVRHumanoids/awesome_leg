@@ -256,8 +256,8 @@ prb.createConstraint("GRF_zero", f_contact,
 
 prb.createIntermediateConstraint("no_foot_slip_during_contact", v_foot_tip[1] , nodes=range(0,n_takeoff + 1)) # restore leg position and hip height at the end of the control horizon
 
-prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
-prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes-1]) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes]) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes]) # restore leg position and hip height at the end of the control horizon
 
 i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[2]/hip_red_ratio+tau[2]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
 i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
@@ -267,7 +267,7 @@ i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
 print(n_takeoff+round((n_nodes-n_takeoff)/2))
 
-prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round((n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round(1*(n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
 
 prb.createIntermediateConstraint("vertical_takeoff_vel", v_foot_tip[1], nodes=n_takeoff+1) # restore leg position and hip height at the end of the control horizon
 
