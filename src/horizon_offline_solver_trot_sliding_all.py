@@ -249,7 +249,7 @@ no_grnd_tip_penetration = prb.createIntermediateConstraint("no_grnd_tip_penetrat
 no_grnd_tip_penetration.setLowerBounds(0)
 no_grnd_tip_penetration.setUpperBounds(cs.inf)
 
-prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
+# prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center
 
 prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_nodes))  # 0 GRF during flight
@@ -282,7 +282,7 @@ prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot[2:4]
 
 prb.createIntermediateCost("min_fictitious_actuation", weight_fictitious_actuation * cs.sumsqr(q_p_ddot[0:2]))  # minimizing the fictitious inputs (prismatic guides)
 
-# prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
 # prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
 # prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))
