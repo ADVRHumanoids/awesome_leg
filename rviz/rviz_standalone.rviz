@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Grid1
-        - /Grid1/Status1
         - /RobotModel1
       Splitter Ratio: 0.4977678656578064
     Tree Height: 573
@@ -107,7 +106,7 @@ Visualization Manager:
   Global Options:
     Background Color: 220; 220; 220
     Default Light: true
-    Fixed Frame: world
+    Fixed Frame: test_rig
     Frame Rate: 30
   Name: root
   Tools:
@@ -131,7 +130,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.126868486404419
+      Distance: 3.505014419555664
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -147,9 +146,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.01480043213814497
+      Pitch: 0.20480042695999146
       Target Frame: <Fixed Frame>
-      Yaw: 0.6699793934822083
+      Yaw: 0.3499796390533447
     Saved: ~
 Window Geometry:
   Displays:
@@ -167,5 +166,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 366
-  Y: 6
+  X: 364
+  Y: -24

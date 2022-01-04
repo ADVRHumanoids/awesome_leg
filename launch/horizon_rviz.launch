@@ -3,7 +3,6 @@
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>
 
-    
     <group if="$(eval arg('gazebo_model_type')=='fixed_hip')">
         <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf"/>
     </group>
@@ -24,9 +23,14 @@
             args="-d $(find awesome_leg_pholus)/rviz/rviz_standalone.rviz"/>
             output="screen"/>
     
+    <!-- Simply load all the necessary parameters into the parameter server -->
+    <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>
+
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen">
     <param name="publish_default_efforts" value="True"/>
     </node>
-    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" /> -->  <!-- uncomment to use RVIZ as standalone -->
+
+    <!-- Launching the horizon solver node; this is used to compute the optimized trajectory/inputs -->
+    <include file="$(find awesome_leg_pholus)/launch/horizon_solver.launch "  pass_all_args="true"/>
 
 </launch>
