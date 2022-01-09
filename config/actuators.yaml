@@ -21,7 +21,7 @@ actuators:
   tau_peak_ar: 112 # allowed peak torque after reduction ([Nm])
   
   I_max: 24.0 # current @ tau_max_br ([A])
-  I_peak: 62.0 # current @ tau_peak ([A])
+  I_peak: 50.0 # 62 A real maximum value. Current @ tau_peak ([A])
   
   omega_max_nl_bf: 1067.2 # maximum no-load velocity @ 48 V, before reduction ([rad/s])
   omega_max_nl_af: 21.3 # maximum no-load velocity @ 48 V, after reduction ([rad/s])
@@ -49,7 +49,7 @@ actuators:
   tau_peak_ar: 112 # allowed peak torque after reduction ([Nm])
   
   I_max: 24.0 # current @ tau_max_br ([A])
-  I_peak: 62.0 # current @ tau_peak ([A])
+  I_peak: 50.0 # 62 A real maximum value. Current @ tau_peak ([A])
   
   omega_max_nl_bf: 1067.2 # maximum no-load velocity @ 48 V, before reduction ([rad/s])
   omega_max_nl_af: 21.3 # maximum no-load velocity @ 48 V, after reduction ([rad/s])

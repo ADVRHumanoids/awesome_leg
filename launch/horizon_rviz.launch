@@ -31,6 +31,6 @@
     </node>
 
     <!-- Launching the horizon solver node; this is used to compute the optimized trajectory/inputs -->
-    <include file="$(find awesome_leg_pholus)/launch/horizon_solver.launch "  pass_all_args="true"/>
+    <include file="$(find awesome_leg_pholus)/launch/horizon_solver.launch"  pass_all_args="true"/>
 
 </launch>

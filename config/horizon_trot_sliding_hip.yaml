@@ -27,7 +27,7 @@ horizon:
 
     employ_opt_init: false # whether to use the initial guess or not
     
-    urdf_type
+    urdf_type:
 
     variable_dt:
 

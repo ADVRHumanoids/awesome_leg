@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <model name='my_camera'>
+  <model name='camera'>
       <static>true</static>
       
       <!--<pose>0 2.0 0.5 0 0.175 4.712</pose>--> <!--lateral view -->
