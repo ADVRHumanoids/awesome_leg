@@ -6,8 +6,8 @@ Andrea Patrizi's work on controlling our awesome leg.
 
 Repo structure:
 ```
-📦awesome_leg_pholus
- ┣ 📂config
+📦awesome_leg_pholus 
+ ┣ 📂config # configuration files
  ┣ 📂description
  ┃ ┣ 📂meshes
  ┃ ┃ ┣ 📂collision
