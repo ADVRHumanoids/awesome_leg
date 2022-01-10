@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
+<!-- Leg base URDF (no external links) -->
+
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- ################### MATERIAL DEFINITIONS ################### -->
@@ -93,7 +95,7 @@
             <mesh filename="package://awesome_leg_pholus/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </visual>
-        <collision>
+        <collision>gazebo_ros_control
         <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
         <geometry name="1_stick_collision">
             <mesh filename="package://awesome_leg_pholus/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>

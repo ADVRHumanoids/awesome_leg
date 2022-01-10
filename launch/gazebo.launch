@@ -1,5 +1,8 @@
 <launch>
 
+  <!-- LAUNCH GAZEBO (with the leg) AND XBOT -->
+
+
   <!-- these are the arguments you can pass this launch file, for example paused:=true -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
@@ -8,7 +11,6 @@
   <arg name="debug" default="false"/>
 
   <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
-
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">

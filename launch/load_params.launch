@@ -1,5 +1,7 @@
 <launch>
 
+  <!-- LOADS THE PARAMETERS FROM THE CONFIG. FILES-->
+
   <!-- loading some useful actuators parameters-->
   <rosparam command="load" file="$(find awesome_leg_pholus)/config/actuators.yaml" /> 
   

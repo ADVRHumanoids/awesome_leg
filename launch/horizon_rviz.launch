@@ -1,4 +1,5 @@
 <launch>
+    <!-- LAUNCHES RVIZ, LOADS THE NECESSARTY CONFIGURATIONS, THE ROBOT STATE PUBLISHER AND THE HORIZON SOLVER -->
 
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>

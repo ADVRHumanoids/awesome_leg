@@ -1,5 +1,5 @@
 <launch>
-  <!-- Switching between task types -->
+  <!-- LAUNCHES THE HORIZON SOLVER, based on the input arguments -->
 
   <group if="$(eval arg('task_type')=='jump')">
     <!-- loading some horizon solver parameters-->

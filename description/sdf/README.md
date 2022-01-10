@@ -4,4 +4,4 @@ Models:
 
 - "modified_ground_plane"
  
-- "camera" &rarr
+- "camera"
