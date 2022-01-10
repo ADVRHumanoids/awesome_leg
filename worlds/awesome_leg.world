@@ -30,7 +30,7 @@
         </sky>
         <shadows>0</shadows> <!-- necessary, otherwise the models appear dark-->
         <grid>0</grid>
-        <origin_visual>1</origin_visual>
+        <origin_visual>0</origin_visual>
     </scene>
 
     <!--%%%%%%%%%%%%%%%% PHYSICS SETTINGS %%%%%%%%%%%%%%%%-->
