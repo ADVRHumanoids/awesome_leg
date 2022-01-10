@@ -1,11 +1,11 @@
 # USED FOR SETTINGS SOME SOLVER OPTIONS
 horizon:
 
-  urdf_relative_path: "/description/urdf/awesome_leg_complete_sliding_all.urdf" # urdf relative path (wrt to the package)
+  urdf_relative_path: "description/urdf/awesome_leg_complete_sliding_all.urdf" # urdf relative path (wrt to the package)
  
-  media_relative_path: "/media/horizon_trot/sliding_all_underact" # relative path where graphs, etc.. are saved
+  media_relative_path: "media/horizon_trot/sliding_all_underact" # relative path where graphs, etc.. are saved
 
-  opt_results_rel_path: "/opt_results/horizon_trot/sliding_all_underact"
+  opt_results_rel_path: "opt_results/horizon_trot/sliding_all_underact"
 
   joint_cntrl:
 

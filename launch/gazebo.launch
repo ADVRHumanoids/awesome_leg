@@ -7,6 +7,9 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
+  <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
+
+
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find awesome_leg_pholus)/worlds/awesome_leg.world"/>
@@ -33,5 +36,13 @@
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model awesome_leg -param robot_description"/>
+
+  <!-- XBot interface-->
+  <group if="$(arg isxbot2_interface)">
+    <!-- Launching the xbot2-core command -->
+    <node name="xbot2_core" pkg="awesome_leg_pholus" type="start_xbot2-core.sh" />
+    <!-- Enabling the joint control -->
+    <node name="xbot2_cntrl" pkg="awesome_leg_pholus" type="start_xbot2-cntrl.sh" />
+  </group>
 
 </launch>

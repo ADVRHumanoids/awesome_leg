@@ -34,39 +34,40 @@ if task_type=="jump":
     is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
 
     ## Creating folders for saving data (if not already existing)
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)):
-        scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)
+    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)):
+        scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)
 
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/single_dt/")):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/single_dt")
+    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/single_dt/")):
+        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/single_dt")
 
-    if (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/multiple_dt/")): 
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/multiple_dt")
+    if (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/multiple_dt/")): 
+        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/multiple_dt")
 
-    if (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/fixed_dt/")):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/fixed_dt")
+    if (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/fixed_dt/")):
+        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/fixed_dt")
 
     ##
     if is_adaptive_dt:
         if is_single_dt:
-            ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/single_dt/horizon_offline_solver.mat")
-            save_path=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/single_dt/"
+            ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/single_dt/horizon_offline_solver.mat")
+            save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/single_dt/"
         else:
-            ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/multiple_dt/horizon_offline_solver.mat")
-            save_path=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/multiple_dt/"
+            ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/multiple_dt/horizon_offline_solver.mat")
+            save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/multiple_dt/"
     else:
-        ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/fixed_dt/horizon_offline_solver.mat")
-        save_path=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/fixed_dt/"
+        ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/fixed_dt/horizon_offline_solver.mat")
+        save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/fixed_dt/"
 
 elif task_type=="trot":
     
     ## Creating folders for saving data (if not already existing)
 
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is)
+    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)):
+        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)
 
-    ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/horizon_offline_solver.mat")
-    save_path=rospackage.get_path("awesome_leg_pholus")+media_rel_path+"/"+today_is+"/"
+    ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat")
+    print(ms_loaded)
+    save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"
        
 else:
     raise Exception('You did not specify a valid task type')

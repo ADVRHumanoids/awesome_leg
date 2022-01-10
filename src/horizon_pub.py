@@ -43,16 +43,16 @@ if task_type=="jump":
 
     if is_adaptive_dt:
         if is_single_dt:
-            ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/single_dt/horizon_offline_solver.mat")
+            ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/single_dt/horizon_offline_solver.mat")
         else:
-            ms= mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/multiple_dt/horizon_offline_solver.mat")
+            ms= mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/multiple_dt/horizon_offline_solver.mat")
     else:
-        ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/fixed_dt/horizon_offline_solver.mat")
+        ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/fixed_dt/horizon_offline_solver.mat")
 
 elif task_type=="trot":
 
     n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-    ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+opt_res_rel_path+"/horizon_offline_solver.mat")
+    ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat")
 
 
 solution=ms.load() # loading the solution dictionary
