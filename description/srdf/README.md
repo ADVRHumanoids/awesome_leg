@@ -3,4 +3,4 @@ Files:
 
 - `awesome_leg.srdf` 
 
-- `awesome_leg_complete.srdf` &rarr Complete version (with test rig)
+- `awesome_leg_complete.srdf` &rarr; Complete version (with test rig)
