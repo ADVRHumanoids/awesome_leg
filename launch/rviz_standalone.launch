@@ -3,6 +3,7 @@
 
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>
+    <arg name="use_joint_publisher_gui" default="true"/>
 
     <group if="$(eval arg('gazebo_model_type')=='fixed_hip')">
         <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf"/>
@@ -25,8 +26,8 @@
     <param name="publish_default_efforts" value="True"/>
     </node>
 
-    <!-- <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />   -->
-
-    <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />  
+    <group if="$(arg use_joint_publisher_gui)">
+        <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" />  
+    </group>
 
 </launch>

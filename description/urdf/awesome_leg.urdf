@@ -99,7 +99,7 @@
             <mesh filename="package://awesome_leg_pholus/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </visual>
-        <collision>gazebo_ros_control
+        <collision name="foot_tip_collision">
         <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
         <geometry name="1_stick_collision">
             <mesh filename="package://awesome_leg_pholus/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
@@ -167,7 +167,9 @@
 
     <gazebo> <!-- Gazebo-ROS control interface -->
         <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so"> 
-            <robotNamespace>/</robotNamespace>
+            <robotNamespace>/awesome_leg</robotNamespace>
+            <controlPeriod>0.01 </controlPeriod>
+            <robotParam> /robot_description </robotParam> 
         </plugin>
     </gazebo>
 
@@ -213,6 +215,14 @@
     </gazebo>
     <gazebo reference="knee_1">
         <material>Gazebo/Grey  </material>
+        <!-- <sensor name='impact_sensor' type='contact'>
+          <contact>
+            <collision>knee_1_fixed_joint_lump__foot_tip_collision_collision</collision> <!--to check -->
+            <topic>/awesome_leg/contact/</topic>
+          </contact>
+        </sensor> -->
     </gazebo>
+
+        
   
   </robot>

@@ -12,13 +12,13 @@ horizon:
     hip_joint:
 
       control_mode: "position" # "position", "velocity", "effort"
-      stiffness: 500.0
+      stiffness: 1000.0
       damping: 5.0
 
     knee_joint:
 
       control_mode: "position"
-      stiffness: 500.0
+      stiffness: 2000.0
       damping: 5.0
 
   horizon_solver:
