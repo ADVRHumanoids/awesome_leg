@@ -217,7 +217,7 @@
         <material>Gazebo/Grey  </material>
         <!-- <sensor name='impact_sensor' type='contact'>
           <contact>
-            <collision>knee_1_fixed_joint_lump__foot_tip_collision_collision</collision> <!--to check -->
+            <collision>knee_1_fixed_joint_lump__foot_tip_collision_collision</collision>
             <topic>/awesome_leg/contact/</topic>
           </contact>
         </sensor> -->

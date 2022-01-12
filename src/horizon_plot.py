@@ -22,6 +22,8 @@ today_is = today.strftime("%d-%m-%Y")
 
 urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
 media_rel_path = rospy.get_param("/horizon/media_relative_path")  # media relative path (wrt to the package)
+simulation_name = rospy.get_param("/horizon/simulation_name")  # simulation name (used to save different simulations to different locations, for the trot task type)
+
 opt_res_rel_path = rospy.get_param("/horizon/opt_results_rel_path")  # optimal results relative path (wrt to the package)
 
 task_type = rospy.get_param("/horizon/task_type")  # task type
@@ -33,7 +35,7 @@ if task_type=="jump":
     is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
     is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
 
-    ## Creating folders for saving data (if not already existing)
+    ## Creating folders for saving data (if not already existing). Does not work recursively, so also the top directory has to be checked.
     if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)):
         scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)
 
@@ -62,12 +64,12 @@ elif task_type=="trot":
     
     ## Creating folders for saving data (if not already existing)
 
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)
+    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name)):
+        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name)
 
     ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat")
     print(ms_loaded)
-    save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"
+    save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name+"/"
        
 else:
     raise Exception('You did not specify a valid task type')

@@ -29,6 +29,8 @@ employ_opt_init = rospy.get_param("horizon/horizon_solver/employ_opt_init")  # i
 urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
 
 media_rel_path = rospy.get_param("/horizon/media_relative_path")  # urdf relative path (wrt to the package)
+simulation_name = rospy.get_param("/horizon/simulation_name")  # simulation name (used to save different simulations to different locations)
+
 opt_res_rel_path = rospy.get_param("/horizon/opt_results_rel_path")  # urdf relative path (wrt to the package)
 
 ##################### Initializing objects for .mat storage #########################
@@ -41,16 +43,17 @@ config_path=rospackage.get_path("awesome_leg_pholus")+"/config/" # configuration
 
 ## Creating folders for saving plots and other data (if not already existing). This folders are also used by horizon_plot.py
 
-if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)):
-    scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)
+media_target=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name # target directory where a copy of the opt results is placed (and also some useful graphs)
+opt_res_target=rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat" # auxiliary target directory for opt results, where the LAST solution is placed
 
-ms = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat")
-ms_aux = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/horizon_offline_solver.mat")
-target=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is
+if  (not scibidibi.path.isdir(media_target)): # if media target does not exist, create it
+    scibidibi.makedirs(media_target)
 
-shutil.copyfile(config_path+"actuators.yaml", target+"/actuators.yaml") # saving config files for reference and future debugging
-shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", target+"/horizon.yaml")
-shutil.copyfile(config_path+"xbot2.yaml", target+"/xbot2.yaml") 
+ms = mat_storer.matStorer(opt_res_target)# initializing storer object for opt results
+
+shutil.copyfile(config_path+"actuators.yaml", media_target+"/actuators.yaml") # saving config files for reference and debugging
+shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", media_target+"/horizon.yaml")
+shutil.copyfile(config_path+"xbot2.yaml", media_target+"/xbot2.yaml") 
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
     ms_opt_init = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat")
@@ -58,7 +61,7 @@ if save_sol_as_init: # save the solution as the initialization for the next sim
 if employ_opt_init: # initialize variables with the previously saved solution
     ms_load_path=rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat"
     ms_load = mat_storer.matStorer(ms_load_path)
-    shutil.copyfile(ms_load_path, target) # copying used init to folder for reference and debugging
+    shutil.copyfile(ms_load_path, media_target) # copying used init to folder for reference and debugging
     loaded_sol=ms_load.load() # loading the solution dictionary
 
 ##################### LOADING SOLVER PARAMETERS FROM SERVER #########################
@@ -72,9 +75,10 @@ dt= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt")   
 forward_vel= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/forward_vel") 
 
 tip_ground_clearance= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/tip_ground_clearance") 
+flight_phase_tip_clearance_percentage=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/flight_phase_tip_clearance_percentage") 
 
-dt_lb=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_lb")   # dt lower bound 
-dt_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_ub")   # dt upper bound
+# dt_lb=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_lb")   # dt lower bound 
+# dt_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/dt_ub")   # dt upper bound
 test_rig_lb= rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
 test_rig_ub=rospy.get_param("horizon/horizon_solver/variable_dt/problem_settings/test_rig/ub") # upper bound of the test rig excursion
 
@@ -159,12 +163,12 @@ trans_opt = dict(integrator="RK4")  # dictionary with the chosen integrator name
 
 ##############################################
 
-dt1 = prb.createSingleVariable("dt1", 1)  # dt for the foot tip topuch phase
-dt2 = prb.createSingleVariable("dt2", 1)  # dt for the flight phase
-dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
-dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
+# dt1 = prb.createSingleVariable("dt1", 1)  # dt for the foot tip topuch phase
+# dt2 = prb.createSingleVariable("dt2", 1)  # dt for the flight phase
+# dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
+# dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
 
-Dt=[dt1]*n_takeoff+[dt2]*(n_nodes-n_takeoff) # holds the complete time list
+# Dt=[dt1]*n_takeoff+[dt2]*(n_nodes-n_takeoff) # holds the complete time list
 
 # prb.setDt(Dt)
 prb.setDt(dt)
@@ -254,10 +258,10 @@ no_grnd_tip_penetration.setUpperBounds(cs.inf)
 prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_nodes))  # 0 GRF during flight
 
-prb.createIntermediateConstraint("no_foot_slip_during_contact", v_foot_tip[1] , nodes=range(0,n_takeoff + 1)) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("no_foot_slip_during_contact", v_foot_tip[1] , nodes=range(0,n_takeoff + 1))
 
-prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes]) # restore leg position and hip height at the end of the control horizon
-prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes]) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("periodic_position", q_p[1:4] - q_p_init[1:4], nodes=[0,n_nodes]) 
+prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_init[1:4], nodes=[0,n_nodes]) 
 
 i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[2]/hip_red_ratio+tau[2]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  # i_q hip less than the maximum allowed value
 i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
@@ -265,11 +269,11 @@ i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[3]/knee_red_ratio+tau[3]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  # i_q knee less than the maximum allowed value
 i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
-prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round(1*(n_nodes-n_takeoff)/2)) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round(1*(n_nodes-n_takeoff)*flight_phase_tip_clearance_percentage)) 
 
-prb.createIntermediateConstraint("vertical_takeoff_vel", v_foot_tip[1], nodes=n_takeoff+1) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("vertical_takeoff_vel", v_foot_tip[1], nodes=n_takeoff+1)
 
-prb.createIntermediateConstraint("vertical_touchdown_vel", v_foot_tip[1], nodes=n_nodes) # restore leg position and hip height at the end of the control horizon
+prb.createIntermediateConstraint("vertical_touchdown_vel", v_foot_tip[1], nodes=n_nodes) 
 
 ##############################################
 
@@ -326,13 +330,13 @@ useful_solutions={"q_p":solution["q_p"][2:4,:],"q_p_dot":solution["q_p_dot"][2:4
                  "sol_time":solution_time}
 
 ##
-ms.store(useful_solutions) # saving solution data to file
+ms.store(useful_solutions) # saving solution data to opt_res_target folder
     
-shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat", target+"/horizon_offline_solver.mat")
+shutil.copyfile(opt_res_target, media_target+"/horizon_offline_solver.mat")
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
     ms_opt_init.store(useful_solutions) # saving initialization data to file    
-    shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
+    shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat", media_target+"horizon_offline_solver_init.mat")
 
 ################### RESAMPLING (necessary because dt is variable) #####################à
 q_sym = cs.SX.sym('q', n_q)

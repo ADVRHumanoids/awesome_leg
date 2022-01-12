@@ -3,10 +3,13 @@ horizon:
 
   urdf_relative_path: "description/urdf/awesome_leg_complete_sliding_all.urdf" # urdf relative path (wrt to the package)
  
-  media_relative_path: "media/horizon_trot/sliding_all" # relative path where graphs, etc.. are saved
+  media_relative_path: "media/horizon_trot/sliding_all" # relative path where graphs, a copy of the opt results etc.. are saved
 
-  opt_results_rel_path: "opt_results/horizon_trot/sliding_all"
+  simulation_name: "slower_trot5" # (opt results and graphs are automatically saved inside package_path/media/task_name/sub_task_name/today_date/simulation_name) 
+  # to differentiate between simulations of the same task_type, sub_task_type carried out on the same date, modify the simulation_name before each simulation
 
+  opt_results_rel_path: "opt_results/horizon_trot/sliding_all" # auxiliary folder used for storing the LAST solution 
+  
   joint_cntrl:
 
     hip_joint:
@@ -31,16 +34,14 @@ horizon:
 
       problem_settings:
 
-        n_nodes: 100
-        n_takeoff: 60
-        dt: 0.005
+        n_nodes: 100 # total number of nodes
+        n_takeoff: 50 # node @ takeoff
+        dt: 0.01 # delta t between nodes of the optimizer
 
-        forward_vel: 2
+        forward_vel: 1 # forware velocity of the trot
 
-        tip_ground_clearance: 0.1
-
-        dt_lb: 0.01
-        dt_ub: 0.1
+        tip_ground_clearance: 0.1 # enforced tip clearance at a specified point in the flight phase (specified by "flight_phase_tip_clearance_percentage")
+        flight_phase_tip_clearance_percentage: 0.6 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
  
         solver:
           name: "ipopt"

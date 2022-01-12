@@ -16,8 +16,8 @@ import warnings
 ###############################################
 rospackage=rospkg.RosPack()
 
-urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
-media_rel_path = rospy.get_param("/horizon/media_relative_path")  # media relative path (wrt to the package)
+# urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
+# media_rel_path = rospy.get_param("/horizon/media_relative_path")  # media relative path (wrt to the package)
 opt_res_rel_path = rospy.get_param("/horizon/opt_results_rel_path")  # optimal results relative path (wrt to the package)
 
 # xbot2 control modes codes (bitmask, p-v-e-k-d, where p is the LSB)
