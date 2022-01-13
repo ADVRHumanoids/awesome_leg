@@ -5,27 +5,18 @@ import rospy
 import rospkg
 
 from xbot_msgs.msg import JointCommand
-from xbot_interface import xbot_interface as xbot
+# from xbot_interface import xbot_interface as xbot
 
 from horizon.utils import mat_storer
 
 import numpy as np
 
-import warnings
+# import warnings
 
 ###############################################
 rospackage=rospkg.RosPack()
 
-# urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
-# media_rel_path = rospy.get_param("/horizon/media_relative_path")  # media relative path (wrt to the package)
 opt_res_rel_path = rospy.get_param("/horizon/opt_results_rel_path")  # optimal results relative path (wrt to the package)
-
-# xbot2 control modes codes (bitmask, p-v-e-k-d, where p is the LSB)
-pos_cntrl_code=1
-vel_cntrl_code=2
-eff_cntrl_code=4
-stiff_cntrl_code=8
-damp_cntrl_code=16
 
 task_type = rospy.get_param("/horizon/task_type")  # task type
 
@@ -69,54 +60,40 @@ time_vector = np.zeros(dt.size+1)
 for i in range(dt.size):
     time_vector[i+1] = time_vector[i] + dt[i]
 
-hip_cntrl_mode = rospy.get_param("/horizon/joint_cntrl/hip_joint/control_mode") # control mode (position, velocity, effort)
-knee_cntrl_mode = rospy.get_param("/horizon/joint_cntrl/knee_joint/control_mode") # control mode (position, velocity, effort)
-hip_joint_stffnss = rospy.get_param("/horizon/joint_cntrl/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot)
-knee_joint_stffnss = rospy.get_param("/horizon/joint_cntrl/knee_joint/stiffness") # knee joint stiffness setting (to be used by Xbot)
-hip_joint_damp = rospy.get_param("/horizon/joint_cntrl/hip_joint/damping") # hip joint damping setting (to be used by Xbot)
-knee_joint_damp = rospy.get_param("/horizon/joint_cntrl/knee_joint/damping") # knee joint damping setting (to be used by Xbot)
+hip_cntrl_mode = rospy.get_param("/horizon/joint_cntrl/hip_joint/control_mode") # hip control mode (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB)
+knee_cntrl_mode = rospy.get_param("/horizon/joint_cntrl/knee_joint/control_mode") # knee control mode (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB)
+hip_joint_stffnss = rospy.get_param("/horizon/joint_cntrl/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot, if impedance cntrl is enabled)
+knee_joint_stffnss = rospy.get_param("/horizon/joint_cntrl/knee_joint/stiffness") # knee joint stiffness setting (to be used by Xbot, if impedance cntrl is enabled)
+hip_joint_damp = rospy.get_param("/horizon/joint_cntrl/hip_joint/damping") # hip joint damping setting (to be used by Xbot, if impedance cntrl is enabled)
+knee_joint_damp = rospy.get_param("/horizon/joint_cntrl/knee_joint/damping") # knee joint damping setting (to be used by Xbot, if impedance cntrl is enabled)
 
 joint_command=JointCommand() # initializing object for holding the joint command
-joint_command.stiffness=[hip_joint_stffnss,knee_joint_stffnss]
-joint_command.damping=[hip_joint_damp,knee_joint_damp]
+joint_command.stiffness=[hip_joint_stffnss,knee_joint_stffnss] # if impedance cntrl is not enabled, xbot simply ignores this setting
+joint_command.damping=[hip_joint_damp,knee_joint_damp] # if impedance cntrl is not enabled, xbot simply ignores this setting
 
-ctrl_mode=[pos_cntrl_code+eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code,
-           pos_cntrl_code+eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code] # default is set to position control + torque feedforwars+ stiffness and damping setting
-
-if hip_cntrl_mode=="position":
-    ctrl_mode[0]=pos_cntrl_code+eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code
-elif hip_cntrl_mode=="velocity":
-    ctrl_mode[0]=vel_cntrl_code+eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code
-elif hip_cntrl_mode=="effort":
-    ctrl_mode[0]=eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code
-else: warnings.warn("\nInvalid hip control mode. Please check your configuration file.\n Allowed control modes: \"position\",\t\"velocity\",\t\"effort\"\n")
-
-if knee_cntrl_mode=="position":
-    ctrl_mode[1]=pos_cntrl_code+eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code
-elif knee_cntrl_mode=="velocity":
-    ctrl_mode[1]=vel_cntrl_code+eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code
-elif knee_cntrl_mode=="effort":
-    ctrl_mode=eff_cntrl_code+stiff_cntrl_code+damp_cntrl_code
-else: warnings.warn("\nInvalid hip control mode. The control mode will be set to position.\n Allowed control modes: \"position\",\t\"velocity\",\t\"effort\"\n")
+ctrl_mode=[hip_cntrl_mode, knee_cntrl_mode] # cntrl mode vector
 
 joint_command.ctrl_mode=ctrl_mode
+joint_command.name=["hip_pitch_1","knee_pitch_1"]
 
-pub_iterator=0 # used to slide thorugh the solution
+pub_iterator=0 # used to slide through the solution
+pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10) # publish on xbotcore/command
+rospy.init_node('horizon_publisher', anonymous=True) # initialize a publisher node (anonymous, so potentially another node of the same type can run concurrently)
 
 ###############################################
 
 def pack_xbot2_message():
     if pub_iterator<=(n_nodes-1): # continue sliding and publishing until the end of the solution is reached
-        joint_command.name=["hip_pitch_1","knee_pitch_1"]
+        #
         joint_command.position=[q_p[0,pub_iterator],q_p[1,pub_iterator]]
         joint_command.velocity=[q_p_dot[0,pub_iterator],q_p_dot[1,pub_iterator]]
         joint_command.effort=[tau[0,pub_iterator-1],tau[1,pub_iterator-1]]
-        print(pub_iterator)
 
-def horizon_pub():
-    global pub_iterator
-    pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10)
-    rospy.init_node('horizon_publisher', anonymous=True)
+        print("Publishing trajectory sample n.:\t"+str(pub_iterator)+","+"\n") # print a simple debug message
+        print("with publish rate:\t"+str(1/dt[pub_iterator-1])+"\n") # print a simple debug message
+
+def horizon_initial_pose_pub(): # before sending the trajectory, first move smoothly the joints to the first trajectory position reference
+    # not possible to do this with velocity or torque references for obvious reasons
 
     while not rospy.is_shutdown(): 
         if pub_iterator>(n_nodes-1):
@@ -124,11 +101,32 @@ def horizon_pub():
             # rospy.sleep(2) # sleep between replayed trajectories
         pub_iterator=pub_iterator+1 # incrementing publishing counter
 
-        rate = rospy.Rate(1/dt[pub_iterator-1])
-        # print(1/dt[pub_iterator-1])
-        pack_xbot2_message()
-        pub.publish(joint_command)  
-        rate.sleep()
+        rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
+
+        pack_xbot2_message() # copy trajectory to xbot command object 
+
+        pub.publish(joint_command) # publish the commands
+
+        rate.sleep() # wait
+
+def horizon_pub():
+
+    while not rospy.is_shutdown(): 
+        global pub_iterator # using the variable initialized in the global scope
+        if pub_iterator>(n_nodes-1):
+            pub_iterator=0 # replaying trajectory after end
+            # rospy.sleep(2) # sleep between replayed trajectories
+        pub_iterator=pub_iterator+1 # incrementing publishing counter
+
+        rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
+
+        pack_xbot2_message() # copy trajectory to xbot command object 
+
+        pub.publish(joint_command) # publish the commands
+
+        rate.sleep() # wait
+
+###############################################
 
 if __name__ == '__main__':
     try:

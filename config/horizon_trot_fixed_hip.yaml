@@ -7,51 +7,55 @@ horizon:
 
   opt_results_rel_path: "/opt_results/horizon_trot/fixed_hip"
 
-  joint_cntrl:
+  xbot_command_pub: # some horizon-xbot configuration parameters
 
-    hip_joint:
+    joint_cntrl:
 
-      control_mode: "position" # "position", "velocity", "effort"
-      stiffness: 250.0
-      damping: 5.0
+      hip_joint:
+  
+        # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+        # impedance (pos+kp+kd) + torque f.f. code: -> 29
+        # simple impedance (pos+kp+kd) code: -> 25
+        control_mode: 25
+        stiffness: 500.0
+        damping: 5.0
+  
+      knee_joint:
+  
+        control_mode: 25 # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+        stiffness: 500.0
+        damping: 5.0
 
-    knee_joint:
-
-      control_mode: "position"
-      stiffness: 250.0
-      damping: 5.0
-
-  horizon_solver:
+  horizon_solver: # horizon optimization problem-specific parameters
 
     save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
 
     employ_opt_init: false # whether to use the initial guess or not
     
-    variable_dt:
+    problem_settings:
 
-      problem_settings:
+      n_nodes: 100 # total number of nodes
+      n_takeoff: 50 # node @ takeoff
+      dt: 0.01 # delta t between nodes of the optimizer
 
-        n_nodes: 100
-        n_takeoff: 50
+      forward_vel: 1 # forware velocity of the trot
 
-        forward_vel: 0.1
+      tip_ground_clearance: 0.1 # enforced tip clearance at a specified point in the flight phase (specified by "flight_phase_tip_clearance_percentage")
+      flight_phase_tip_clearance_percentage: 0.6 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
 
-        dt_lb: 0.01
-        dt_ub: 0.1
- 
-        solver:
-          name: "ipopt"
-          tolerance: 0.0001
-          max_iter: 1000
-          linear_solver_name: "ma57"    
+      solver:
+        name: "ipopt"
+        tolerance: 0.0001
+        max_iter: 1000
+        linear_solver_name: "ma57"    
 
-        test_rig:
-          lb: -0.4
-          ub:  0.4      
+      test_rig:
+        lb: -0.4
+        ub:  0.4      
 
-        cost_weights:
-          small_q_p_ddot: 0.01
-          weight_hip_i_d: 1.0
-          weight_knee_i_d: 1.0
-          weight_max_tip_hor_excursion: 10000000
-          weight_forward_vel: 1
+      cost_weights:
+        contact_force: 0.001 # cost weight for the contact force
+        weight_fictitious_actuation: 10.0 # cost weight for the fictitious supporting force on the hip
+        # weight_hip_i_d: 1.0 # weight 
+        # weight_knee_i_d: 1.0
+        weight_forward_vel: 100000.0

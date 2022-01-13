@@ -1,8 +1,8 @@
-## XBotInterface related configs
+## XBotInterface related configs. Used for simulations on Gazebo (lacks some configurations necessary to run xbot on the actual hardware).
 
 XBotInterface:
-  urdf_path: /home/andreap/hhcm_ws/src/awesome_leg_pholus/description/urdf/awesome_leg.urdf
-  srdf_path: /home/andreap/hhcm_ws/src/awesome_leg_pholus/description/srdf/awesome_leg.srdf
+  urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
+  srdf_path: $(rospack find awesome_leg_pholus)/description/srdf/awesome_leg.srdf
 
 ModelInterface:
   model_type: RBDL
@@ -56,7 +56,7 @@ xbotcore_plugins:
 xbotcore_param:
     /jm/tx_filter_autostart: {value: false, type: bool}  # autostart joint filter
     /jm/tx_filter_cutoff: {value: 2.0, type: double}    # set default filter bandwidth
-    /jm/enable_safety: {value: false, type: bool}  # safety checks
+    /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
     /xbot_internal/ros_io/call_timeout: {value: 1.0, type: chrono}
     /rt_slow/memory_hooks: {value: false, type: bool}
         

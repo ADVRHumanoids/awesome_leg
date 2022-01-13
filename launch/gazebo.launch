@@ -2,14 +2,12 @@
 
   <!-- LAUNCH GAZEBO (with the leg) AND XBOT -->
 
-
-  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+  <arg name="gazebo_model_type" default="sliding_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all", "sliding_all_underact"  -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
-
   <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
@@ -22,7 +20,7 @@
     <arg name="headless" value="$(arg headless)"/>
   </include>
 
-  <!-- Load the URDF into the ROS Parameter Server, depending on the chosen model type -->
+  <!-- Load the right URDF into the ROS Parameter Server, depending on the chosen model type -->
   <group if="$(eval arg('gazebo_model_type')=='fixed_hip')">
       <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_fixed.xacro'" />
   </group>
@@ -39,7 +37,7 @@
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model awesome_leg -param robot_description"/>
 
-  <!-- XBot interface-->
+  <!-- Launch the XBot interface (if not disable by the associated launch argument)-->
   <group if="$(arg isxbot2_interface)">
     <!-- Launching the xbot2-core command -->
     <node name="xbot2_core" pkg="awesome_leg_pholus" type="start_xbot2-core.sh" />

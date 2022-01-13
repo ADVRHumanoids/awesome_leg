@@ -5,59 +5,70 @@ horizon:
  
   media_relative_path: "media/horizon_trot/sliding_all" # relative path where graphs, a copy of the opt results etc.. are saved
 
-  simulation_name: "slower_trot5" # (opt results and graphs are automatically saved inside package_path/media/task_name/sub_task_name/today_date/simulation_name) 
-  # to differentiate between simulations of the same task_type, sub_task_type carried out on the same date, modify the simulation_name before each simulation
+  simulation_name: "trot_test" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
+  # To differentiate between simulations of the same task_type and/or of the same sub_task_type (if carried out on the same day), modify the simulation_name before each simulation.
 
   opt_results_rel_path: "opt_results/horizon_trot/sliding_all" # auxiliary folder used for storing the LAST solution 
   
-  joint_cntrl:
+  xbot_command_pub: # some horizon-xbot configuration parameters
 
-    hip_joint:
+    approaching_traj:
 
-      control_mode: "position" # "position", "velocity", "effort"
-      stiffness: 1000.0
-      damping: 5.0
+      n_intervals: 100
+      T_execution: 5.0
+      standby_time: 2.0 
 
-    knee_joint:
+    joint_cntrl:
 
-      control_mode: "position"
-      stiffness: 2000.0
-      damping: 5.0
+      hip_joint:
+  
+        # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+        # impedance (pos+kp+kd) + torque f.f. code: -> 29
+        # simple impedance (pos+kp+kd) code: -> 25
+        control_mode: 25
+        stiffness: 500.0
+        damping: 5.0
+  
+      knee_joint:
+  
+        control_mode: 25 # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+        stiffness: 500.0
+        damping: 5.0
 
-  horizon_solver:
+  horizon_solver: # horizon optimization problem-specific parameters
 
     save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
 
     employ_opt_init: false # whether to use the initial guess or not
     
-    variable_dt:
+    problem_settings:
 
-      problem_settings:
+      n_nodes: 100 # total number of nodes
+      n_takeoff: 50 # node @ takeoff
+      dt: 0.01 # delta t between nodes of the optimizer
 
-        n_nodes: 100 # total number of nodes
-        n_takeoff: 50 # node @ takeoff
-        dt: 0.01 # delta t between nodes of the optimizer
+      forward_vel: 1 # forware velocity of the trot
 
-        forward_vel: 1 # forware velocity of the trot
+      tip_ground_clearance: 0.1 # enforced tip clearance at a specified point in the flight phase (specified by "flight_phase_tip_clearance_percentage")
+      flight_phase_tip_clearance_percentage: 0.6 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
 
-        tip_ground_clearance: 0.1 # enforced tip clearance at a specified point in the flight phase (specified by "flight_phase_tip_clearance_percentage")
-        flight_phase_tip_clearance_percentage: 0.6 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
- 
-        solver:
-          name: "ipopt"
-          tolerance: 0.0001
-          max_iter: 1000
-          linear_solver_name: "ma57"    
+      solver:
+        name: "ipopt"
+        tolerance: 0.0001
+        max_iter: 1000
+        linear_solver_name: "ma57"    
 
-        test_rig:
-          lb: -0.4
-          ub:  0.4      
+      test_rig:
+        lb: -0.4
+        ub:  0.4      
 
-        cost_weights:
-          contact_force: 0.001
-          weight_fictitious_actuation: 10.0
-          small_q_p_ddot: 0.1
-          weight_hip_i_d: 1.0
-          weight_knee_i_d: 1.0
-          weight_forward_vel: 100000.0
+      cost_weights:
+        contact_force: 0.001 # cost weight for the contact force
+        weight_fictitious_actuation: 10.0 # cost weight for the fictitious supporting force on the hip
+        weight_forward_vel: 100000.0 # cost weight for forcing an overall constant hip advancing velocity
+        small_q_p_ddot: 0.1 # cost for the joint accelerations
+
+        # weight_hip_i_d: 1.0 # weight 
+        # weight_knee_i_d: 1.0
+        
           

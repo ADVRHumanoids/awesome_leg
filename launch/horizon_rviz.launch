@@ -4,19 +4,6 @@
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>
 
-    <group if="$(eval arg('gazebo_model_type')=='fixed_hip')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf"/>
-    </group>
-    <group if="$(eval arg('gazebo_model_type')=='sliding_hip')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf"/>
-    </group>
-    <group if="$(eval arg('gazebo_model_type')=='sliding_all')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf"/>
-    </group>
-    <group if="$(eval arg('gazebo_model_type')=='sliding_all_underact')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf"/>
-    </group>
-
     <node if="$(arg gui)"
             type="rviz"
             name="rviz"
