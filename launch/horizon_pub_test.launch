@@ -7,18 +7,16 @@
     <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>
     <param name="/horizon/xbot_command_pub/approaching_traj/wait_until_initial_pose" type="bool" value="true" />
 
-    <group if="$(eval arg('launch_pose_init'))">
-        
+    <group if="$(eval arg('launch_pose_init'))"> <!-- if launch_pose_init=true, launch the associated node and set the proper parameter -->
         <param name="/horizon/xbot_command_pub/approaching_traj/wait_until_initial_pose" type="bool" value="true" />
         <node name="horizon_xbot_init_pos_pub" pkg="awesome_leg_pholus" type="horizon_xbot_init_pos_pub.py" output="screen"/> <!-- start the horizon-xbot initial pose publisher node-->
-    
     </group>
 
     <group if="$(eval (not arg('launch_pose_init')))">
         <param name="/horizon/xbot_command_pub/approaching_traj/wait_until_initial_pose" type="bool" value="false" />    
     </group>
 
-    <!-- Launch the publisher node -->
+    <!-- Launch the xbot command publisher node -->
     <node name="horizon_xbot_cmd_pub" pkg="awesome_leg_pholus" type="horizon_xbot_cmd_pub.py" output="screen"/> <!-- start the horizon-xbot publisher node-->
 
 </launch>

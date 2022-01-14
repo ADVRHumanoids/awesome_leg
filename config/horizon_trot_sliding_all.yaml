@@ -1,24 +1,23 @@
 # USED FOR SETTINGS SOME SOLVER OPTIONS
 horizon:
 
-  urdf_relative_path: "description/urdf/awesome_leg_complete_sliding_all.urdf" # urdf relative path (wrt to the package)
+  urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf # urdf relative path (wrt to the ROS package)"
  
-  media_relative_path: "media/horizon_trot/sliding_all" # relative path where graphs, a copy of the opt results etc.. are saved
-
+  media_path: $(rospack find awesome_leg_pholus)/media/horizon_trot/sliding_all # relative path where graphs, a copy of the opt results etc.. are saved
   simulation_name: "trot_test" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
   # To differentiate between simulations of the same task_type and/or of the same sub_task_type (if carried out on the same day), modify the simulation_name before each simulation.
 
-  opt_results_rel_path: "opt_results/horizon_trot/sliding_all" # auxiliary folder used for storing the LAST solution 
+  opt_results_path: $(rospack find awesome_leg_pholus)/opt_results/horizon_trot/sliding_all # auxiliary folder used for storing the LAST solution 
   
   xbot_command_pub: # some horizon-xbot configuration parameters
 
-    approaching_traj:
+    approaching_traj: # configurations for the node used to move the leg to its initial position
 
-      n_intervals: 100
-      T_execution: 5.0
-      standby_time: 2.0 
+      n_intervals: 100 # number of intervals of the generated trajectory
+      T_execution: 5.0 # desired execution time
+      standby_time: 1.0 # time delay between the finished approach maneouver and the start of the real trajectory
 
-    joint_cntrl:
+    joint_cntrl: # xbot joint cntrl specific parameters
 
       hip_joint:
   
@@ -70,5 +69,10 @@ horizon:
 
         # weight_hip_i_d: 1.0 # weight 
         # weight_knee_i_d: 1.0
-        
+
+  horizon_plotter: # custom plot utility settings
+
+    show_plots: true # whether or not to show the plots when the plotter node is run
+    save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
+    
           

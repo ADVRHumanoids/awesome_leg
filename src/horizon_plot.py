@@ -1,34 +1,39 @@
 #!/usr/bin/env python3
 
-###############################################
+########################## IMPORTS ##########################
+
 import rospy
-import rospkg
 
 from horizon.utils import mat_storer
 
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
+# from matplotlib import cm
+# from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 import numpy as np
 
 from datetime import date
 import os as scibidibi
 
-###############################################
-do_save_fig=True
+########################## INITIALIZATIONS & Co ##########################
+
+show_plots=rospy.get_param("/horizon/horizon_plotter/show_plots") # whether or not to show the plots
+if show_plots:
+    save_fig=rospy.get_param("/horizon/horizon_plotter/save_fig") # whether or not to save figures to the destination folder
+else:
+    rospy.set_param("/horizon/horizon_plotter/save_fig", True) # if plots are not shown then they must at least be saved (so save_fig defaults to true )
+    save_fig=rospy.get_param("/horizon/horizon_plotter/save_fig") # whether or not to save figures to the destination folder
+
 today = date.today()
 today_is = today.strftime("%d-%m-%Y")
 
-urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
-media_rel_path = rospy.get_param("/horizon/media_relative_path")  # media relative path (wrt to the package)
+urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf absolute path 
+media_path = rospy.get_param("/horizon/media_path")  # media absolute path
 simulation_name = rospy.get_param("/horizon/simulation_name")  # simulation name (used to save different simulations to different locations, for the trot task type)
 
-opt_res_rel_path = rospy.get_param("/horizon/opt_results_rel_path")  # optimal results relative path (wrt to the package)
+opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results absolute path
 
 task_type = rospy.get_param("/horizon/task_type")  # task type
-
-rospackage=rospkg.RosPack()
 
 if task_type=="jump":
     
@@ -36,40 +41,40 @@ if task_type=="jump":
     is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
 
     ## Creating folders for saving data (if not already existing). Does not work recursively, so also the top directory has to be checked.
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)):
-        scibidibi.makedirs(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is)
+    if  (not scibidibi.path.isdir(media_path+"/"+today_is)):
+        scibidibi.makedirs(media_path+"/"+today_is)
 
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/single_dt/")):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/single_dt")
+    if  (not scibidibi.path.isdir(media_path+"/"+today_is+"/single_dt/")):
+        scibidibi.mkdir(media_path+"/"+today_is+"/single_dt")
 
-    if (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/multiple_dt/")): 
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/multiple_dt")
+    if (not scibidibi.path.isdir(media_path+"/"+today_is+"/multiple_dt/")): 
+        scibidibi.mkdir(media_path+"/"+today_is+"/multiple_dt")
 
-    if (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/fixed_dt/")):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/fixed_dt")
+    if (not scibidibi.path.isdir(media_path+"/"+today_is+"/fixed_dt/")):
+        scibidibi.mkdir(media_path+"/"+today_is+"/fixed_dt")
 
     ##
     if is_adaptive_dt:
         if is_single_dt:
-            ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/single_dt/horizon_offline_solver.mat")
-            save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/single_dt/"
+            ms_loaded = mat_storer.matStorer(opt_res_path+"/single_dt/horizon_offline_solver.mat")
+            save_path=media_path+"/"+today_is+"/single_dt/"
         else:
-            ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/multiple_dt/horizon_offline_solver.mat")
-            save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/multiple_dt/"
+            ms_loaded = mat_storer.matStorer(opt_res_path+"/multiple_dt/horizon_offline_solver.mat")
+            save_path=media_path+"/"+today_is+"/multiple_dt/"
     else:
-        ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/fixed_dt/horizon_offline_solver.mat")
-        save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/fixed_dt/"
+        ms_loaded = mat_storer.matStorer(opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
+        save_path=media_path+"/"+today_is+"/fixed_dt/"
 
 elif task_type=="trot":
     
     ## Creating folders for saving data (if not already existing)
 
-    if  (not scibidibi.path.isdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name)):
-        scibidibi.mkdir(rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name)
+    if  (not scibidibi.path.isdir(media_path+"/"+today_is+"/"+simulation_name)):
+        scibidibi.mkdir(media_path+"/"+today_is+"/"+simulation_name)
 
-    ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat")
+    ms_loaded = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver.mat")
     print(ms_loaded)
-    save_path=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name+"/"
+    save_path=media_path+"/"+today_is+"/"+simulation_name+"/"
        
 else:
     raise Exception('You did not specify a valid task type')
@@ -108,7 +113,7 @@ knee_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
 P_hip=(hip_rotor_axial_MoI*q_p_ddot[0,:]/hip_red_ratio+tau[0,:]*hip_red_ratio/hip_efficiency)*q_p_dot[0,:-1]/hip_red_ratio # mechanical power at the rotor axis
 P_knee=(knee_rotor_axial_MoI*q_p_ddot[1,:]/knee_red_ratio+tau[1,:]*knee_red_ratio/knee_efficiency)*q_p_dot[1,:-1]/hip_red_ratio
 
-########################## SOME PLOTS ##########################
+########################## PLOTTING STUFF ##########################
 
 f1=plt.figure()
 plt.plot(time_vector[1:-1], GRF[0, :-1], label=r"F_x")
@@ -119,7 +124,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel('[N]')
 plt.title("Ground reaction forces", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
 f2=plt.figure()
@@ -130,7 +135,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[rad]")
 plt.title("Joint positions", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"q.pdf", format="pdf") 
 
 f3=plt.figure()
@@ -141,7 +146,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[rad/s]")
 plt.title("Joint velocities", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"q_dot.pdf", format="pdf") 
 
 f4=plt.figure()
@@ -152,7 +157,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
 plt.title("Joint accelerations", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"q_ddot.pdf", format="pdf") 
 
 f5=plt.figure()
@@ -163,7 +168,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[Nm]")
 plt.title("Joint efforts (link side)", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"link_side_efforts.pdf", format="pdf") 
    
 f6=plt.figure()
@@ -174,7 +179,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[A]")
 plt.title("Actuators quadrature current", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"i_q.pdf", format="pdf") 
 
 f7=plt.figure()
@@ -185,7 +190,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[Nm]")
 plt.title("Joint efforts (rotor side)", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"rotor_side_efforts.pdf", format="pdf") 
 
 f8=plt.figure()
@@ -195,7 +200,7 @@ plt.ylabel(r"t [s]")
 plt.xlabel("node number")
 plt.title("Optimization dt", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"opt_dt.pdf", format="pdf") 
 
 f9=plt.figure()
@@ -206,7 +211,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[W]")
 plt.title("Mechanical power (actuator side)", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"mech_power.pdf", format="pdf") 
 
 f10=plt.figure()
@@ -217,7 +222,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[m]")
 plt.title("Characteristic link height excursion (w.r.t. their initial conditions)", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"link_heights.pdf", format="pdf") 
 
 f11=plt.figure()
@@ -230,7 +235,7 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[m/s]")
 plt.title("Foot tip velocity (cartesian components)", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"foot_tip_vel.pdf", format="pdf") 
 
 f12=plt.figure()
@@ -243,8 +248,8 @@ plt.xlabel(r"t [s]")
 plt.ylabel(r"[m/s]")
 plt.title("Hip velocity (cartesian components)", fontdict=None, loc='center')
 plt.grid()
-if do_save_fig:
+if save_fig:
     plt.savefig(save_path+"hip_vel.pdf", format="pdf") 
 
-plt.show()
+plt.show() # show the plots
 

@@ -42,6 +42,10 @@
     </group>
 
   </group>
+
+  <node name="relative_path_setter" pkg="awesome_leg_pholus" type="relative_path_setter.py" output="screen">
+    <param name="publish_default_efforts" value="True"/>
+  </node>
   
 
 </launch>

@@ -2,25 +2,36 @@
 
 horizon:
  
- urdf_relative_path: "/description/urdf/awesome_leg_complete.urdf" # urdf relative path (wrt to the package)
+ urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf # urdf relative path (wrt to the package)
  
- media_relative_path: "/media/horizon_jump" # relative path where graphs, etc.. are saved
+ media_path: $(rospack find awesome_leg_pholus)/media/horizon_jump # relative path where graphs, etc.. are saved
 
- opt_results_rel_path: "/opt_results/horizon_jump" # where optimization .mat files are saved
+ opt_results_path: $(rospack find awesome_leg_pholus)/opt_results/horizon_jump # where optimization .mat files are saved
+ 
+ xbot_command_pub: # some horizon-xbot configuration parameters
 
- joint_cntrl:
+  approaching_traj: # configurations for the node used to move the leg to its initial position
 
-  hip_joint:
+    n_intervals: 100 # number of intervals of the generated trajectory
+    T_execution: 5.0 # desired execution time
+    standby_time: 1.0 # time delay between the finished approach maneouver and the start of the real trajectory
 
-   control_mode: "position" # "position", "velocity", "effort"
-   stiffness: 250.0
-   damping: 5.0
+  joint_cntrl: # xbot joint cntrl specific parameters
 
-  knee_joint:
-  
-   control_mode: "position"
-   stiffness: 250.0
-   damping: 5.0
+    hip_joint:
+
+      # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+      # impedance (pos+kp+kd) + torque f.f. code: -> 29
+      # simple impedance (pos+kp+kd) code: -> 25
+      control_mode: 25
+      stiffness: 500.0
+      damping: 5.0
+
+    knee_joint:
+
+      control_mode: 25 # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+      stiffness: 500.0
+      damping: 5.0
 
  horizon_solver:
 
@@ -50,14 +61,6 @@ horizon:
       test_rig:
         lb: -0.4
         ub:  0.4  
-
-     #  hip:
-     #    lb: 
-     #    ub:  
-
-     #  knee:
-     #    lb: 
-     #    ub: 
 
       initial_conditions:
         q_p:     [0.0, 0.0, 0.0]
@@ -93,15 +96,7 @@ horizon:
 
          test_rig:
            lb: -0.4
-           ub:  0.4      
-
-         #  hip:
-         #    lb: 
-         #    ub:       
-
-         #  knee:
-         #    lb: 
-         #    ub: 
+           ub:  0.4     
 
          initial_conditions: 
            q_p:     [0.0, 0.0, 0.0]
@@ -137,14 +132,6 @@ horizon:
            lb: -0.4
            ub:  0.4      
 
-         #  hip:
-         #    lb: 
-         #    ub:       
-
-         #  knee:
-         #    lb: 
-         #    ub: 
-
          initial_conditions: 
            q_p:     [0.0, 0.0, 0.0]
            q_p_dot: [0.0, 0.0, 0.0]
@@ -157,7 +144,7 @@ horizon:
            big_foot_tip_clearance: 10
            weight_hip_i_d: 1.0
            weight_knee_i_d: 1.0
-   
+
       
     
 

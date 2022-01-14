@@ -1,24 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!-- Complete URDF of the leg (+ test rig and world link). No model plugins loaded. -->
+<!-- Complete URDF of the leg (+ test rig and world link). Only sliding hip. No model plugins loaded. -->
 
 <robot name="awesome_leg_complete" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- ################### MATERIAL DEFINITIONS ################### -->
 Ì
-   <material name="sky_blue">
-        <color rgba="0.13 0.44 0.70 1"/>
-    </material>
-    <material name="grey">
-        <color rgba=" 0.6 0.6 0.6 1"/>
-    </material>
-    <material name="black">
-        <color rgba="0.4 0.4 0.4 1"/>
-    </material>
-    <material name="brown">
-        <color rgba="0.59 0.29 0.0 1"/>
-    </material>
-    
+    <!-- Including materials -->
+    <xacro:include filename="$(find awesome_leg_pholus)/description/urdf/materials.xacro" />
 
     <!-- ################### LINKS ################### -->
     <link name="world"/>

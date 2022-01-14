@@ -24,12 +24,12 @@ from horizon.ros.replay_trajectory import *
 
 ##################### LOADING SOLVER PARAMETERS FROM THE ROS PARAMETER SERVER #########################
 
-urdf_rel_path = rospy.get_param("/horizon/urdf_relative_path")  # urdf relative path (wrt to the package)
+urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf relative path (wrt to the package)
 
-media_rel_path = rospy.get_param("/horizon/media_relative_path")  # urdf relative path (wrt to the package)
+media_path = rospy.get_param("/horizon/media_path")  # urdf relative path (wrt to the package)
 simulation_name = rospy.get_param("/horizon/simulation_name")  # simulation name (used to save different simulations to different locations)
 
-opt_res_rel_path = rospy.get_param("/horizon/opt_results_rel_path")  # urdf relative path (wrt to the package)
+opt_res_path = rospy.get_param("/horizon/opt_results_path")  # urdf relative path (wrt to the package)
 
 save_sol_as_init = rospy.get_param("horizon/horizon_solver/save_sol_as_init")  # if true, the solution is also saved as a candidate for future optimization initializations
 employ_opt_init = rospy.get_param("horizon/horizon_solver/employ_opt_init")  # if true, the solution is also saved as a candidate for future optimization initializations
@@ -43,8 +43,8 @@ today_is = today.strftime("%d-%m-%Y") # time to string
 config_path=rospackage.get_path("awesome_leg_pholus")+"/config/" # absolute path of the configuration files
 
 ## Creating folders for saving plots and other data (if not already existing). This folders are also used by horizon_plot.py (plots graphs)
-media_target=rospackage.get_path("awesome_leg_pholus")+"/"+media_rel_path+"/"+today_is+"/"+simulation_name # target directory where a copy of the opt results is placed (and also some useful graphs)
-opt_res_target=rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver.mat" # auxiliary target directory for opt results, where the LAST solution is placed
+media_target=media_path+"/"+today_is+"/"+simulation_name # target directory where a copy of the opt results is placed (and also some useful graphs)
+opt_res_target=opt_res_path+"/horizon_offline_solver.mat" # auxiliary target directory for opt results, where the LAST solution is placed
 
 if  (not scibidibi.path.isdir(media_target)): # if media target does not exist, create it
     scibidibi.makedirs(media_target)
@@ -56,10 +56,10 @@ shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", media_target+"/hori
 shutil.copyfile(config_path+"xbot2_sim_config.yaml", media_target+"/xbot2.yaml") # saving a copy of the used xbot config file for future reference and debugging
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
-    ms_opt_init = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat")
+    ms_opt_init = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver_init.mat")
 
 if employ_opt_init: # initialize variables with the previously saved solution
-    ms_load_path=rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat"
+    ms_load_path=opt_res_path+"/horizon_offline_solver_init.mat"
     ms_load = mat_storer.matStorer(ms_load_path)
     shutil.copyfile(ms_load_path, media_target) # copying used init to folder for reference and debugging
     loaded_sol=ms_load.load() # loading the solution dictionary
@@ -142,7 +142,6 @@ knee_omega_max_nl_af112=rospy.get_param("/actuators/knee/omega_max_nl_af112")
 
 ##################### LOADING THE URDF #########################
 
-urdf_path = rospackage.get_path("awesome_leg_pholus")+"/"+urdf_rel_path # absolute URDF file path
 urdf = open(urdf_path, "r").read() # read the URDF
 urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf) # initialize casady_kin_dyn (based on Casadi + Pinocchio) object 
 
@@ -360,7 +359,7 @@ shutil.copyfile(opt_res_target, media_target+"/horizon_offline_solver.mat")
 # If set, save the solution as the initialization for the next sim
 if save_sol_as_init: 
     ms_opt_init.store(useful_solutions) # saving initialization data to file    
-    shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/"+opt_res_rel_path+"/horizon_offline_solver_init.mat", media_target+"horizon_offline_solver_init.mat")
+    shutil.copyfile(opt_res_path+"/horizon_offline_solver_init.mat", media_target+"horizon_offline_solver_init.mat")
 
 
 ##  Resampling (necessary if dt is variable) 
