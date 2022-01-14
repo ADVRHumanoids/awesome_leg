@@ -2,11 +2,11 @@
 
 horizon:
  
- urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf # urdf relative path (wrt to the package)
+ urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf # urdf relative path (wrt to the package)
  
- media_path: $(rospack find awesome_leg_pholus)/media/horizon_jump # relative path where graphs, etc.. are saved
+ media_path: $(find awesome_leg_pholus)/awesome_leg_pholus/media/horizon_jump # relative path where graphs, etc.. are saved
 
- opt_results_path: $(rospack find awesome_leg_pholus)/opt_results/horizon_jump # where optimization .mat files are saved
+ opt_results_path: $(find awesome_leg_pholus)/awesome_leg_pholus/opt_results/horizon_jump # where optimization .mat files are saved
  
  xbot_command_pub: # some horizon-xbot configuration parameters
 

@@ -1,11 +1,11 @@
 # USED FOR SETTINGS SOME SOLVER OPTIONS
 horizon:
 
-  urdf_relative_path: $(rospack find awesome_leg_pholus)//description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
+  urdf_relative_path: $(find awesome_leg_pholus)/awesome_leg_pholus/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
  
-  media_relative_path: $(rospack find awesome_leg_pholus)/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
+  media_relative_path: $(find awesome_leg_pholus)/awesome_leg_pholus/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
 
-  opt_results_rel_path: $(rospack find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip
+  opt_results_rel_path: $(find awesome_leg_pholus)/awesome_leg_pholus/opt_results/horizon_trot/fixed_hip
 
   xbot_command_pub: # some horizon-xbot configuration parameters
 

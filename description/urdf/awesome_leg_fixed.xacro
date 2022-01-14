@@ -46,7 +46,7 @@
   </joint>
 
   <!-- Test rig to leg joint (prismatic); needs to be defined here since xbot2 cannot have passive joints in the URDF of the robot -->
-  <joint name="test_rig_pelvis" type="fixed">
+  <joint name="passive_joint" type="fixed">
       <parent link="test_rig" />
       <child link="pelvis" />
       <origin xyz="0 0 0.6" />

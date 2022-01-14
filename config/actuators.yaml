@@ -2,7 +2,7 @@
 
 actuators:
  hip:
-  rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
+  rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
   rotor_mass: 0.27 # mass of the rotor ([Kg])
   
   red_ratio: 0.02 # gear reduction ratio of the actuator (always <=1)

@@ -107,26 +107,23 @@ def xbot_cmd_publisher():
     rospy.init_node('horizon_xbot_publisher', anonymous=False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
 
     while not rospy.is_shutdown(): 
-        are_relative_path_set=rospy.get_param("/horizon/are_relative_path_set")
 
-        if are_relative_path_set: # relative paths were correctly set, so execution of the trajectory can proceed
+        if pub_iterator==0: # read the current joint trajectory and use it as the initialization
+            q_p_approach_traj=generate_Peisekah_trajectory(n_int_approach_traj, T_exec_approach, np.array(q_p_init_target), current_q_p)
 
-            if pub_iterator==0: # read the current joint trajectory and use it as the initialization
-                q_p_approach_traj=generate_Peisekah_trajectory(n_int_approach_traj, T_exec_approach, np.array(q_p_init_target), current_q_p)
+        if pub_iterator>(n_nodes-1): # finished playing the approach trajectory, set the topic message and shutdown node
+            rospy.set_param("horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached",True)
+            rospy.sleep(traj_exec_standby_time) # wait before sending the trajectory
+            rospy.signal_shutdown("Finished publishing approaching trajectory")
+        pub_iterator=pub_iterator+1 # incrementing publishing counter
 
-            if pub_iterator>(n_nodes-1): # finished playing the approach trajectory, set the topic message and shutdown node
-                rospy.set_param("horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached",True)
-                rospy.sleep(traj_exec_standby_time) # wait before sending the trajectory
-                rospy.signal_shutdown("Finished publishing approaching trajectory")
-            pub_iterator=pub_iterator+1 # incrementing publishing counter
+        rate = rospy.Rate(1/dt) # potentially, a trajectory with variable dt can be provided
 
-            rate = rospy.Rate(1/dt) # potentially, a trajectory with variable dt can be provided
+        pack_xbot2_message(q_p_approach_traj) # copy the optimized trajectory to xbot command object 
 
-            pack_xbot2_message(q_p_approach_traj) # copy the optimized trajectory to xbot command object 
+        xbot_cmd_pub.publish(joint_command) # publish the commands
 
-            xbot_cmd_pub.publish(joint_command) # publish the commands
-
-            rate.sleep() # wait
+        rate.sleep() # wait
 
 def current_q_p_assigner(joints_state): # callback function which reads the joint_states and updates current_q_p
     global current_q_p 

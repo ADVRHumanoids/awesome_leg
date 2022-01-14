@@ -107,30 +107,28 @@ def xbot_cmd_publisher():
     rospy.init_node('horizon_xbot_publisher', anonymous=False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
 
     while not rospy.is_shutdown(): 
-        are_relative_path_set=rospy.get_param("/horizon/are_relative_path_set")
 
-        if are_relative_path_set: # relative paths were correctly set, so execution of the trajectory can proceed
-            if wait_until_initial_pose:
-                is_initial_pose_reached = rospy.get_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached") # used 
-        
-                if is_initial_pose_reached:
-                    if pub_iterator>(n_nodes-1):
-                        pub_iterator=0 # replaying trajectory after end
-                        # rospy.sleep(2) # sleep between replayed trajectories
-                    pub_iterator=pub_iterator+1 # incrementing publishing counter
-                    rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
-                    pack_xbot2_message() # copy the optimized trajectory to xbot command object 
-                    xbot_cmd_pub.publish(joint_command) # publish the commands
-                    rate.sleep() # wait
-            else:
+        if wait_until_initial_pose:
+            is_initial_pose_reached = rospy.get_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached") # used 
+    
+            if is_initial_pose_reached:
                 if pub_iterator>(n_nodes-1):
-                        pub_iterator=0 # replaying trajectory after end
-                        # rospy.sleep(2) # sleep between replayed trajectories
+                    pub_iterator=0 # replaying trajectory after end
+                    # rospy.sleep(2) # sleep between replayed trajectories
                 pub_iterator=pub_iterator+1 # incrementing publishing counter
                 rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
                 pack_xbot2_message() # copy the optimized trajectory to xbot command object 
                 xbot_cmd_pub.publish(joint_command) # publish the commands
                 rate.sleep() # wait
+        else:
+            if pub_iterator>(n_nodes-1):
+                    pub_iterator=0 # replaying trajectory after end
+                    # rospy.sleep(2) # sleep between replayed trajectories
+            pub_iterator=pub_iterator+1 # incrementing publishing counter
+            rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
+            pack_xbot2_message() # copy the optimized trajectory to xbot command object 
+            xbot_cmd_pub.publish(joint_command) # publish the commands
+            rate.sleep() # wait
 
 def current_q_p_assigner(joints_state): # callback function which reads the joint_states and updates current_q_p
     global current_q_p 

@@ -4,8 +4,18 @@
 
     <!-- ################### MATERIAL DEFINITIONS ################### -->
 
-    <!-- Including materials -->
-    <xacro:include filename="$(find awesome_leg_pholus)/description/urdf/materials.xacro" />
+    <material name="sky_blue">
+        <color rgba="0.13 0.44 0.70 1"/>
+    </material>
+    <material name="grey">
+        <color rgba=" 0.6 0.6 0.6 1"/>
+    </material>
+    <material name="black">
+        <color rgba="0.4 0.4 0.4 1"/>
+    </material>
+    <material name="brown">
+        <color rgba="0.59 0.29 0.0 1"/>
+    </material>
 
     <!-- ################### LINKS ################### -->
     <link name="world"/>
@@ -124,7 +134,7 @@
 
     <!-- ################### JOINTS ################### -->
     
-    <joint name="world_to_test_rig" type="fixed">
+    <joint name="world_test_rig" type="fixed">
     <parent link="world"/>
     <child link="test_rig"/>
     </joint>
