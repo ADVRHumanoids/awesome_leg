@@ -40,7 +40,7 @@ xbotcore_plugins:
 
     # the ros_control plugin forwards all references received on the
     # ROS topic /xbotcore/command to the motors
-    ros_ctrl: {thread: nrt_main, type: ros_control}
+    ros_control: {thread: nrt_main, type: ros_control}
 
 
     # notice that you can reuse the same plugin, by providing
