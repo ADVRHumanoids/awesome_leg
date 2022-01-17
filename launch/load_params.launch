@@ -1,7 +1,7 @@
 <launch>
 
-  <arg name="task_type" default="jump" /> <!-- task of which to load arguments. Allowed values: "jump", "trot" -->
-  <arg name="trot_type" default="fixed_hip" /> <!-- trot type to be solved. Allowed values: "sliding_hip", "sliding_all" -->
+  <arg name="task_type" default="trot" /> <!-- task of which to load arguments. Allowed values: "jump", "trot" -->
+  <arg name="trot_type" default="sliding_all" /> <!-- trot type to be solved. Allowed values: "sliding_hip", "sliding_all" -->
 
   <!-- loading some useful actuators parameters-->
   <rosparam command="load" file="$(find awesome_leg_pholus)/config/actuators.yaml" subst_value="true"/> 

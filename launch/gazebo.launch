@@ -2,7 +2,7 @@
 
   <!-- LAUNCH GAZEBO (with the leg) AND XBOT -->
 
-  <arg name="gazebo_model_type" default="sliding_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all", "sliding_all_underact"  -->
+  <arg name="gazebo_model_type" default="fixed_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all", "sliding_all_underact"  -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
