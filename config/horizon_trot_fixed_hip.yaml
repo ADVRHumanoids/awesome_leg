@@ -4,7 +4,7 @@ horizon:
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
  
   media_path: $(find awesome_leg_pholus)/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
-  simulation_name: "sim1" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
+  simulation_name: "trot" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
 
   opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip
 
@@ -24,13 +24,13 @@ horizon:
         # impedance (pos+kp+kd) + torque f.f. code: -> 29
         # simple impedance (pos+kp+kd) code: -> 25
         control_mode: 29
-        stiffness: 1000.0
+        stiffness: 500.0
         damping: 5.0
 
       knee_joint:
   
         control_mode: 29 # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
-        stiffness: 1000.0
+        stiffness: 500.0
         damping: 5.0
 
   horizon_solver: # horizon optimization problem-specific parameters
@@ -45,10 +45,10 @@ horizon:
       n_takeoff: 50 # node @ takeoff
       dt: 0.01 # delta t between nodes of the optimizer
 
-      forward_vel: 1 # forward velocity of the trot
+      forward_vel: 2 # forward velocity of the trot
 
       tip_ground_clearance: 0.1 # enforced tip clearance at a specified point in the flight phase (specified by "flight_phase_tip_clearance_percentage")
-      flight_phase_tip_clearance_percentage: 0.6 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
+      flight_phase_tip_clearance_percentage: 0.5 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
 
       solver:
         name: "ipopt"
@@ -58,14 +58,22 @@ horizon:
 
       test_rig:
         lb: -0.4
-        ub:  0.4      
+        ub:  0.4   
+
+      hip_joint:
+        lb: -1000
+        ub:  1000
+      
+      knee_joint:
+        lb: -2.0
+        ub:  2.0    
 
       cost_weights:
+
         weight_forward_vel: 100000.0 # cost weight for forcing an overall constant hip advancing velocity
         small_q_p_ddot: 0.1 # cost for the joint accelerations
+        weight_min_input_diff: 1000 # cost for penalizing differences between successive inputs
 
-        # weight_hip_i_d: 1.0 # weight 
-        # weight_knee_i_d: 1.0
 
   horizon_plotter: # custom plot utility settings
 

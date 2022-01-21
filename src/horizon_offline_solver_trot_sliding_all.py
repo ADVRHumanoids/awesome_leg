@@ -54,6 +54,7 @@ ms = mat_storer.matStorer(opt_res_target)# initializing storer object for opt re
 shutil.copyfile(config_path+"actuators.yaml", media_target+"/actuators.yaml") # saving a copy of the used actuator config file for future reference and debugging
 shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", media_target+"/horizon.yaml") # saving a copy of the used horizon config file for future reference and debugging
 shutil.copyfile(config_path+"xbot2_sim_config.yaml", media_target+"/xbot2.yaml") # saving a copy of the used xbot config file for future reference and debugging
+shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/src"+"/"+scibidibi.path.basename(__file__), media_target+"/"+scibidibi.path.basename(__file__)) # saving a copy of this script for future reference and debugging
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
     ms_opt_init = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver_init.mat")
@@ -78,8 +79,10 @@ flight_phase_tip_clearance_percentage=rospy.get_param("horizon/horizon_solver/pr
 ## Bounds
 test_rig_lb= rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/lb") # lower bound of the test rig excursion
 test_rig_ub=rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/ub") # upper bound of the test rig excursion
-# dt_lb=rospy.get_param("horizon/horizon_solver/problem_settings/dt_lb")   # dt lower bound 
-# dt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/dt_ub")   # dt upper bound
+hip_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/lb") 
+hip_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/ub")
+knee_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/lb") 
+knee_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/ub")
 
 ## Cost weights:
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
@@ -87,6 +90,7 @@ weight_fictitious_actuation= rospy.get_param("horizon/horizon_solver/problem_set
 weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
 weight_forward_vel=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_forward_vel") # maximizing the jump height (measured at the tip)
 weight_large_tip_vert_excursion=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_forward_vel") 
+weight_min_input_diff=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
 
 # weight_postural_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/terminal_postural") # cost to restore the initial position at the end of the control horizon
 # weight_hip_i_d=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_hip_i_d") # minimizing hip i_d
@@ -181,6 +185,9 @@ q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations
 
 q_p_dot[2:4].setBounds(-leg_joint_vel_lim, leg_joint_vel_lim)
 q_p[1].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
+q_p[2].setBounds(hip_jnt_lb, hip_jnt_ub) # hip
+q_p[3].setBounds(knee_jnt_lb, knee_jnt_ub) # knee
+
 
 if employ_opt_init: # using initial guesses (if this option is set in the horizon config file)
     q_p[1:].setInitialGuess(loaded_sol["q_p"])
@@ -292,6 +299,8 @@ prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_co
 prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot[2:4]))  
 # Keep the forward hip velocity more or less constant
 prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(q_p_dot[0]-forward_vel))  
+# Penalize the difference between successive control inputs
+prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot-q_p_ddot.getVarOffset(-1)),nodes=range(1,n_nodes))  
 
 # prb.createIntermediateCost("keep_the_hip_current_down_dammit", weight_hip_i_d * cs.sumsqr((hip_rotor_axial_MoI*q_p_ddot[1]/hip_red_ratio+tau[1]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t))
 # prb.createIntermediateCost("keep_the_knee_current_down_dammit", weight_knee_i_d * cs.sumsqr((knee_rotor_axial_MoI*q_p_ddot[2]/knee_red_ratio+tau[2]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t))

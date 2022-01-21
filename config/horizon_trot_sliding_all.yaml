@@ -4,7 +4,7 @@ horizon:
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf # urdf relative path (wrt to the ROS package)"
  
   media_path: $(find awesome_leg_pholus)/media/horizon_trot/sliding_all # relative path where graphs, a copy of the opt results etc.. are saved
-  simulation_name: "trot_test" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
+  simulation_name: "trot" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
   # To differentiate between simulations of the same task_type and/or of the same sub_task_type (if carried out on the same day), modify the simulation_name before each simulation.
 
   opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/sliding_all # auxiliary folder used for storing the LAST solution 
@@ -57,15 +57,24 @@ horizon:
         max_iter: 1000
         linear_solver_name: "ma57"    
 
-      test_rig:
+      test_rig: 
         lb: -0.4
-        ub:  0.4      
+        ub:  0.4 
+
+      hip_joint:
+        lb: -1000
+        ub:  1000
+      
+      knee_joint:
+        lb: -2.0
+        ub:  2.0 
 
       cost_weights:
         contact_force: 0.001 # cost weight for the contact force
-        weight_fictitious_actuation: 10.0 # cost weight for the fictitious supporting force on the hip
+        weight_fictitious_actuation: 500000.0 # cost weight for the fictitious supporting force on the hip
         weight_forward_vel: 100000.0 # cost weight for forcing an overall constant hip advancing velocity
         small_q_p_ddot: 0.1 # cost for the joint accelerations
+        weight_min_input_diff: 100 # cost for penalizing differences between successive inputs
 
         # weight_hip_i_d: 1.0 # weight 
         # weight_knee_i_d: 1.0

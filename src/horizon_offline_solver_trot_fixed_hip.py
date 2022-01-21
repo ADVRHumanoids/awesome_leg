@@ -54,6 +54,7 @@ ms = mat_storer.matStorer(opt_res_target)# initializing storer object for opt re
 shutil.copyfile(config_path+"actuators.yaml", media_target+"/actuators.yaml") # saving a copy of the used actuator config file for future reference and debugging
 shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", media_target+"/horizon.yaml") # saving a copy of the used horizon config file for future reference and debugging
 shutil.copyfile(config_path+"xbot2_sim_config.yaml", media_target+"/xbot2.yaml") # saving a copy of the used xbot config file for future reference and debugging
+shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/src"+"/"+scibidibi.path.basename(__file__), media_target+"/"+scibidibi.path.basename(__file__)) # saving a copy of this script for future reference and debugging
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
     ms_opt_init = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver_init.mat")
@@ -75,10 +76,16 @@ forward_vel= rospy.get_param("horizon/horizon_solver/problem_settings/forward_ve
 tip_ground_clearance= rospy.get_param("horizon/horizon_solver/problem_settings/tip_ground_clearance") # desired foot tip vertical clearance during the flight phase
 flight_phase_tip_clearance_percentage=rospy.get_param("horizon/horizon_solver/problem_settings/flight_phase_tip_clearance_percentage") # when to achieve the required clearance, w.r.t. the flight phase
 
+hip_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/lb") 
+hip_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/ub")
+knee_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/lb") 
+knee_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/ub")
+
 ## Cost weights:
 weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
 weight_forward_vel=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_forward_vel") # maximizing the jump height (measured at the tip)
 weight_large_tip_vert_excursion=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_forward_vel") 
+weight_min_input_diff=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
 
 ## Solver options:
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"), 
@@ -157,6 +164,8 @@ q_p_dot = prb.createStateVariable("q_p_dot",
                                   n_v) 
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
 
+q_p[0].setBounds(hip_jnt_lb, hip_jnt_ub) # hip
+q_p[1].setBounds(knee_jnt_lb, knee_jnt_ub) # knee
 q_p_dot.setBounds(-leg_joint_vel_lim, leg_joint_vel_lim)
 
 if employ_opt_init: # using initial guesses (if this option is set in the horizon config file)
@@ -198,9 +207,9 @@ tau_limits = prb.createIntermediateConstraint("tau_limits", tau)
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 
 # foot on the ground during the contact phase
-prb.createConstraint("foot_tip_on_ground", foot_tip_position[2], nodes=range(0, n_takeoff + 1))  
+# prb.createConstraint("foot_tip_on_ground", foot_tip_position[2], nodes=range(0, n_takeoff))  
 
-# Stay above the ground level during the flight phase
+# Stay above the ground during the flight phase
 no_grnd_tip_penetration = prb.createIntermediateConstraint("no_grnd_tip_penetration", foot_tip_position[2],nodes=range(n_takeoff+1, n_nodes + 1))  
 no_grnd_tip_penetration.setLowerBounds(0)
 no_grnd_tip_penetration.setUpperBounds(cs.inf)
@@ -226,14 +235,14 @@ prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-ti
 prb.createIntermediateConstraint("vertical_takeoff_vel", v_foot_tip[1], nodes=n_takeoff+1)
 prb.createIntermediateConstraint("vertical_touchdown_vel", v_foot_tip[1], nodes=n_nodes) 
 
-# prb.createConstraint("forward_hip_vel", v_hip[1]-forward_vel)  # keep a constant horizontal velocity of the hip center (hard constraint, can make the problem unfeasible)
-
 ## Costs:
 
 # Minimize the joint accelerations ("responsiveness" of the trajectory)
 prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(q_p_ddot))  
 # Keep the forward hip velocity more or less constant
 prb.createIntermediateCost("overall_forward_vel", weight_forward_vel *cs.sumsqr(v_foot_tip[1]-forward_vel), nodes=range(n_takeoff+1, n_nodes + 1))  
+# Penalize the difference between successive control inputs
+prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot-q_p_ddot.getVarOffset(-1)),nodes=range(1,n_nodes))  
 
 ## Creating the solver and solving the problem:
 
@@ -268,17 +277,10 @@ solution_foot_tip_position = fk_foot(q=solution_q_p)["ee_pos"][2,:].toarray()
 # Auxiliary array for computing the difference of the foot tip/hip position w.r.t. its initial pos.
 init_solution_foot_tip_position_aux = np.tile(foot_tip_position_init_num,(1,n_nodes+1))
 
-# Foot ti/hip velocity on the trajectory
+# Foot tip velocity on the trajectory
 solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  
 
 # Building up a custom solution dictionary for post-processing and debug
-# useful_solutions={"q_p":solution["q_p"],"q_p_dot":solution["q_p_dot"], "q_p_ddot":solution["q_p_ddot"],
-#                  "tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
-#                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
-#                  "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
-#                  "sol_time":solution_time}
-print(cnstr_opt["tau_limits"][0].size)
-
 useful_solutions={"q_p":solution["q_p"],"q_p_dot":solution["q_p_dot"], "q_p_ddot":solution["q_p_ddot"],
                  "tau":cnstr_opt["tau_limits"], "f_contact":np.zeros((0,0)), "i_q":i_q, "dt_opt":slvr.getDt(),
                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
