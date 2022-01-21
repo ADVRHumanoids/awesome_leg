@@ -81,6 +81,7 @@ joint_command.damping=[hip_joint_damp,knee_joint_damp] # if impedance cntrl is n
 ctrl_mode=[hip_cntrl_mode, knee_cntrl_mode] # cntrl mode vector
 
 joint_command.ctrl_mode=ctrl_mode
+
 joint_command.name=["hip_pitch_1","knee_pitch_1"]
 
 pub_iterator=0 # used to slide through the solution
@@ -95,7 +96,7 @@ def pack_xbot2_message():
         joint_command.position=[q_p[0,pub_iterator],q_p[1,pub_iterator]]
         joint_command.velocity=[q_p_dot[0,pub_iterator],q_p_dot[1,pub_iterator]]
         joint_command.effort=[tau[0,pub_iterator-1],tau[1,pub_iterator-1]]
-
+        
         print("Publishing trajectory sample n.:\t"+str(pub_iterator)+","+"\n") # print a simple debug message
         print("with publish rate:\t"+str(1/dt[pub_iterator-1])+" Hz"+"\n") # print a simple debug message
 

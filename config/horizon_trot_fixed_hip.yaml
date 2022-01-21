@@ -1,13 +1,20 @@
 # USED FOR SETTINGS SOME SOLVER OPTIONS
 horizon:
 
-  urdf_relative_path: $(find awesome_leg_pholus)/awesome_leg_pholus/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
  
-  media_relative_path: $(find awesome_leg_pholus)/awesome_leg_pholus/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
+  media_path: $(find awesome_leg_pholus)/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
+  simulation_name: "sim1" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
 
-  opt_results_rel_path: $(find awesome_leg_pholus)/awesome_leg_pholus/opt_results/horizon_trot/fixed_hip
+  opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip
 
   xbot_command_pub: # some horizon-xbot configuration parameters
+
+    approaching_traj: # configurations for the node used to move the leg to its initial position
+
+      n_intervals: 100 # number of intervals of the generated trajectory
+      T_execution: 5.0 # desired execution time
+      standby_time: 2.0 # time delay between the finished approach maneouver and the start of the real trajectory
 
     joint_cntrl:
 
@@ -16,14 +23,14 @@ horizon:
         # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
         # impedance (pos+kp+kd) + torque f.f. code: -> 29
         # simple impedance (pos+kp+kd) code: -> 25
-        control_mode: 25
-        stiffness: 500.0
+        control_mode: 29
+        stiffness: 1000.0
         damping: 5.0
-  
+
       knee_joint:
   
-        control_mode: 25 # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
-        stiffness: 500.0
+        control_mode: 29 # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+        stiffness: 1000.0
         damping: 5.0
 
   horizon_solver: # horizon optimization problem-specific parameters
@@ -38,7 +45,7 @@ horizon:
       n_takeoff: 50 # node @ takeoff
       dt: 0.01 # delta t between nodes of the optimizer
 
-      forward_vel: 1 # forware velocity of the trot
+      forward_vel: 1 # forward velocity of the trot
 
       tip_ground_clearance: 0.1 # enforced tip clearance at a specified point in the flight phase (specified by "flight_phase_tip_clearance_percentage")
       flight_phase_tip_clearance_percentage: 0.6 # 0.0-1.0; when the tip clearance constraint is to be enforced w.r.t. the flight phase (e.g. 0.5-> @ 50%)
@@ -54,8 +61,14 @@ horizon:
         ub:  0.4      
 
       cost_weights:
-        contact_force: 0.001 # cost weight for the contact force
-        weight_fictitious_actuation: 10.0 # cost weight for the fictitious supporting force on the hip
+        weight_forward_vel: 100000.0 # cost weight for forcing an overall constant hip advancing velocity
+        small_q_p_ddot: 0.1 # cost for the joint accelerations
+
         # weight_hip_i_d: 1.0 # weight 
         # weight_knee_i_d: 1.0
-        weight_forward_vel: 100000.0
+
+  horizon_plotter: # custom plot utility settings
+
+    show_plots: true # whether or not to show the plots when the plotter node is run
+    save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
+    

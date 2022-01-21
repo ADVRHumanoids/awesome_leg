@@ -73,7 +73,7 @@ elif task_type=="trot":
         scibidibi.mkdir(media_path+"/"+today_is+"/"+simulation_name)
 
     ms_loaded = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver.mat")
-    print(ms_loaded)
+   
     save_path=media_path+"/"+today_is+"/"+simulation_name+"/"
        
 else:
@@ -115,17 +115,18 @@ P_knee=(knee_rotor_axial_MoI*q_p_ddot[1,:]/knee_red_ratio+tau[1,:]*knee_red_rati
 
 ########################## PLOTTING STUFF ##########################
 
-f1=plt.figure()
-plt.plot(time_vector[1:-1], GRF[0, :-1], label=r"F_x")
-plt.plot(time_vector[1:-1], GRF[1, :-1], label=r"F_y")
-plt.plot(time_vector[1:-1], GRF[2, :-1], label=r"F_z")
-plt.legend(loc="upper left")
-plt.xlabel(r"t [s]")
-plt.ylabel('[N]')
-plt.title("Ground reaction forces", fontdict=None, loc='center')
-plt.grid()
-if save_fig:
-    plt.savefig(save_path+"GRF.pdf", format="pdf")
+if (GRF.size!=0):
+    f1=plt.figure()
+    plt.plot(time_vector[1:-1], GRF[0, :-1], label=r"F_x")
+    plt.plot(time_vector[1:-1], GRF[1, :-1], label=r"F_y")
+    plt.plot(time_vector[1:-1], GRF[2, :-1], label=r"F_z")
+    plt.legend(loc="upper left")
+    plt.xlabel(r"t [s]")
+    plt.ylabel('[N]')
+    plt.title("Ground reaction forces", fontdict=None, loc='center')
+    plt.grid()
+    if save_fig:
+        plt.savefig(save_path+"GRF.pdf", format="pdf")
 
 f2=plt.figure()
 plt.plot(time_vector[:-1], q_p[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
@@ -215,7 +216,8 @@ if save_fig:
     plt.savefig(save_path+"mech_power.pdf", format="pdf") 
 
 f10=plt.figure()
-plt.plot(time_vector, hip_height,label="hip excursion")
+if (hip_height.size!=0):
+    plt.plot(time_vector, hip_height,label="hip excursion")
 plt.plot(time_vector, foot_tip_height,label="foot tip excursion")
 plt.legend(loc="upper left")
 plt.xlabel(r"t [s]")
@@ -238,18 +240,19 @@ plt.grid()
 if save_fig:
     plt.savefig(save_path+"foot_tip_vel.pdf", format="pdf") 
 
-f12=plt.figure()
-plt.plot(time_vector, hip_vel[0,:],label="hip vel. x")
-plt.plot(time_vector, hip_vel[1,:],label="hip vel. y")
-plt.plot(time_vector, hip_vel[2,:],label="hip vel. z")
+if (hip_vel.size!=0):
+    f12=plt.figure()
+    plt.plot(time_vector, hip_vel[0,:],label="hip vel. x")
+    plt.plot(time_vector, hip_vel[1,:],label="hip vel. y")
+    plt.plot(time_vector, hip_vel[2,:],label="hip vel. z")
 
-plt.legend(loc="upper left")
-plt.xlabel(r"t [s]")
-plt.ylabel(r"[m/s]")
-plt.title("Hip velocity (cartesian components)", fontdict=None, loc='center')
-plt.grid()
-if save_fig:
-    plt.savefig(save_path+"hip_vel.pdf", format="pdf") 
+    plt.legend(loc="upper left")
+    plt.xlabel(r"t [s]")
+    plt.ylabel(r"[m/s]")
+    plt.title("Hip velocity (cartesian components)", fontdict=None, loc='center')
+    plt.grid()
+    if save_fig:
+        plt.savefig(save_path+"hip_vel.pdf", format="pdf") 
 
 plt.show() # show the plots
 
