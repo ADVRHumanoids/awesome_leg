@@ -15,10 +15,15 @@ import numpy as np
 
 ####################### SETTING PARAMETERS ON THE ROS PARAMETER SERVER #######################
 
-n_int_approach_traj=rospy.get_param("cyclic_test/approaching_traj/n_intervals")
-T_exec_approach=rospy.get_param("cyclic_test/approaching_traj/T_execution")
-traj_exec_standby_time=rospy.get_param("cyclic_test/approaching_traj/standby_time")
-q_p_target=rospy.get_param("cyclic_test/approaching_traj/q_p_target")
+n_int_approach_traj=rospy.get_param("initial_pos/approaching_traj/n_intervals")
+T_exec_approach=rospy.get_param("initial_pos/approaching_traj/T_execution")
+traj_exec_standby_time=rospy.get_param("initial_pos/approaching_traj/standby_time")
+q_p_target=rospy.get_param("initial_pos/approaching_traj/q_p_target")
+
+## Paths parameters
+rospackage=rospkg.RosPack() # getting absolute ros package path
+opt_res_path = rospy.get_param("horizon/opt_results_path")  # optimal results relative path (wrt to the package)
+task_type = rospy.get_param("/horizon/task_type")  # task type
 
 dt=T_exec_approach/n_int_approach_traj
 
@@ -76,12 +81,10 @@ def xbot_cmd_publisher():
 
         if pub_iterator>(n_int_approach_traj-1): # finished playing the approach trajectory, set the topic message and shutdown node
 
-            pub_iterator=0 # reset iterator
-
-            q_p_approach_traj=np.flip(q_p_approach_traj, axis=0) # flip trajectory
-
             rospy.sleep(traj_exec_standby_time) # wait before going back to the initial position and starting over again
             
+            rospy.signal_shutdown("Finished publishing approaching trajectory")
+
         else:
 
             pub_iterator=pub_iterator+1 # incrementing publishing counter
@@ -95,8 +98,6 @@ def xbot_cmd_publisher():
             rate.sleep() # wait
             
 
-
-        
 
 def current_q_p_assigner(joints_state): # callback function which reads the joint_states and updates current_q_p
     global current_q_p 
