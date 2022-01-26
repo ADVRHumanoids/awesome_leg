@@ -1,7 +1,11 @@
 # USED FOR LOADING ACTUATOR PARAMETERS
 
 actuators:
+
  hip:
+  
+  K_d: 3 #dynamics friction torque coefficient (tau_d = K_d* joint_vel)
+
   rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
   rotor_mass: 0.27 # mass of the rotor ([Kg])
   
@@ -28,8 +32,10 @@ actuators:
   omega_max_nl_af44: 20.3 # maximum no-load velocity @ 48 V, @ 44 Nm, after reduction ([rad/s])
   omega_max_nl_af112: 18.8 # maximum no-load velocity @ 48 V, @ 112 Nm, after reduction ([rad/s])
   
-  
  knee:
+
+  K_d: 5 #dynamics friction torque coefficient (tau_d = K_d* joint_vel)
+
   rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
   rotor_mass: 0.27 # mass of the rotor ([Kg])
   

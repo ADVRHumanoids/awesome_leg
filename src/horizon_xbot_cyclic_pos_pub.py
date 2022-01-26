@@ -15,11 +15,10 @@ import numpy as np
 
 ####################### SETTING PARAMETERS ON THE ROS PARAMETER SERVER #######################
 
-rospy.set_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached",False)# used to tell other nodes if the approach procedure has finished
-
-n_int_approach_traj=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/n_intervals")
-T_exec_approach=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/T_execution")
-traj_exec_standby_time=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/standby_time")
+n_int_approach_traj=rospy.get_param("cyclic_test/approaching_traj/n_intervals")
+T_exec_approach=rospy.get_param("cyclic_test/approaching_traj/T_execution")
+traj_exec_standby_time=rospy.get_param("cyclic_test/approaching_traj/standby_time")
+q_p_target=rospy.get_param("cyclic_test/approaching_traj/q_p_target")
 
 ## Paths parameters
 rospackage=rospkg.RosPack() # getting absolute ros package path
@@ -44,7 +43,6 @@ elif task_type=="trot":
 
     ms = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver.mat")
     
-    
 
 ## Loading the solution dictionary, based on the selected task_type 
 solution=ms.load() 
@@ -62,20 +60,20 @@ ctrl_mode=[1, 1]
 joint_command.ctrl_mode=ctrl_mode
 joint_command.name=["hip_pitch_1","knee_pitch_1"]
 
-pub_iterator=0 # used to slide through the solution
+pub_iterator= -1 # used to slide through the solution
+flip_traj= False
 
-q_p_init_target=[q_p[0,0],q_p[1,0]]
-current_q_p=[0,0] # currently measured joint positions (to be used by "horizon_initial_pose_pub")
+current_q_p=[0,0] # (initialization). Currently measured joint positions (to be used by "horizon_initial_pose_pub")
 
 ####################### FUNCTIONS #######################
 
-def generate_Peisekah_trajectory(n_int_approach_traj, T_exec_approach, q_p_init_target, q_p_current):    
+def generate_Peisekah_trajectory(n_int_approach_traj, T_exec_approach, q_p_target, q_p_current):    
 
     common_part_traj= (126*np.power(time_vector/T_exec_approach,5)-420*np.power(time_vector/T_exec_approach,6)+540*np.power(time_vector/T_exec_approach,7)-315*np.power(time_vector/T_exec_approach,8)+70*np.power(time_vector/T_exec_approach,9))
     
     common_part_traj=np.transpose(np.tile(common_part_traj, (2,1)))
 
-    q_p_approach_traj=np.tile(q_p_current,(n_int_approach_traj+1,1))+np.multiply(np.tile((q_p_init_target-q_p_current),(n_int_approach_traj+1,1)),common_part_traj)
+    q_p_approach_traj=np.tile(q_p_current,(n_int_approach_traj+1,1))+np.multiply(np.tile((q_p_target-q_p_current),(n_int_approach_traj+1,1)),common_part_traj)
 
     return q_p_approach_traj
 
@@ -91,30 +89,42 @@ def pack_xbot2_message(q_p_approach_traj):
 def xbot_cmd_publisher():
     global pub_iterator # using the corresponding variable initialized in the global scope
     global current_q_p # using the corresponding variable initialized in the global scope
-    
+    global q_p_target
+
     xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10) # publish on xbotcore/command
     rospy.Subscriber('/xbotcore/joint_states', JointState, current_q_p_assigner) # subscribe at xbotcore/joint_states
 
     rospy.init_node('horizon_xbot_publisher', anonymous=False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
 
     while not rospy.is_shutdown(): 
-
-        if pub_iterator==0: # read the current joint trajectory and use it as the initialization
-            q_p_approach_traj=generate_Peisekah_trajectory(n_int_approach_traj, T_exec_approach, np.array(q_p_init_target), current_q_p)
+        
+        if pub_iterator==-1: # read the current joint position and use it as the initialization
+            
+            q_p_approach_traj=generate_Peisekah_trajectory(n_int_approach_traj, T_exec_approach, np.array(q_p_target), current_q_p)
 
         if pub_iterator>(n_int_approach_traj-1): # finished playing the approach trajectory, set the topic message and shutdown node
-            rospy.set_param("horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached",True)
-            rospy.sleep(traj_exec_standby_time) # wait before sending the trajectory
-            rospy.signal_shutdown("Finished publishing approaching trajectory")
-        pub_iterator=pub_iterator+1 # incrementing publishing counter
 
-        rate = rospy.Rate(1/dt) # potentially, a trajectory with variable dt can be provided
+            pub_iterator=0 # reset iterator
 
-        pack_xbot2_message(q_p_approach_traj) # copy the optimized trajectory to xbot command object 
+            q_p_approach_traj=np.flip(q_p_approach_traj, axis=0) # flip trajectory
 
-        xbot_cmd_pub.publish(joint_command) # publish the commands
+            rospy.sleep(traj_exec_standby_time) # wait before going back to the initial position and starting over again
+            
+        else:
 
-        rate.sleep() # wait
+            pub_iterator=pub_iterator+1 # incrementing publishing counter
+
+            rate = rospy.Rate(1/dt) # potentially, a trajectory with variable dt can be provided
+
+            pack_xbot2_message(q_p_approach_traj) # copy the optimized trajectory to xbot command object 
+
+            xbot_cmd_pub.publish(joint_command) # publish the commands
+
+            rate.sleep() # wait
+            
+
+
+        
 
 def current_q_p_assigner(joints_state): # callback function which reads the joint_states and updates current_q_p
     global current_q_p 
@@ -123,8 +133,8 @@ def current_q_p_assigner(joints_state): # callback function which reads the join
 ###############################################
 
 if __name__ == '__main__':
-    try:
 
+    try:
         xbot_cmd_publisher()
 
     except rospy.ROSInterruptException:
