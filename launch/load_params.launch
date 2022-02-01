@@ -22,7 +22,6 @@
       <group if="$(eval arg('trot_type')=='fixed_hip')">
         <param name="horizon/trot_type" type="string" value="fixed_hip" />
         <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_trot_fixed_hip.yaml" subst_value="true"/> 
-
       </group>
 
       <group if="$(eval arg('trot_type')=='sliding_hip')">

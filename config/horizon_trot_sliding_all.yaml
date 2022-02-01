@@ -84,4 +84,6 @@ horizon:
     show_plots: true # whether or not to show the plots when the plotter node is run
     save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
     
-          
+  horizon_i_q_estimator: 
+
+    tanh_coeff: 20 # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) )

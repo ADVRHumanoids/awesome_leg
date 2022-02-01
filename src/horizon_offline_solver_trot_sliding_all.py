@@ -34,6 +34,8 @@ opt_res_path = rospy.get_param("/horizon/opt_results_path")  # urdf relative pat
 save_sol_as_init = rospy.get_param("horizon/horizon_solver/save_sol_as_init")  # if true, the solution is also saved as a candidate for future optimization initializations
 employ_opt_init = rospy.get_param("horizon/horizon_solver/employ_opt_init")  # if true, the solution is also saved as a candidate for future optimization initializations
 
+tanh_coeff = rospy.get_param("horizon/horizon_i_q_estimator/tanh_coeff")  # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) )
+
 ##################### INITIALIZING OBJECTS (ad other stuff) FOR STORAGE AND POST-PROCESSING PURPOSES #########################
 
 ## Getting/setting some useful variables
@@ -106,6 +108,8 @@ slvr_name=rospy.get_param("horizon/horizon_solver/problem_settings/solver/name")
 ## Actuator properties (see actuators.yaml for a brief description of most of the parameters):
 
 # Hip actuator:
+hip_K_d0=rospy.get_param("/actuators/hip/K_d0")
+hip_K_d1=rospy.get_param("/actuators/hip/K_d1")
 hip_rotor_axial_MoI=rospy.get_param("/actuators/hip/rotor_axial_MoI")
 hip_rotor_mass=rospy.get_param("/actuators/hip/rotor_mass")
 hip_red_ratio=rospy.get_param("/actuators/hip/red_ratio")
@@ -126,6 +130,8 @@ hip_omega_max_nl_af44=rospy.get_param("/actuators/hip/omega_max_nl_af44")
 hip_omega_max_nl_af112=rospy.get_param("/actuators/hip/omega_max_nl_af112")
 
 ## knee actuator:
+knee_K_d0=rospy.get_param("/actuators/knee/K_d0")
+knee_K_d1=rospy.get_param("/actuators/knee/K_d1")
 knee_rotor_axial_MoI=rospy.get_param("/actuators/knee/rotor_axial_MoI")
 knee_rotor_mass=rospy.get_param("/actuators/knee/rotor_mass")
 knee_red_ratio=rospy.get_param("/actuators/knee/red_ratio")
@@ -273,12 +279,16 @@ prb.createIntermediateConstraint("periodic_velocity", q_p_dot[1:4] - q_p_dot_ini
 # Keep the ESTIMATED quadrature currents within bounds
 
 # i_q hip less than the maximum allowed value
-i_q_hip=prb.createIntermediateConstraint("quadrature_current_hip", (hip_rotor_axial_MoI*q_p_ddot[2]/hip_red_ratio+tau[2]*hip_red_ratio/hip_efficiency)*1.0/hip_K_t)  
-i_q_hip.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
+compensated_tau_hip = tau[0] + hip_K_d0 * np.tanh( tanh_coeff * q_p_dot[0]) + hip_K_d1 * q_p_dot[0]
+i_q_hip = (hip_rotor_axial_MoI * q_p_ddot[0] / hip_red_ratio + compensated_tau_hip * hip_red_ratio / hip_efficiency) / hip_K_t
+i_q_hip_cnstr = prb.createIntermediateConstraint("quadrature_current_hip", i_q_hip)  
+i_q_hip_cnstr.setBounds(-hip_I_peak, hip_I_peak)  # setting input limits
 
 # i_q knee less than the maximum allowed value
-i_q_knee=prb.createIntermediateConstraint("quadrature_current_knee", (knee_rotor_axial_MoI*q_p_ddot[3]/knee_red_ratio+tau[3]*knee_red_ratio/knee_efficiency)*1.0/knee_K_t)  
-i_q_knee.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
+compensated_tau_knee = tau[1] + knee_K_d0 * np.tanh( tanh_coeff * q_p_dot[1]) + knee_K_d1 * q_p_dot[1]
+i_q_knee = (knee_rotor_axial_MoI*q_p_ddot[1] / knee_red_ratio + compensated_tau_knee * knee_red_ratio / knee_efficiency) / knee_K_t
+i_q_knee_cnstr = prb.createIntermediateConstraint("quadrature_current_knee", i_q_knee)  
+i_q_knee_cnstr.setBounds(-knee_I_peak, knee_I_peak)  # setting input limits
 
 # Imposing a vertical tip clearance between the foot tip and the ground
 prb.createIntermediateConstraint("tip_ground_clearance", foot_tip_position[2]-tip_ground_clearance, nodes=n_takeoff+round(1*(n_nodes-n_takeoff)*flight_phase_tip_clearance_percentage)) 

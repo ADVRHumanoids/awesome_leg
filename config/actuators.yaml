@@ -4,16 +4,17 @@ actuators:
 
  hip:
   
-  K_d: 3 #dynamics friction torque coefficient (tau_d = K_d* joint_vel)
+  K_d0: 2.2 # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+  K_d1: 2.4 # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
 
   rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
   rotor_mass: 0.27 # mass of the rotor ([Kg])
   
   red_ratio: 0.02 # gear reduction ratio of the actuator (always <=1)
   
-  efficiency: 0.8 # harmonic drive efficiency (0-1)
+  efficiency: 1 # harmonic drive efficiency
   
-  K_t: 0.045 # torque constant ([Nm/A])
+  K_t: 0.045 # from datasheets: 0.045; torque constant ([Nm/A])
   K_bmf: 4.71 # ([V/Krpm])
   
   R: 0.09  # resistance (per phase?) ([Ohm])
@@ -34,16 +35,17 @@ actuators:
   
  knee:
 
-  K_d: 5 #dynamics friction torque coefficient (tau_d = K_d* joint_vel)
-
+  K_d0: 6.8 # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+  K_d1: 4.9 # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+  
   rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
   rotor_mass: 0.27 # mass of the rotor ([Kg])
   
   red_ratio: 0.02 # gear reduction ratio of the actuator (always <=1)
   
-  efficiency: 0.8 # harmonic drive efficiency (0-1)
+  efficiency: 1 # harmonic drive efficiency (0.8)
   
-  K_t: 0.045 # torque constant ([Nm/A])
+  K_t: 0.045 # from datasheets: 0.045; torque constant ([Nm/A])
   K_bmf: 4.71 # ([V/Krpm])
   
   R: 0.09  # resistance (per phase?) ([Ohm])
