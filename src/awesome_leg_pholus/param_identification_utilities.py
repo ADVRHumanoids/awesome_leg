@@ -8,6 +8,8 @@ from scipy import interpolate
 
 import casadi as cas
 
+import pinocchio as pin
+
 ######################### MISCELLANEOUS DEFINITIONS #########################
 
 def interp(time_vector, vect_vals, axis = None):
@@ -201,6 +203,28 @@ def compute_tau_over_jnt_traj(model, q_p, q_p_dot, q_p_ddot):
 
     return tau
 
+def compute_tau_over_traj_pin(model, data, q_p, q_p_dot, q_p_ddot):
+
+    """
+    A function to compute the efforts necessary to execute a given joint trajectory using Pinocchio.
+    The input vectors must be formatted in the form n_joints x number_of_samples
+
+    Returns a n_joint x n_samples numpy array.
+    
+    """
+    n_joints = len(q_p)
+    n_samples = len(q_p[0])
+    tau = np.zeros((n_joints, n_samples))
+
+    for i in range(0, n_samples):
+
+        tau_aux = pin.rnea(model, data, q_p[:,i], q_p_dot[:,i], q_p_ddot[:,i])
+
+        for j in range(0, n_joints):
+            tau[j,i] = tau_aux[j]
+
+    return tau
+
 def diff_mat(time, vect):
 
     """
@@ -299,3 +323,104 @@ def qpsolve_cas(H, g, lbx, ubx):
     
     # Return the solution
     return np.array(r['x']).flatten()
+
+
+def rearrange_test_mat(mat):
+
+    n_jnts = len(mat[0])
+    n_traj = len(mat)
+    taus_new = np.zeros((n_jnts, n_traj))
+
+    for i in range(n_jnts):
+        for j in range(n_traj):
+            taus_new[i, j] = mat[j][i]
+
+    return taus_new
+
+
+def compute_l_CoM(g, m1, m2, l_hip, q_p, taus):
+    
+    n_jnts = len(taus[:, 0])
+    n_traj = len(taus[0, :])
+    l_CoM = np.zeros((n_jnts, n_traj))    
+
+    for j in range(n_traj):
+
+        l_CoM[0, j] =  taus[0, j] / (m1 * g * (np.sin(q_p[1, j]-q_p[0, j])))
+        l_CoM[1, j] = ((taus[0,j]+taus[1,j]) / (g * np.sin(q_p[0, j]))- m2 * l_hip) / m1
+
+    return l_CoM
+
+
+def assemblePinocchioRegressor(model, data, q_p, q_p_dot, q_p_ddot):
+
+    n_jnts = len(q_p[:, 0])
+    n_samples = len(q_p[0, :])
+    n_inertia_params = len(model.inertias[0].toDynamicParameters())
+    regressors = np.zeros((n_jnts, n_samples, n_jnts * n_inertia_params + n_jnts))
+    bias_matrix = np.eye(n_jnts)
+
+    for i in range(n_samples):
+        regressor_aux = pin.computeJointTorqueRegressor(model, data, q_p[:, i], q_p_dot[:, i], q_p_ddot[:, i])
+        for j in range(n_jnts):
+            regressors[j, i, :] = np.concatenate((regressor_aux[j, :], bias_matrix[j, :]), axis = 0)
+
+    return regressors
+
+def compute_P_qT(regressor, tau_meas, sigma, X_guess):
+
+    n_jnts = len(tau_meas[:,0])
+    regularization_quad = np.dot(np.transpose(sigma), sigma) # regularization quadratic term
+
+    P = regularization_quad # initializing P with the regularization term
+    q_T = - np.dot(np.transpose(X_guess),np.dot(np.transpose(sigma), sigma)) # initializing q_T with the regularization term
+
+    for i in range(n_jnts): # adding contributions of each joint to the optimization matrix P
+        P = P + np.dot(np.transpose(regressor[i,:,:]), regressor[i, :, :])
+        q_T = q_T - np.dot(np.transpose(tau_meas[i, :]), regressor[i])
+
+    return P, q_T
+
+def interpret_sol(n_active_jnts, X):
+
+    # Pinocchio returns the MoI computed in the joint frame
+
+    sol_length = (len(X))
+
+    PI = X[0: (sol_length - n_active_jnts)] # inertial params as outputted by Pinocchio
+    
+    tau_tilde = X[(sol_length - n_active_jnts): sol_length]# torque measurement noise estimation
+
+    inertial_params = np.zeros(sol_length).flatten()
+
+    inertial_params_offset = 10
+
+    for i in range(n_active_jnts):
+
+        inertial_params[i * inertial_params_offset] = PI [i * inertial_params_offset] # mass
+        inertial_params[i * inertial_params_offset + 1] = PI [i * inertial_params_offset + 1] / PI [i * inertial_params_offset] # l_CoM_x
+        inertial_params[i * inertial_params_offset + 2] = PI [i * inertial_params_offset + 2] / PI [i * inertial_params_offset] # l_CoM_y
+        inertial_params[i * inertial_params_offset + 3] = PI [i * inertial_params_offset + 3] / PI [i * inertial_params_offset] # l_CoM_z
+        inertial_params[i * inertial_params_offset + 4] = PI [i * inertial_params_offset + 4] # ixx
+        inertial_params[i * inertial_params_offset + 5] = PI [i * inertial_params_offset + 5] # ixy
+        inertial_params[i * inertial_params_offset + 6] = PI [i * inertial_params_offset + 6] # ixz
+        inertial_params[i * inertial_params_offset + 7] = PI [i * inertial_params_offset + 7] # iyy
+        inertial_params[i * inertial_params_offset + 8] = PI [i * inertial_params_offset + 8] # iyz
+        inertial_params[i * inertial_params_offset + 9] = PI [i * inertial_params_offset + 9] # izz
+
+    return inertial_params, tau_tilde
+
+def compute_fitting_error(regressors, tau_meas, X):
+
+    n_samples = len(tau_meas[0,:]) # number of samples per joint 
+    n_jnts = len(tau_meas[:,0])
+
+    error = np.zeros((n_jnts, n_samples))
+    mean_abs_error = np.zeros((n_jnts, 1)).flatten()
+
+    for i in range(n_jnts):
+        error[i,:] = np.dot(regressors[i, :, :], X) - tau_meas[i, :]
+        mean_abs_error[i] = np.mean(np.abs(error[i,:]))
+
+    return error, mean_abs_error
+

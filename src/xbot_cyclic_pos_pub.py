@@ -66,7 +66,7 @@ def xbot_cmd_publisher():
     xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10) # publish on xbotcore/command
     rospy.Subscriber('/xbotcore/joint_states', JointState, current_q_p_assigner) # subscribe at xbotcore/joint_states
 
-    rospy.init_node('horizon_xbot_publisher', anonymous=False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
+    rospy.init_node('xbot_cyclic_pos_pub', anonymous=False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
 
     while not rospy.is_shutdown(): 
         

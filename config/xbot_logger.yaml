@@ -1,0 +1,3 @@
+xbot_logger:
+
+  mat_dump_path: $(find awesome_leg_pholus)/tests/static_poses/pose1

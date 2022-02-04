@@ -1,0 +1,14 @@
+log_plotter:
+
+  actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
+
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_legv2.urdf # urdf relative path (wrt to the package)
+  srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_legv2.srdf # srdf relative path (wrt to the package)
+  
+  opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip/horizon_offline_solver.mat # horizon results path
+
+  matfile_path: $(find awesome_leg_pholus)/tests/static_poses/pose13/.mat # logged data mat file path
+
+  save_fig_path: /home/andreap/hhcm_ws/src/awesome_leg_pholus/tests/static_poses/pose13
+
+  save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)

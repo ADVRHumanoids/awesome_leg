@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
 
-from logger_utilities import LogLoader, LogPlotter
-
-import rospkg
+from awesome_leg_pholus.logger_utilities import LogLoader, LogPlotter
 
 from xbot_interface import xbot_interface as xbot
-from xbot_interface import config_options as opt
 
 from horizon.utils import mat_storer
 
@@ -15,36 +12,34 @@ from scipy import signal
 
 import yaml
 
-from param_identification_utilities import *
+from awesome_leg_pholus.param_identification_utilities import *
+
+import rospy
 
 ######################### PRE-INITIALIZATIONS #########################
 
+urdf_path = rospy.get_param("/log_plotter/urdf_path") 
+srdf_path = rospy.get_param("/log_plotter/srdf_path") 
+acts_config_path = rospy.get_param("/log_plotter/actuators_config_path") 
+matfile_path = rospy.get_param("/log_plotter/matfile_path") 
+opt_res_path = rospy.get_param("/log_plotter/opt_results_path") 
+save_fig_path = rospy.get_param("/log_plotter/save_fig_path") 
+save_fig = rospy.get_param("/log_plotter/save_fig") 
+
 # Loading actuator paramters
-config_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/config/"
-acts_yaml_name = "actuators.yaml"
-acts_config_path = config_path + acts_yaml_name
 with open(acts_config_path, 'r') as stream:
     acts_yaml = yaml.safe_load(stream)
 
 # Model description
-urdf_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/urdf/awesome_legv2.urdf"   # urdf absolute path (remember RBDL might have some problems parsing the first link, if it has not a d.o.f.)
-srdf_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/srdf/awesome_legv2.srdf"   # srdf absolute path
 urdf = open(urdf_path, "r").read() # read the URDF
 srdf = open(srdf_path, "r").read() # read the URDF
 
 # Loading optimized trajectory results
 # opt_res_path = rospkg.RosPack().get_path("awesome_leg_pholus")+ "/opt_results/horizon_trot/fixed_hip"  # optimal results absolute path
-# ms_loaded = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver.mat")
+# ms_loaded = mat_storer.matStorer(opt_res_path)
 # solution = ms_loaded.load() # loading the solution dictionary
 
 # Initializing logger utilities
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/trot/fixed_hip_ample_trot/'+'robot_state_log__0_2022_01_24__17_14_01.mat' # path to the used .mat file holding the test results
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/cyclic_tests/large_excursion/slow/'+'robot_state_log__0_2022_01_26__16_47_58.mat' # slow cyclic test
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/cyclic_tests/large_excursion/fast/'+'robot_state_log__0_2022_01_26__16_49_17.mat' # fast cyclic test
-matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/cyclic_tests/large_excursion/faster/'+'robot_state_log__0_2022_01_26__16_50_32.mat' # faster cyclic test
-
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/system_identification/'+'robot_state_log__0_2022_01_26__16_49_17.mat' 
-
 log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
 plotter = LogPlotter(log_loader, clr_set_name="tab10") # plotter instance
 
@@ -142,18 +137,20 @@ i_q_meas_time = np.array([i_q_hip_time, i_q_knee_time])
 n_rows1 = len(log_loader.get_joint_names()) # subplot rows
 n_cols1 = 1 # subplot columns
 
-plotter.init_fig(fig_name = "currents") 
-plotter.init_fig(fig_name = "motor_positions") 
-plotter.init_fig(fig_name = "motor_velocities") 
-plotter.init_fig(fig_name = "joint_efforts") 
-plotter.init_fig(fig_name = "temperature_driver") 
-plotter.init_fig(fig_name = "temperature_motor") 
-# plotter.init_fig(fig_name = "horizon_torques") 
-plotter.init_fig(fig_name = "differentiated_jnt_acc") 
-plotter.init_fig(fig_name = "torque_validation") 
-plotter.init_fig(fig_name = "current_validation") 
-# plotter.init_fig(fig_name = "filtered_jnt_vel") 
+# Initializing figs
+currents_fig = plotter.init_fig(fig_name = "currents") 
+motor_positions_fig = plotter.init_fig(fig_name = "motor_positions") 
+motor_velocities_fig = plotter.init_fig(fig_name = "motor_velocities") 
+joint_efforts_fig = plotter.init_fig(fig_name = "joint_efforts") 
+temperature_driver_fig = plotter.init_fig(fig_name = "temperature_driver") 
+temperature_motor_fig = plotter.init_fig(fig_name = "temperature_motor") 
+# horizon_torques_fig = plotter.init_fig(fig_name = "horizon_torques") 
+differentiated_jnt_acc_fig = plotter.init_fig(fig_name = "differentiated_jnt_acc") 
+torque_validation_fig = plotter.init_fig(fig_name = "torque_validation") 
+current_validation_fig = plotter.init_fig(fig_name = "current_validation") 
+# filtered_jnt_vel_fig = plotter.init_fig(fig_name = "filtered_jnt_vel") 
 
+# Plotting
 for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joint_names()):
 
     joint_name = log_loader.get_joint_names_from_id([joint_id])[0]
@@ -199,5 +196,27 @@ for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joint_names()
 
     # plotter.add_subplot(fig_name = "filtered_jnt_vel", row = n_rows1, column = n_cols1, index = joint_id) 
     # plotter.js_plot(fig_name = "filtered_jnt_vel", input_matrix = filtered_jnt_vel, jnt_id = joint_id, line_label = joint_name + " jnt velocity", title = "Filtered joint velocity " + joint_name + " joint") 
+
+if save_fig:
+
+    currents_fig.set_size_inches(16, 12)
+    motor_positions_fig.set_size_inches(16, 12)
+    motor_velocities_fig.set_size_inches(16, 12)
+    joint_efforts_fig.set_size_inches(16, 12)
+    temperature_driver_fig.set_size_inches(16, 12)
+    temperature_motor_fig.set_size_inches(16, 12)
+    differentiated_jnt_acc_fig.set_size_inches(16, 12)
+    torque_validation_fig.set_size_inches(16, 12)
+    current_validation_fig.set_size_inches(16, 12)
+
+    currents_fig.savefig(save_fig_path + "/" + "currents.pdf", format="pdf") 
+    motor_positions_fig.savefig(save_fig_path + "/" + "motor_positions.pdf", format="pdf") 
+    motor_velocities_fig.savefig(save_fig_path + "/" + "motor_velocities.pdf", format="pdf") 
+    joint_efforts_fig.savefig(save_fig_path + "/" + "joint_efforts.pdf", format="pdf") 
+    temperature_driver_fig.savefig(save_fig_path + "/" + "temperature_driver.pdf", format="pdf") 
+    temperature_motor_fig.savefig(save_fig_path + "/" + "temperature_driver.pdf", format="pdf") 
+    differentiated_jnt_acc_fig.savefig(save_fig_path + "/" + "differentiated_jnt_acc.pdf", format="pdf") 
+    torque_validation_fig.savefig(save_fig_path + "/" + "torque_validation.pdf", format="pdf") 
+    current_validation_fig.savefig(save_fig_path + "/" + "current_validation.pdf", format="pdf") 
 
 input() # necessary to keep all the figures open

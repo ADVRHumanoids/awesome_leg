@@ -1,0 +1,10 @@
+<launch>
+
+    <arg name="launch_pose_init" default="true"/>
+    
+    <!-- loading some additional parameters-->
+    <rosparam command="load" file="$(find awesome_leg_pholus)/config/cyclic_test.yaml" subst_value="true"/> 
+  
+    <node name="xbot_cyclic_pos_pub" pkg="awesome_leg_pholus" type="xbot_cyclic_pos_pub.py" output="screen"/> <!-- start the horizon-xbot cyclic pose publisher node-->
+    
+</launch>

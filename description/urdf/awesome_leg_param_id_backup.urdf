@@ -22,30 +22,7 @@
     <!-- ################### LINKS ################### -->
     <link name="world"/>
 
-    <link name="hip1_1">
-        <inertial>
-        <origin xyz="0.010214199 0.0 0.038090987"/>
-        <mass value="1.9194403"/>
-        <!-- org: 2 -->
-        <inertia ixx="0.0047439572" ixy="-0.0" ixz="-0.0003784138" iyy="0.0040551878" iyz="-0.0" izz="0.0034146219"/>
-        <!-- <inertia ixx="0.01" ixy="0.01" ixz="0.01" iyy="0.01" iyz="0.01" izz="0.01"/> -->
-        </inertial>
-        <visual>
-        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/hip-yaw.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        <material name="grey"/>
-        </visual>
-        <collision>
-        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/hip-yaw.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
-
-    <link name="hip2_1">
+    <link name="shank">
         <inertial>
         <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
         <mass value="2.7264471"/>
@@ -68,7 +45,7 @@
         </collision>
     </link>
 
-    <link name="knee_1">
+    <link name="shin">
         <inertial>
         <mass value="1.1927236"/>
         <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>
@@ -91,36 +68,22 @@
         </collision>
     </link>
     
-    <link name="tip"/> <!-- just for reference-->
-
     <!-- ################### JOINTS ################### -->
 
-    <joint name="base_joint" type="fixed">
+    <joint name="hip_pitch" type="revolute">
         <parent link="world"/>
-        <child link="hip1_1"/>
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.0 0.0"/>
-    </joint>
-
-    <joint name="hip_pitch_1" type="revolute">
-        <parent link="hip1_1"/>
-        <child link="hip2_1"/>
+        <child link="shank"/>
         <origin rpy="-1.57 0 0" xyz="0.0 0.0 0.0"/>
         <axis xyz="0 0 1"/>
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>
 
-    <joint name="knee_pitch_1" type="revolute">
-        <parent link="hip2_1"/>
-        <child link="knee_1"/>
+    <joint name="knee_pitch" type="revolute">
+        <parent link="shank"/>
+        <child link="shin"/>
         <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
         <axis xyz="0 0 1"/>grey
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
-    </joint>
-    
-    <joint name="tip_joint" type="fixed">
-        <parent link="knee_1"/>
-        <child link="tip"/>
-        <origin xyz="0.45 0.0 -0.02"/>
     </joint>
         
     <!-- ################### TRANSMISSION ELEMENTS ################### -->

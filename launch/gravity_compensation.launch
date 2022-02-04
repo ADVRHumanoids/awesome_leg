@@ -1,0 +1,7 @@
+<launch>
+    
+    <rosparam command="load" file="$(find awesome_leg_pholus)/config/gravity_compensation.yaml" subst_value="true"/> 
+
+    <node name="gravity_compensator" pkg="awesome_leg_pholus" type="gravity_compensation.py" output = "screen" /> 
+
+</launch>

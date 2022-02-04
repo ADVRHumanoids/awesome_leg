@@ -61,7 +61,7 @@
         </collision>
     </link>
 
-    <link name="hip2_1">
+    <link name="hip2_1"> <!-- #### -->
         <inertial>
         <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
         <mass value="2.7264471"/>
@@ -84,7 +84,7 @@
         </collision>
     </link>
 
-    <link name="knee_1">
+    <link name="knee_1"> <!-- #### -->
         <inertial>
         <mass value="1.1927236"/>
         <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>

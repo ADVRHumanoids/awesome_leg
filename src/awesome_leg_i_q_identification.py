@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from logger_utilities import LogLoader, LogPlotter
+from awesome_leg_pholus.logger_utilities import LogLoader, LogPlotter
 
 import rospkg
 
@@ -14,10 +14,9 @@ from scipy import signal
 
 import yaml
 
-from param_identification_utilities import *
+from awesome_leg_pholus.param_identification_utilities import *
 
 import matplotlib as plt
-
 
 ######################### PRE-INITIALIZATIONS #########################
 

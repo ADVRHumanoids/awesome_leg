@@ -1,6 +1,7 @@
 <launch>
 
     <!-- LOAD THE PARAMETER LAUNCH FILE (WITH ITS ARGS) ABD LAUNCHES THE HORIZON PUBLISHER NODE (which, based on the config files, reads the correct trajectory and sends it to XBot) -->
+    
     <arg name="launch_pose_init" default="true"/>
     
     <!-- Simply load all the necessary parameters into the parameter server -->

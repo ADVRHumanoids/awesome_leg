@@ -20,11 +20,6 @@ T_exec_approach=rospy.get_param("initial_pos/approaching_traj/T_execution")
 traj_exec_standby_time=rospy.get_param("initial_pos/approaching_traj/standby_time")
 q_p_target=rospy.get_param("initial_pos/approaching_traj/q_p_target")
 
-## Paths parameters
-rospackage=rospkg.RosPack() # getting absolute ros package path
-opt_res_path = rospy.get_param("horizon/opt_results_path")  # optimal results relative path (wrt to the package)
-task_type = rospy.get_param("/horizon/task_type")  # task type
-
 dt=T_exec_approach/n_int_approach_traj
 
 time_vector = np.zeros(n_int_approach_traj+1)
