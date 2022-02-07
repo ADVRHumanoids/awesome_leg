@@ -1,4 +1,5 @@
 # A simple cyclic test: go from the current position to the target pose, then go back and repeat.
+
 cyclic_test: 
 
   approaching_traj: # configurations for the node used to move the leg to its initial position

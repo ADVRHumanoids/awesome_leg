@@ -16,3 +16,7 @@ Files:
 
 - `awesome_leg.urdf` &rarr; Leg base URDF (no external links and model plugins). No model plugins loaded
 
+- `awesome_legv2.urdf` &rarr; Leg base URDF (no external links and model plugins). Modified version for use with RBDL
+
+- `awesome_leg_param_id.urdf` &rarr; Leg base URDF (no external links and model plugins). Modified version for use with Pinocchio
+

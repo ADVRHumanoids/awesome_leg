@@ -9,6 +9,6 @@
     <param name="/horizon/horizon_plotter/save_fig" type="bool" value="$(arg save_fig) "/>
 
     <!-- Launch the plotter node -->
-    <node name="horizon_plotter" pkg="awesome_leg_pholus" type="horizon_plot.py" output="screen"/> 
+    <node name="horizon_plotter" pkg="awesome_leg_pholus" type="horizon_plotter.py" output="screen"/> 
 
 </launch>

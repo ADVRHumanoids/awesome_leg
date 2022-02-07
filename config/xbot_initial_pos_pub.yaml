@@ -1,3 +1,5 @@
+# xbot_initial_pos_pub configuration file
+
 initial_pos: 
 
   approaching_traj: # configurations for the node used to move the leg to its initial position

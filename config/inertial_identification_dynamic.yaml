@@ -1,0 +1,5 @@
+inertial_identification_dynamic:
+
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_param_id.urdf
+
+  matfile_path: $(find awesome_leg_pholus)/tests/cyclic_tests/large_excursion/fast/robot_state_log__0_2022_01_26__16_49_17.mat

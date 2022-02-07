@@ -1,3 +1,5 @@
+# log_plotter.py config file
+
 log_plotter:
 
   actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
@@ -7,8 +9,8 @@ log_plotter:
   
   opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip/horizon_offline_solver.mat # horizon results path
 
-  matfile_path: $(find awesome_leg_pholus)/tests/static_poses/pose13/.mat # logged data mat file path
+  matfile_path: $(find awesome_leg_pholus)/tests/trot/fixed_hip_ample_trot/robot_state_log__0_2022_01_24__17_14_01.mat # logged data mat file path
 
-  save_fig_path: /home/andreap/hhcm_ws/src/awesome_leg_pholus/tests/static_poses/pose13
+  save_fig_path: $(find awesome_leg_pholus)/tests
 
   save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)

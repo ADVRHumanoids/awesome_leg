@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from re import I
 from xbot_interface import config_options as opt
 
 import numpy as np
@@ -10,7 +11,9 @@ import casadi as cas
 
 import pinocchio as pin
 
-######################### MISCELLANEOUS DEFINITIONS #########################
+######################### MISCELLANEOUS UTILITIES DEFINITIONS #########################
+
+# FRICTION MODEL FOR I_Q:
 
 def interp(time_vector, vect_vals, axis = None):
 
@@ -21,77 +24,77 @@ def interp(time_vector, vect_vals, axis = None):
 
     return f
 
-def compute_P_qT(i_q_time, js_time, i_q, q_p_dot, q_p_ddot, tau_link_meas, red_ratios, N_samples, vel_sign_threshold):
+# def compute_P_qT(i_q_time, js_time, i_q, q_p_dot, q_p_ddot, tau_link_meas, red_ratios, N_samples, vel_sign_threshold):
      
-    n_opt_var = 4 # number of optimization var per joint
+#     n_opt_var = 4 # number of optimization var per joint
 
-    t0_max = np.amax(np.array([ i_q_time[0, 1], i_q_time[1, 1], js_time[1] ])) # maximum value between the seconds elements of the input time arrays
-    tf_min = np.amin(np.array([ i_q_time[0, -2], i_q_time[1, -2], js_time[-2] ])) # minimum value between the penultimate elements of the input time arrays
+#     t0_max = np.amax(np.array([ i_q_time[0, 1], i_q_time[1, 1], js_time[1] ])) # maximum value between the seconds elements of the input time arrays
+#     tf_min = np.amin(np.array([ i_q_time[0, -2], i_q_time[1, -2], js_time[-2] ])) # minimum value between the penultimate elements of the input time arrays
 
-    ref_time_margin= 1e-6 # used to prevent numerical errors from making the interpolation explode
-    t0_max = t0_max + ref_time_margin # shifting up the lower value of the ref time by ref_time_margin
-    tf_min = tf_min - ref_time_margin # shifting down the upper value of the ref time by ref_time_margin
+#     ref_time_margin= 1e-6 # used to prevent numerical errors from making the interpolation explode
+#     t0_max = t0_max + ref_time_margin # shifting up the lower value of the ref time by ref_time_margin
+#     tf_min = tf_min - ref_time_margin # shifting down the upper value of the ref time by ref_time_margin
 
-    dt_samples= (tf_min - t0_max)/(N_samples - 1)
-    ref_time = np.zeros((N_samples))
-    ref_time[0] = t0_max
-    for i in range(N_samples-1):
-        ref_time[i+1] = ref_time[i] + dt_samples
+#     dt_samples= (tf_min - t0_max)/(N_samples - 1)
+#     ref_time = np.zeros((N_samples))
+#     ref_time[0] = t0_max
+#     for i in range(N_samples-1):
+#         ref_time[i+1] = ref_time[i] + dt_samples
 
 
-    f_q_p_dot = interp(js_time, q_p_dot)
-    q_p_dot_interp = f_q_p_dot(ref_time)
+#     f_q_p_dot = interp(js_time, q_p_dot)
+#     q_p_dot_interp = f_q_p_dot(ref_time)
   
-    f_q_p_ddot = interp(js_time[1: len(js_time)], q_p_ddot)
-    q_p_ddot_interp = f_q_p_ddot(ref_time)
+#     f_q_p_ddot = interp(js_time[1: len(js_time)], q_p_ddot)
+#     q_p_ddot_interp = f_q_p_ddot(ref_time)
 
-    f_tau = interp(js_time, tau_link_meas)
-    tau_interp = f_tau(ref_time)
+#     f_tau = interp(js_time, tau_link_meas)
+#     tau_interp = f_tau(ref_time)
 
-    f_i_q_hip = interp(i_q_time[0, :], i_q[0, :], axis = 0)
-    f_i_q_knee = interp(i_q_time[1, :], i_q[1, :], axis = 0)
-    i_q_hip_interp = f_i_q_hip(ref_time)
-    i_q_knee_interp = f_i_q_knee(ref_time)
-    i_q_interp=np.array([i_q_hip_interp, i_q_knee_interp])
+#     f_i_q_hip = interp(i_q_time[0, :], i_q[0, :], axis = 0)
+#     f_i_q_knee = interp(i_q_time[1, :], i_q[1, :], axis = 0)
+#     i_q_hip_interp = f_i_q_hip(ref_time)
+#     i_q_knee_interp = f_i_q_knee(ref_time)
+#     i_q_interp=np.array([i_q_hip_interp, i_q_knee_interp])
     
 
-    vel_signs= compute_sign_mat(q_p_dot_interp, threshold = vel_sign_threshold) # vel values below
+#     vel_signs= compute_sign_mat(q_p_dot_interp, threshold = vel_sign_threshold) # vel values below
 
-    rows = N_samples 
-    cols = n_opt_var
-    A_hip = np.zeros((rows, cols))
-    A_knee = np.zeros((rows, cols))
+#     rows = N_samples 
+#     cols = n_opt_var
+#     A_hip = np.zeros((rows, cols))
+#     A_knee = np.zeros((rows, cols))
 
-    B_hip=np.zeros((rows, 1))
-    B_knee=np.zeros((rows, 1))
-    zero_matrix=np.zeros((rows, cols)) # used to stack the two independent hip and knee problems
+#     B_hip=np.zeros((rows, 1))
+#     B_knee=np.zeros((rows, 1))
+#     zero_matrix=np.zeros((rows, cols)) # used to stack the two independent hip and knee problems
 
-    for i in range(0, N_samples):
+#     for i in range(0, N_samples):
 
-        B_hip[i] = - red_ratios[0] * tau_interp[0, i]
-        B_knee[i] = - red_ratios[1] * tau_interp[1, i]
+#         B_hip[i] = - red_ratios[0] * tau_interp[0, i]
+#         B_knee[i] = - red_ratios[1] * tau_interp[1, i]
 
-        A_hip[i , 0] = q_p_ddot_interp[0, i]/ red_ratios[0] 
-        A_hip[i , 1] = - i_q_interp[0, i] 
-        A_hip[i , 2] = red_ratios[0] * vel_signs[0, i]
-        A_hip[i , 3] = red_ratios[0] * q_p_dot_interp[0, i]
+#         A_hip[i , 0] = q_p_ddot_interp[0, i]/ red_ratios[0] 
+#         A_hip[i , 1] = - i_q_interp[0, i] 
+#         A_hip[i , 2] = red_ratios[0] * vel_signs[0, i]
+#         A_hip[i , 3] = red_ratios[0] * q_p_dot_interp[0, i]
 
-        A_knee[i , 0] = q_p_ddot_interp[1, i]/ red_ratios[1] 
-        A_knee[i , 1] = - i_q_interp[1, i] 
-        A_knee[i , 2] = red_ratios[1] * vel_signs[1, i]
-        A_knee[i , 3] = red_ratios[1] * q_p_dot_interp[1, i]
+#         A_knee[i , 0] = q_p_ddot_interp[1, i]/ red_ratios[1] 
+#         A_knee[i , 1] = - i_q_interp[1, i] 
+#         A_knee[i , 2] = red_ratios[1] * vel_signs[1, i]
+#         A_knee[i , 3] = red_ratios[1] * q_p_dot_interp[1, i]
 
-    first_stack = np.concatenate((A_hip, zero_matrix), axis=1)
-    second_stack = np.concatenate((zero_matrix, A_knee), axis=1)
-    A_tot = np.concatenate((first_stack, second_stack), axis=0)
-    B_tot= np.concatenate((B_hip, B_knee), axis = 0)
+#     first_stack = np.concatenate((A_hip, zero_matrix), axis=1)
+#     second_stack = np.concatenate((zero_matrix, A_knee), axis=1)
+#     A_tot = np.concatenate((first_stack, second_stack), axis=0)
+#     B_tot= np.concatenate((B_hip, B_knee), axis = 0)
     
-    P = np.dot(A_tot.T, A_tot)
-    q_T= - np.dot(B_tot.T, A_tot)
+#     P = np.dot(A_tot.T, A_tot)
+#     q_T= - np.dot(B_tot.T, A_tot)
     
-    return P, q_T.flatten(), A_tot, B_tot
+#     return P, q_T.flatten(), A_tot, B_tot
 
-def compute_P_qT_single_jnt(jnt_index, i_q_time, js_time, i_q, q_p_dot, q_p_ddot, tau_link_meas, red_ratios, N_samples, vel_sign_threshold, smooth_coeff):
+def compute_P_qT_i_q(sigma, X_guess, jnt_index, i_q_time, js_time, i_q, q_p_dot, q_p_ddot, tau_link_meas, red_ratios, N_samples, vel_sign_threshold, smooth_coeff):
      
     t0_max = np.amax(np.array([ i_q_time[jnt_index, 1], js_time[1] ])) # maximum value between the seconds elements of the input time arrays 
     # (1 index necessary to avoid problems with the interpolation of the differentiated joint acceleration)
@@ -150,7 +153,7 @@ def compute_P_qT_single_jnt(jnt_index, i_q_time, js_time, i_q, q_p_dot, q_p_ddot
         A[i , 3] = red_ratios[jnt_index] * q_p_dot_interp[i]
     
     P = np.dot(A.T, A)
-    q_T = - np.dot(B.T, A)
+    q_T = - np.dot(B.T, A) - np.dot(np.transpose(X_guess),np.dot(np.transpose(sigma), sigma))
         
     return P, q_T.flatten(), A, B
 
@@ -158,7 +161,6 @@ def compute_cost(x, P, q_T, B):
 
     cost = 1/2 * np.dot(x.T, np.dot(P, x)) + np.dot (q_T, x) + np.dot(B.T, B)/2
     return cost.flatten()[0]
-
 
 def get_xbot_cfg(urdf, srdf, is_fb=False):
 
@@ -275,6 +277,12 @@ def compute_sign_mat(mat, threshold = None):
 
 def compute_sign_vect(vect, threshold = None):
 
+    """
+
+    Computes a smooth approximation of the sign function.
+
+    """
+
     if threshold is None:
         threshold = 1e-4
 
@@ -291,20 +299,43 @@ def compute_sign_vect(vect, threshold = None):
         else:
             sign_vect[i] = 0
 
-
     return sign_vect
 
 def compute_smooth_sign(input, coeff):
+
+    """
+
+    Computes a smooth approximation of the sign function.
+
+    """
 
     return np.tanh( coeff * input)
 
 def compute_cost_raw(A, B, x):
 
+    """
+
+    Computes the regression cost of a problem of the type A * x = B.
+
+    Returns the scalar cost.
+
+    """
+
     error = np.dot(A, x) - np.transpose(B)
 
-    return 1/2 * np.dot(np.transpose(error), error)
+    cost = 1/2 * np.dot(np.transpose(error), error)
+
+    return cost
 
 def qpsolve_cas(H, g, lbx, ubx):
+
+    """
+
+    Solve basic QP with Casadi.
+
+    Returns the solution X.
+
+    """
 
     # Convert to CasADi types
     H = cas.DM(H)
@@ -321,9 +352,9 @@ def qpsolve_cas(H, g, lbx, ubx):
 
     r = S(h = H, g = g, lbx = lbx, ubx = ubx)
     
+    X = np.array(r['x']).flatten()
     # Return the solution
-    return np.array(r['x']).flatten()
-
+    return X
 
 def rearrange_test_mat(mat):
 
@@ -337,20 +368,20 @@ def rearrange_test_mat(mat):
 
     return taus_new
 
-
-def compute_l_CoM(g, m1, m2, l_hip, q_p, taus):
+# def compute_l_CoM(g, m1, m2, l_hip, q_p, taus):
     
-    n_jnts = len(taus[:, 0])
-    n_traj = len(taus[0, :])
-    l_CoM = np.zeros((n_jnts, n_traj))    
+#     n_jnts = len(taus[:, 0])
+#     n_traj = len(taus[0, :])
+#     l_CoM = np.zeros((n_jnts, n_traj))    
 
-    for j in range(n_traj):
+#     for j in range(n_traj):
 
-        l_CoM[0, j] =  taus[0, j] / (m1 * g * (np.sin(q_p[1, j]-q_p[0, j])))
-        l_CoM[1, j] = ((taus[0,j]+taus[1,j]) / (g * np.sin(q_p[0, j]))- m2 * l_hip) / m1
+#         l_CoM[0, j] =  taus[0, j] / (m1 * g * (np.sin(q_p[1, j]-q_p[0, j])))
+#         l_CoM[1, j] = ((taus[0,j]+taus[1,j]) / (g * np.sin(q_p[0, j]))- m2 * l_hip) / m1
 
-    return l_CoM
+#     return l_CoM
 
+# INERTIAL PARAMS ESTIMATION:
 
 def assemblePinocchioRegressor(model, data, q_p, q_p_dot, q_p_ddot):
 
@@ -381,32 +412,104 @@ def compute_P_qT(regressor, tau_meas, sigma, X_guess):
 
     return P, q_T
 
+def compute_skew(vect):
+
+    skew = np.zeros((3, 3))
+
+    skew[2, 1] = vect[0]
+    skew[2, 0] = - vect[1]
+    skew[1, 0] = vect[2]
+
+    skew = skew - np.transpose(skew)
+
+    return skew
+
 def interpret_sol(n_active_jnts, X):
 
-    # Pinocchio returns the MoI computed in the joint frame
+    # Please note: Pinocchio returns the MoI computed in the joint frame.
 
     sol_length = (len(X))
 
     PI = X[0: (sol_length - n_active_jnts)] # inertial params as outputted by Pinocchio
     
-    tau_tilde = X[(sol_length - n_active_jnts): sol_length]# torque measurement noise estimation
+    tau_tilde = X[(sol_length - n_active_jnts): sol_length] # torque bias estimate
 
     inertial_params = np.zeros(sol_length).flatten()
 
-    inertial_params_offset = 10
+    inertial_params_offset = 10 # 1 + 3 + 6
 
     for i in range(n_active_jnts):
 
-        inertial_params[i * inertial_params_offset] = PI [i * inertial_params_offset] # mass
-        inertial_params[i * inertial_params_offset + 1] = PI [i * inertial_params_offset + 1] / PI [i * inertial_params_offset] # l_CoM_x
-        inertial_params[i * inertial_params_offset + 2] = PI [i * inertial_params_offset + 2] / PI [i * inertial_params_offset] # l_CoM_y
-        inertial_params[i * inertial_params_offset + 3] = PI [i * inertial_params_offset + 3] / PI [i * inertial_params_offset] # l_CoM_z
-        inertial_params[i * inertial_params_offset + 4] = PI [i * inertial_params_offset + 4] # ixx
-        inertial_params[i * inertial_params_offset + 5] = PI [i * inertial_params_offset + 5] # ixy
-        inertial_params[i * inertial_params_offset + 6] = PI [i * inertial_params_offset + 6] # ixz
-        inertial_params[i * inertial_params_offset + 7] = PI [i * inertial_params_offset + 7] # iyy
-        inertial_params[i * inertial_params_offset + 8] = PI [i * inertial_params_offset + 8] # iyz
-        inertial_params[i * inertial_params_offset + 9] = PI [i * inertial_params_offset + 9] # izz
+        mass = PI[i * inertial_params_offset]
+
+        l_CoM_x = PI[i * inertial_params_offset + 1] / mass
+        l_CoM_y = PI[i * inertial_params_offset + 2] / mass
+        l_CoM_z = PI[i * inertial_params_offset + 3] / mass
+        levers = np.array([l_CoM_x, l_CoM_y, l_CoM_z])
+        S = compute_skew(levers) # skew matrix computation
+
+        I = np.zeros((3, 3))
+        I[0, 0] = PI[i * inertial_params_offset + 4]
+        I[0, 1] = PI[i * inertial_params_offset + 5]
+        I[1, 1] = PI[i * inertial_params_offset + 6]
+        I[0, 2] = PI[i * inertial_params_offset + 7]
+        I[1, 2] = PI[i * inertial_params_offset + 8]
+        I[2, 2] = PI[i * inertial_params_offset + 9]
+        I = I + np.transpose(I)
+        print("I: ", I)
+
+        I_c = I - mass * np.transpose(S) * S
+
+        inertial_params[i * inertial_params_offset] = mass
+        inertial_params[i * inertial_params_offset + 1] = l_CoM_x
+        inertial_params[i * inertial_params_offset + 2] = l_CoM_y
+        inertial_params[i * inertial_params_offset + 3] = l_CoM_z
+        inertial_params[i * inertial_params_offset + 4] = I_c[0, 0] # ixx
+        inertial_params[i * inertial_params_offset + 5] = I_c[0, 1] # ixy
+        inertial_params[i * inertial_params_offset + 6] = I_c[0, 2] # ixz
+        inertial_params[i * inertial_params_offset + 7] = I_c[1, 1] # iyy
+        inertial_params[i * inertial_params_offset + 8] = I_c[1, 2] # iyz
+        inertial_params[i * inertial_params_offset + 9] = I_c[2, 2] # izz
+
+    return inertial_params, tau_tilde
+
+def interpret_sol2(n_active_jnts, X):
+
+    # Please note: Pinocchio returns the MoI computed in the joint frame.
+
+    sol_length = (len(X))
+
+    PI = X[0: (sol_length - n_active_jnts)] # inertial params as outputted by Pinocchio
+    
+    tau_tilde = X[(sol_length - n_active_jnts): sol_length] # torque bias estimate
+
+    inertial_params = np.zeros(sol_length).flatten()
+
+    inertial_params_offset = 10 # 1 + 3 + 6
+
+    for i in range(n_active_jnts):
+
+        mass = PI[i * inertial_params_offset]
+        l_CoM_x = PI[i * inertial_params_offset + 1] / PI[i * inertial_params_offset] 
+        l_CoM_y = PI[i * inertial_params_offset + 2] / PI[i * inertial_params_offset]
+        l_CoM_z = PI[i * inertial_params_offset + 3] / PI[i * inertial_params_offset]
+        I_xx = PI[i * inertial_params_offset + 4]
+        I_xy = PI[i * inertial_params_offset + 5]
+        I_yy = PI[i * inertial_params_offset + 6]
+        I_xz = PI[i * inertial_params_offset + 7]
+        I_yz = PI[i * inertial_params_offset + 8]
+        I_zz = PI[i * inertial_params_offset + 9]
+
+        inertial_params[i * inertial_params_offset] = mass
+        inertial_params[i * inertial_params_offset + 1] = l_CoM_x
+        inertial_params[i * inertial_params_offset + 2] = l_CoM_y
+        inertial_params[i * inertial_params_offset + 3] = l_CoM_z
+        inertial_params[i * inertial_params_offset + 4] = I_xx - mass * (np.power(l_CoM_y, 2) + np.power(l_CoM_z, 2)) # ixx
+        inertial_params[i * inertial_params_offset + 5] = I_xy + mass * l_CoM_x * l_CoM_y # ixy
+        inertial_params[i * inertial_params_offset + 6] = I_xz + mass * l_CoM_x * l_CoM_z # ixz
+        inertial_params[i * inertial_params_offset + 7] = I_yy - mass * (np.power(l_CoM_x, 2) + np.power(l_CoM_z, 2)) # iyy
+        inertial_params[i * inertial_params_offset + 8] = I_yz + mass * l_CoM_y * l_CoM_z # iyz
+        inertial_params[i * inertial_params_offset + 9] = I_zz - mass * (np.power(l_CoM_x, 2) + np.power(l_CoM_y, 2)) # izz
 
     return inertial_params, tau_tilde
 

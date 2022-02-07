@@ -104,6 +104,7 @@ i_q_measured_filt = signal.filtfilt(b_curr, a_curr, i_q_measured, padlen=150, ax
 i_q_meas_time = np.array([i_q_hip_time, i_q_knee_time])
 
 ######################### OPTIMIZATION (QP) #########################
+n_jnts = len(jnt_pos[:, 0])
 
 # l_b_hip = np.array([ hip_rotor_axial_MoI, 0.01, 0.001, 0.001])
 # l_b_knee = np.array([ knee_rotor_axial_MoI, 0.01, 0.001, 0.001])
@@ -117,23 +118,26 @@ i_q_meas_time = np.array([i_q_hip_time, i_q_knee_time])
 # u_b_hip = np.array([ hip_rotor_axial_MoI, 1, 1000, 1000]) # rotor_MoI, K_t, K_d0, K_d1
 # u_b_knee = np.array([ knee_rotor_axial_MoI, 1, 1000, 1000])
 
-l_b_hip = np.array([ hip_rotor_axial_MoI, 0, 0.001, 0.001]) # rotor_MoI, K_t, K_d0, K_d1
+l_b_hip = np.array([ hip_rotor_axial_MoI, hip_K_t, 0.001, 0.001]) # rotor_MoI, K_t, K_d0, K_d1
 l_b_knee = np.array([ knee_rotor_axial_MoI, knee_K_t, 0.001, 0.001])
 
-u_b_hip = np.array([ hip_rotor_axial_MoI, 1000, 1000, 1000]) # rotor_MoI, K_t, K_d0, K_d1
+u_b_hip = np.array([ hip_rotor_axial_MoI, hip_K_t, 1000, 1000]) # rotor_MoI, K_t, K_d0, K_d1
 u_b_knee = np.array([ knee_rotor_axial_MoI, knee_K_t, 1000, 1000])
 
 N_interp_samples = 100 # number of samples over which the data is interpolated  (also equal to the number of samples of the QP)
 vel_sign_threshold= 1e-1 # threshold used for computing the sign of the jnt velocities
 smooth_coeff = 20
 
+sigma_hip = 0.001 * np.eye(n_jnts + 2) # regularization matrix hip
+sigma_knee = 0.1 * np.eye(n_jnts + 2) # regularization matrix knee
+
 QP_init_hip = np.array([ hip_rotor_axial_MoI, hip_K_t, 1, 1])
 QP_init_knee = np.array([ knee_rotor_axial_MoI, knee_K_t, 1, 1])
-QP_init = np.concatenate((QP_init_hip, QP_init_knee))
+# QP_init = np.concatenate((QP_init_hip, QP_init_knee))
 
 # P_QP, q_T_QP, _, B_QP = compute_P_qT(i_q_meas_time, js_time, i_q_measured, jnt_vel, filtered_diff_jnt_acc, log_loader.get_joints_efforts(), red_ratios, efficiencies, N_interp_samples, vel_sign_threshold)
-P_QP_hip, q_T_QP_hip, A_QP_hip, B_QP_hip = compute_P_qT_single_jnt(0, i_q_meas_time, js_time, i_q_measured_filt, jnt_vel, filtered_diff_jnt_acc, filt_meas_tau, red_ratios, N_interp_samples, vel_sign_threshold, smooth_coeff)
-P_QP_knee, q_T_QP_knee, A_QP_knee, B_QP_knee = compute_P_qT_single_jnt(1, i_q_meas_time, js_time, i_q_measured_filt, jnt_vel, filtered_diff_jnt_acc, filt_meas_tau, red_ratios, N_interp_samples, vel_sign_threshold, smooth_coeff)
+P_QP_hip, q_T_QP_hip, A_QP_hip, B_QP_hip = compute_P_qT_i_q(sigma_hip, QP_init_hip, 0, i_q_meas_time, js_time, i_q_measured_filt, jnt_vel, filtered_diff_jnt_acc, filt_meas_tau, red_ratios, N_interp_samples, vel_sign_threshold, smooth_coeff)
+P_QP_knee, q_T_QP_knee, A_QP_knee, B_QP_knee = compute_P_qT_i_q(sigma_knee, QP_init_knee, 1, i_q_meas_time, js_time, i_q_measured_filt, jnt_vel, filtered_diff_jnt_acc, filt_meas_tau, red_ratios, N_interp_samples, vel_sign_threshold, smooth_coeff)
 
 # x = solve_qp(P = P_QP, q= q_T_QP.T, lb = np.concatenate((l_b_hip, l_b_knee), axis = 0), ub = np.concatenate((u_b_hip, u_b_knee), axis = 0), A = A_cnstr, b = b_cnstr, initvals = QP_init)
 x_hip = solve_qp(P = P_QP_hip, q= q_T_QP_hip.T, lb = l_b_hip, ub = u_b_hip, initvals = QP_init_hip)

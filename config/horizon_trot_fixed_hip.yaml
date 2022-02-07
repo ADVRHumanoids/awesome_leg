@@ -1,4 +1,5 @@
-# USED FOR SETTINGS SOME SOLVER OPTIONS
+# horizon_trot_fixed_hip.py config file
+
 horizon:
 
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)

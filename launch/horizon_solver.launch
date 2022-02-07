@@ -6,21 +6,18 @@
 
   <group if="$(eval arg('task_type')=='jump')">
     <!-- loading some horizon solver parameters-->
-  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_jump.py" />
+  <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_jump.py" />
   </group>
   <group if="$(eval arg('task_type')=='trot')">
     <!-- loading some horizon solver parameters-->
     <group if="$(eval arg('trot_type')=='fixed_hip')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_fixed_hip.py" output="screen"/>
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_trot_fixed_hip.py" output="screen"/>
     </group>
     <group if="$(eval arg('trot_type')=='sliding_hip')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_hip.py" output="screen"/>
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_trot_sliding_hip.py" output="screen"/>
     </group>
     <group if="$(eval arg('trot_type')=='sliding_all')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_all.py" output="screen"/>
-    </group>
-    <group if="$(eval arg('trot_type')=='sliding_all_underact')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_offline_solver_trot_sliding_all_underact.py" output="screen"/>
+      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_trot_sliding_all.py" output="screen"/>
     </group>
   </group>
 

@@ -15,10 +15,10 @@ import numpy as np
 
 ####################### SETTING PARAMETERS ON THE ROS PARAMETER SERVER #######################
 
-n_int_approach_traj=rospy.get_param("initial_pos/approaching_traj/n_intervals")
-T_exec_approach=rospy.get_param("initial_pos/approaching_traj/T_execution")
-traj_exec_standby_time=rospy.get_param("initial_pos/approaching_traj/standby_time")
-q_p_target=rospy.get_param("initial_pos/approaching_traj/q_p_target")
+n_int_approach_traj=rospy.get_param("xbot_initial_pos_pub/approaching_traj/n_intervals")
+T_exec_approach=rospy.get_param("xbot_initial_pos_pub/approaching_traj/T_execution")
+traj_exec_standby_time=rospy.get_param("xbot_initial_pos_pub/approaching_traj/standby_time")
+q_p_target=rospy.get_param("xbot_initial_pos_pub/approaching_traj/q_p_target")
 
 dt=T_exec_approach/n_int_approach_traj
 

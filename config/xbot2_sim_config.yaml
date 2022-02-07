@@ -1,4 +1,4 @@
-## XBotInterface related configs. Used for simulations on Gazebo (lacks some configurations necessary to run xbot on the actual hardware).
+# XBot awesome leg configuration file; to be used during simulation (to ethercat plugins)
 
 XBotInterface:
   urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg.urdf

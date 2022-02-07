@@ -1,2 +1,3 @@
 # Configuration files
-These include xbot2, horizon, actuators and CartesIO configurations.
+
+These include XBot2, Horizon, actuators, CartesIO and node configuratio files.

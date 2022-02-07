@@ -1,3 +1,5 @@
+# Configuration file of the logger script (robot_state_logger.cpp)
+
 xbot_logger:
 
-  mat_dump_path: $(find awesome_leg_pholus)/tests/static_poses/pose1
+  mat_dump_path: $(find awesome_leg_pholus)/tests/gravity_compensation
