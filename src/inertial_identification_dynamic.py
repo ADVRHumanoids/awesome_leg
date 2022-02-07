@@ -91,7 +91,7 @@ u_b =  1000 + np.zeros((X_size,1)).flatten()
 #     l_b[6 + i * link_offset] = 0 # iyy
 #     l_b[9 + i * link_offset] = 0 # izz
 
-P, qT = compute_P_qT(regressor = regressors, tau_meas = meas_tau, sigma = sigma, X_guess = X_guess) # computing optimization matrices
+P, qT = compute_P_qT_inertial(regressor = regressors, tau_meas = meas_tau, sigma = sigma, X_guess = X_guess) # computing optimization matrices
 
 QP_init= np.zeros((X_size, 1)).flatten() 
 

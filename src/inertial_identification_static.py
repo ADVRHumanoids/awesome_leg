@@ -98,7 +98,7 @@ sigma = 0.001 * np.eye(X_size) # regularization matrix
 
 X_guess = np.concatenate((model.inertias[1].toDynamicParameters(), model.inertias[2].toDynamicParameters(), np.array([0, 0]))) # remember Pinocchio adds an additional universe link
 
-P, qT = compute_P_qT(regressor = regressors, tau_meas = meas_tau, sigma = sigma, X_guess = X_guess) # computing optimization matrices
+P, qT = compute_P_qT_inertial(regressor = regressors, tau_meas = meas_tau, sigma = sigma, X_guess = X_guess) # computing optimization matrices
 
 QP_init= np.zeros((X_size, 1)).flatten() 
 
@@ -107,8 +107,8 @@ QP_init= np.zeros((X_size, 1)).flatten()
 
 X = solve_qp(P = P, q = qT.T, initvals = QP_init) # solving QP
 
-print("Original inertial params: ", interpret_sol2(n_active_jnts, X_guess))
-print("Inertial params: ", interpret_sol2(n_active_jnts, X))
+print("Original inertial params: ", interpret_inertial_sol2(n_active_jnts, X_guess))
+print("Inertial params: ", interpret_inertial_sol2(n_active_jnts, X))
 
 print("X_guess ", X_guess)
 print("X: ", X)

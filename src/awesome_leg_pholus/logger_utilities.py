@@ -32,7 +32,7 @@ class LogLoader:
 
         self.mat_file_h5py.visit(self.__h5py_visit_callable) # sliding through the loaded file and processing its fields
 
-        # aux message information
+        # Aux message information
         self.aux_seq = np.array(self.mat_file_h5py.get('aux_seq')).astype(int).flatten()
         self.aux_abs_time = np.array(self.mat_file_h5py.get('aux_time')).flatten()
 
@@ -40,7 +40,7 @@ class LogLoader:
 
         self.aux_values = np.array(self.mat_file_h5py.get('aux_value')).transpose()
         
-        # "standard" message information
+        # "Standard" message information
         self.seq = np.array(self.mat_file_h5py.get('seq')).astype(int).flatten().transpose()
         self.abs_time = np.array(self.mat_file_h5py.get('time')).flatten().transpose()
         
@@ -64,9 +64,9 @@ class LogLoader:
         self.fault = np.array(self.mat_file_h5py.get('fault')).transpose()
         
         # Relative time vectors (w.r.t. an absolute reference)
-        self.abs_t0=self.abs_time[0] 
-        self.aux_rel_time=self.aux_abs_time-self.abs_t0
-        self.js_rel_time=self.abs_time-self.abs_t0
+        self.abs_t0 = self.abs_time[0] 
+        self.aux_rel_time = self.aux_abs_time - self.abs_t0
+        self.js_rel_time = self.abs_time - self.abs_t0
 
 
     ## Low-level methods for manipulating the .mat file ##
@@ -75,11 +75,11 @@ class LogLoader:
 
         """
 
-        Reads a string of a string cell array from a h5py database, given the index to be read. Only works with one-dimensional cell array of strings.
+        Reads a string of a string cell array from a h5py database, given the index to be read. Only works with one-dimensional cell arrays of strings.
         
         Args:
-            ds:
-            index:
+            ds: dataset (see h5py docs)
+            index: index to be read
 
         """
 
@@ -104,7 +104,7 @@ class LogLoader:
         Used to perform some useful initializations of the class attributes.
 
         Args:
-            name:
+            name: field names in the .mat file
 
         """
 
@@ -804,7 +804,7 @@ class LogLoader:
 
 class LogPlotter(): 
 
-    def __init__(self, log_loader, clr_set_name= "Set1"):
+    def __init__(self, log_loader, clr_set_name = "Set1"):
         
         """
         Contructor
@@ -815,17 +815,16 @@ class LogPlotter():
         
         """
 
-        self.fig={} # dictionary containing all the opened figures
-        self.axes={} # fig. name -> fig. axes
+        self.fig = {} # dictionary containing all the opened figures
+        self.axes = {} # fig. name -> fig. axes
 
-        self.lines=[] # auxiliary object to allow the use of legend picking on subsequent calls to js_plot() and aux_plot()
+        self.lines = [] # auxiliary object to allow the use of legend picking on subsequent calls to js_plot() and aux_plot()
 
-        # self.matfile_path=matfile_path
-        self.log_loader=log_loader
+        self.log_loader = log_loader
        
-        self.clr_set_name = clr_set_name # 
+        self.clr_set_name = clr_set_name 
         
-        self.lined={}
+        self.lined = {} # dictionary used to make the pick event work
     
 
     def init_fig(self, fig_name):
@@ -839,8 +838,8 @@ class LogPlotter():
 
         """
 
-        fig= plt.figure()
-        self.fig[fig_name]=fig
+        fig = plt.figure()
+        self.fig[fig_name] = fig
         
         return fig
 
@@ -851,10 +850,10 @@ class LogPlotter():
         Add a subplot to the selected figure.
 
         Args:
-            fig_name: figure name.
-            row:
-            column:
-            index:
+            fig_name: figure name ( same name used in init_fig() )
+            row: rows of the subplot grid
+            column: columns of the subplot grid
+            index: index of the suplot on the grid (left->right; top->bottom)
 
         """
 
@@ -866,22 +865,22 @@ class LogPlotter():
 
         self.axes[fig_name]=subplt_axes # updating the axes
 
-    def aux_plot(self, fig_name, jnt_id, leg_draggable=True, title=None, set_grid=True,
-                 draw_style='default', enable_lgnd_pick=True, add_plot=False):
+    def aux_plot(self, fig_name, jnt_id, leg_draggable = True, title = None, set_grid = True,
+                 draw_style = 'default', enable_lgnd_pick = True, add_plot = False):
         
         """
 
-        Plot every auxiliary signal associated with a given joint ID.
+        Dedicated method to plot ALL the auxiliary signals associated with a given joint ID.
 
         Args:
-            fig_name: figure name.
-            jnt_id:
-            leg_draggable:
-            title:
-            set_grid:
-            draw_style:
-            enable_lgnd_pick:
-            add_plot:
+            fig_name: figure name (same name used by init_fig)
+            jnt_id: joint id
+            leg_draggable: draggable legend
+            title: plot title
+            set_grid: whether to set the grid or not
+            draw_style: used to change line style
+            enable_lgnd_pick: whether to enable legend picking (turn off lines by picking the legend)
+            add_plot: set this to true if adding a plot on top of an already existent plot
 
         """
 
@@ -893,7 +892,7 @@ class LogPlotter():
 
             aux_time_extr, aux_vals_extr= self.log_loader.extr_from_aux(jnt_index, sgnl_name)
 
-            self.lines.append(self.axes[fig_name].plot(aux_time_extr, aux_vals_extr, label=sgnl_name.replace('_aux_code', ''), drawstyle=draw_style)) # plotting on the last active subplot
+            self.lines.append(self.axes[fig_name].plot(aux_time_extr, aux_vals_extr, label = sgnl_name.replace('_aux_code', ''), drawstyle = draw_style)) # plotting on the last active subplot
 
         if (set_grid): self.axes[fig_name].grid()
         if (title is not None): self.axes[fig_name].set_title(title)
@@ -917,6 +916,7 @@ class LogPlotter():
         """
 
         Given an input matrix (n_joints x n_samples), plot the data of the row associated with the selected joint ID.
+        Can be used with joint state data or any other data formatted in the same way.
 
         Args:
             fig_name: figure name.
@@ -968,7 +968,7 @@ class LogPlotter():
 
         """
 
-        On the pick event, find the orig line corresponding to the legend proxy line, and toggle its visibility.
+        On the pick event, find the original line corresponding to the legend proxy line, and toggle its visibility on the plot.
 
         """
         
