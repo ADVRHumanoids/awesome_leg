@@ -1,0 +1,25 @@
+# horizon_xbot_cmd_pub configuration file
+
+horizon_xbot_cmd_pub: 
+
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
+
+  approaching_traj: # configurations for the node used to move the leg to its initial position
+
+        n_intervals: 100 # number of intervals of the generated trajectory
+        T_execution: 5.0 # desired execution time 
+        standby_time: 2.0 # time delay at the end of the approach maneouver
+        
+        ctrl_mode: [1, 1]
+        stiffness: [500, 500]
+        damping:  [5, 5]
+        
+        # right angle, tip high-left -> init pose: [1.57, -1.57]; final: [-1.57, 1.57]; T_execution: 3.0; standby_time: 0.0
+
+  horizon_trajectory: 
+    
+        ctrl_mode: [25, 25]
+        stiffness: [500, 500]
+        damping:  [5, 5]
+        
+        # right angle, tip high-left -> init pose: [1.57, -1.57]; final: [-1.57, 1.57]; T_execution: 3.0; standby_time: 0.0

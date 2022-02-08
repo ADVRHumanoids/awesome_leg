@@ -2,11 +2,18 @@
 
 cyclic_test: 
 
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
+
   approaching_traj: # configurations for the node used to move the leg to its initial position
   
         n_intervals: 200 # number of intervals of the generated forward trajectory
         T_execution: 3.0 # desired execution time (forward trajectory)
         standby_time: 0.0 # time delay between the finished approach maneouver and the start of the real trajectory
+
         q_p_target: [-1.57, 1.57] # target joint pose 
         
+        ctrl_mode: [25, 25]
+        stiffness: [500, 500]
+        damping:  [5, 5]
+
         # right angle, tip high-left -> init pose: [1.57, -1.57]; final: [-1.57, 1.57]; T_execution: 3.0; standby_time: 0.0

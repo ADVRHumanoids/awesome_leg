@@ -6,6 +6,7 @@ gravity_compensator:
         1.57876311e-01, -5.39215557e-05,  2.42522894e-02, -2.29032165e-05, -3.90587987e-02,  1.37603221e-01,
         1.23787877e+00,  1.88610830e-01, -4.86160650e-04, -2.47918836e-02,
         2.09805788e-03,  3.99949166e-03, 8.15188912e-02,  4.85233737e-03, -3.60812889e-04,  8.14726671e-02] # calibrated inertial parameters
+        
   torque_bias: [ 3.20372297e-01, -2.56218453e-01 ] # bias torques, estimated via param. identification
 
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_param_id.urdf # urdf relative path (wrt to the package) used by the URDF parser

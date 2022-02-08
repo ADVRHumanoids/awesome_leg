@@ -1,12 +1,16 @@
 # xbot_initial_pos_pub configuration file
 
-initial_pos: 
+xbot_initial_pos_pub: 
+
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
 
   approaching_traj: # configurations for the node used to move the leg to its initial position
-  
+
         n_intervals: 200 # number of intervals of the generated trajectory
         T_execution: 6.0 # desired execution time 
         standby_time: 0.0 # time delay at the end of the approach maneouver
-        q_p_target: [0.0, 0.0] # target joint pose 
+        q_p_target: [0.0, 0.0] # target joint positions
         
-        # right angle, tip high-left -> init pose: [1.57, -1.57]; final: [-1.57, 1.57]; T_execution: 3.0; standby_time: 0.0
+        ctrl_mode: [1, 1]
+        stiffness: [500, 500]
+        damping:  [5, 5]

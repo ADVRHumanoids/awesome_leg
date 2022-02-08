@@ -1,109 +1,93 @@
 #!/usr/bin/env python3
-####################### IMPORTS #######################
-import rospy
 
-import rospkg
+# No dependence upon the chosen task type ---> standardized horizon solution format
+
+# No explicit dependence upon the urdf 
+
+####################### IMPORTS #######################
+
+import rospy
 
 from xbot_msgs.msg import JointCommand
 from xbot_msgs.msg import JointState
 
+from horizon.utils import mat_storer
+
 import numpy as np
 
-from xbot_interface import xbot_interface as xbot
+import pinocchio as pin
 
-from awesome_leg_pholus.param_identification_utilities import get_xbot_cfg
+#########################################################
 
-import pinocchio
+class GravityCompensator:
 
-####################### SETTING PARAMETERS ON THE ROS PARAMETER SERVER #######################
+    def __init__(self):
 
-dt = rospy.get_param("/gravity_compensator/dt") 
-urdf_path = rospy.get_param("/gravity_compensator/urdf_path") 
-PI = rospy.get_param("/gravity_compensator/PI") 
-torque_bias = rospy.get_param("/gravity_compensator/torque_bias") 
+        self.xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size = 10) # publish on xbotcore/command
+        self.xbot_state_sub = rospy.Subscriber('/xbotcore/joint_states', JointState, self.current_q_p_assigner) # subscribe at xbotcore/joint_states
 
-# srdf_path = rospy.get_param("/gravity_compensator/srdf_path") 
+        self.urdf_path = rospy.get_param("gravity_compensator/urdf_path")
+        self.urdf = open(self.urdf_path, "r").read() # read the URDF
+        self.pin_model = pin.buildModelFromXML(self.urdf)
+        self.pin_model_data = self.pin_model.createData()
+        self.n_jnts = self.pin_model.nq
+        self.joint_names = []
+        [self.joint_names.append((self.pin_model.names[i])) for i in range(1, self.n_jnts + 1)]
+        
+        self.dt = rospy.get_param("/gravity_compensator/dt") 
 
-joint_command=JointCommand() # initializing object for holding the joint command
-ctrl_mode=[4, 4] # for gravity compensation, use a simple torque control mode 
+        self.PI = rospy.get_param("/gravity_compensator/PI") 
+        self.torque_bias = rospy.get_param("/gravity_compensator/torque_bias") 
 
-joint_command.ctrl_mode=ctrl_mode
-joint_command.name=["hip_pitch_1","knee_pitch_1"]
+        self.joint_command = JointCommand() # initializing object for holding the joint command
+        self.ctrl_mode = 4 * [self.n_jnts] # for gravity compensation, use a simple torque control mode 
 
-# Model description
-urdf = open(urdf_path, "r").read() # read the URDF
-# srdf = open(srdf_path, "r").read() # read the URDF
+        self.joint_command.ctrl_mode = self.ctrl_mode
+        self.joint_command.name = self.joint_names
 
-# XBot model interface & Co
-# robot_cfg = get_xbot_cfg(urdf, srdf)
-# model = xbot.ModelInterface(robot_cfg)
+        self.current_q_p = np.zeros((self.n_jnts, 1)).flatten() # currently measured joint positions (to be used by "horizon_initial_pose_pub")
 
-model = pinocchio.buildModelFromXML(urdf)
-data = model.createData()
+        self.tau = np.zeros((self.n_jnts, 1)).flatten()
 
-current_q_p=[0, 0] # currently measured joint positions (to be used by "horizon_initial_pose_pub")
+    def pack_xbot2_message(self):
 
-####################### FUNCTIONS #######################
+        self.joint_command.effort = np.ndarray.tolist(self.tau)
 
-def compute_grav_comp_efforts_xbot2(model, q_p, q_p_dot, q_p_ddot):
+        print("Publishing gravity compensation torques with rate: "+ str(1/self.dt) +"Hz"+"\n") # print a simple debug message
+        print("Published torque: ", self.tau)
 
-    n_joints = len(q_p)
-    tau = np.zeros((n_joints, 1))
+    def xbot_cmd_publisher(self):
+        
+        self.rate = rospy.Rate(1/self.dt)
 
-    model.setJointPosition(q_p)
-    model.setJointVelocity(q_p_dot)
-    model.setJointAcceleration(q_p_ddot)
-    model.update()
-
-    tau = model.computeInverseDynamics()
-    
-    return tau
-
-def compute_efforts_pin(model, data, q_p, q_p_dot, q_p_ddot, PI, torque_bias):
-
-    tau = np.dot(pinocchio.computeJointTorqueRegressor(model, data, q_p, q_p_dot, q_p_ddot), PI) + torque_bias 
-    print(tau)
-    return tau
-
-def pack_xbot2_message(tau):
+        while not rospy.is_shutdown():
             
-    joint_command.effort=[tau[0], tau[1]]
+            self.compute_efforts_pin()
 
-    print("Publishing gravity compensation torques with rate: "+ str(1/dt) +"Hz"+"\n") # print a simple debug message
-    print("Published torque: ", tau)
-def xbot_cmd_publisher():
+            self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 
 
-    global current_q_p # using the corresponding variable initialized in the global scope
-    
-    xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size = 10) # publish on xbotcore/command
-    rospy.Subscriber('/xbotcore/joint_states', JointState, current_q_p_assigner) # subscribe at xbotcore/joint_states
+            self.xbot_cmd_pub.publish(self.joint_command) # publish the commands
 
-    rospy.init_node('horizon_xbot_publisher', anonymous = False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
+            self.rate.sleep() # wait
 
-    while not rospy.is_shutdown(): 
+    def current_q_p_assigner(self, joints_state): # callback function which reads the joint_states and updates current_q_p
 
-        rate = rospy.Rate(1/dt)
+        self.current_q_p = np.array(joints_state.motor_position) # assigning the state to the global variable
 
-        tau = compute_efforts_pin(model, data, np.array(current_q_p), np.array([0, 0]), np.array([0, 0]), PI, torque_bias)
+    def compute_efforts_pin(self):
 
-        pack_xbot2_message(tau) # copy the optimized trajectory to xbot command object 
-
-        xbot_cmd_pub.publish(joint_command) # publish the commands
-
-        rate.sleep() # wait
-
-def current_q_p_assigner(joints_state): # callback function which reads the joint_states and updates current_q_p
-
-    global current_q_p 
-
-    current_q_p = joints_state.motor_position # assigning the state to the global variable
-    
-###############################################
+        self.tau = np.dot(pin.computeJointTorqueRegressor(self.pin_model, self.pin_model_data, self.current_q_p, np.zeros((self.n_jnts, 1)), np.zeros((self.n_jnts, 1))), self.PI) + self.torque_bias 
 
 if __name__ == '__main__':
 
-    try:
-        xbot_cmd_publisher()
+    gravity_compensator = GravityCompensator()
+
+    rospy.init_node('gravity_compensator', anonymous = False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
+    try: # start publishing the commands
+
+        gravity_compensator.xbot_cmd_publisher()
 
     except rospy.ROSInterruptException:
+        
         pass
+

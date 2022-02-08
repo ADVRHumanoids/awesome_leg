@@ -390,8 +390,6 @@ int logger_main(int argc, char** argv,
         //         }
         
         break;
-
-        
     }
     
     std::cout << "Connected to ROS master!" << std::endl;

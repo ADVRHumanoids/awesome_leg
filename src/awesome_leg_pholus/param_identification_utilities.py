@@ -615,7 +615,7 @@ def interpret_inertial_sol(n_active_jnts, X):
 
     return inertial_params, tau_tilde
 
-def interpret_sol2(n_active_jnts, X):
+def interpret_inertial_sol2(n_active_jnts, X):
 
     """
     Given a solution of the inertial params regression problem, interpret Pinocchio data and return a "decoded" vector.

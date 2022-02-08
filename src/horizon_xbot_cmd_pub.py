@@ -1,146 +1,171 @@
 #!/usr/bin/env python3
 
+# No dependence upon the chosen task type ---> standardized horizon solution format
+
+# No explicit dependence upon the urdf 
+
 ####################### IMPORTS #######################
 
 import rospy
 
 from xbot_msgs.msg import JointCommand
-# from xbot_msgs.msg import JointState
-# from xbot_interface import xbot_interface as xbot
 
 from horizon.utils import mat_storer
 
 import numpy as np
 
-####################### LOADING PARAMETERS FROM THE ROS PARAMETER SERVER #######################
+import pinocchio as pin
+#########################################################
 
-wait_until_initial_pose= rospy.get_param("/horizon/xbot_command_pub/approaching_traj/wait_until_initial_pose") # used 
+class HorizonXbotCmdPub:
 
-## Paths parameters
-opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results relative path (wrt to the package)
-print(opt_res_path)
-task_type = rospy.get_param("/horizon/task_type")  # task type
+    def __init__(self):
 
-## Based on the task_type, load the right solution from the auxiliary folder
-if task_type=="jump":
+        self.xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size = 10) # publish on xbotcore/command
 
-    is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
-    is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
+        self.urdf_path = rospy.get_param("horizon_xbot_cmd_pub/urdf_path")
+        self.urdf = open(self.urdf_path, "r").read() # read the URDF
+        self.pin_model = pin.buildModelFromXML(self.urdf)
+        self.pin_model_data = self.pin_model.createData()
+        self.n_jnts = self.pin_model.nq
+        self.joint_names = []
+        [self.joint_names.append((self.pin_model.names[i])) for i in range(1, self.n_jnts + 1)]
 
-    if is_adaptive_dt:
-        if is_single_dt:
-            n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-        else:
-            n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/multiple_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-    else:
-        n_nodes = rospy.get_param("horizon/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+        self.wait_until_initial_pose = rospy.get_param("/horizon_xbot_cmd_pub/approaching_traj/wait_until_initial_pose") # used 
+        self.opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results relative path (wrt to the package)
+        self.task_type = rospy.get_param("/horizon/task_type")  # task type
 
-    if is_adaptive_dt:
-        if is_single_dt:
-            ms = mat_storer.matStorer(opt_res_path+"/single_dt/horizon_offline_solver.mat")
-        else:
-            ms= mat_storer.matStorer(opt_res_path+"/multiple_dt/horizon_offline_solver.mat")
-    else:
-        ms = mat_storer.matStorer(opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
+        ## Based on the task_type, load the right solution from the auxiliary folder
+        if self.task_type == "jump":
 
-elif task_type=="trot":
+            self.is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
+            self.is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
 
-    n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-    ms = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver.mat")
-    
-    n_int_approach_traj=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/n_intervals")
-    T_exec_approach=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/T_execution")
-    traj_exec_standby_time=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/standby_time")
+            if self.is_adaptive_dt:
 
-## Loading the solution dictionary, based on the selected task_type 
-solution=ms.load() 
+                if self.is_single_dt:
 
-q_p=solution["q_p"]
-q_p_dot=solution["q_p_dot"]
-q_p_ddot=solution["q_p_ddot"]
-tau=solution["tau"]
-f_contact=solution["f_contact"]
-solution_time=solution["sol_time"]
-dt=solution["dt_opt"].flatten() 
+                    self.n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+                else:
 
-time_vector = np.zeros(dt.size+1) # time vector used by the trajectory publisher
-for i in range(dt.size):
-    time_vector[i+1] = time_vector[i] + dt[i]
-
-hip_cntrl_mode = rospy.get_param("/horizon/xbot_command_pub/joint_cntrl/hip_joint/control_mode") # hip control mode (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB)
-knee_cntrl_mode = rospy.get_param("/horizon/xbot_command_pub/joint_cntrl/knee_joint/control_mode") # knee control mode (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB)
-hip_joint_stffnss = rospy.get_param("/horizon/xbot_command_pub/joint_cntrl/hip_joint/stiffness") # hip joint stiffness setting (to be used by Xbot, if impedance cntrl is enabled)
-knee_joint_stffnss = rospy.get_param("/horizon/xbot_command_pub/joint_cntrl/knee_joint/stiffness") # knee joint stiffness setting (to be used by Xbot, if impedance cntrl is enabled)
-hip_joint_damp = rospy.get_param("/horizon/xbot_command_pub/joint_cntrl/hip_joint/damping") # hip joint damping setting (to be used by Xbot, if impedance cntrl is enabled)
-knee_joint_damp = rospy.get_param("/horizon/xbot_command_pub/joint_cntrl/knee_joint/damping") # knee joint damping setting (to be used by Xbot, if impedance cntrl is enabled)
-
-joint_command=JointCommand() # initializing object for holding the joint command
-joint_command.stiffness=[hip_joint_stffnss,knee_joint_stffnss] # if impedance cntrl is not enabled, xbot simply ignores this setting
-joint_command.damping=[hip_joint_damp,knee_joint_damp] # if impedance cntrl is not enabled, xbot simply ignores this setting
-
-ctrl_mode=[hip_cntrl_mode, knee_cntrl_mode] # cntrl mode vector
-
-joint_command.ctrl_mode=ctrl_mode
-
-joint_command.name=["hip_pitch_1","knee_pitch_1"]
-
-pub_iterator=0 # used to slide through the solution
-is_q_init_reached=1 # when 1, "horizon_initial_pose_pub()" does not run
-
-####################### FUNCTIONS #######################
-
-def pack_xbot2_message():
+                    self.n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/multiple_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
             
-    if pub_iterator<=(n_nodes-1): # continue sliding and publishing until the end of the solution is reached
-        
-        joint_command.position=[q_p[0,pub_iterator],q_p[1,pub_iterator]]
-        joint_command.velocity=[q_p_dot[0,pub_iterator],q_p_dot[1,pub_iterator]]
-        joint_command.effort=[tau[0,pub_iterator-1],tau[1,pub_iterator-1]]
-        
-        print("Publishing trajectory sample n.:\t"+str(pub_iterator)+","+"\n") # print a simple debug message
-        print("with publish rate:\t"+str(1/dt[pub_iterator-1])+" Hz"+"\n") # print a simple debug message
+            else:
 
-def xbot_cmd_publisher():
-    global pub_iterator # using the corresponding variable initialized in the global scope
+                self.n_nodes = rospy.get_param("horizon/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
 
-    xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10) # publish on xbotcore/command
+            if self.is_adaptive_dt:
 
-    rospy.init_node('horizon_xbot_publisher', anonymous=False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
+                if self.is_single_dt:
 
-    while not rospy.is_shutdown(): 
+                    self.ms = mat_storer.matStorer(self.opt_res_path+"/single_dt/horizon_offline_solver.mat")
+                    
+                else:
 
-        if wait_until_initial_pose:
-            is_initial_pose_reached = rospy.get_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached") # used 
+                    self.ms= mat_storer.matStorer(self.opt_res_path+"/multiple_dt/horizon_offline_solver.mat")
+            else:
+
+                self.ms = mat_storer.matStorer(self.opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
+
+        elif self.task_type=="trot":
+
+            self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+            self.ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
+            
+            self.n_int_approach_traj=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/n_intervals")
+            self.T_exec_approach=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/T_execution")
+            self.traj_exec_standby_time=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/standby_time")
+
+        ## Loading the solution dictionary, based on the selected task_type 
+
+        self.solution = self.ms.load() 
+        self.q_p = self.solution["q_p"]
+        self.q_p_dot = self.solution["q_p_dot"]
+        self.q_p_ddot = self.solution["q_p_ddot"]
+        self.tau = self.solution["tau"]
+        self.f_contact = self.solution["f_contact"]
+        self.solution_time = self.solution["sol_time"]
+        self.dt = self.solution["dt_opt"].flatten() 
+
+        self.n_jnts = len(self.q_p[:, 0])
+
+        self.time_vector = np.zeros(self.dt.size+1) # time vector used by the trajectory publisher
+        for i in range(self.dt.size):
+            self.time_vector[i+1] = self.time_vector[i] + self.dt[i]
+
+        self.joint_command = JointCommand() # initializing object for holding the joint command
+        self.joint_command.ctrl_mode = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/ctrl_mode")  
+        self.joint_command.name = self.joint_names
+        self.joint_command.stiffness = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/stiffness")  
+        self.joint_command.damping = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/damping")  
+
+        self.pub_iterator = 0 # used to slide through the solution
     
-            if is_initial_pose_reached:
-                if pub_iterator>(n_nodes-1):
-                    pub_iterator=0 # replaying trajectory after end
-                    # rospy.sleep(2) # sleep between replayed trajectories
-                pub_iterator=pub_iterator+1 # incrementing publishing counter
-                rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
-                pack_xbot2_message() # copy the optimized trajectory to xbot command object 
-                xbot_cmd_pub.publish(joint_command) # publish the commands
-                rate.sleep() # wait
-        else:
-            if pub_iterator>(n_nodes-1):
-                    pub_iterator=0 # replaying trajectory after end
-                    # rospy.sleep(2) # sleep between replayed trajectories
-            pub_iterator=pub_iterator+1 # incrementing publishing counter
-            rate = rospy.Rate(1/dt[pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
-            pack_xbot2_message() # copy the optimized trajectory to xbot command object 
-            xbot_cmd_pub.publish(joint_command) # publish the commands
-            rate.sleep() # wait
+    def pack_xbot2_message(self):
+            
+        if self.pub_iterator <= (self.n_int_approach_traj - 1): # continue sliding and publishing until the end of the solution is reached
+            
+            position_command = np.zeros((self.n_jnts, 1)).flatten()
+            velocity_command = np.zeros((self.n_jnts, 1)).flatten()
+            effort_command = np.zeros((self.n_jnts, 1)).flatten()
 
-def current_q_p_assigner(joints_state): # callback function which reads the joint_states and updates current_q_p
-    global current_q_p 
-    current_q_p=joints_state.motor_position # assigning the state to the global variable
-    
-###############################################
+            for i in range(self.n_jnts):
+
+                position_command[i] = self.q_p[i, self.pub_iterator]
+                velocity_command[i] = self.q_p_dot[i, self.pub_iterator]
+                effort_command[i] = self.tau[i, self.pub_iterator - 1]
+
+            self.joint_command.position = np.ndarray.tolist(position_command) # tolist necessary, since the joint command field requires a list
+            self.joint_command.velocity = np.ndarray.tolist(velocity_command)
+            self.joint_command.effort = np.ndarray.tolist(effort_command)  
+            
+            print("Publishing command sample n.:\t" + str(self.pub_iterator + 1) + "," + "\n") # print a simple debug message
+            print("with a rate of :\t" + str(1/self.dt[self.pub_iterator]) + "Hz \n") # print a simple debug message
+
+    def xbot_cmd_publisher(self):
+
+        while not rospy.is_shutdown(): 
+
+            if self.wait_until_initial_pose:
+
+                self.is_initial_pose_reached = rospy.get_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached") 
+        
+                if self.is_initial_pose_reached:
+
+                    if self.pub_iterator > (self.n_nodes-1):
+
+                        self.pub_iterator = 0 # replaying trajectory after end
+                        # rospy.sleep(2) # sleep between replayed trajectories
+
+                    self.pub_iterator = self.pub_iterator+1 # incrementing publishing counter
+                    self.rate = rospy.Rate(1/self.dt[self.pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
+                    self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 
+                    self.xbot_cmd_pub.publish(self.joint_command) # publish the commands
+                    self.rate.sleep() # wait
+            else:
+
+                if self.pub_iterator > (self.n_nodes-1):
+
+                        self.pub_iterator = 0 # replaying trajectory after end
+                        # rospy.sleep(2) # sleep between replayed trajectories
+
+                self.pub_iterator = self.pub_iterator + 1 # incrementing publishing counter
+                self.rate = rospy.Rate(1/self.dt[self.pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
+                self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 
+                self.xbot_cmd_pub.publish(self.joint_command) # publish the commands
+                self.rate.sleep() # wait
 
 if __name__ == '__main__':
-    try:
-        
-        xbot_cmd_publisher()
+
+    xbot_pub = HorizonXbotCmdPub()
+
+    rospy.init_node('horizon_xbot_pub', anonymous = False) # initialize a publisher node (not anonymous, so another node of the same type cannot run concurrently)
+    
+    try: # start publishing the commands
+
+        xbot_pub.xbot_cmd_publisher()
 
     except rospy.ROSInterruptException:
+        
         pass
+
