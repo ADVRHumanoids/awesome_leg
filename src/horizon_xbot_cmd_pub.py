@@ -71,10 +71,6 @@ class HorizonXbotCmdPub:
 
             self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
             self.ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
-            
-            self.n_int_approach_traj=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/n_intervals")
-            self.T_exec_approach=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/T_execution")
-            self.traj_exec_standby_time=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/standby_time")
 
         ## Loading the solution dictionary, based on the selected task_type 
 
@@ -87,6 +83,7 @@ class HorizonXbotCmdPub:
         self.solution_time = self.solution["sol_time"]
         self.dt = self.solution["dt_opt"].flatten() 
 
+        self.n_samples = len(self.tau[0, :])
         self.n_jnts = len(self.q_p[:, 0])
 
         self.time_vector = np.zeros(self.dt.size+1) # time vector used by the trajectory publisher
@@ -103,7 +100,7 @@ class HorizonXbotCmdPub:
     
     def pack_xbot2_message(self):
             
-        if self.pub_iterator <= (self.n_int_approach_traj - 1): # continue sliding and publishing until the end of the solution is reached
+        if self.pub_iterator < self.n_samples: # continue sliding and publishing until the end of the solution is reached
             
             position_command = np.zeros((self.n_jnts, 1)).flatten()
             velocity_command = np.zeros((self.n_jnts, 1)).flatten()
