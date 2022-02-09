@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
 
+############################################################################################################################## 
+####### UTILITIES FOR PROCESSING/MANIPULATING/PLOTTING/DEBUGGING DATA ACQUIRED USING THE robot_state_logger.cpp SCRIPT #######
+
+# This file holds a LogLoader class, which basically reads the .mat file dumped by the logger script and exposes a series of 
+# methods providing easy access to all data.
+
+# This file also holds a LogPlotter class. It makes use of the LogLoader object and Matplotlib, and exposes a couple of methods 
+# specifically tailored to plotting data generated using the logger script. 
+
+##############################################################################################################################
+
 import h5py # for loading H5 .mat files
 
 import rospkg
@@ -984,23 +995,23 @@ def main():
 
     # EXAMPLE USAGE (Centauro log file)
 
-    matfile_path = rospkg.RosPack().get_path("xbot_ros")+'/load_folder/'+'centauro_robot_state_log.mat' # path to the .mat file
+    matfile_path = '/home/andreap/hhcm_ws/external/useful_mat/' + 'centauro_robot_state_log.mat' # path to the .mat file
 
     log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
     
-    canvas = LogPlotter(log_loader, clr_set_name="tab10") # plotter instance
+    canvas = LogPlotter(log_loader, clr_set_name = "tab10") # plotter instance
 
     n_rows1 = 2 # subplot rows
     n_cols1 = 1 # subplot columns
     
     canvas.init_fig(fig_name="prova1") # initialize the figure
     
-    canvas.add_subplot(fig_name = "prova1", row=n_rows1, column=n_cols1, index=1) # adding a subplot in the specified position
-    canvas.aux_plot(fig_name = "prova1", jnt_id=1, title="Auxiliary state signals on joint \""+ canvas.log_loader.get_joint_names_from_id([1])[0]+"\"") # plotting the aux signals of a particular joint
+    canvas.add_subplot(fig_name = "prova1", row = n_rows1, column = n_cols1, index = 1) # adding a subplot in the specified position
+    canvas.aux_plot(fig_name = "prova1", jnt_id = 1, title="Auxiliary state signals on joint \""+ canvas.log_loader.get_joint_names_from_id([1])[0]+"\"") # plotting the aux signals of a particular joint
     
     canvas.add_subplot(fig_name =  "prova1", row = n_rows1, column = n_cols1, index = 2) # adding another subplot
-    canvas.js_plot(fig_name = "prova1", input_matrix = log_loader.get_joints_efforts(), jnt_id = 12, line_label = log_loader.get_joint_names_from_id([12])[0]+" torque", title = "Some joint torques") # plotting the torque on a specified joint
-    canvas.js_plot(fig_name = "prova1", input_matrix = log_loader.get_joints_efforts(), jnt_id = 15, set_grid = False, add_plot = True, line_label = log_loader.get_joint_names_from_id([15])[0]+" torque") # another torque plot
+    canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 12, line_label = canvas.log_loader.get_joint_names_from_id([12])[0]+" torque", title = "Some joint torques") # plotting the torque on a specified joint
+    canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 15, set_grid = False, add_plot = True, line_label = canvas.log_loader.get_joint_names_from_id([15])[0]+" torque") # another torque plot
 
     input() # necessary to keep all figures opened
 
