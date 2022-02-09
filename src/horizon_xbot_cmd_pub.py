@@ -116,8 +116,8 @@ class HorizonXbotCmdPub:
             self.joint_command.velocity = np.ndarray.tolist(velocity_command)
             self.joint_command.effort = np.ndarray.tolist(effort_command)  
             
-            print("Publishing command sample n.:\t" + str(self.pub_iterator + 1) + "," + "\n") # print a simple debug message
-            print("with a rate of :\t" + str(1/self.dt[self.pub_iterator]) + "Hz \n") # print a simple debug message
+            rospy.loginfo("Publishing command sample n.:\t" + str(self.pub_iterator + 1) + "," + "\n") # print a simple debug message
+            rospy.loginfo("with a rate of :\t" + str(1/self.dt[self.pub_iterator]) + "Hz \n") # print a simple debug message
 
     def xbot_cmd_publisher(self):
 

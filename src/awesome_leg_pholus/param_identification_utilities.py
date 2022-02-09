@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from re import I
 from xbot_interface import config_options as opt
 
 import numpy as np

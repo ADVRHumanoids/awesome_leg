@@ -9,31 +9,31 @@ horizon:
 
   opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip
   
-  xbot_command_pub: # some horizon-xbot configuration parameters
+  # xbot_command_pub: # some horizon-xbot configuration parameters
 
-    approaching_traj: # configurations for the node used to move the leg to its initial position
+  #   approaching_traj: # configurations for the node used to move the leg to its initial position
 
-      n_intervals: 100 # number of intervals of the generated trajectory
-      T_execution: 5.0 # desired execution time
-      standby_time: 2.0 # time delay between the finished approach maneouver and the start of the real trajectory
+  #     n_intervals: 100 # number of intervals of the generated trajectory
+  #     T_execution: 5.0 # desired execution time
+  #     standby_time: 2.0 # time delay between the finished approach maneouver and the start of the real trajectory
 
-      ctrl_mode: [1, 1]
-      stiffness: [500, 500]
-      damping:  [5, 5]
+  #     ctrl_mode: [1, 1]
+  #     stiffness: [500, 500]
+  #     damping:  [5, 5]
         
-      jnt_names: ["hip_pitch_1", "knee_pitch_1"]
+  #     jnt_names: ["hip_pitch_1", "knee_pitch_1"]
     
-    horizon_trajectory: 
+  #   horizon_trajectory: 
 
-        # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
-        # impedance (pos+kp+kd) + torque f.f. code: -> 29
-        # simple impedance (pos+kp+kd) code: -> 25
+  #       # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
+  #       # impedance (pos+kp+kd) + torque f.f. code: -> 29
+  #       # simple impedance (pos+kp+kd) code: -> 25
 
-        ctrl_mode: [29, 29]
-        stiffness: [500, 500]
-        damping:  [5, 5]
+  #       ctrl_mode: [4, 4]
+  #       stiffness: [500, 500]
+  #       damping:  [5, 5]
         
-        jnt_names: ["hip_pitch_1", "knee_pitch_1"]
+  #       jnt_names: ["hip_pitch_1", "knee_pitch_1"]
 
   horizon_solver: # horizon optimization problem-specific parameters
 

@@ -53,8 +53,8 @@ class GravityCompensator:
 
         self.joint_command.effort = np.ndarray.tolist(self.tau)
 
-        print("Publishing gravity compensation torques with rate: "+ str(1/self.dt) +"Hz"+"\n") # print a simple debug message
-        print("Published torque: ", self.tau)
+        rospy.loginfo("Publishing gravity compensation torques with rate: "+ str(1/self.dt) +"Hz"+"\n") # print a simple debug message
+        rospy.loginfo("Published torque: ", self.tau)
 
     def xbot_cmd_publisher(self):
         
