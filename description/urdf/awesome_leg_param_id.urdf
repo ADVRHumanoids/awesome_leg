@@ -70,7 +70,7 @@
     
     <!-- ################### JOINTS ################### -->
 
-    <joint name="hip_pitch" type="revolute">
+    <joint name="hip_pitch_1" type="revolute">
         <parent link="world"/>
         <child link="shank"/>
         <origin rpy="-1.57 0 0" xyz="0.0 0.0 0.0"/>
@@ -78,7 +78,7 @@
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>
 
-    <joint name="knee_pitch" type="revolute">
+    <joint name="knee_pitch_1" type="revolute">
         <parent link="shank"/>
         <child link="shin"/>
         <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>

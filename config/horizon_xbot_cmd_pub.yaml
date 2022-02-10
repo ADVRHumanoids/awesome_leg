@@ -10,7 +10,7 @@ horizon_xbot_cmd_pub:
         T_execution: 5.0 # desired execution time 
         standby_time: 2.0 # time delay at the end of the approach maneouver
         
-        ctrl_mode: [1, 1]
+        ctrl_mode: [25, 25]
         stiffness: [500, 500]
         damping:  [5, 5]
         

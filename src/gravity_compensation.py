@@ -40,7 +40,7 @@ class GravityCompensator:
         self.torque_bias = rospy.get_param("/gravity_compensator/torque_bias") 
 
         self.joint_command = JointCommand() # initializing object for holding the joint command
-        self.ctrl_mode = 4 * [self.n_jnts] # for gravity compensation, use a simple torque control mode 
+        self.ctrl_mode = self.n_jnts * [4] # for gravity compensation, use a simple torque control mode 
 
         self.joint_command.ctrl_mode = self.ctrl_mode
         self.joint_command.name = self.joint_names
@@ -54,7 +54,7 @@ class GravityCompensator:
         self.joint_command.effort = np.ndarray.tolist(self.tau)
 
         rospy.loginfo("Publishing gravity compensation torques with rate: "+ str(1/self.dt) +"Hz"+"\n") # print a simple debug message
-        rospy.loginfo("Published torque: ", self.tau)
+        rospy.loginfo("Published torque: " + str(self.tau))
 
     def xbot_cmd_publisher(self):
         

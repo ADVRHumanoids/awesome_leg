@@ -125,7 +125,7 @@ class HorizonXbotCmdPub:
 
             if self.wait_until_initial_pose:
 
-                self.is_initial_pose_reached = rospy.get_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached") 
+                self.is_initial_pose_reached = rospy.get_param("horizon_xbot_cmd_pub/approaching_traj/is_initial_pose_reached") 
         
                 if self.is_initial_pose_reached:
 
