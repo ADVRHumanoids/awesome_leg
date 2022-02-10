@@ -8,32 +8,6 @@ horizon:
   simulation_name: "default" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
 
   opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip
-  
-  # xbot_command_pub: # some horizon-xbot configuration parameters
-
-  #   approaching_traj: # configurations for the node used to move the leg to its initial position
-
-  #     n_intervals: 100 # number of intervals of the generated trajectory
-  #     T_execution: 5.0 # desired execution time
-  #     standby_time: 2.0 # time delay between the finished approach maneouver and the start of the real trajectory
-
-  #     ctrl_mode: [1, 1]
-  #     stiffness: [500, 500]
-  #     damping:  [5, 5]
-        
-  #     jnt_names: ["hip_pitch_1", "knee_pitch_1"]
-    
-  #   horizon_trajectory: 
-
-  #       # xbot2 control modes codes (bitmask, p-v-e-k-d->[1,2,4,8,16], where p is the LSB); to combine control mode, simply sum the single control codes
-  #       # impedance (pos+kp+kd) + torque f.f. code: -> 29
-  #       # simple impedance (pos+kp+kd) code: -> 25
-
-  #       ctrl_mode: [4, 4]
-  #       stiffness: [500, 500]
-  #       damping:  [5, 5]
-        
-  #       jnt_names: ["hip_pitch_1", "knee_pitch_1"]
 
   horizon_solver: # horizon optimization problem-specific parameters
 
@@ -58,18 +32,6 @@ horizon:
         max_iter: 1000
         linear_solver_name: "ma57"    
 
-      test_rig:
-        lb: -0.4
-        ub:  0.4   
-
-      hip_joint:
-        lb: -1000
-        ub:  1000
-      
-      knee_joint:
-        lb: -2.0
-        ub:  2.0    
-
       cost_weights:
 
         weight_forward_vel: 100000.0 # cost weight for forcing an overall constant hip advancing velocity
@@ -83,4 +45,4 @@ horizon:
   
   horizon_i_q_estimator: 
 
-    tanh_coeff: 20 # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) )
+    tanh_coeff: 20 # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) ). Kd0 and Kd1 are found in actuators.yaml

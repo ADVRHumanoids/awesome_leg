@@ -23,7 +23,7 @@ class HorizonXbotInitPosPub:
 
     def __init__(self):
 
-        rospy.set_param("/horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached", False) # used to tell other nodes if the approach procedure has finished
+        rospy.set_param("horizon_xbot_cmd_pub/approaching_traj/is_initial_pose_reached", False) # used to tell other nodes if the approach procedure has finished
 
         self.xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size = 10) # publish on xbotcore/command
         self.xbot_state_sub = rospy.Subscriber('/xbotcore/joint_states', JointState, self.current_q_p_assigner) # subscribe at xbotcore/joint_states
@@ -36,9 +36,9 @@ class HorizonXbotInitPosPub:
         self.joint_names = []
         [self.joint_names.append((self.pin_model.names[i])) for i in range(1, self.n_jnts + 1)]
 
-        self.n_int_approach_traj=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/n_intervals")
-        self.T_exec_approach=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/T_execution")
-        self.traj_exec_standby_time=rospy.get_param("/horizon/xbot_command_pub/approaching_traj/standby_time")
+        self.n_int_approach_traj=rospy.get_param("horizon_xbot_cmd_pub/approaching_traj/n_intervals")
+        self.T_exec_approach=rospy.get_param("horizon_xbot_cmd_pub/approaching_traj/T_execution")
+        self.traj_exec_standby_time=rospy.get_param("horizon_xbot_cmd_pub/approaching_traj/standby_time")
 
         ## Paths parameters
         self.opt_res_path = rospy.get_param("horizon/opt_results_path")  # optimal results relative path (wrt to the package)
@@ -73,10 +73,10 @@ class HorizonXbotInitPosPub:
             self.time_vector[i+1] = self.time_vector[i] + self.dt
 
         self.joint_command = JointCommand() # initializing object for holding the joint command
-        self.joint_command.ctrl_mode = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/ctrl_mode")  
+        self.joint_command.ctrl_mode = rospy.get_param("/horizon_xbot_cmd_pub/approaching_traj/ctrl_mode")  
         self.joint_command.name = self.joint_names 
-        self.joint_command.stiffness = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/stiffness")  
-        self.joint_command.damping = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/damping")  
+        self.joint_command.stiffness = rospy.get_param("/horizon_xbot_cmd_pub/approaching_traj/stiffness")  
+        self.joint_command.damping = rospy.get_param("/horizon_xbot_cmd_pub/approaching_traj/damping")  
 
         self.pub_iterator = 0 # used to slide through the solution
 
@@ -116,7 +116,7 @@ class HorizonXbotInitPosPub:
 
             if self.pub_iterator > (self.n_int_approach_traj - 1): # finished playing the approach trajectory, set the topic message and shutdown node
                 
-                rospy.set_param("horizon/xbot_command_pub/approaching_traj/is_initial_pose_reached", True)
+                rospy.set_param("horizon_xbot_cmd_pub/approaching_traj/is_initial_pose_reached", True)
                 
                 rospy.sleep(self.traj_exec_standby_time) # wait before sending the trajectory
                 

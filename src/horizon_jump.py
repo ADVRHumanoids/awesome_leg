@@ -271,6 +271,11 @@ urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
 n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
+lbs = urdf_awesome_leg.q_min()
+ubs = urdf_awesome_leg.q_max()
+
+print("lbs: ", lbs)
+print("ubs: ", ubs)
 ##############################################
 
 # tau_lim = np.array([hip_tau_peak_ar, knee_tau_peak_ar])  # effort limits (test_rig passive joint effort limit)
@@ -281,6 +286,11 @@ prb = Problem(n_nodes)  # initialization of a problem object
 transcriptor_name = "multiple_shooting"  # other option: "direct_collocation"
 trans_opt = dict(integrator="RK4")  # dictionary with the chosen integrator name
 
+lbs = urdf_awesome_leg.q_min()
+ubs = urdf_awesome_leg.q_max()
+
+print("lbs: ", lbs)
+print("ubs: ", ubs)
 ##############################################
 
 if is_adaptive_dt: # using dt as an optimization variable

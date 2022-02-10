@@ -79,12 +79,12 @@ tip_ground_clearance= rospy.get_param("horizon/horizon_solver/problem_settings/t
 flight_phase_tip_clearance_percentage=rospy.get_param("horizon/horizon_solver/problem_settings/flight_phase_tip_clearance_percentage") # when to achieve the required clearance, w.r.t. the flight phase
 
 ## Bounds
-test_rig_lb= rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/lb") # lower bound of the test rig excursion
-test_rig_ub=rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/ub") # upper bound of the test rig excursion
-hip_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/lb") 
-hip_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/ub")
-knee_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/lb") 
-knee_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/ub")
+# test_rig_lb= rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/lb") # lower bound of the test rig excursion
+# test_rig_ub=rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/ub") # upper bound of the test rig excursion
+# hip_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/lb") 
+# hip_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/hip_joint/ub")
+# knee_jnt_lb= rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/lb") 
+# knee_jnt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/knee_joint/ub")
 
 ## Cost weights:
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
@@ -158,6 +158,12 @@ urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf) # initial
 n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
+lbs = urdf_awesome_leg.q_min()
+ubs = urdf_awesome_leg.q_max()
+
+print("lbs: ", lbs)
+print("ubs: ", ubs)
+
 ##################### SETTING THE OPT PROBLEM THROUGH HORIZON #########################
 
 ## Initializing som object for bounds, etc.. 
@@ -190,10 +196,7 @@ q_p_dot = prb.createStateVariable("q_p_dot",
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
 
 q_p_dot[2:4].setBounds(-leg_joint_vel_lim, leg_joint_vel_lim)
-q_p[1].setBounds(test_rig_lb, test_rig_ub) # test rig excursion
-q_p[2].setBounds(hip_jnt_lb, hip_jnt_ub) # hip
-q_p[3].setBounds(knee_jnt_lb, knee_jnt_ub) # knee
-
+q_p.setBounds(lbs, ubs) # test rig excursion
 
 if employ_opt_init: # using initial guesses (if this option is set in the horizon config file)
     q_p[1:].setInitialGuess(loaded_sol["q_p"])
@@ -409,9 +412,9 @@ rpl_traj = replay_trajectory(dt_res, joint_names, p_res)
 rpl_traj.replay(is_floating_base=False)
 
 # Resampled time vector
-time_vector_res = np.zeros([p_res.shape[1]])
-for i in range(1, p_res.shape[1] - 1):
-    time_vector_res[i] = time_vector_res[i - 1] + dt_res
+# time_vector_res = np.zeros([p_res.shape[1]])
+# for i in range(1, p_res.shape[1] - 1):
+#     time_vector_res[i] = time_vector_res[i - 1] + dt_res
 
 # p_tip_res = fk_foot(q=p_res)["ee_pos"]  
 # p_hip_res = fk_hip(q=p_res)["ee_pos"]  # hip position

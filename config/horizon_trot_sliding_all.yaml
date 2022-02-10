@@ -58,18 +58,6 @@ horizon:
         max_iter: 1000
         linear_solver_name: "ma57"    
 
-      test_rig: 
-        lb: -0.4
-        ub:  0.4 
-
-      hip_joint:
-        lb: -1000
-        ub:  1000
-      
-      knee_joint:
-        lb: -2.0
-        ub:  2.0 
-
       cost_weights:
         contact_force: 0.001 # cost weight for the contact force
         weight_fictitious_actuation: 500000.0 # cost weight for the fictitious supporting force on the hip
