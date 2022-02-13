@@ -4,8 +4,6 @@
   
   <!--%%%%%%%%%%%%%%%% CONSTANTS %%%%%%%%%%%%%%%%-->
 
-  <!--<xacro:property name="PI" value="3.1415926535897931"/> -->
-
   <!--%%%%%%%%%%%%%%%% IMPORTING ALL GAZEBO CUSTOMIZATION ELEMENTS %%%%%%%%%%%%%%%%-->
 
   <xacro:include filename="$(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf" />

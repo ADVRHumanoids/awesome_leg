@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from matplotlib.pyplot import axis
 from awesome_leg_pholus.logger_utilities import LogLoader, LogPlotter
 
 from xbot_interface import xbot_interface as xbot
@@ -88,13 +89,20 @@ print("Meas tau:\t", meas_tau)
 regressors = assemblePinocchioRegressor(model, data, q_p, q_p_dot, q_p_ddot)
 
 print("Regressor hip: ", regressors[0, :, :])
-
 print("Regressor knee: ", regressors[1, :, :])
+# stacked_regressor = np.concatenate((regressors[0, :, :], regressors[1, :, :]), axis = 0)
+# stacked_regressor_reduced = stacked_regressor[:, 0: 20]
+# print("Stacked regressor:", stacked_regressor_reduced)
+# print("Stacked regressor rank: ", np.linalg.matrix_rank(stacked_regressor_reduced))
+
+# print("test rank", np.linalg.matrix_rank(stacked_regressor[:, (1, 2, 11, 12)]))
 
 n_active_jnts = len(q_p[:,0])
 X_size = len(regressors[0, 0, :])
 
 sigma = 0.001 * np.eye(X_size) # regularization matrix
+# sigma[0, 0] = 1000
+# sigma[10, 10] = 1000
 
 X_guess = np.concatenate((model.inertias[1].toDynamicParameters(), model.inertias[2].toDynamicParameters(), np.array([0, 0]))) # remember Pinocchio adds an additional universe link
 

@@ -35,7 +35,7 @@ opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results a
 
 task_type = rospy.get_param("/horizon/task_type")  # task type
 
-if task_type=="jump":
+if task_type == "jump":
     
     is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
     is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
@@ -65,7 +65,7 @@ if task_type=="jump":
         ms_loaded = mat_storer.matStorer(opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
         save_path=media_path+"/"+today_is+"/fixed_dt/"
 
-elif task_type=="trot":
+elif task_type == "trot":
     
     ## Creating folders for saving data (if not already existing)
 

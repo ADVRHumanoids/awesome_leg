@@ -26,9 +26,7 @@
         <inertial>
         <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
         <mass value="2.7264471"/>
-        <!-- org: 4.5 -->
         <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
-        <!-- <inertia ixx="0.01" ixy="0.01" ixz="0.01" iyy="0.01" iyz="0.01" izz="0.01"/> -->
         </inertial>
         <visual>
         <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
@@ -49,8 +47,6 @@
         <inertial>
         <mass value="1.1927236"/>
         <origin xyz="0.19572282 -0.014549221 -0.020785942"/>
-        <!--origin xyz="${1.4549221e+01*mmTom} ${-2.0785942e+01*mmTom} ${-1.9572282e+02*mmTom}" rpy="0.0 0.0 0.0"/-->
-        <!--inertia ixx="${3.5313402e+04*mm2Tom2}"  ixy="${0.0*mm2Tom2}"  ixz="${1.1029574e-01*mm2Tom2}" iyy="${3.5530025e+04*mm2Tom2}" iyz="${-6.0307457e+02*mm2Tom2}" izz="${1.3302597e+03*mm2Tom2}" /-->
         <inertia ixx="0.0013302597" ixy="0.00060307457" ixz="0.0" iyy="0.035313402" iyz="-1.1029574e-07" izz="0.035530025"/>
         </inertial>
         <visual>
@@ -140,11 +136,6 @@
     <gazebo> 
         <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
     </gazebo>
-
-    <!-- <gazebo>
-        <plugin name="xbot2_imu_driver" filename="libxbot2_gz_imu_server.so"/>
-    </gazebo> -->
-
     
 
     <!-- ################### OTHER STUFF ################### -->
@@ -162,14 +153,6 @@
     </gazebo>
     <gazebo reference="knee_1">
         <material>Gazebo/Grey  </material>
-        <!-- <sensor name='impact_sensor' type='contact'>
-          <contact>
-            <collision>knee_1_fixed_joint_lump__foot_tip_collision_collision</collision>
-            <topic>/awesome_leg/contact/</topic>
-          </contact>
-        </sensor> -->
     </gazebo>
-
-        
-  
+    
   </robot>

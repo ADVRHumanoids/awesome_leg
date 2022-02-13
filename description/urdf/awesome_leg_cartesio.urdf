@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!-- Leg base URDF (no external links). Variant of the URDF adapted to circumvent RBDL first link parsing problems -->
+<!-- Leg base URDF (no external links) -->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
@@ -20,7 +20,24 @@
     </material>
     
     <!-- ################### LINKS ################### -->
-    <link name="world"/>
+    <link name="world"> </link>
+    
+    <link name="pelvis">
+        <inertial>
+        <mass value="10.0"/> <!-- considering also the mass contribution of the robot torso -->
+        <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
+        </inertial>
+        <visual>
+        <geometry>
+            <cylinder length="0.1" radius="0.1"/>
+        </geometry>
+        </visual>
+        <visual>
+        <geometry>
+            <cylinder length="0.1" radius="0.1"/>
+        </geometry>
+        </visual>
+    </link>
 
     <link name="hip1_1">
         <inertial>
@@ -43,10 +60,11 @@
         </collision>
     </link>
 
-    <link name="hip2_1">
+    <link name="hip2_1"> <!-- #### -->
         <inertial>
         <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
         <mass value="2.7264471"/>
+        <!-- org: 4.5 -->
         <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
         </inertial>
         <visual>
@@ -64,7 +82,7 @@
         </collision>
     </link>
 
-    <link name="knee_1">
+    <link name="knee_1"> <!-- #### -->
         <inertial>
         <mass value="1.1927236"/>
         <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>
@@ -89,16 +107,21 @@
 
     <!-- ################### JOINTS ################### -->
 
-    <joint name="base_joint" type="fixed">
+    <joint name="2world" type="fixed">
         <parent link="world"/>
+        <child link="pelvis"/>
+    </joint>
+
+    <joint name="hip_yaw_1" type="fixed">
+        <parent link="pelvis"/>
         <child link="hip1_1"/>
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.0 0.0"/>
+        <origin rpy="3.14159265359 0.0 0.0" xyz="0.0 -0.0 -0.0566"/>
     </joint>
 
     <joint name="hip_pitch_1" type="revolute">
         <parent link="hip1_1"/>
         <child link="hip2_1"/>
-        <origin rpy="-1.57 0 0" xyz="0.0 0.0 0.0"/>
+        <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
         <axis xyz="0 0 1"/>
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>
@@ -171,6 +194,7 @@
     <gazebo> 
         <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
     </gazebo>
+    
 
     <!-- ################### OTHER STUFF ################### -->
 
@@ -187,6 +211,6 @@
     </gazebo>
     <gazebo reference="knee_1">
         <material>Gazebo/Grey  </material>
-    </gazebo>     
+    </gazebo>
   
   </robot>
