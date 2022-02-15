@@ -11,8 +11,6 @@ import rospy
 from xbot_msgs.msg import JointCommand
 from xbot_msgs.msg import JointState
 
-from horizon.utils import mat_storer
-
 import numpy as np
 
 import pinocchio as pin
@@ -40,9 +38,9 @@ class GravityCompensator:
         self.torque_bias = rospy.get_param("/gravity_compensator/torque_bias") 
 
         self.joint_command = JointCommand() # initializing object for holding the joint command
-        self.ctrl_mode = self.n_jnts * [4] # for gravity compensation, use a simple torque control mode 
-
-        self.joint_command.ctrl_mode = self.ctrl_mode
+        self.joint_command.ctrl_mode = rospy.get_param("/gravity_compensator/ctrl_mode") 
+        self.joint_command.stiffness = rospy.get_param("/gravity_compensator/stiffness")  
+        self.joint_command.damping = rospy.get_param("/gravity_compensator/damping") 
         self.joint_command.name = self.joint_names
 
         self.current_q_p = np.zeros((self.n_jnts, 1)).flatten() # currently measured joint positions (to be used by "horizon_initial_pose_pub")

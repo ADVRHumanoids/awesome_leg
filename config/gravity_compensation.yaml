@@ -12,3 +12,6 @@ gravity_compensator:
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_param_id.urdf # urdf relative path (wrt to the package) used by the URDF parser
   # srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_legv2.srdf # urdf relative path (wrt to the package) used the URDF parser
   
+  ctrl_mode: [28, 28]
+  stiffness: [0, 0]
+  damping:  [1, 1]
