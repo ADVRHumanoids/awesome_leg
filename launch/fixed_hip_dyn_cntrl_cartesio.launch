@@ -1,0 +1,32 @@
+<launch>
+
+    <arg name="prefix" default=""/>
+    <arg name="gui" default="true"/>
+
+    <param name="robot_description"
+        textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_cartesio.urdf"/>
+
+    <param name="robot_description_semantic"
+        textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg_cartesio.srdf"/>
+
+    <param name="cartesian/problem_description"
+        textfile="$(find awesome_leg_pholus)/config/fixed_hip_dyn_cntrl_cartesio.yaml"/>
+        
+    <include file="$(find cartesian_interface)/launch/cartesio.launch">
+        <!-- Control frequency (Hz) -->
+        <arg name="rate" value="100.0"/>
+        <!-- Spawn RviZ interacrive markers -->
+        <arg name="markers" value="true"/>
+        <arg name="prefix" value="$(arg prefix)"/>
+        <!-- Set to false for fixed base  -->
+        <arg name="is_model_floating_base" value="false"/>
+    </include>
+
+    <node if="$(arg gui)"
+            type="rviz"
+            name="rviz"
+            pkg="rviz"
+            args="-d $(find awesome_leg_pholus)/rviz/fixed_hip_cartesio.rviz"/>
+            output="screen"/>
+
+</launch>

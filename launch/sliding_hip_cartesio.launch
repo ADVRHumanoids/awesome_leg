@@ -16,9 +16,9 @@
         textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg.srdf"/>
 
     <param name="cartesian/problem_description"
-        textfile="$(find awesome_leg_pholus)/config/awesome_leg_cartesian_interface.yaml"/>
+        textfile="$(find awesome_leg_pholus)/config/sliding_hip_cartesio.yaml"/>
 
-    <include file="$(find awesome_leg_pholus)/launch/cartesio_modified.launch">
+    <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <!-- Control frequency (Hz) -->
         <arg name="rate" value="100.0"/>
         <!-- Spawn RviZ interacrive markers -->
@@ -32,7 +32,7 @@
             type="rviz"
             name="rviz"
             pkg="rviz"
-            args="-d $(find awesome_leg_pholus)/rviz/cartesian_interface.rviz"/>
+            args="-d $(find awesome_leg_pholus)/rviz/sliding_hip_cartesio.rviz"/>
             output="screen"/>
 
 </launch>

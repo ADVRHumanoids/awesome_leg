@@ -17,7 +17,7 @@ class HorizonInitialXbotCmdPub:
 
     def __init__(self):
 
-        self.xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10) # publish on xbotcore/command
+        self.xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size =10) # publish on xbotcore/command
         self.xbot_state_sub = rospy.Subscriber('/xbotcore/joint_states', JointState, self.current_q_p_assigner) # subscribe at xbotcore/joint_states
         
         self.urdf_path = rospy.get_param("xbot_initial_pos_pub/urdf_path")
