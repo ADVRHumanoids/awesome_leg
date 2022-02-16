@@ -3,8 +3,8 @@
 void GravCompRt:: compute_joint_efforts()
 {
     this->_model->setJointPosition(this->_q_p);
-    this->_model->setJointVelocity(Eigen::VectorXd::Zero(this->_n_jnts_model)); // gravity compensation -> no q_p_dot
-    this->_model->setJointAcceleration(Eigen::VectorXd::Zero(this->_n_jnts_model)); // gravity compensation -> no q_p_ddot
+    this->_model->setJointVelocity(this->_q_p_dot); // gravity compensation -> no q_p_dot
+    this->_model->setJointAcceleration(this->_q_p_ddot); // gravity compensation -> no q_p_ddot
     this->_model->update();
     this->_model->computeInverseDynamics(this->_effort_command);
 }
@@ -46,6 +46,9 @@ void GravCompRt::run()
 {
     
     this->_robot->getJointPosition(this->_q_p);
+    this->_q_p_dot = Eigen::VectorXd::Zero(this->_n_jnts_model);
+    this->_q_p_ddot = Eigen::VectorXd::Zero(this->_n_jnts_model);
+
     // this->_robot->getJointVelocity(this->_q_p_dot);
     // this->_robot->getJointAcceleration(this->_q_p_ddot);
 
