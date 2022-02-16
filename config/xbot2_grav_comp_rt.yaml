@@ -42,8 +42,8 @@ xbotcore_plugins:
         type: grav_comp_rt
         params:
             torque_bias: {value: [3.20372297e-01, -2.56218453e-01], type: Eigen::VectorXd} # bias torques, estimated via param. identification
-            urdf_path: {value: /home/andreap/hhcm_ws/src/awesome_leg_pholus/description/urdf/awesome_leg_grav_comp.urdf, type: string} 
-            srdf_path: {value: /home/andreap/hhcm_ws/src/awesome_leg_pholus/description/srdf/awesome_leg_grav_comp.srdf, type: string} 
+            urdf_path: {value: /home/andreap/hhcm_ws/src/awesome_leg_pholus/description/urdf/awesome_leg_calibrated.urdf, type: string} 
+            srdf_path: {value: /home/andreap/hhcm_ws/src/awesome_leg_pholus/description/srdf/awesome_leg_calibrated.srdf, type: string} 
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
             damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
