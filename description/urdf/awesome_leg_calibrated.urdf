@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!-- Leg base URDF (no external links). Variant of the URDF adapted for use with Pinocchio -->
+<!-- Leg base URDF, with calibrated inertial parameters -->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
