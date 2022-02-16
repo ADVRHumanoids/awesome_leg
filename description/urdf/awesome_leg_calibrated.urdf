@@ -63,6 +63,7 @@
         </geometry>
         </collision>
     </link>
+
     <link name="tip">
     </link>
     
@@ -87,6 +88,7 @@
     <joint name="tip_joint" type="fixed">
         <parent link="shin"/>
         <child link="tip"/>
+        <origin xyz="0.45 0.0 -0.02"/>
     </joint>
     <!-- ################### TRANSMISSION ELEMENTS ################### -->
 
