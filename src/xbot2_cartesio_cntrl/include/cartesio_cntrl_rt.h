@@ -2,6 +2,7 @@
 #define CARTESIO_CNTRL_RT_H
 
 #include <xbot2/xbot2.h>
+#include <matlogger2/matlogger2.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <iostream>
 
@@ -32,16 +33,25 @@ public:
     // callback for 'Run' state
     void run() override;
 
+    // callback for 'On Stop' state
+    void on_stop() override;
+
 private:
     Eigen::VectorXd _tau_tilde, 
                     _stiffness, _damping, 
+                    _stop_stiffness, _stop_damping,
                     _q_p_meas, _q_p_dot_meas, _q_p_ddot_meas,
                     _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
+                    _q_p_target,
                     _effort_command;
+    Eigen::Affine3d _target_pose;
     std::string _urdf_path, _srdf_path, _cartesio_path;
     XBot::ModelInterface::Ptr _model;  
     CartesianInterface::Ptr _solver;
-    double _dt, _time;
+    CartesianTask::Ptr _cart_task;
+    MatLogger2::Ptr _logger;
+
+    double _dt, _time, _t_exec;
     int _n_jnts_model, _n_jnts_robot;
 
     // method for computing joint efforts using the measured robot state

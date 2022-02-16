@@ -10,7 +10,7 @@ constraints: ["JointLimits", "VelocityLimits"]
 tip:
   lib_name: libcartesio_acceleration_support.so
   type: "Cartesian"
-  lambda: 1
+  lambda: 0.001
   distal_link: "tip"
 
 JointLimits:

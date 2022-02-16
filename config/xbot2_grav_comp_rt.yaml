@@ -21,6 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_gravity_comp:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    grav_comp_cart:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -41,11 +42,27 @@ xbotcore_plugins:
         thread: rt_gravity_comp
         type: grav_comp_rt
         params:
-            torque_bias: {value: [3.20372297e-01, -2.56218453e-01], type: Eigen::VectorXd} # bias torques, estimated via param. identification
-            urdf_path: {value: $PWD/../description/urdf/awesome_leg_calibrated.urdf, type: string} 
-            srdf_path: {value: $PWD/../description/srdf/awesome_leg_calibrated.srdf, type: string} 
+            torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
+            urdf_path: {value: $PWD/../description/urdf/awesome_legv2.urdf, type: file} 
+            srdf_path: {value: $PWD/../description/srdf/awesome_legv2.srdf, type: file} 
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
-            damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            damping: {value: [1.0, 1.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+
+    grav_comp_cart_rt: 
+        thread: grav_comp_cart
+        type: grav_comp_cart_rt
+        params:
+            torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
+            urdf_path: {value: $PWD/../description/urdf/awesome_legv2.urdf, type: file} 
+            srdf_path: {value: $PWD/../description/srdf/awesome_legv2.srdf, type: file} 
+            cartesio_yaml_path: {value: $PWD/grav_comp_cartesio.yaml, type: yamlfile} 
+            stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            damping: {value: [1.0, 1.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            dt: {value: 0.001, type: double}
 
 # global parameters
 xbotcore_param:

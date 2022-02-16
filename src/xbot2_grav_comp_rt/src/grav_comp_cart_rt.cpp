@@ -1,6 +1,6 @@
-#include "cartesio_cntrl_rt.h"
+#include "grav_comp_cart_rt.h"
 
-void CartesioCntrlRt::get_params_from_config()
+void GravCompCartesio::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -12,11 +12,10 @@ void CartesioCntrlRt::get_params_from_config()
     bool damping_found = getParam("~damping", _damping);
     bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
-    bool t_exec_found = getParam("~t_exec", _t_exec);
-    bool q_target_found = getParam("~q_target", _q_p_target);
+    bool dt_found = getParam("~dt", _dt);
 }
 
-void CartesioCntrlRt::init_model_interface()
+void GravCompCartesio::init_model_interface()
 {
     // Initializing XBot2 ModelInterface
     XBot::ConfigOptions xbot_cfg;
@@ -30,7 +29,7 @@ void CartesioCntrlRt::init_model_interface()
 
 }
 
-void CartesioCntrlRt::init_cartesio_solver()
+void GravCompCartesio::init_cartesio_solver()
 {
     // Before constructing the problem description, let us build a
     // context object which stores some information, such as
@@ -49,43 +48,48 @@ void CartesioCntrlRt::init_cartesio_solver()
     
 }
 
-void CartesioCntrlRt::update_state()
+void GravCompCartesio::update_state()
 {
-    // "sensing" the robot
-    _robot->sense();
-
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);    
     
+    jwarn("Hip q_p:");
+    jwarn(std::to_string(_q_p_meas[0]));
+    jwarn("Knee q_p:");
+    jwarn(std::to_string(_q_p_meas[1]));
+    jwarn("\n");
+
+    jwarn("Hip q_p_dot:");
+    jwarn(std::to_string(_q_p_dot_meas[0]));
+    jwarn("Knee q_p_dot:");
+    jwarn(std::to_string(_q_p_dot_meas[1]));
+    jwarn("\n");
+
     // Updating the model with the measurements
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas);
     _model->update();
+
+    // Reset CartesIO solver to use an updated measured tip position
+    _solver->reset(_time);
+
+    _solver->update(_time, _dt);
     
 }
 
-void CartesioCntrlRt:: compute_joint_efforts()
+void GravCompCartesio:: compute_joint_efforts()
 {
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas); 
     _model->update();
     _model->getJointAcceleration(_q_p_ddot_ci); 
+
     _model->computeInverseDynamics(_effort_command);
 }
 
-bool CartesioCntrlRt::on_initialize()
-{  
-    // Creating a logger for post-processing
-    MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
-    opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/CartesioCntrlRt_log", opt); // date-time automatically appended
-    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
-
-    // Getting nominal control period from plugin method
-    _dt = getPeriodSec();
-
+bool GravCompCartesio::on_initialize()
+{
     // Reading all the necessary parameters from a configuration file
     get_params_from_config();
 
@@ -98,48 +102,42 @@ bool CartesioCntrlRt::on_initialize()
 
     // Initializing CartesIO solver
     init_cartesio_solver();
-
-    // Getting tip cartesian task and casting it to cartesian (task)
-    auto task = _solver->getTask("tip");
-    
-    _cart_task = std::dynamic_pointer_cast<CartesianTask>(task);
-
-    _model->setJointPosition(_q_p_target);
-    _model->update();
-    _model->getPose("tip", _target_pose);
     
     return true;
 }
 
-void CartesioCntrlRt::starting()
+void GravCompCartesio::starting()
 {
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0;
 
+    // "sensing" the robot
+    _robot->sense();
+
     // Update the model with the current robot state
-    update_state();
+    _model->update(); 
 
     // Reset CartesIO solver
     _solver->reset(_time);
-
-    // command reaching motion
-    _cart_task->setPoseTarget(_target_pose, _t_exec);
 
     // Move on to run()
     start_completed();
 }
 
-void CartesioCntrlRt::run()
+void GravCompCartesio::run()
 {   
-    // Update the measured state
+    // Update the measured state and update CartesIO solver
     update_state();
-     
-    // and update CartesIO solver
-    _solver->update(_time, _dt);
 
     // Read the joint effort computed via CartesIO (computed using acceleration_support)
-    _model->getJointEffort(_effort_command);
-    // compute_joint_efforts();
+    // _model->getJointEffort(_effort_command);
+    compute_joint_efforts();
+
+    jwarn("Hip effort:");
+    jwarn(std::to_string(_effort_command[0]));
+    jwarn("Knee effort:");
+    jwarn(std::to_string(_effort_command[1]));
+    jwarn("-------- \n \n");
 
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);
@@ -151,10 +149,9 @@ void CartesioCntrlRt::run()
 
     // Update time
     _time += _dt;
-
 }
 
-void CartesioCntrlRt::on_stop()
+void GravCompCartesio::on_stop()
 {
     // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
     _robot->setStiffness(_stop_stiffness);
@@ -169,4 +166,4 @@ void CartesioCntrlRt::on_stop()
     
 }
 
-XBOT2_REGISTER_PLUGIN(CartesioCntrlRt, cartesio_cntrl_rt)
+XBOT2_REGISTER_PLUGIN(GravCompCartesio, grav_comp_cart_rt)

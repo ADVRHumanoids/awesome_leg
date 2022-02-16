@@ -41,14 +41,17 @@ xbotcore_plugins:
         thread: rt_cart_cntrl
         type: cartesio_cntrl_rt
         params:
-            torque_bias: {value: [3.20372297e-01, -2.56218453e-01], type: Eigen::VectorXd} # bias torques, estimated via param. identification
-            urdf_path: {value: $PWD/../description/urdf/awesome_leg_calibrated.urdf, type: file} 
-            srdf_path: {value: $PWD/../description/srdf/awesome_leg_calibrated.srdf, type: file} 
+            torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
+            urdf_path: {value: $PWD/../description/urdf/awesome_leg.urdf, type: file} 
+            srdf_path: {value: $PWD/../description/srdf/awesome_leg.srdf, type: file} 
             cartesio_yaml_path: {value: $PWD/cartesio_cntrl_rt.yaml, type: yamlfile} 
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
             damping: {value: [1.0, 1.0], type: Eigen::VectorXd}
-            dt: {value: 0.001, type: double}
-
+            q_target: {value: [1.5, -0.5], type: Eigen::VectorXd}
+            t_exec: {value: 5.0, type: double}
+            stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            
 # global parameters
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}

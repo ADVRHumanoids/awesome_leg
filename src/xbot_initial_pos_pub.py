@@ -71,7 +71,7 @@ class HorizonInitialXbotCmdPub:
             self.joint_command.position = np.ndarray.tolist(position_command)
 
             rospy.loginfo("Publishing initialization trajectory sample n.:\t" + str(self.pub_iterator + 1) + "," + "\n")
-            rospy.loginfo("with a rate of :\t" + str(1/self.dt) + "Hz \n")
+            rospy.loginfo("with a rate of: " + str(1/self.dt) + " Hz \n")
 
     def xbot_cmd_publisher(self):
 
