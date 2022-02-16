@@ -36,7 +36,7 @@ private:
     Eigen::VectorXd _tau_tilde, 
                     _stiffness, _damping, 
                     _q_p_meas, _q_p_dot_meas, _q_p_ddot_meas,
-                    _q_p_cart, _q_p_dot_cart, _q_p_ddot_cart,
+                    _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
                     _effort_command;
     std::string _urdf_path, _srdf_path, _cartesio_path;
     XBot::ModelInterface::Ptr _model;  
@@ -45,6 +45,10 @@ private:
     int _n_jnts_model, _n_jnts_robot;
 
     // method for computing joint efforts using the measured robot state
+    void get_params_from_config();
+    void init_model_interface();
+    void init_cartesio_solver();
+    void update_state();
     void compute_joint_efforts();
 
 };
