@@ -75,7 +75,8 @@ void CartesioCntrlRt:: compute_joint_efforts()
 }
 
 bool CartesioCntrlRt::on_initialize()
-{  
+{
+    
     // Creating a logger for post-processing
     MatLogger2::Options opt;
     opt.default_buffer_size = 1e6; // set default buffer size

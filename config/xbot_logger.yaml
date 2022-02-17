@@ -2,4 +2,4 @@
 
 xbot_logger:
 
-  mat_dump_path: $(find awesome_leg_pholus)/tests/gravity_compensation
+  mat_dump_path: $(find awesome_leg_pholus)/tests/task_space_traj_track

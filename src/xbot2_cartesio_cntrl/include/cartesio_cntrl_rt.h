@@ -5,6 +5,7 @@
 #include <matlogger2/matlogger2.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <iostream>
+#include <cartesian_interface/ros/RosClient.h>
 
 using namespace std;
 using namespace XBot;
@@ -50,6 +51,7 @@ private:
     CartesianInterface::Ptr _solver;
     CartesianTask::Ptr _cart_task;
     MatLogger2::Ptr _logger;
+    // XBot::Cartesian::RosClient _ci_ros_client;
 
     double _dt, _time, _t_exec;
     int _n_jnts_model, _n_jnts_robot;

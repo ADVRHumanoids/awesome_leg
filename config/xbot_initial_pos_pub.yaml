@@ -9,7 +9,7 @@ xbot_initial_pos_pub:
         n_intervals: 200 # number of intervals of the generated trajectory
         T_execution: 6.0 # desired execution time 
         standby_time: 0.0 # time delay at the end of the approach maneouver
-        q_p_target: [1.0, 1.0] # target joint positions
+        q_p_target: [-1.5, 0.5] # target joint positions
         
         ctrl_mode: [25, 25]
         stiffness: [500, 500]
