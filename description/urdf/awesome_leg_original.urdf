@@ -160,14 +160,6 @@
 
     <!-- ################### MODEL PLUGINS ################### -->
 
-    <gazebo> <!-- Gazebo-ROS control interface -->
-        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so"> 
-            <robotNamespace>/awesome_leg</robotNamespace>
-            <controlPeriod>0.01 </controlPeriod>
-            <robotParam> /robot_description </robotParam> 
-        </plugin>
-    </gazebo>
-
     <!-- xbot2 joint device driver-->
     <gazebo>  
         <plugin name='xbot2_gz_joint_server' filename='libxbot2_gz_joint_server.so'> 

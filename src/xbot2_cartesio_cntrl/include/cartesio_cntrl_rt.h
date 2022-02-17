@@ -44,7 +44,7 @@ private:
                     _q_p_meas, _q_p_dot_meas, _q_p_ddot_meas,
                     _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
                     _q_p_target,
-                    _effort_command;
+                    _effort_command, _meas_effort;
     Eigen::Affine3d _target_pose;
     std::string _urdf_path, _srdf_path, _cartesio_path;
     XBot::ModelInterface::Ptr _model;  

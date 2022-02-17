@@ -1,16 +1,16 @@
 solver_options:
-    regularization: 1e-8
+    regularization: 1e-14
     back_end: "qpoases"
 
 stack: # tasks
     - ["tip"]
 
-constraints: [] # ["JointLimits", "VelocityLimits"]
+constraints: [] #["JointLimits", "VelocityLimits"]
 
 tip:
   lib_name: libcartesio_acceleration_support.so
   type: "Cartesian"
-  lambda: 0.0001
+  lambda: 0.001
   distal_link: "tip"
   indices: [1, 2]  # y and z
 

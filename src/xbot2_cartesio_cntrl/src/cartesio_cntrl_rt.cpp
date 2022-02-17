@@ -132,6 +132,7 @@ void CartesioCntrlRt::starting()
 
 void CartesioCntrlRt::run()
 {   
+
     // Update the measured state
     update_state();
      
@@ -140,6 +141,7 @@ void CartesioCntrlRt::run()
 
     // Read the joint effort computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
+    _robot->getJointEffort(_meas_effort);
     // compute_joint_efforts();
 
     // Set the effort commands (and also stiffness/damping)
@@ -152,6 +154,9 @@ void CartesioCntrlRt::run()
 
     // Update time
     _time += _dt;
+
+    _logger->add("meas_efforts", _meas_effort);
+    _logger->add("computed_efforts", _effort_command);
 
 }
 
