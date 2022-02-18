@@ -1,9 +1,11 @@
-#ifndef CARTESIO_CNTRL_RT_H
-#define CARTESIO_CNTRL_RT_H
+#ifndef CARTESIO_IMP_CNTRL_RT
+#define CARTESIO_IMP_CNTRL_RT
 
 #include <xbot2/xbot2.h>
 #include <matlogger2/matlogger2.h>
 #include <cartesian_interface/CartesianInterfaceImpl.h>
+#include <cartesian_interface/sdk/problem/Interaction.h>
+
 #include <iostream>
 #include <cartesian_interface/ros/RosClient.h>
 
@@ -12,10 +14,10 @@ using namespace XBot;
 using namespace XBot::Cartesian;
 
 /**
- * @brief The CartesioCntrlRt class is a ControlPlugin
+ * @brief The CartesioImpCntrlRt class is a ControlPlugin
  * implementing a s (to be tested on the awesome_leg - pholus).
  */
-class CartesioCntrlRt : public ControlPlugin
+class CartesioImpCntrlRt : public ControlPlugin
 {
 
 public:
@@ -49,8 +51,11 @@ private:
     std::string _urdf_path, _srdf_path, _cartesio_path;
     XBot::ModelInterface::Ptr _model;  
     CartesianInterface::Ptr _solver;
-    CartesianTask::Ptr _cart_task;
+    CartesianTask::Ptr _cart_task_classic;
+    InteractionTask::Ptr _cart_task_int;
     MatLogger2::Ptr _logger;
+    Eigen::Matrix6d _cart_stiffness;
+    Eigen::Matrix6d _cart_damping;
     // XBot::Cartesian::RosClient _ci_ros_client;
 
     double _dt, _time, _t_exec;
@@ -65,4 +70,4 @@ private:
 
 };
 
-#endif // CARTESIO_CNTRL_RT_H
+#endif // CARTESIO_IMP_CNTRL_RT

@@ -1,6 +1,6 @@
-#include "cartesio_cntrl_rt.h"
+#include "cartesio_imp_cntrl_rt.h"
 
-void CartesioCntrlRt::get_params_from_config()
+void CartesioImpCntrlRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -16,7 +16,7 @@ void CartesioCntrlRt::get_params_from_config()
     bool q_target_found = getParam("~q_target", _q_p_target);
 }
 
-void CartesioCntrlRt::init_model_interface()
+void CartesioImpCntrlRt::init_model_interface()
 {
     // Initializing XBot2 ModelInterface
     XBot::ConfigOptions xbot_cfg;
@@ -27,10 +27,9 @@ void CartesioCntrlRt::init_model_interface()
     xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
-
 }
 
-void CartesioCntrlRt::init_cartesio_solver()
+void CartesioImpCntrlRt::init_cartesio_solver()
 {
     // Before constructing the problem description, let us build a
     // context object which stores some information, such as
@@ -46,10 +45,9 @@ void CartesioCntrlRt::init_cartesio_solver()
 
     // We are finally ready to make the CartesIO solver "OpenSot"
     _solver = CartesianInterfaceImpl::MakeInstance("OpenSot", ik_pb, ctx);
-    
 }
 
-void CartesioCntrlRt::update_state()
+void CartesioImpCntrlRt::update_state()
 {
     // "sensing" the robot
     _robot->sense();
@@ -65,7 +63,7 @@ void CartesioCntrlRt::update_state()
     
 }
 
-void CartesioCntrlRt:: compute_joint_efforts()
+void CartesioImpCntrlRt:: compute_joint_efforts()
 {
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas); 
@@ -74,7 +72,7 @@ void CartesioCntrlRt:: compute_joint_efforts()
     _model->computeInverseDynamics(_effort_command);
 }
 
-bool CartesioCntrlRt::on_initialize()
+bool CartesioImpCntrlRt::on_initialize()
 {
     
     // Creating a logger for post-processing
@@ -103,7 +101,8 @@ bool CartesioCntrlRt::on_initialize()
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
     
-    _cart_task = std::dynamic_pointer_cast<CartesianTask>(task);
+    // _cart_task_classic = std::dynamic_pointer_cast<CartesianTask>(task); // classical cartesian task
+    _cart_task_int = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
 
     _model->setJointPosition(_q_p_target);
     _model->update();
@@ -112,7 +111,7 @@ bool CartesioCntrlRt::on_initialize()
     return true;
 }
 
-void CartesioCntrlRt::starting()
+void CartesioImpCntrlRt::starting()
 {
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0;
@@ -124,13 +123,13 @@ void CartesioCntrlRt::starting()
     _solver->reset(_time);
 
     // command reaching motion
-    _cart_task->setPoseTarget(_target_pose, _t_exec);
+    _cart_task_int->setPoseTarget(_target_pose, _t_exec);
 
     // Move on to run()
     start_completed();
 }
 
-void CartesioCntrlRt::run()
+void CartesioImpCntrlRt::run()
 {   
 
     // Update the measured state
@@ -142,8 +141,12 @@ void CartesioCntrlRt::run()
     // Read the joint effort computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
-    // compute_joint_efforts();
+    // compute_joint_efforts(); // getting efforts "manually"
 
+    // Getting cartesian damping and stiffness for debugging purposes
+    _cart_stiffness = _cart_task_int->getStiffness(); 
+    _cart_damping = _cart_task_int->getDamping();
+    
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);
     _robot->setStiffness(_stiffness);
@@ -157,10 +160,12 @@ void CartesioCntrlRt::run()
 
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
+    _logger->add("cartesian_stiffness", _cart_stiffness);
+    _logger->add("cartesian_damping", _cart_damping);
 
 }
 
-void CartesioCntrlRt::on_stop()
+void CartesioImpCntrlRt::on_stop()
 {
     // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
     _robot->setStiffness(_stop_stiffness);
@@ -175,4 +180,4 @@ void CartesioCntrlRt::on_stop()
     
 }
 
-XBOT2_REGISTER_PLUGIN(CartesioCntrlRt, cartesio_cntrl_rt)
+XBOT2_REGISTER_PLUGIN(CartesioImpCntrlRt, cartesio_imp_cntrl_rt)
