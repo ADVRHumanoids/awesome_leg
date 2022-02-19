@@ -147,6 +147,7 @@ void CartesioImpCntrlRt::run()
     _cart_stiffness = _cart_task_int->getStiffness(); 
     _cart_damping = _cart_task_int->getDamping();
     
+
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);
     _robot->setStiffness(_stiffness);
