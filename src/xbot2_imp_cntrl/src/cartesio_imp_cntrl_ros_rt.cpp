@@ -1,6 +1,6 @@
-#include "cartesio_imp_cntrl_rt.h"
+#include "cartesio_imp_cntrl_ros_rt.h"
 
-void CartesioImpCntrlRt::get_params_from_config()
+void CartesioImpCntrlRosRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -16,24 +16,29 @@ void CartesioImpCntrlRt::get_params_from_config()
     bool q_target_found = getParam("~q_target", _q_p_target);
 }
 
-void CartesioImpCntrlRt::init_model_interface()
+void CartesioImpCntrlRosRt::init_model_interface()
 {
-    // Initializing XBot2 ModelInterface
+    
     XBot::ConfigOptions xbot_cfg;
     xbot_cfg.set_urdf_path(_urdf_path);
     xbot_cfg.set_srdf_path(_srdf_path);
     xbot_cfg.generate_jidmap();
     xbot_cfg.set_parameter("is_model_floating_base", false);
     xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+
+    // Initializing XBot2 ModelInterface for the rt thread
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
+
+    // Initializing XBot2 ModelInterface for the nrt thread
+    _nrt_model = ModelInterface::getModel(xbot_cfg);
 }
 
-void CartesioImpCntrlRt::init_cartesio_solver()
+void CartesioImpCntrlRosRt::init_cartesio_solver()
 {
-    // Before constructing the problem description, let us build a
-    // context object which stores some information, such as
-    // the control period
+
+    // Building context for rt thread
+
     auto ctx = std::make_shared<XBot::Cartesian::Context>(
                 std::make_shared<XBot::Cartesian::Parameters>(_dt),
                 _model);
@@ -45,9 +50,59 @@ void CartesioImpCntrlRt::init_cartesio_solver()
 
     // We are finally ready to make the CartesIO solver "OpenSot"
     _solver = CartesianInterfaceImpl::MakeInstance("OpenSot", ik_pb, ctx);
+
+    // Building context for nrt thread
+
+    auto nrt_ctx = std::make_shared<XBot::Cartesian::Context>(
+                std::make_shared<XBot::Cartesian::Parameters>(*_solver->getContext()->params()),
+                _nrt_model);
+
+    _nrt_solver = std::make_shared<LockfreeBufferImpl>(_solver.get(), nrt_ctx);
+    _nrt_solver->pushState(_solver.get(), _model.get());
+    _nrt_solver->updateState();
+
 }
 
-void CartesioImpCntrlRt::update_state()
+void CartesioImpCntrlRosRt::create_ros_api()
+{
+    /*  Create ros api server */
+    RosServerClass::Options opt;
+    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian");
+    _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
+}
+
+void CartesioImpCntrlRosRt::spawn_rnt_thread()
+{
+
+    /* Initialization */
+    _rt_active = false;
+    auto rt_active_ptr = &_rt_active;
+
+    _nrt_exit = false;
+    auto nrt_exit_ptr = &_nrt_exit;
+    
+    /* Spawn thread */
+    _nrt_thread = std::make_unique<thread>(
+        [rt_active_ptr, nrt_exit_ptr, this]()
+        {
+            this_thread::set_name("cartesio_nrt");
+
+            while(!*nrt_exit_ptr)
+            {
+                this_thread::sleep_for(10ms);
+
+                if(!*rt_active_ptr) continue;
+
+                this->_nrt_solver->updateState();
+                this->_ros_srv->run();
+
+            }
+
+        });
+}
+
+void CartesioImpCntrlRosRt::update_state()
 {
     // "sensing" the robot
     _robot->sense();
@@ -63,7 +118,7 @@ void CartesioImpCntrlRt::update_state()
     
 }
 
-void CartesioImpCntrlRt:: compute_joint_efforts()
+void CartesioImpCntrlRosRt:: compute_joint_efforts()
 {
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas); 
@@ -72,8 +127,10 @@ void CartesioImpCntrlRt:: compute_joint_efforts()
     _model->computeInverseDynamics(_effort_command);
 }
 
-bool CartesioImpCntrlRt::on_initialize()
+bool CartesioImpCntrlRosRt::on_initialize()
 {
+
+    _nh = std::make_unique<ros::NodeHandle>();
     
     // Creating a logger for post-processing
     MatLogger2::Options opt;
@@ -97,6 +154,12 @@ bool CartesioImpCntrlRt::on_initialize()
     // Initializing CartesIO solver
     init_cartesio_solver();
 
+    //
+    create_ros_api();
+
+    //
+    spawn_rnt_thread();
+
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
     
@@ -110,7 +173,7 @@ bool CartesioImpCntrlRt::on_initialize()
     return true;
 }
 
-void CartesioImpCntrlRt::starting()
+void CartesioImpCntrlRosRt::starting()
 {
 
     // initializing time (used for interpolation of trajectories inside CartesIO)
@@ -122,18 +185,23 @@ void CartesioImpCntrlRt::starting()
     // Reset CartesIO solver
     _solver->reset(_time);
 
-    // command reaching motion
-    _cart_task_int->setPoseTarget(_target_pose, _t_exec);
-
     // setting the control mode to effort + stiffness + damping
     _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+
+    // signal nrt thread that rt is active
+    _rt_active = true;
 
     // Move on to run()
     start_completed();
 }
 
-void CartesioImpCntrlRt::run()
+void CartesioImpCntrlRosRt::run()
 {   
+    /* Receive commands from nrt */
+    _nrt_solver->callAvailable(_solver.get());
+    
+    /* Send state to nrt */
+    _nrt_solver->pushState(_solver.get(), _model.get());
 
     // Update the measured state
     update_state();
@@ -146,8 +214,8 @@ void CartesioImpCntrlRt::run()
     _robot->getJointEffort(_meas_effort);
     
     // Set the effort commands (and also stiffness/damping)
-    _robot->setEffortReference(_effort_command + _tau_tilde);
     _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
+    _robot->setEffortReference(_effort_command + _tau_tilde);
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 
@@ -168,7 +236,7 @@ void CartesioImpCntrlRt::run()
 
 }
 
-void CartesioImpCntrlRt::on_stop()
+void CartesioImpCntrlRosRt::on_stop()
 {
     // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
     _robot->setStiffness(_stop_stiffness);
@@ -183,4 +251,10 @@ void CartesioImpCntrlRt::on_stop()
     
 }
 
-XBOT2_REGISTER_PLUGIN(CartesioImpCntrlRt, cartesio_imp_cntrl_rt)
+void CartesioImpCntrlRosRt::stopping()
+{
+    _rt_active = false;
+    stop_completed();
+}
+
+XBOT2_REGISTER_PLUGIN(CartesioImpCntrlRosRt, cartesio_imp_cntrl_ros_rt)
