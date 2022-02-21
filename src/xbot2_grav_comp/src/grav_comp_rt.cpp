@@ -30,8 +30,6 @@ bool GravCompRt::on_initialize()
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
 
-    // Setting robot control mode, stiffness and damping
-    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping()); // setting the control mode to effort + stiffness + damping
     _n_jnts_robot = _robot->getJointNum();
 
     return true;
@@ -40,6 +38,9 @@ bool GravCompRt::on_initialize()
 void GravCompRt::starting()
 {
     _robot->sense();
+
+    // Setting robot control mode, stiffness and damping
+    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping()); // setting the control mode to effort + stiffness + damping
     
     start_completed();
 }

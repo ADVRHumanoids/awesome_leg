@@ -92,7 +92,6 @@ bool CartesioImpCntrlRt::on_initialize()
     init_model_interface();
 
     // Setting robot control mode, stiffness and damping
-    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping()); // setting the control mode to effort + stiffness + damping
     _n_jnts_robot = _robot->getJointNum();
 
     // Initializing CartesIO solver
@@ -106,24 +105,28 @@ bool CartesioImpCntrlRt::on_initialize()
 
     _model->setJointPosition(_q_p_target);
     _model->update();
-    _model->getPose("tip", _target_pose);
+    _model->getPose("tip", _target_pose); 
     
     return true;
 }
 
 void CartesioImpCntrlRt::starting()
 {
+
     // initializing time (used for interpolation of trajectories inside CartesIO)
-    _time = 0;
+    _time = 0.0;
 
     // Update the model with the current robot state
-    update_state();
+    update_state();  
 
     // Reset CartesIO solver
     _solver->reset(_time);
 
     // command reaching motion
     _cart_task_int->setPoseTarget(_target_pose, _t_exec);
+
+    // setting the control mode to effort + stiffness + damping
+    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
 
     // Move on to run()
     start_completed();
@@ -135,19 +138,13 @@ void CartesioImpCntrlRt::run()
     // Update the measured state
     update_state();
      
-    // and update CartesIO solver
+    // and update CartesIO solver using the measured state
     _solver->update(_time, _dt);
 
-    // Read the joint effort computed via CartesIO (computed using acceleration_support)
+    // Read the joint efforts computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
-    // compute_joint_efforts(); // getting efforts "manually"
-
-    // Getting cartesian damping and stiffness for debugging purposes
-    _cart_stiffness = _cart_task_int->getStiffness(); 
-    _cart_damping = _cart_task_int->getDamping();
     
-
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);
     _robot->setStiffness(_stiffness);
@@ -158,6 +155,10 @@ void CartesioImpCntrlRt::run()
 
     // Update time
     _time += _dt;
+
+    // Getting cartesian damping and stiffness for debugging purposes
+    _cart_stiffness = _cart_task_int->getStiffness(); 
+    _cart_damping = _cart_task_int->getDamping();
 
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);

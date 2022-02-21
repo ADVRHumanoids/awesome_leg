@@ -96,8 +96,6 @@ bool GravCompCartesio::on_initialize()
     // Initializing XBot2 model interface using the read parameters 
     init_model_interface();
 
-    // Setting robot control mode, stiffness and damping
-    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping()); // setting the control mode to effort + stiffness + damping
     _n_jnts_robot = _robot->getJointNum();
 
     // Initializing CartesIO solver
@@ -119,6 +117,9 @@ void GravCompCartesio::starting()
 
     // Reset CartesIO solver
     _solver->reset(_time);
+
+    // Setting robot control mode, stiffness and damping
+    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping()); 
 
     // Move on to run()
     start_completed();
