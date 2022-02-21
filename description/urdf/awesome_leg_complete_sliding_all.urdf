@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
+<!-- 
+    Leg complete urdf with sliding hip and also sliding test rig (no plugins, etc..). Mainly used by Horizon.
+-->
+
 <robot name="awesome_leg_complete" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- ################### MATERIAL DEFINITIONS ################### -->
-Ì
+
     <material name="sky_blue">
         <color rgba="0.13 0.44 0.70 1"/>
     </material>
@@ -115,23 +119,7 @@
         <material name="grey"/>
         <geometry name="1_stick_visual">
             <mesh filename="package://awesome_leg_pholus/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </visual>
-        <collision>
-        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
-        <geometry name="1_stick_collision">
-            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
-    
-    <link name="tip"/> <!-- just for reference-->
-
-    <!-- ################### JOINTS ################### -->
-    
-    <joint name="world_test_rig" type="prismatic">
-        <origin xyz="0 0 0.5" />
-        <parent link="world" />
+        </geometry>sky_bluerld" />
         <child link="test_rig" />
         <dynamics damping="0.0" friction="0.0" />
         <limit lower="-100" upper="100.0" effort="1000000" velocity="100000000.0" />

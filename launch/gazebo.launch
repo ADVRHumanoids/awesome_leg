@@ -1,16 +1,14 @@
 <launch>
 
-  <!-- LAUNCH GAZEBO (with the leg) AND XBOT -->
-
+  <!-- Args -->
   <arg name="gazebo_model_type" default="fixed_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all", "sliding_all_underact"  -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
-  <arg name="isxbot2_interface" default="true" />  <!-- if true, send commands to Gazebo using the xbot interface; otherwise, don't -->
 
-  <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+  <!-- Launching awesome_leg.world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find awesome_leg_pholus)/worlds/awesome_leg.world"/>
     <arg name="debug" value="$(arg debug)" />
@@ -30,34 +28,8 @@
   <group if="$(eval arg('gazebo_model_type')=='sliding_all')">
     <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_sliding_all.xacro'" />
   </group>
-  <group if="$(eval arg('gazebo_model_type')=='sliding_all_underact')">
-    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_sliding_all.xacro'" />
-  </group>
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model awesome_leg -param robot_description"/>
-
-  <!-- Launch the XBot interface (if not disable by the associated launch argument)-->
-  <group if="$(arg isxbot2_interface)">
-    <!-- Launching the xbot2-core command -->
-    <node name="xbot2_core" pkg="awesome_leg_pholus" type="start_xbot2-core.sh" />
-    <!-- Enabling the joint control -->
-    <node name="xbot2_cntrl" pkg="awesome_leg_pholus" type="start_xbot2-cntrl.sh" />
-  </group>
-
-  <!-- ############################################################################## -->
-  <!-- Load joint controller configurations from YAML file to parameter server -->
-  <!-- <rosparam file="$(find awesome_leg_pholus)/config/awesome_leg_ros_cntrl.yaml" command="load"/> -->
-
-  <!-- load the controllers -->
-  <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
-    output="screen" ns="/awesome_leg" args="hip_position_controller knee_position_controller joint_state_controller"/> -->
-
-  <!-- convert joint states to TF transforms for rviz, etc -->
-  <!-- <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
-    respawn="false" output="screen">
-    <remap from="/joint_states" to="/awesome_leg/joint_states" />
-  </node> -->
-  <!-- ############################################################################## -->
 
 </launch>

@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 
+<!-- 
+    Leg complete xacro with sliding hip. The main leg URDF is imported and the necessary links are added to it.
+-->
+
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
   
   <!--%%%%%%%%%%%%%%%% CONSTANTS %%%%%%%%%%%%%%%%-->

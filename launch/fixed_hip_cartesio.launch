@@ -7,7 +7,7 @@
         textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_cartesio.urdf"/>
 
     <param name="robot_description_semantic"
-        textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg_cartesio.srdf"/>
+        textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg_complete_fixed.srdf"/>
 
     <param name="cartesian/problem_description"
         textfile="$(find awesome_leg_pholus)/config/fixed_hip_cartesio.yaml"/>

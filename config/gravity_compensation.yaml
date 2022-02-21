@@ -1,3 +1,5 @@
+# Gravity compensation using Python and calibrated inertial parameters (Pinocchio-based)
+
 gravity_compensator:
 
   dt: 0.01 # [s] -> published efforts rate
@@ -9,7 +11,7 @@ gravity_compensator:
         
   torque_bias: [ 3.20372297e-01, -2.56218453e-01 ] # bias torques, estimated via param. identification
 
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_param_id.urdf # urdf relative path (wrt to the package) used by the URDF parser
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_reduced.urdf # urdf relative path (wrt to the package) used by the URDF parser
   # srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_legv2.srdf # urdf relative path (wrt to the package) used the URDF parser
   
   ctrl_mode: [28, 28]

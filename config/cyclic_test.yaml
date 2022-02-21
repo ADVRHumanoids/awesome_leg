@@ -19,5 +19,3 @@ cyclic_test:
         ctrl_mode: [25, 25]
         stiffness: [500, 50]
         damping:  [5, 5]
-
-        # right angle, tip high-left -> init pose: [1.57, -1.57]; final: [-1.57, 1.57]; T_execution: 3.0; standby_time: 0.0

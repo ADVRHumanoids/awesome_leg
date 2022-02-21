@@ -1,3 +1,5 @@
+# Point to point trajectory task using CartesIO
+
 solver_options:
     regularization: 1e-14
     back_end: "qpoases"

@@ -1,3 +1,5 @@
+# Tip CARTESIAN impedance control using CartesIO Acceleration Support "Interaction" extension
+
 solver_options:
     regularization: 1e-14
     back_end: "qpoases"

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
+<!-- 
+    Leg complete urdf with fixed hip (no plugins, etc..). Mainly used by Horizon.
+-->
+
 <robot name="awesome_leg_complete_fixed" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <!-- ################### MATERIAL DEFINITIONS ################### -->

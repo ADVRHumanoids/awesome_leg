@@ -1,3 +1,5 @@
+# Gravity compensation using a tip Cartesian task from the Acceleration Support CartesIO extension
+
 solver_options:
     regularization: 1e-3
     back_end: "qpoases"

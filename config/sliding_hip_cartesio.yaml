@@ -1,3 +1,5 @@
+# Simple Cartesian tasks using the leg with sliding hip
+
 solver_options:
     regularization: 1e-3
     back_end: "qpoases"
@@ -23,7 +25,7 @@ ContactCoherence:
     type: "Cartesian"
     name: "contact_coherence"
     distal_link: "tip"
-    # base_link: "test_rig"
+    base_link: "test_rig"
     active: true
     lambda: 0.1
     weight: 10.0
@@ -34,7 +36,6 @@ LegJointPositionLimits:
     type: "JointLimits"
     bound_scaling: 1.0
     limits:
-
 
 LegJointVelocityLimits:
     type: "VelocityLimits"

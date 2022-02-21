@@ -6,13 +6,13 @@
     <arg name="use_joint_publisher_gui" default="true"/>
 
     <group if="$(eval arg('gazebo_model_type')=='fixed_hip')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf"/>
+        <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_fixed.xacro'" />
     </group>
     <group if="$(eval arg('gazebo_model_type')=='sliding_hip')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf"/>
+        <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg.xacro'" />
     </group>
     <group if="$(eval arg('gazebo_model_type')=='sliding_all')">
-        <param name="robot_description" textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf"/>
+        <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_sliding_all.xacro'" />
     </group>
     
     <node if="$(arg gui)"

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!-- Leg base URDF (no external links) -->
+<!-- 
+    Leg base original URDF (no external links). Only for reference. 
+-->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 

@@ -1,10 +1,10 @@
-# inertial_identification_static.py config file
+# YAML config file associated with inertial_identification_static.py script.
 
 inertial_identification_static:
 
   actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
   
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_param_id.urdf
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_reduced.urdf
 
   matfile_paths: [$(find awesome_leg_pholus)/tests/static_poses/pose1/robot_state_log__0_2022_02_02__17_14_40.mat,
                   $(find awesome_leg_pholus)/tests/static_poses/pose2/robot_state_log__0_2022_02_02__17_17_21.mat,

@@ -1,4 +1,4 @@
-# XBot awesome leg configuration file; to be used during simulation (to ethercat plugins)
+# XBot2 Awesome Leg configuration file. To be used during simulation (to hal config and ethercat plugins).
 
 XBotInterface:
   urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
@@ -8,7 +8,6 @@ ModelInterface:
   model_type: RBDL
   is_model_floating_base: false
   
-
 ## XBot2 related configuration
 
 # describe the robot hardware in terms of devices

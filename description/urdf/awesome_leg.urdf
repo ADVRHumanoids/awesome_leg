@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!-- Leg base URDF (no external links) -->
+<!-- 
+    Leg base URDF (standalone leg, no test rig). Main description file. 
+    
+-->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
@@ -136,7 +139,6 @@
         
     <!-- ################### TRANSMISSION ELEMENTS ################### -->
 
-   
     <transmission name="hip_trans">
         <type>transmission_interface/SimpleTransmission</type>
         <joint name="hip_pitch_1">

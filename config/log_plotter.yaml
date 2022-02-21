@@ -11,6 +11,7 @@ log_plotter:
 
   matfile_path: $(find awesome_leg_pholus)/tests/task_space_traj_track/robot_state_log__0_2022_02_16__22_16_19.mat # logged data mat file path
 
+  save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
+  
   save_fig_path: $(find awesome_leg_pholus)/tests/task_space_traj_track
 
-  save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)

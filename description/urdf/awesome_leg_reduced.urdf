@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<!-- Leg base URDF (no external links). Variant of the URDF adapted for use with Pinocchio -->
+<!-- 
+    Leg base URDF (no external links). Variant of the URDF adapted for use with Pinocchio and for performing inertial parameter identification 
+-->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
@@ -63,6 +65,9 @@
         </geometry>
         </collision>
     </link>
+
+    <link name="tip">
+    </link>
     
     <!-- ################### JOINTS ################### -->
 
@@ -80,6 +85,12 @@
         <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
         <axis xyz="0 0 1"/>grey
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
+    </joint>
+
+    <joint name="tip_joint" type="fixed">
+        <parent link="shin"/>
+        <child link="tip"/>
+        <origin xyz="0.45 0.0 -0.02"/>
     </joint>
         
     <!-- ################### TRANSMISSION ELEMENTS ################### -->
