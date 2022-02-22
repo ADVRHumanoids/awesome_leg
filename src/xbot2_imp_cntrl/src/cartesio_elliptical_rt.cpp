@@ -1,6 +1,6 @@
-#include "cartesio_imp_cntrl_ros_rt.h"
+#include "cartesio_elliptical_rt.h"
 
-void CartesioImpCntrlRosRt::get_params_from_config()
+void CartesioEllipticalRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -12,11 +12,18 @@ void CartesioImpCntrlRosRt::get_params_from_config()
     bool damping_found = getParam("~damping", _damping);
     bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
-    bool t_exec_found = getParam("~t_exec", _t_exec);
-    bool q_target_found = getParam("~q_target", _q_p_target);
+    
+    bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
+    bool n_samples_found = getParam("~n_samples", _n_samples);
+    bool a_found = getParam("~a", _a_ellps);
+    bool b_found = getParam("~b", _b_ellps);
+    bool x_c_found = getParam("~x_c", _x_c_ellps);
+    bool _z_c_found = getParam("~z_c", _z_c_ellps);
+    bool alpha_found = getParam("~alpha", _alpha);
+
 }
 
-void CartesioImpCntrlRosRt::init_model_interface()
+void CartesioEllipticalRt::init_model_interface()
 {
     
     XBot::ConfigOptions xbot_cfg;
@@ -34,7 +41,7 @@ void CartesioImpCntrlRosRt::init_model_interface()
     _nrt_model = ModelInterface::getModel(xbot_cfg);
 }
 
-void CartesioImpCntrlRosRt::init_cartesio_solver()
+void CartesioEllipticalRt::init_cartesio_solver()
 {
 
     // Building context for rt thread
@@ -51,7 +58,7 @@ void CartesioImpCntrlRosRt::init_cartesio_solver()
     // We are finally ready to make the CartesIO solver "OpenSot"
     _solver = CartesianInterfaceImpl::MakeInstance("OpenSot", ik_pb, ctx);
 
-    // Building context for nrt thread
+    // Building context for nrt thread (used to expose the ROS interface)
 
     auto nrt_ctx = std::make_shared<XBot::Cartesian::Context>(
                 std::make_shared<XBot::Cartesian::Parameters>(*_solver->getContext()->params()),
@@ -63,16 +70,16 @@ void CartesioImpCntrlRosRt::init_cartesio_solver()
 
 }
 
-void CartesioImpCntrlRosRt::create_ros_api()
+void CartesioEllipticalRt::create_ros_api()
 {
     /*  Create ros api server */
     RosServerClass::Options opt;
-    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian");
+    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci_elliptical");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian_elliptical");
     _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
 }
 
-void CartesioImpCntrlRosRt::spawn_rnt_thread()
+void CartesioEllipticalRt::spawn_rnt_thread()
 {
 
     /* Initialization */
@@ -100,11 +107,10 @@ void CartesioImpCntrlRosRt::spawn_rnt_thread()
         });
 }
 
-void CartesioImpCntrlRosRt::update_state()
+void CartesioEllipticalRt::update_state()
 {
     // "sensing" the robot
     _robot->sense();
-
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);    
@@ -116,7 +122,7 @@ void CartesioImpCntrlRosRt::update_state()
     
 }
 
-void CartesioImpCntrlRosRt:: compute_joint_efforts()
+void CartesioEllipticalRt::compute_joint_efforts()
 {
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas); 
@@ -125,7 +131,19 @@ void CartesioImpCntrlRosRt:: compute_joint_efforts()
     _model->computeInverseDynamics(_effort_command);
 }
 
-bool CartesioImpCntrlRosRt::on_initialize()
+void CartesioEllipticalRt::compute_traj_ref(double time)
+{
+    Eigen::Vector3d traj;
+
+    traj << _x_c_ellps + _a_ellps * cos(2 * M_PI * time/_t_exec_traj),
+            0,
+            _z_c_ellps + _a_ellps * sin(2 * M_PI * time/_t_exec_traj);
+
+    _target_pose.translation() = traj; // set the translational component of the target pose
+
+}
+
+bool CartesioEllipticalRt::on_initialize()
 {
 
     _nh = std::make_unique<ros::NodeHandle>();
@@ -134,7 +152,7 @@ bool CartesioImpCntrlRosRt::on_initialize()
     MatLogger2::Options opt;
     opt.default_buffer_size = 1e6; // set default buffer size
     opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/CartesioCntrlRt_log", opt); // date-time automatically appended
+    _logger = MatLogger2::MakeLogger("/tmp/CartesioEllipticalRt_log", opt); // date-time automatically appended
     _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
     // Getting nominal control period from plugin method
@@ -161,17 +179,13 @@ bool CartesioImpCntrlRosRt::on_initialize()
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
     
-    // _cart_task_classic = std::dynamic_pointer_cast<CartesianTask>(task); // classical cartesian task
+    // Generating the trajectory
     _cart_task_int = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
-
-    _model->setJointPosition(_q_p_target);
-    _model->update();
-    _model->getPose("tip", _target_pose); 
     
     return true;
 }
 
-void CartesioImpCntrlRosRt::starting()
+void CartesioEllipticalRt::starting()
 {
 
     // initializing time (used for interpolation of trajectories inside CartesIO)
@@ -193,7 +207,7 @@ void CartesioImpCntrlRosRt::starting()
     start_completed();
 }
 
-void CartesioImpCntrlRosRt::run()
+void CartesioEllipticalRt::run()
 {   
     /* Receive commands from nrt */
     _nrt_solver->callAvailable(_solver.get());
@@ -203,7 +217,22 @@ void CartesioImpCntrlRosRt::run()
 
     // Update the measured state
     update_state();
-     
+    
+    // Update (_target_pose) and set tip pose target 
+    compute_traj_ref(_time);
+    _cart_task_int->setPoseReference(_target_pose);
+
+    // jwarn("_target_pose:\n");
+    // for(int i=0; i<(_target_pose.translation()).rows();i++)  // loop 3 times for three lines
+    //   {
+    //     for(int j=0;j<(_target_pose.translation()).cols();j++)  // loop for the three elements on the line
+    //     {
+    //         jwarn("{}", _target_pose.translation()(i, j));  // display the current element out of the array
+    //         jwarn("\t");
+    //     }
+    //   }
+    // jwarn("\n");
+
     // and update CartesIO solver using the measured state
     _solver->update(_time, _dt);
 
@@ -223,18 +252,28 @@ void CartesioImpCntrlRosRt::run()
     // Update time
     _time += _dt;
 
+    if (_time >= _t_exec_traj)
+    {
+        _time = _time - _t_exec_traj;
+    }
+
     // Getting cartesian damping and stiffness for debugging purposes
     _cart_stiffness = _cart_task_int->getStiffness(); 
     _cart_damping = _cart_task_int->getDamping();
+
+    // Getting tip pose for debugging
+    _model->getPose("tip", _meas_pose);
 
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
     _logger->add("cartesian_stiffness", _cart_stiffness);
     _logger->add("cartesian_damping", _cart_damping);
+    _logger->add("target_tip_pos", _target_pose.translation());
+    _logger->add("meas_tip_pos", _meas_pose.translation());
 
 }
 
-void CartesioImpCntrlRosRt::on_stop()
+void CartesioEllipticalRt::on_stop()
 {
     // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
     _robot->setStiffness(_stop_stiffness);
@@ -246,13 +285,15 @@ void CartesioImpCntrlRosRt::on_stop()
     _robot->setVelocityReference(Eigen::VectorXd::Zero(2));
 
     _robot->move();
+
+    _logger.reset();
     
 }
 
-void CartesioImpCntrlRosRt::stopping()
+void CartesioEllipticalRt::stopping()
 {
     _rt_active = false;
     stop_completed();
 }
 
-XBOT2_REGISTER_PLUGIN(CartesioImpCntrlRosRt, cartesio_imp_cntrl_ros_rt)
+XBOT2_REGISTER_PLUGIN(CartesioEllipticalRt, cartesio_elliptical_rt)

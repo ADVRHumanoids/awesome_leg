@@ -114,7 +114,7 @@ K_d1 = np.array([K_d1_hip, K_d1_knee])
 ######################### COMPUTING STUFF #########################
 js_time=log_loader.get_js_rel_time()
 
-# tau_horizon = compute_tau_over_jnt_traj(model, q_p_hor, q_p_dot_hor, q_p_ddot_hor) # effort computed using the optimized trajectory (note: != the tau returned by the optimizer)
+# tau_horizon = compute_tau_over_jnt_traj_xbot(model, q_p_hor, q_p_dot_hor, q_p_ddot_hor) # effort computed using the optimized trajectory (note: != the tau returned by the optimizer)
 
 diff_jnt_acc = diff_mat(js_time, log_loader.get_motors_velocity()) # differentiated joint acceleration (from measurements)
 filtered_diff_jnt_acc = signal.filtfilt(b_acc, a_acc, diff_jnt_acc, padlen=150, axis= 1) # filtered joint acceleration
@@ -125,7 +125,7 @@ jnt_vel = log_loader.get_motors_velocity()
 # filtered_jnt_vel = signal.filtfilt(b_vel, a_vel, log_loader.get_motors_velocity(), padlen=150, axis= 1)
 
 smooth_coeff = 20
-test_tau = compute_tau_over_jnt_traj(model, jnt_pos[:, 0:-1], jnt_vel[:, 0:-1], filtered_diff_jnt_acc) # efforts computed with the measured joint trajectory
+test_tau = compute_tau_over_jnt_traj_xbot(model, jnt_pos[:, 0:-1], jnt_vel[:, 0:-1], filtered_diff_jnt_acc) # efforts computed with the measured joint trajectory
 total_tau = test_tau + [K_d0_hip * compute_smooth_sign(jnt_vel[0, 0:-1], coeff = smooth_coeff) + K_d1_hip * jnt_vel[0, 0:-1],
                         K_d0_knee * compute_smooth_sign(jnt_vel[1, 0:-1], coeff = smooth_coeff) + K_d1_knee * jnt_vel[1, 0:-1] ]
 
