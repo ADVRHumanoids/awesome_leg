@@ -52,19 +52,30 @@ private:
                     _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
                     _q_p_target,
                     _effort_command, _meas_effort;
+
     Eigen::Affine3d _target_pose;
+
     std::string _urdf_path, _srdf_path, _cartesio_path;
+
     XBot::ModelInterface::Ptr _model, _nrt_model;  
+
     CartesianInterfaceImpl::Ptr _solver;
     LockfreeBufferImpl::Ptr _nrt_solver;
+
     CartesianTask::Ptr _cart_task_classic;
     InteractionTask::Ptr _cart_task_int;
+
     MatLogger2::Ptr _logger;
+
+    Impedance _impedance;
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
+
     XBot::Cartesian::RosServerClass::Ptr _ros_srv;
+
     std::unique_ptr<thread> _nrt_thread;
     bool _rt_active, _nrt_exit;
+    
     std::unique_ptr<ros::NodeHandle> _nh;
 
     double _dt, _time, _t_exec;

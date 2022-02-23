@@ -224,8 +224,9 @@ void CartesioImpCntrlRosRt::run()
     _time += _dt;
 
     // Getting cartesian damping and stiffness for debugging purposes
-    _cart_stiffness = _cart_task_int->getStiffness(); 
-    _cart_damping = _cart_task_int->getDamping();
+    _impedance= _cart_task_int->getImpedance();
+    _cart_stiffness = _impedance.stiffness; 
+    _cart_damping = _impedance.damping;
 
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);

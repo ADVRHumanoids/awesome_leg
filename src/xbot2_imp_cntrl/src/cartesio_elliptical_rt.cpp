@@ -21,6 +21,8 @@ void CartesioEllipticalRt::get_params_from_config()
     bool _z_c_found = getParam("~z_c", _z_c_ellps);
     bool alpha_found = getParam("~alpha", _alpha);
 
+    bool is_interaction_found = getParam("~is_interaction", _is_interaction);
+
 }
 
 void CartesioEllipticalRt::init_model_interface()
@@ -131,15 +133,41 @@ void CartesioEllipticalRt::compute_joint_efforts()
     _model->computeInverseDynamics(_effort_command);
 }
 
-void CartesioEllipticalRt::compute_traj_ref(double time)
+void CartesioEllipticalRt::compute_ref_traj(double time)
 {
-    Eigen::Vector3d traj;
+    Eigen::Vector3d traj, traj_offset, rot_axis;
+    rot_axis << 0, 1, 0; // rotate trajectory around y axis
 
     traj << _x_c_ellps + _a_ellps * cos(2 * M_PI * time/_t_exec_traj),
             0,
-            _z_c_ellps + _a_ellps * sin(2 * M_PI * time/_t_exec_traj);
+            _z_c_ellps + _b_ellps * sin(2 * M_PI * time/_t_exec_traj);
 
+    
+    // traj_offset << _x_c_ellps, 
+    //                0, 
+    //                ;
+
+    // Eigen::AngleAxisd rotate = Eigen::AngleAxisd(_alpha, rot_axis); // transform for rotating the reference trajectory
+    
+    // traj = rotate * traj + traj_offset; // apply rotation and offset
+
+    // Assigning target pose
     _target_pose.translation() = traj; // set the translational component of the target pose
+
+    // Assigning target velocity
+    _target_vel << - _a_ellps * 2 * M_PI / _t_exec_traj * sin(2 * M_PI * time/_t_exec_traj), 
+                    0, 
+                    _b_ellps * 2 * M_PI / _t_exec_traj * cos(2 * M_PI * time/_t_exec_traj), 
+                    0,
+                    0,
+                    0;
+    // Assigning target acceleration
+    _target_acc << - _a_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * cos(2 * M_PI * time/_t_exec_traj), 
+                    0, 
+                    -_b_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * sin(2 * M_PI * time/_t_exec_traj), 
+                    0,
+                    0,
+                    0;
 
 }
 
@@ -179,8 +207,14 @@ bool CartesioEllipticalRt::on_initialize()
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
     
-    // Generating the trajectory
-    _cart_task_int = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
+    if (_is_interaction)
+    {
+        _int_task = std::dynamic_pointer_cast<InteractionTask>(task);
+       
+    }
+    else{ // default to CartesianTask
+         _cart_task = std::dynamic_pointer_cast<CartesianTask>(task);
+    }
     
     return true;
 }
@@ -219,8 +253,21 @@ void CartesioEllipticalRt::run()
     update_state();
     
     // Update (_target_pose) and set tip pose target 
-    compute_traj_ref(_time);
-    _cart_task_int->setPoseReference(_target_pose);
+    compute_ref_traj(_time);
+    if (_is_interaction)
+    {
+        _int_task->setPoseReference(_target_pose); 
+        _int_task->setVelocityReference(_target_vel);
+        _int_task->setAccelerationReference(_target_acc); 
+       
+    }
+    else{ // default to CartesianTask
+        _cart_task->setPoseReference(_target_pose); 
+        _cart_task->setVelocityReference(_target_vel);
+        _cart_task->setAccelerationReference(_target_acc); 
+    }
+
+    
 
     // jwarn("_target_pose:\n");
     // for(int i=0; i<(_target_pose.translation()).rows();i++)  // loop 3 times for three lines
@@ -256,20 +303,24 @@ void CartesioEllipticalRt::run()
     {
         _time = _time - _t_exec_traj;
     }
-
-    // Getting cartesian damping and stiffness for debugging purposes
-    _cart_stiffness = _cart_task_int->getStiffness(); 
-    _cart_damping = _cart_task_int->getDamping();
-
+    
     // Getting tip pose for debugging
     _model->getPose("tip", _meas_pose);
 
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
-    _logger->add("cartesian_stiffness", _cart_stiffness);
-    _logger->add("cartesian_damping", _cart_damping);
+    
     _logger->add("target_tip_pos", _target_pose.translation());
     _logger->add("meas_tip_pos", _meas_pose.translation());
+
+    if (_is_interaction)
+    {
+        _impedance= _int_task->getImpedance();
+        _cart_stiffness = _impedance.stiffness; 
+        _cart_damping = _impedance.damping;
+        _logger->add("cartesian_stiffness", _cart_stiffness);
+        _logger->add("cartesian_damping", _cart_damping);
+    }
 
 }
 

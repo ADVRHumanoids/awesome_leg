@@ -77,16 +77,17 @@ xbotcore_plugins:
             torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
             urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
             srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} 
-            cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} 
+            is_interaction: {value: False, type: bool} # whether to use or not the InteractionTask (VS CartesianTask)
+            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} 
+            cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile}
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
             damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
             stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
-            t_exec_traj: {value: 1, type: double} # trajectory execution time
-            n_samples: {value: 100, type: int} # number of trajectory samples
-            a: {value: 0.1, type: double} # "horizontal" semi-axis length
-            b: {value: 0.02, type: double} # "vertical" semi-axis length
-            x_c: {value: 0.0, type: double} # ellipsis center x-coordinate
+            t_exec_traj: {value: 3, type: double} # trajectory execution time
+            a: {value: 0.05, type: double} # "horizontal" semi-axis length
+            b: {value: 0.05, type: double} # "vertical" semi-axis length
+            x_c: {value: -0.15, type: double} # ellipsis center x-coordinate
             z_c: {value: -0.6, type: double} # ellipsis center y-coordinate
             alpha: {value: 0, type: double} # ellipsis rotation angle
 

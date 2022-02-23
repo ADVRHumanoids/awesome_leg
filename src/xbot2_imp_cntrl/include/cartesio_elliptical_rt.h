@@ -45,6 +45,7 @@ public:
 
 
 private:
+    
     Eigen::VectorXd _tau_tilde, 
                     _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
@@ -55,6 +56,7 @@ private:
                     _tip_ref_traj;
 
     Eigen::Affine3d _target_pose;
+    Eigen::Vector6d _target_vel, _target_acc;
 
     Eigen::Affine3d _meas_pose;
 
@@ -65,20 +67,25 @@ private:
     CartesianInterfaceImpl::Ptr _solver;
     LockfreeBufferImpl::Ptr _nrt_solver;
 
-    CartesianTask::Ptr _cart_task_classic;
-    InteractionTask::Ptr _cart_task_int;
+    CartesianTask::Ptr _cart_task;
+    InteractionTask::Ptr _int_task;
 
     MatLogger2::Ptr _logger;
 
+    Impedance _impedance;
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
 
     XBot::Cartesian::RosServerClass::Ptr _ros_srv;
+
     std::unique_ptr<thread> _nrt_thread;
-    bool _rt_active, _nrt_exit;
+
     std::unique_ptr<ros::NodeHandle> _nh;
 
+    bool _rt_active, _nrt_exit, _is_interaction;
+
     double _dt, _time, _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha;
+
     int _n_jnts_model, _n_jnts_robot, _n_samples;
 
     // method for computing joint efforts using the measured robot state
@@ -90,7 +97,7 @@ private:
     void create_ros_api();
     void spawn_rnt_thread();
     void nrt_thread_callback();
-    void compute_traj_ref(double time);
+    void compute_ref_traj(double time);
 
 };
 

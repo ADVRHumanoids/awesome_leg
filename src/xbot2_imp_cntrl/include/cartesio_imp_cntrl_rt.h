@@ -47,13 +47,21 @@ private:
                     _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
                     _q_p_target,
                     _effort_command, _meas_effort;
+
     Eigen::Affine3d _target_pose;
+
     std::string _urdf_path, _srdf_path, _cartesio_path;
+
     XBot::ModelInterface::Ptr _model;  
+
     CartesianInterface::Ptr _solver;
+
     CartesianTask::Ptr _cart_task_classic;
     InteractionTask::Ptr _cart_task_int;
+
     MatLogger2::Ptr _logger;
+
+    Impedance _impedance;
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
     // XBot::Cartesian::RosClient _ci_ros_client;
