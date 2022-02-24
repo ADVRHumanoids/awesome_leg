@@ -84,7 +84,7 @@ void CartesioImpCntrlRosRt::spawn_rnt_thread()
     _nrt_thread = std::make_unique<thread>(
         [this]()
         {
-            this_thread::set_name("cartesio_nrt");
+            this_thread::set_name("ci_imp_ros_nrt");
 
             while(!this->_nrt_exit)
             {
