@@ -14,8 +14,8 @@ using namespace XBot;
 using namespace XBot::Cartesian;
 
 /**
- * @brief The CartesioImpCntrlRt class is a ControlPlugin
- * implementing a s (to be tested on the awesome_leg - pholus).
+ * @brief The CartesioImpCntrlRt class is a real-time ControlPlugin
+ * implementing a point-to-point motion, with cartesian impedance control.
  */
 class CartesioImpCntrlRt : public ControlPlugin
 {
@@ -40,6 +40,7 @@ public:
     void on_stop() override;
 
 private:
+
     Eigen::VectorXd _tau_tilde, 
                     _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
@@ -56,15 +57,13 @@ private:
 
     CartesianInterface::Ptr _solver;
 
-    CartesianTask::Ptr _cart_task_classic;
-    InteractionTask::Ptr _cart_task_int;
+    InteractionTask::Ptr _int_task;
 
     MatLogger2::Ptr _logger;
 
     Impedance _impedance;
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
-    // XBot::Cartesian::RosClient _ci_ros_client;
 
     double _dt, _time, _t_exec;
     int _n_jnts_model, _n_jnts_robot;

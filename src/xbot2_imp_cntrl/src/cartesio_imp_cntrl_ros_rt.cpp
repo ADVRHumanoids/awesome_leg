@@ -149,30 +149,38 @@ bool CartesioImpCntrlRosRt::on_initialize()
     // Setting robot control mode, stiffness and damping
     _n_jnts_robot = _robot->getJointNum();
 
-    // Initializing CartesIO solver
+    // Initializing CartesIO solver, ros server and spawning the non rt thread
     init_cartesio_solver();
-
-    //
     create_ros_api();
-
-    //
     spawn_rnt_thread();
 
-    // Getting tip cartesian task and casting it to cartesian (task)
-    auto task = _solver->getTask("tip");
-    
-    // _cart_task_classic = std::dynamic_pointer_cast<CartesianTask>(task); // classical cartesian task
-    _cart_task_int = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
-
-    _model->setJointPosition(_q_p_target);
-    _model->update();
-    _model->getPose("tip", _target_pose); 
-    
     return true;
 }
 
 void CartesioImpCntrlRosRt::starting()
 {
+    // Creating a logger for post-processing (inserted here and not in on_initialize() 
+    // so that when the plugin is restarted, the object is recreated)
+
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/CartesioImpCntrlRosRt", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+
+    auto task = _solver->getTask("tip"); // Getting tip cartesian task and casting it to cartesian (task)
+    _int_task = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
+    _cart_task = std::dynamic_pointer_cast<CartesianTask>(task);
+
+    if(!_cart_task)
+    {
+        jerror("tip task not cartesian");
+    }
+
+    _model->setJointPosition(_q_p_target);
+    _model->update();
+    _model->getPose("tip", _target_pose); 
 
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0.0;
@@ -223,31 +231,36 @@ void CartesioImpCntrlRosRt::run()
     // Update time
     _time += _dt;
 
-    // Getting cartesian damping and stiffness for debugging purposes
-    _impedance= _cart_task_int->getImpedance();
-    _cart_stiffness = _impedance.stiffness; 
-    _cart_damping = _impedance.damping;
+    // Logging stuff
 
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
-    _logger->add("cartesian_stiffness", _cart_stiffness);
-    _logger->add("cartesian_damping", _cart_damping);
+
+    if (_int_task)
+    {
+        _impedance= _int_task->getImpedance();
+        _cart_stiffness = _impedance.stiffness; 
+        _cart_damping = _impedance.damping;
+        _logger->add("cartesian_stiffness", _cart_stiffness);
+        _logger->add("cartesian_damping", _cart_damping);
+    }
 
 }
 
 void CartesioImpCntrlRosRt::on_stop()
 {
-    // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
+    // Read the current state
+    update_state();
+    // Setting references before exiting
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
-    // Setting references before exiting
     _robot->setPositionReference(_q_p_meas);
-    _robot->setVelocityReference(Eigen::VectorXd::Zero(2));
-
+    // Sending references
     _robot->move();
-    
+
+    // Destroy logger and dump .mat file (will be recreated upon plugin restart)
+    _logger.reset();
 }
 
 void CartesioImpCntrlRosRt::stopping()

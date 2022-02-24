@@ -176,13 +176,6 @@ bool CartesioEllipticalRt::on_initialize()
 
     _nh = std::make_unique<ros::NodeHandle>();
     
-    // Creating a logger for post-processing
-    MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
-    opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/CartesioEllipticalRt_log", opt); // date-time automatically appended
-    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
-
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
 
@@ -195,14 +188,23 @@ bool CartesioEllipticalRt::on_initialize()
     // Setting robot control mode, stiffness and damping
     _n_jnts_robot = _robot->getJointNum();
 
-    // Initializing CartesIO solver
+    // Initializing CartesIO solver, ros server and spawning the non rt thread
     init_cartesio_solver();
-
-    //
     create_ros_api();
-
-    //
     spawn_rnt_thread();
+
+    return true;
+}
+
+void CartesioEllipticalRt::starting()
+{
+
+    // Creating a logger for post-processing
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/CartesioEllipticalRt_log", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
@@ -213,14 +215,7 @@ bool CartesioEllipticalRt::on_initialize()
     if(!_cart_task)
     {
         jerror("tip task not cartesian");
-        return false;
     }
-    
-    return true;
-}
-
-void CartesioEllipticalRt::starting()
-{
 
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0.0;
@@ -316,25 +311,18 @@ void CartesioEllipticalRt::run()
 
 void CartesioEllipticalRt::on_stop()
 {
-    // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
+    // Read the current state
+    update_state();
+    // Setting references before exiting
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
-    // Setting references before exiting
     _robot->setPositionReference(_q_p_meas);
-    _robot->setVelocityReference(Eigen::VectorXd::Zero(2));
-
+    // Sending references
     _robot->move();
 
+    // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _logger.reset();
-
-    // Re-creating a logger(necessary if th plugin is started and stopped more than one time)
-    MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
-    opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/CartesioEllipticalRt_log", opt); // date-time automatically appended
-    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
     
 }
 

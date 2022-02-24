@@ -18,7 +18,9 @@ using namespace XBot::Cartesian;
 
 /**
  * @brief The CartesioEllipticalRt class is a ControlPlugin
- * implementing a s (to be tested on the awesome_leg - pholus).
+ * implementing a trajectory tracking (elliptical traj.). 
+ * Depending on the chosen CartesIO config file, the plugin
+ * performs either acceleration or impedance control.
  */
 class CartesioEllipticalRt : public ControlPlugin
 {

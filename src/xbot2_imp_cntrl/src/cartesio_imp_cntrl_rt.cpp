@@ -75,13 +75,6 @@ void CartesioImpCntrlRt:: compute_joint_efforts()
 bool CartesioImpCntrlRt::on_initialize()
 {
     
-    // Creating a logger for post-processing
-    MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
-    opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/CartesioCntrlRt_log", opt); // date-time automatically appended
-    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
-
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
 
@@ -93,27 +86,33 @@ bool CartesioImpCntrlRt::on_initialize()
 
     // Setting robot control mode, stiffness and damping
     _n_jnts_robot = _robot->getJointNum();
-
-    // Initializing CartesIO solver
-    init_cartesio_solver();
-
-    // Getting tip cartesian task and casting it to cartesian (task)
-    auto task = _solver->getTask("tip");
-    
-    // _cart_task_classic = std::dynamic_pointer_cast<CartesianTask>(task); // classical cartesian task
-    _cart_task_int = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
-
-    _model->setJointPosition(_q_p_target);
-    _model->update();
-    _model->getPose("tip", _target_pose); 
     
     return true;
 }
 
 void CartesioImpCntrlRt::starting()
 {
+    // Creating a logger for post-processing (inserted here and not in on_initialize() 
+    // so that when the plugin is restarted, the object is recreated)
 
-    // initializing time (used for interpolation of trajectories inside CartesIO)
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/CartesioImpCntrlRt", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    // Initializing CartesIO solver (inserted here and not in on_initialize() 
+    // so that when the plugin is restarted, the object is recreated)
+
+    init_cartesio_solver();
+    auto task = _solver->getTask("tip"); // Getting tip cartesian task and casting it to cartesian (task)
+    _int_task = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
+
+    _model->setJointPosition(_q_p_target);
+    _model->update();
+    _model->getPose("tip", _target_pose); 
+
+    // Initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0.0;
 
     // // Update the model with the current robot state
@@ -123,7 +122,7 @@ void CartesioImpCntrlRt::starting()
     _solver->reset(_time);
 
     // command reaching motion
-    _cart_task_int->setPoseTarget(_target_pose, _t_exec);
+    _int_task->setPoseTarget(_target_pose, _t_exec);
 
     // setting the control mode to effort + stiffness + damping
     _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
@@ -158,7 +157,7 @@ void CartesioImpCntrlRt::run()
     _time += _dt;
 
     // Getting cartesian damping and stiffness for debugging purposes
-    _impedance= _cart_task_int->getImpedance();
+    _impedance= _int_task->getImpedance();
     _cart_stiffness = _impedance.stiffness; 
     _cart_damping = _impedance.damping;
     
@@ -171,16 +170,22 @@ void CartesioImpCntrlRt::run()
 
 void CartesioImpCntrlRt::on_stop()
 {
-    // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
+
+    // Read the current state
+    update_state();
+    // Setting references before exiting
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
-    // Setting references before exiting
     _robot->setPositionReference(_q_p_meas);
-    _robot->setVelocityReference(Eigen::VectorXd::Zero(2));
-
+    // Sending references
     _robot->move();
+
+    // Destroy logger and dump .mat file (will be recreated upon plugin restart)
+    _logger.reset();
+
+    // Destroy CartesIO solver (will be recreated upon plugin restart)
+    _solver.reset();
     
 }
 

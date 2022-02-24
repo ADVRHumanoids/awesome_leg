@@ -14,7 +14,10 @@ using namespace XBot::Cartesian;
 
 /**
  * @brief The CartesioImpCntrlRosRt class is a ControlPlugin
- * implementing a s (to be tested on the awesome_leg - pholus).
+ * implementing a cartesian impedance control, where the target pose
+ * is provided by an RViz interactive marker. To send pose references, 
+ * run the plugin, launch the marker_spawner node and load the model and
+ * the marker in RViz. 
  */
 class CartesioImpCntrlRosRt : public ControlPlugin
 {
@@ -62,8 +65,8 @@ private:
     CartesianInterfaceImpl::Ptr _solver;
     LockfreeBufferImpl::Ptr _nrt_solver;
 
-    CartesianTask::Ptr _cart_task_classic;
-    InteractionTask::Ptr _cart_task_int;
+    CartesianTask::Ptr _cart_task;
+    InteractionTask::Ptr _int_task;
 
     MatLogger2::Ptr _logger;
 
@@ -74,11 +77,13 @@ private:
     XBot::Cartesian::RosServerClass::Ptr _ros_srv;
 
     std::unique_ptr<thread> _nrt_thread;
-    bool _rt_active, _nrt_exit;
     
     std::unique_ptr<ros::NodeHandle> _nh;
-
+    
+    bool _rt_active, _nrt_exit;
+    
     double _dt, _time, _t_exec;
+    
     int _n_jnts_model, _n_jnts_robot;
 
     // method for computing joint efforts using the measured robot state
