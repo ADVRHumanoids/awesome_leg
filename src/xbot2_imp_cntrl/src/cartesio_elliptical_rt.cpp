@@ -18,7 +18,7 @@ void CartesioEllipticalRt::get_params_from_config()
     bool a_found = getParam("~a", _a_ellps);
     bool b_found = getParam("~b", _b_ellps);
     bool x_c_found = getParam("~x_c", _x_c_ellps);
-    bool _z_c_found = getParam("~z_c", _z_c_ellps);
+    bool z_c_found = getParam("~z_c", _z_c_ellps);
     bool alpha_found = getParam("~alpha", _alpha);
 
     bool is_interaction_found = getParam("~is_interaction", _is_interaction);
@@ -206,14 +206,14 @@ bool CartesioEllipticalRt::on_initialize()
 
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
+
+    _int_task = std::dynamic_pointer_cast<InteractionTask>(task);
+    _cart_task = std::dynamic_pointer_cast<CartesianTask>(task);
     
-    if (_is_interaction)
+    if(!_cart_task)
     {
-        _int_task = std::dynamic_pointer_cast<InteractionTask>(task);
-       
-    }
-    else{ // default to CartesianTask
-         _cart_task = std::dynamic_pointer_cast<CartesianTask>(task);
+        jerror("tip task not cartesian");
+        return false;
     }
     
     return true;
@@ -254,20 +254,10 @@ void CartesioEllipticalRt::run()
     
     // Update (_target_pose) and set tip pose target 
     compute_ref_traj(_time);
-    if (_is_interaction)
-    {
-        _int_task->setPoseReference(_target_pose); 
-        _int_task->setVelocityReference(_target_vel);
-        _int_task->setAccelerationReference(_target_acc); 
-       
-    }
-    else{ // default to CartesianTask
-        _cart_task->setPoseReference(_target_pose); 
-        _cart_task->setVelocityReference(_target_vel);
-        _cart_task->setAccelerationReference(_target_acc); 
-    }
 
-    
+    _cart_task->setPoseReference(_target_pose); 
+    _cart_task->setVelocityReference(_target_vel);
+    _cart_task->setAccelerationReference(_target_acc); 
 
     // jwarn("_target_pose:\n");
     // for(int i=0; i<(_target_pose.translation()).rows();i++)  // loop 3 times for three lines
@@ -313,7 +303,7 @@ void CartesioEllipticalRt::run()
     _logger->add("target_tip_pos", _target_pose.translation());
     _logger->add("meas_tip_pos", _meas_pose.translation());
 
-    if (_is_interaction)
+    if (_int_task)
     {
         _impedance= _int_task->getImpedance();
         _cart_stiffness = _impedance.stiffness; 
@@ -338,6 +328,13 @@ void CartesioEllipticalRt::on_stop()
     _robot->move();
 
     _logger.reset();
+
+    // Re-creating a logger(necessary if th plugin is started and stopped more than one time)
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/CartesioEllipticalRt_log", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
     
 }
 

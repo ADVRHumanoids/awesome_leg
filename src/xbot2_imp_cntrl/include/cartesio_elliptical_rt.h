@@ -9,6 +9,8 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
+#include <xbot2/ros/ros_support.h>
+
 #include <math.h> 
 
 using namespace XBot;
