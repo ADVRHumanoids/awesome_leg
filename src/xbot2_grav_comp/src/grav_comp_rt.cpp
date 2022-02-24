@@ -30,13 +30,20 @@ bool GravCompRt::on_initialize()
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
 
-    _n_jnts_robot = _robot->getJointNum();
-
     return true;
 }
 
 void GravCompRt::starting()
 {
+    // Creating a logger for post-processing (inserted here and not in on_initialize() 
+    // so that when the plugin is restarted, the object is recreated)
+
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/GravCompRt", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
     _robot->sense();
 
     // Setting robot control mode, stiffness and damping
@@ -59,21 +66,29 @@ void GravCompRt::run()
     _robot->setDamping(_damping);
 
     _robot->move(); // necessary to actually send any kind of reference to the robot
+
+    _logger->add("computed_efforts", _effort_command);
+    _logger->add("q_p", _q_p);
+
 }
 
 void GravCompRt::on_stop()
-{
-    // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
+{   
+    // Setting references before exiting
+
+    _robot->sense();
+
+    _robot->getJointPosition(_q_p);
+    // Setting references before exiting
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
-    // Setting references before exiting
     _robot->setPositionReference(_q_p);
-    _robot->setVelocityReference(Eigen::VectorXd::Zero(2));
-
+    // Sending references
     _robot->move();
-    
+
+    // Destroy logger and dump .mat file (will be recreated upon plugin restart)
+    _logger.reset();
 }
 
 XBOT2_REGISTER_PLUGIN(GravCompRt, grav_comp_rt)

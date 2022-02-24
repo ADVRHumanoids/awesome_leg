@@ -12,7 +12,6 @@ void GravCompCartesio::get_params_from_config()
     bool damping_found = getParam("~damping", _damping);
     bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
-    bool dt_found = getParam("~dt", _dt);
 }
 
 void GravCompCartesio::init_model_interface()
@@ -53,18 +52,6 @@ void GravCompCartesio::update_state()
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);    
-    
-    jwarn("Hip q_p:");
-    jwarn(std::to_string(_q_p_meas[0]));
-    jwarn("Knee q_p:");
-    jwarn(std::to_string(_q_p_meas[1]));
-    jwarn("\n");
-
-    jwarn("Hip q_p_dot:");
-    jwarn(std::to_string(_q_p_dot_meas[0]));
-    jwarn("Knee q_p_dot:");
-    jwarn(std::to_string(_q_p_dot_meas[1]));
-    jwarn("\n");
 
     // Updating the model with the measurements
     _model->setJointPosition(_q_p_meas);
@@ -78,34 +65,34 @@ void GravCompCartesio::update_state()
     
 }
 
-void GravCompCartesio:: compute_joint_efforts()
-{
-    _model->setJointPosition(_q_p_meas);
-    _model->setJointVelocity(_q_p_dot_meas); 
-    _model->update();
-    _model->getJointAcceleration(_q_p_ddot_ci); 
-
-    _model->computeInverseDynamics(_effort_command);
-}
-
 bool GravCompCartesio::on_initialize()
 {
+    // Getting nominal control period from plugin method
+    _dt = getPeriodSec();
+
     // Reading all the necessary parameters from a configuration file
     get_params_from_config();
 
     // Initializing XBot2 model interface using the read parameters 
     init_model_interface();
-
-    _n_jnts_robot = _robot->getJointNum();
-
-    // Initializing CartesIO solver
-    init_cartesio_solver();
     
     return true;
 }
 
 void GravCompCartesio::starting()
 {
+    // Creating a logger for post-processing (inserted here and not in on_initialize() 
+    // so that when the plugin is restarted, the object is recreated)
+
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/GravCompRt", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    // Initializing CartesIO solver
+    init_cartesio_solver();
+
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0;
 
@@ -131,14 +118,7 @@ void GravCompCartesio::run()
     update_state();
 
     // Read the joint effort computed via CartesIO (computed using acceleration_support)
-    // _model->getJointEffort(_effort_command);
-    compute_joint_efforts();
-
-    jwarn("Hip effort:");
-    jwarn(std::to_string(_effort_command[0]));
-    jwarn("Knee effort:");
-    jwarn(std::to_string(_effort_command[1]));
-    jwarn("-------- \n \n");
+    _model->getJointEffort(_effort_command);
 
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);
@@ -150,20 +130,30 @@ void GravCompCartesio::run()
 
     // Update time
     _time += _dt;
+
+    _logger->add("computed_efforts", _effort_command);
+    _logger->add("q_p", _q_p_meas);
 }
 
 void GravCompCartesio::on_stop()
 {
-    // Reset control mode, stiffness and damping, so that the final position is kept at the end of the trajectory
+    // Setting references before exiting
+    
+    _robot->sense();
+
+    _robot->getJointPosition(_q_p_meas);
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
-    // Setting references before exiting
     _robot->setPositionReference(_q_p_meas);
-    _robot->setVelocityReference(Eigen::VectorXd::Zero(2));
-
+    // Sending references
     _robot->move();
+
+    // Destroy logger and dump .mat file (will be recreated upon plugin restart)
+    _logger.reset();
+
+    // Destroy CartesIO solver (will be recreated upon plugin restart)
+    _solver.reset();
     
 }
 

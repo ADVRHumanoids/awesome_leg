@@ -36,14 +36,20 @@ public:
     void on_stop() override;
 
 private:
+
     Eigen::VectorXd _tau_tilde, 
                     _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
                     _q_p, _q_p_dot, _q_p_ddot,
                     _effort_command;
+
     std::string _urdf_path, _srdf_path;
+
     XBot::ModelInterface::Ptr _model;  
-    int _n_jnts_model, _n_jnts_robot;
+
+    MatLogger2::Ptr _logger;
+
+    int _n_jnts_model;
 
     // method for computing joint efforts using the measured robot state
     void compute_joint_efforts();
