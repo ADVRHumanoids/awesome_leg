@@ -332,4 +332,17 @@ void CartesioEllipticalRt::stopping()
     stop_completed();
 }
 
+void CartesioEllipticalRt::on_abort()
+{
+    _rt_active = false;
+    _nrt_exit = true;
+}
+
+void CartesioEllipticalRt::on_close()
+{
+    _nrt_exit = true;
+    jinfo("joining with nrt thread.. \n");
+    if(_nrt_thread) _nrt_thread->join();
+}
+
 XBOT2_REGISTER_PLUGIN(CartesioEllipticalRt, cartesio_elliptical_rt)

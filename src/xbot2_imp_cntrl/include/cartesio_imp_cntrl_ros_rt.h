@@ -38,14 +38,17 @@ public:
     // callback for 'Run' state
     void run() override;
 
+    // callback for 'Stopping' state
+    void stopping() override;
+
     // callback for 'On Stop' state
     void on_stop() override;
 
-    // callback for 'On Stop' state
-    void stopping() override;
+    // callback for 'On Abort' state
+    void on_close() override;
 
-    // // callback for 'On Stop' state
-    // void on_abort() override;
+    // callback for 'On Abort' state
+    void on_abort() override;
 
 private:
     Eigen::VectorXd _tau_tilde, 

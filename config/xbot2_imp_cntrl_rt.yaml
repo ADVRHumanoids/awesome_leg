@@ -63,13 +63,11 @@ xbotcore_plugins:
             torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
             urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
             srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} 
-            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control
+            cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control
             cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} 
             # cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # classical acceleration control
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
             damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
-            q_target: {value: [1, 1], type: Eigen::VectorXd}
-            t_exec: {value: 5.0, type: double}
             stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 

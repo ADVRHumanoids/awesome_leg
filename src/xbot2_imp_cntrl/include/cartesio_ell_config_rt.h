@@ -44,10 +44,16 @@ public:
     void run() override;
 
     // callback for 'On Stop' state
-    void on_stop() override;
+    void stopping() override;
 
     // callback for 'On Stop' state
-    void stopping() override;
+    void on_stop() override;
+
+    // callback for 'On Abort' state
+    void on_close() override;
+
+    // callback for 'On Abort' state
+    void on_abort() override;
 
 
 private:

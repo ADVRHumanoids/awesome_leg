@@ -323,4 +323,17 @@ void CartesioEllConfigRt::stopping()
     stop_completed();
 }
 
+void CartesioEllConfigRt::on_abort()
+{
+    _rt_active = false;
+    _nrt_exit = true;
+}
+
+void CartesioEllConfigRt::on_close()
+{
+    _nrt_exit = true;
+    jinfo("joining with nrt thread.. \n");
+    if(_nrt_thread) _nrt_thread->join();
+}
+
 XBOT2_REGISTER_PLUGIN(CartesioEllConfigRt, cartesio_ell_config_rt)

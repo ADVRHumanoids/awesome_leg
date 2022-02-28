@@ -120,13 +120,6 @@ bool CartesioImpCntrlRosRt::on_initialize()
 {
 
     _nh = std::make_unique<ros::NodeHandle>();
-    
-    // Creating a logger for post-processing
-    MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
-    opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/CartesioCntrlRt_log", opt); // date-time automatically appended
-    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
@@ -252,12 +245,27 @@ void CartesioImpCntrlRosRt::on_stop()
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _logger.reset();
+
 }
 
 void CartesioImpCntrlRosRt::stopping()
 {
     _rt_active = false;
     stop_completed();
+
+}
+
+void CartesioImpCntrlRosRt::on_abort()
+{
+    _rt_active = false;
+    _nrt_exit = true;
+}
+
+void CartesioImpCntrlRosRt::on_close()
+{
+    _nrt_exit = true;
+    jinfo("joining with nrt thread.. \n");
+    if(_nrt_thread) _nrt_thread->join();
 }
 
 XBOT2_REGISTER_PLUGIN(CartesioImpCntrlRosRt, cartesio_imp_cntrl_ros_rt)
