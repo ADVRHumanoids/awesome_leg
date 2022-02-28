@@ -4,11 +4,11 @@ solver_options:
     regularization: 0.0
     back_end: qpoases
     # back_end: osqp
-    front_end: nhqp
-    nhqp_min_sv_ratio: 0.1
-
+    # front_end: nhqp
+    # nhqp_min_sv_ratio: 0.1
+  
 stack: # tasks
-    - [tip]
+    - [tip, postural]
 
 constraints: [] #[JointLimits, VelocityLimits] # more robust without this constraints
 
@@ -21,6 +21,14 @@ tip:
   distal_link: tip
   indices: [0, 2] 
 
+postural: # postural used to prevent ill-conditioned QP matrices in singular positions
+  lib_name: libcartesio_acceleration_support.so
+  type: Postural
+  use_inertia: true
+  lambda: 0 # no pos feedback
+  lambda2: 0.05 # vel gain
+  weight: 0.01 # task weight
+
 JointLimits:
   lib_name: libcartesio_acceleration_support.so
   type: JointLimits
@@ -30,3 +38,4 @@ VelocityLimits:
   lib_name: libcartesio_acceleration_support.so
   type: VelocityLimits
   bound_scaling: 1
+       
