@@ -20,7 +20,7 @@ using namespace XBot::Cartesian;
  * @brief The CartesioEllipticalRt class is a ControlPlugin
  * implementing a trajectory tracking (elliptical traj.). 
  * Depending on the chosen CartesIO config file, the plugin
- * performs either acceleration or impedance control.
+ * can perform either classical cartesian acceleration or cartesian impedance control.
  */
 class CartesioEllipticalRt : public ControlPlugin
 {

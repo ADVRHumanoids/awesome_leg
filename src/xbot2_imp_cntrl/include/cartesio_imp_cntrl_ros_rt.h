@@ -17,7 +17,7 @@ using namespace XBot::Cartesian;
  * implementing a cartesian impedance control, where the target pose
  * is provided by an RViz interactive marker. To send pose references, 
  * run the plugin, launch the marker_spawner node and load the model and
- * the marker in RViz. 
+ * the marker in RViz (alternatively, directly launch cartesio_imp_cntrl_marker.launch )
  */
 class CartesioImpCntrlRosRt : public ControlPlugin
 {
@@ -76,6 +76,9 @@ private:
     Impedance _impedance;
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
+
+    Eigen::MatrixXd _M;
+    Eigen::MatrixXd _J;
 
     XBot::Cartesian::RosServerClass::Ptr _ros_srv;
 

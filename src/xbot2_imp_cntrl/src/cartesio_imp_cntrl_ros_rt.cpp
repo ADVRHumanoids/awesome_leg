@@ -215,10 +215,16 @@ void CartesioImpCntrlRosRt::run()
     // Update time
     _time += _dt;
 
+    _model->getInertiaMatrix(_M);
+    _model->getJacobian("tip", _J);
+
     // Logging stuff
 
     _logger->add("meas_efforts", _meas_effort);
-    _logger->add("computed_efforts", _effort_command);
+    _logger->add("effort_command", _effort_command);
+    _logger->add("M", _M);
+    _logger->add("J", _J);
+
 
     if (_int_task)
     {

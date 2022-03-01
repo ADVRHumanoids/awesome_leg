@@ -21,8 +21,8 @@ using namespace XBot::Cartesian;
  * implementing a trajectory tracking (elliptical traj.). 
  * Depending on the chosen CartesIO config file, the plugin
  * performs either acceleration or impedance control.
- * Moreover, it uses the ros_from_rt feature to allow runtime 
- * configuration of the input trajectory.
+ * Moreover, it uses the ros_from_rt synchronization mechanism 
+ * to allow runtime configuration of the input trajectory.
  */
 class CartesioEllConfigRt : public ControlPlugin
 {

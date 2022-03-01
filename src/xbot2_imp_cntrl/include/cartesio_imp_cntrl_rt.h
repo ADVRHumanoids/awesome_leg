@@ -16,6 +16,8 @@ using namespace XBot::Cartesian;
 /**
  * @brief The CartesioImpCntrlRt class is a real-time ControlPlugin
  * implementing a point-to-point motion, with cartesian impedance control.
+ * The target joint positions are specified in xbot2_imp_cntrl_rt.yaml,
+ * in the tag associated to this plugin.
  */
 class CartesioImpCntrlRt : public ControlPlugin
 {
