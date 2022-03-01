@@ -30,7 +30,7 @@ postural: # postural used to prevent ill-conditioned QP matrices in singular pos
   use_inertia: true
   lambda: 0 # no pos feedback
   lambda2: 0.05 # vel gain
-  weight: 0.01 # task weight
+  weight: 0.01 # task weight (if use_inertia = true, then the task weight is weight * M)
 
 JointLimits:
   lib_name: libcartesio_acceleration_support.so

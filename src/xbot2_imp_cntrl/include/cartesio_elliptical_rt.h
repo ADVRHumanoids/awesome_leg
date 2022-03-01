@@ -94,6 +94,8 @@ private:
 
     bool _rt_active, _nrt_exit, _is_interaction;
 
+    bool _use_vel_ff, _use_acc_ff;
+
     double _dt, _time, _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha;
 
     int _n_jnts_model, _n_jnts_robot, _n_samples;
@@ -108,6 +110,7 @@ private:
     void spawn_rnt_thread();
     void nrt_thread_callback();
     void compute_ref_traj(double time);
+    void saturate_input();
 
 };
 
