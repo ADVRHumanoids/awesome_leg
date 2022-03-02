@@ -55,7 +55,6 @@ xbotcore_plugins:
             t_exec: {value: 5.0, type: double}
             stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
-
     imp_cntrl_ros_rt: 
         thread: rt_ros_cart_imp
         type: cartesio_imp_cntrl_ros_rt
@@ -84,14 +83,19 @@ xbotcore_plugins:
             damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
             stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
-            t_exec_traj: {value: 1, type: double} # trajectory execution time
+            t_exec_traj: {value: 0.5, type: double} # trajectory execution time
+            delta_effort_lim: {value: 0.000001, type: double} # a margin used to safely saturate the trajectory
             use_vel_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             use_acc_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             a: {value: 0.1, type: double} # "horizontal" semi-axis length
             b: {value: 0.05, type: double} # "vertical" semi-axis length
             x_c: {value: -0.15, type: double} # ellipsis center x-coordinate
-            z_c: {value: -0.6, type: double} # ellipsis center y-coordinate
-            alpha: {value: 0.5, type: double} # ellipsis rotation angle
+            z_c: {value: -0.5, type: double} # ellipsis center y-coordinate
+            alpha: {value: 0.0, type: double} # ellipsis rotation angle
+            use_local_stiff: {value: true, type: bool} # whether of not to set the cartesian impedance on the frame tangent to the
+            local_cart_stiff: {value: [1000, 0, 1000], type: Eigen::VectorXd} # required cartesian stiffness wrt the frame tangent to the input traj
+            local_cart_damp: {value: [20, 0, 20], type: Eigen::VectorXd} # required cartesian damping wrt the frame tangent to the input traj
+
 
     ell_config_rt: 
         thread: rt_ci_ell_cnfg
@@ -108,6 +112,9 @@ xbotcore_plugins:
             stop_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             t_exec_traj: {value: 1, type: double} # trajectory execution time
+            delta_effort_lim: {value: 0.000001, type: double} # a margin used to safely saturate the trajectory
+            use_vel_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
+            use_acc_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             a: {value: 0.1, type: double} # "horizontal" semi-axis length
             b: {value: 0.05, type: double} # "vertical" semi-axis length
             x_c: {value: -0.0, type: double} # ellipsis center x-coordinate

@@ -15,6 +15,12 @@ void CartesioEllConfigRt::get_params_from_config()
     
     bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
     bool n_samples_found = getParam("~n_samples", _n_samples);
+
+    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
+
+    bool use_vel_ff_found = getParam("~use_vel_ff", _use_vel_ff);
+    bool use_acc_ff_found = getParam("~use_acc_ff", _use_acc_ff);
+
     bool a_found = getParam("~a", _a_ellps);
     bool b_found = getParam("~b", _b_ellps);
     bool x_c_found = getParam("~x_c", _x_c_ellps);
@@ -109,6 +115,21 @@ void CartesioEllConfigRt::spawn_rnt_thread()
         });
 }
 
+void CartesioEllConfigRt::saturate_input()
+{
+    int input_sign = 1; // defaults to positive sign 
+
+    for(int i = 0; i < _n_jnts_model; i++)
+    {
+        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
+        {
+            input_sign = (signbit(_effort_command[i])) ? -1: 1; 
+
+            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
+        }
+    }
+}
+
 void CartesioEllConfigRt::update_state()
 {
     // "sensing" the robot
@@ -126,39 +147,49 @@ void CartesioEllConfigRt::update_state()
 
 void CartesioEllConfigRt::compute_ref_traj(double time)
 {
-    Eigen::Vector3d traj, traj_offset, rot_axis;
-    rot_axis << 0, 1, 0; // rotate trajectory around y axis
+    Eigen::Vector3d traj_offset, traj, traj_dot, traj_ddot, traj_wrt_center, rot_axis;
+    rot_axis << 0, 1, 0; // rotate trajectory around y axis (same direction as the hip joint)
 
-    traj << _x_c_ellps + _a_ellps * cos(2 * M_PI * time/_t_exec_traj),
+
+    // Traj wrt rotated frame
+
+    traj_offset << _x_c_ellps, 
+                   0, 
+                   _z_c_ellps;
+
+    traj_wrt_center << _a_ellps * cos(2 * M_PI * time/_t_exec_traj),
             0,
-            _z_c_ellps + _b_ellps * sin(2 * M_PI * time/_t_exec_traj);
+            _b_ellps * sin(2 * M_PI * time/_t_exec_traj);
+
+    traj = traj_offset + traj_wrt_center;
+
+    // Target velocity
+    traj_dot << - _a_ellps * 2 * M_PI / _t_exec_traj * sin(2 * M_PI * time/_t_exec_traj), 
+                0, 
+                _b_ellps * 2 * M_PI / _t_exec_traj * cos(2 * M_PI * time/_t_exec_traj);
+
+    // Target acceleration
+    traj_ddot << - _a_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * cos(2 * M_PI * time/_t_exec_traj), 
+                0, 
+                -_b_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * sin(2 * M_PI * time/_t_exec_traj);
 
     
-    // traj_offset << _x_c_ellps, 
-    //                0, 
-    //                ;
+    // Rotating everything in the base frame
 
-    // Eigen::AngleAxisd rotate = Eigen::AngleAxisd(_alpha, rot_axis); // transform for rotating the reference trajectory
-    
-    // traj = rotate * traj + traj_offset; // apply rotation and offset
+    Eigen::Affine3d A_pos = Eigen::Translation3d(traj_offset) * Eigen::AngleAxisd(- _alpha, rot_axis) * Eigen::Translation3d(-traj_offset); // affine transf. for the position trajectory 
+    Eigen::AngleAxisd A_dot = Eigen::AngleAxisd(- _alpha, rot_axis); // affine transf. for the vel and acceleration trajectories
 
-    // Assigning target pose
+    traj = A_pos * traj; 
+    traj_dot = A_dot * traj_dot; // note: the rotated reference frame is stationary wrt the base frame
+    traj_ddot = A_dot * traj_ddot;
+
     _target_pose.translation() = traj; // set the translational component of the target pose
 
-    // Assigning target velocity
-    _target_vel << - _a_ellps * 2 * M_PI / _t_exec_traj * sin(2 * M_PI * time/_t_exec_traj), 
-                    0, 
-                    _b_ellps * 2 * M_PI / _t_exec_traj * cos(2 * M_PI * time/_t_exec_traj), 
-                    0,
-                    0,
-                    0;
-    // Assigning target acceleration
-    _target_acc << - _a_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * cos(2 * M_PI * time/_t_exec_traj), 
-                    0, 
-                    -_b_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * sin(2 * M_PI * time/_t_exec_traj), 
-                    0,
-                    0,
-                    0;
+    _target_vel << traj_dot, 
+                   Eigen::ArrayXd::Zero(3);
+
+    _target_acc << traj_ddot, 
+                   Eigen::ArrayXd::Zero(3);
 
 }
 
@@ -183,6 +214,9 @@ bool CartesioEllConfigRt::on_initialize()
     init_cartesio_solver();
     create_ros_api();
     spawn_rnt_thread();
+
+    // Reading joint effort limits (used for saturating the trajectory)
+    _model->getEffortLimits(_effort_lims);
 
     return true;
 }
@@ -241,9 +275,16 @@ void CartesioEllConfigRt::run()
     // Update (_target_pose) and set tip pose target 
     compute_ref_traj(_time);
 
+    // Setting target trajectory 
     _cart_task->setPoseReference(_target_pose); 
-    _cart_task->setVelocityReference(_target_vel);
-    _cart_task->setAccelerationReference(_target_acc); 
+    if (_use_vel_ff)
+    {
+        _cart_task->setVelocityReference(_target_vel);
+    }
+    if (_use_acc_ff)
+    {
+         _cart_task->setAccelerationReference(_target_acc); 
+    }
 
     // jwarn("_target_pose:\n");
     // for(int i=0; i<(_target_pose.translation()).rows();i++)  // loop 3 times for three lines
@@ -263,6 +304,9 @@ void CartesioEllConfigRt::run()
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
     
+    // Check input for bound violations
+    saturate_input(); 
+
     // Set the effort commands (and also stiffness/damping)
     _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
     _robot->setEffortReference(_effort_command + _tau_tilde);

@@ -41,7 +41,8 @@ private:
                     _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
                     _q_p, _q_p_dot, _q_p_ddot,
-                    _effort_command;
+                    _effort_command,
+                    _effort_lims;
 
     std::string _urdf_path, _srdf_path;
 
@@ -51,8 +52,12 @@ private:
 
     int _n_jnts_model;
 
+    double _delta_effort_lim;
+
     // method for computing joint efforts using the measured robot state
     void compute_joint_efforts();
+    void saturate_input();
+
 
 };
 

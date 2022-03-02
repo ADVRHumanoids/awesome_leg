@@ -16,6 +16,8 @@ void CartesioEllipticalRt::get_params_from_config()
     bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
     bool n_samples_found = getParam("~n_samples", _n_samples);
 
+    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
+
     bool use_vel_ff_found = getParam("~use_vel_ff", _use_vel_ff);
     bool use_acc_ff_found = getParam("~use_acc_ff", _use_acc_ff);
 
@@ -25,13 +27,16 @@ void CartesioEllipticalRt::get_params_from_config()
     bool z_c_found = getParam("~z_c", _z_c_ellps);
     bool alpha_found = getParam("~alpha", _alpha);
 
-    bool is_interaction_found = getParam("~is_interaction", _is_interaction);
+    bool interaction_found = getParam("~is_interaction", _is_interaction);
+
+    bool use_local_stiff_found = getParam("~use_local_stiff", _use_local_stiff);
+    bool local_cart_stiff_found = getParam("~local_cart_stiff", _local_cart_stiff);
+    bool local_cart_damp_found = getParam("~local_cart_damp", _local_cart_damp);
 
 }
 
 void CartesioEllipticalRt::init_model_interface()
 {
-    
     XBot::ConfigOptions xbot_cfg;
     xbot_cfg.set_urdf_path(_urdf_path);
     xbot_cfg.set_srdf_path(_srdf_path);
@@ -50,7 +55,7 @@ void CartesioEllipticalRt::init_model_interface()
 void CartesioEllipticalRt::init_cartesio_solver()
 {
 
-    // Building context for rt thread
+     // Building context for rt thread
 
     auto ctx = std::make_shared<XBot::Cartesian::Context>(
                 std::make_shared<XBot::Cartesian::Parameters>(_dt),
@@ -128,19 +133,19 @@ void CartesioEllipticalRt::update_state()
     
 }
 
-void CartesioEllipticalRt::compute_joint_efforts()
-{
-    _model->setJointPosition(_q_p_meas);
-    _model->setJointVelocity(_q_p_dot_meas); 
-    _model->update();
-    _model->getJointAcceleration(_q_p_ddot_ci); 
-    _model->computeInverseDynamics(_effort_command);
-}
-
 void CartesioEllipticalRt::saturate_input()
 {
-    // put here code used to saturate the input 
-    // check for a method for reading the joint torque limits
+    int input_sign = 1; // defaults to positive sign 
+
+    for(int i = 0; i < _n_jnts_model; i++)
+    {
+        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
+        {
+            input_sign = (signbit(_effort_command[i])) ? -1: 1; 
+
+            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
+        }
+    }
 }
 
 void CartesioEllipticalRt::compute_ref_traj(double time)
@@ -191,9 +196,37 @@ void CartesioEllipticalRt::compute_ref_traj(double time)
 
 }
 
-bool CartesioEllipticalRt::on_initialize()
+void CartesioEllipticalRt::rot_impedance(Eigen::Vector6d velocity)
 {
 
+
+    // // Only for a planar trajectory for now
+    // Eigen::VectorXd rot_stiffness, rot_damping;
+    // Eigen::Vector3d rot_axis;
+    // rot_axis << 0.0, 1.0, 0.0;
+    
+    // double cos_theta = velocity(0) / sqrt((pow(velocity(0), 2) + pow(velocity(2), 2)));
+    // double sin_theta = velocity(2) / sqrt((pow(velocity(0), 2) + pow(velocity(2), 2)));
+    // double theta = atan2(sin_theta, cos_theta);
+
+    // Eigen::AngleAxisd rot = Eigen::AngleAxisd(-theta, rot_axis); // affine transf. for the vel and acceleration trajectories
+    
+    // rot_stiffness = rot * _local_cart_stiff;
+    // rot_damping = rot * _local_cart_damp;
+
+    // for(int i = 0; i < 3; i++)  // only assign diagonal elements (translational impedance)
+    // {
+    //     _cart_stiffness_cmd(i, i) = abs(rot_stiffness[i]); // stiffness coeff always positive
+    //     _cart_damping_cmd(i, i) = abs(rot_damping[i]); // damping coeff always positive
+    // }
+    
+    // _impedance.stiffness = _cart_stiffness_cmd;
+    // _impedance.damping = _cart_damping_cmd;
+    
+}
+
+bool CartesioEllipticalRt::on_initialize()
+{
     _nh = std::make_unique<ros::NodeHandle>();
     
     // Getting nominal control period from plugin method
@@ -212,6 +245,9 @@ bool CartesioEllipticalRt::on_initialize()
     init_cartesio_solver();
     create_ros_api();
     spawn_rnt_thread();
+
+    // Reading joint effort limits (used for saturating the trajectory)
+    _model->getEffortLimits(_effort_lims);
 
     return true;
 }
@@ -272,14 +308,17 @@ void CartesioEllipticalRt::run()
 
     // Setting target trajectory 
     _cart_task->setPoseReference(_target_pose); 
+
     if (_use_vel_ff)
     {
         _cart_task->setVelocityReference(_target_vel);
     }
+
     if (_use_acc_ff)
     {
          _cart_task->setAccelerationReference(_target_acc); 
     }
+
     // jwarn("_target_pose:\n");
     // for(int i=0; i<(_target_pose.translation()).rows();i++)  // loop 3 times for three lines
     //   {
@@ -291,16 +330,37 @@ void CartesioEllipticalRt::run()
     //   }
     // jwarn("\n");
 
+    if (_int_task)
+    {
+        if (_use_local_stiff)
+        {
+            // Rotating the local impedance in the base frame and setting it
+            rot_impedance(_target_vel);
+
+            _int_task->setImpedance(_impedance);
+        }
+        
+        // Logging impedance for post-processing
+        _impedance= _int_task->getImpedance();
+        _cart_stiffness = _impedance.stiffness; 
+        _cart_damping = _impedance.damping;
+        _logger->add("cartesian_stiffness", _cart_stiffness);
+        _logger->add("cartesian_damping", _cart_damping);
+    }
+
     // and update CartesIO solver using the measured state
     _solver->update(_time, _dt);
 
     // Read the joint efforts computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
-    
+
+    // Check input for bound violations
+    saturate_input();     
+
     // Set the effort commands (and also stiffness/damping)
     _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
-    _robot->setEffortReference(_effort_command + _tau_tilde);
+    _robot->setEffortReference(_effort_command);
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 

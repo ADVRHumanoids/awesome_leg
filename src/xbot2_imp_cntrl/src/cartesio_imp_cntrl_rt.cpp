@@ -14,6 +14,8 @@ void CartesioImpCntrlRt::get_params_from_config()
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
     bool t_exec_found = getParam("~t_exec", _t_exec);
     bool q_target_found = getParam("~q_target", _q_p_target);
+
+    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
 }
 
 void CartesioImpCntrlRt::init_model_interface()
@@ -63,13 +65,19 @@ void CartesioImpCntrlRt::update_state()
     
 }
 
-void CartesioImpCntrlRt:: compute_joint_efforts()
+void CartesioImpCntrlRt::saturate_input()
 {
-    _model->setJointPosition(_q_p_meas);
-    _model->setJointVelocity(_q_p_dot_meas); 
-    _model->update();
-    _model->getJointAcceleration(_q_p_ddot_ci); 
-    _model->computeInverseDynamics(_effort_command);
+    int input_sign = 1; // defaults to positive sign 
+
+    for(int i = 0; i < _n_jnts_model; i++)
+    {
+        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
+        {
+            input_sign = (signbit(_effort_command[i])) ? -1: 1; 
+
+            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
+        }
+    }
 }
 
 bool CartesioImpCntrlRt::on_initialize()
@@ -86,6 +94,9 @@ bool CartesioImpCntrlRt::on_initialize()
 
     // Setting robot control mode, stiffness and damping
     _n_jnts_robot = _robot->getJointNum();
+
+    // Reading joint effort limits (used for saturating the trajectory)
+    _model->getEffortLimits(_effort_lims);
     
     return true;
 }
@@ -144,9 +155,12 @@ void CartesioImpCntrlRt::run()
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
     
+    // Check input for bound violations
+    saturate_input();     
+
     // Set the effort commands (and also stiffness/damping)
-    _robot->setEffortReference(_effort_command + _tau_tilde);
-    _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
+    _robot->setEffortReference(_effort_command);
+    // _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 

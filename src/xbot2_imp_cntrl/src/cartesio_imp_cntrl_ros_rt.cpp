@@ -4,7 +4,6 @@ void CartesioImpCntrlRosRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
-    bool tau_tilde_found = getParam("~torque_bias", _tau_tilde); // estimated bias torques
     bool urdf_path_found = getParam("~urdf_path", _urdf_path); // urdf specific to gravity compensator
     bool srdf_path_found = getParam("~srdf_path", _srdf_path); // srdf_path specific to gravity compensator
     bool cartesio_path_found = getParam("~cartesio_yaml_path", _cartesio_path); // srdf_path specific to gravity compensator
@@ -12,8 +11,9 @@ void CartesioImpCntrlRosRt::get_params_from_config()
     bool damping_found = getParam("~damping", _damping);
     bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
-    bool t_exec_found = getParam("~t_exec", _t_exec);
-    bool q_target_found = getParam("~q_target", _q_p_target);
+
+    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
+
 }
 
 void CartesioImpCntrlRosRt::init_model_interface()
@@ -116,6 +116,21 @@ void CartesioImpCntrlRosRt::update_state()
     
 }
 
+void CartesioImpCntrlRosRt::saturate_input()
+{
+    int input_sign = 1; // defaults to positive sign 
+
+    for(int i = 0; i < _n_jnts_model; i++)
+    {
+        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
+        {
+            input_sign = (signbit(_effort_command[i])) ? -1: 1; 
+
+            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
+        }
+    }
+}
+
 bool CartesioImpCntrlRosRt::on_initialize()
 {
 
@@ -137,6 +152,8 @@ bool CartesioImpCntrlRosRt::on_initialize()
     init_cartesio_solver();
     create_ros_api();
     spawn_rnt_thread();
+
+    _model->getEffortLimits(_effort_lims);
 
     return true;
 }
@@ -162,9 +179,9 @@ void CartesioImpCntrlRosRt::starting()
         jerror("tip task not cartesian");
     }
 
-    _model->setJointPosition(_q_p_target);
-    _model->update();
-    _model->getPose("tip", _target_pose); 
+    // _model->setJointPosition(Eigen::ArrayXd::Zero(_n_jnts_model)); // only used to properly initialize the target pose
+    // _model->update();
+    // _model->getPose("tip", _target_pose); 
 
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0.0;
@@ -202,10 +219,12 @@ void CartesioImpCntrlRosRt::run()
     // Read the joint efforts computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
+
+    saturate_input(); //check input for bound violations
     
     // Set the effort commands (and also stiffness/damping)
     _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
-    _robot->setEffortReference(_effort_command + _tau_tilde);
+    _robot->setEffortReference(_effort_command);
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 
@@ -219,12 +238,10 @@ void CartesioImpCntrlRosRt::run()
     _model->getJacobian("tip", _J);
 
     // Logging stuff
-
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("effort_command", _effort_command);
     _logger->add("M", _M);
     _logger->add("J", _J);
-
 
     if (_int_task)
     {

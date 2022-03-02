@@ -6,6 +6,7 @@ inertial_identification_static:
   
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_reduced.urdf
 
+  # Used calibration poses
   matfile_paths: [$(find awesome_leg_pholus)/tests/static_poses/pose1/robot_state_log__0_2022_02_02__17_14_40.mat,
                   $(find awesome_leg_pholus)/tests/static_poses/pose2/robot_state_log__0_2022_02_02__17_17_21.mat,
                   $(find awesome_leg_pholus)/tests/static_poses/pose3/robot_state_log__0_2022_02_02__17_18_49.mat,

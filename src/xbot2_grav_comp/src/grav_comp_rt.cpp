@@ -7,8 +7,25 @@ void GravCompRt:: compute_joint_efforts()
     _model->setJointAcceleration(_q_p_ddot); // gravity compensation -> no q_p_ddot
     _model->update();
     _model->computeInverseDynamics(_effort_command);
+    
+    _effort_command = _effort_command + _tau_tilde; //adding tau compensation drift
+
 }
 
+void GravCompRt::saturate_input()
+{
+    int input_sign = 1; // defaults to positive sign 
+
+    for(int i = 0; i < _n_jnts_model; i++)
+    {
+        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
+        {
+            input_sign = (signbit(_effort_command[i])) ? -1: 1; 
+
+            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
+        }
+    }
+}
 bool GravCompRt::on_initialize()
 {
     // Reading some paramters from YAML
@@ -29,6 +46,10 @@ bool GravCompRt::on_initialize()
     xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
+
+    // Reading joint effort limits (used for saturating the trajectory)
+    _model->getEffortLimits(_effort_lims);
+
 
     return true;
 }
@@ -61,7 +82,10 @@ void GravCompRt::run()
 
     compute_joint_efforts(); // assigns to effort_command
 
-    _robot->setEffortReference(_effort_command + _tau_tilde);
+    // Check input for bound violations
+    saturate_input();     
+
+    _robot->setEffortReference(_effort_command);
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 

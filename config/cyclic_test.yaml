@@ -1,4 +1,4 @@
-# A simple cyclic test: go from the current position to the target pose, then go back and repeat.
+# A simple cyclic test: go from the current position to the target pose, then go back and repeat (Python-based).
 
 cyclic_test: 
 

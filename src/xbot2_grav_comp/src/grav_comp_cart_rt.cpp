@@ -65,6 +65,21 @@ void GravCompCartesio::update_state()
     
 }
 
+void GravCompCartesio::saturate_input()
+{
+    int input_sign = 1; // defaults to positive sign 
+
+    for(int i = 0; i < _n_jnts_model; i++)
+    {
+        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
+        {
+            input_sign = (signbit(_effort_command[i])) ? -1: 1; 
+
+            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
+        }
+    }
+}
+
 bool GravCompCartesio::on_initialize()
 {
     // Getting nominal control period from plugin method
@@ -75,6 +90,9 @@ bool GravCompCartesio::on_initialize()
 
     // Initializing XBot2 model interface using the read parameters 
     init_model_interface();
+
+    // Reading joint effort limits (used for saturating the trajectory)
+    _model->getEffortLimits(_effort_lims);
     
     return true;
 }
@@ -119,6 +137,10 @@ void GravCompCartesio::run()
 
     // Read the joint effort computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
+    _effort_command = _effort_command + _tau_tilde; // adding torque compensation drift 
+    
+    // Check input for bound violations
+    saturate_input();
 
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);

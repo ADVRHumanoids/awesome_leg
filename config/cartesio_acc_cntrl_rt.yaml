@@ -3,11 +3,14 @@
 solver_options:
     regularization: 1e-3
     back_end: "qpoases"
+    # back_end: osqp
+    # front_end: nhqp
+    # nhqp_min_sv_ratio: 0.1
 
 stack: # tasks
     - ["tip"]
 
-constraints: ["JointLimits", "VelocityLimits"]
+constraints: [] #["JointLimits", "VelocityLimits"]
 
 tip:
   lib_name: libcartesio_acceleration_support.so
