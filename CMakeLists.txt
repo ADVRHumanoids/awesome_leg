@@ -1,13 +1,23 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(awesome_leg_pholus)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy urdf sensor_msgs xbot_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy urdf sensor_msgs xbot_msgs std_msgs message_generation)
 find_package(XBotInterface REQUIRED)
 find_package(xbot_msgs REQUIRED)
 find_package(matlogger2 QUIET)
 find_package(cartesian_interface REQUIRED)
 
-catkin_package()
+add_message_files(
+  FILES
+  EllTrajRt.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
+catkin_package(CATKIN_DEPENDS message_runtime)
 
 include_directories(include ${catkin_INCLUDE_DIRS} ${XBotInterface_INCLUDE_DIRS} ${xbot_msgs_INCLUDE_DIRS} ${cartesian_interface_INCLUDE_DIRS})
 

@@ -13,6 +13,8 @@
 
 #include <math.h> 
 
+#include <awesome_leg_pholus/EllTrajRt.h>
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 
@@ -61,9 +63,7 @@ private:
     Eigen::VectorXd _tau_tilde, 
                     _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
-                    _q_p_meas, _q_p_dot_meas, _q_p_ddot_meas,
-                    _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
-                    _q_p_target,
+                    _q_p_meas, _q_p_dot_meas,
                     _effort_command, _meas_effort, 
                     _tip_ref_traj,
                     _effort_lims;
@@ -95,16 +95,26 @@ private:
 
     std::unique_ptr<ros::NodeHandle> _nh;
 
+    // queue object to handle multiple subscribers/servers at once
+    CallbackQueue _queue;
+
+    // handle adapting ROS primitives for RT support
+    RosSupport::UniquePtr _ros;
+
     bool _rt_active, _nrt_exit, _is_interaction,
-         _use_vel_ff, _use_acc_ff;
+         _traj_par_callback_trigger = false,
+         _use_vel_ff, _use_acc_ff,
+         _is_forward;
 
     double _dt, _time, 
-           _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha,
+           _time_traj_par,
+           _traj_prm_rmp_time, _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha,
+                               _t_exec_traj_init, _a_ellps_init, _b_ellps_init, _x_c_ellps_init, _z_c_ellps_init, _alpha_init,
+                               _t_exec_traj_trgt, _a_ellps_trgt, _b_ellps_trgt, _x_c_ellps_trgt, _z_c_ellps_trgt, _alpha_trgt,
            _delta_effort_lim;
 
-    int _n_jnts_model, _n_jnts_robot, _n_samples;
+    int _n_jnts_model, _n_jnts_robot;
 
-    // method for computing joint efforts using the measured robot state
     void get_params_from_config();
     void init_model_interface();
     void init_cartesio_solver();
@@ -114,6 +124,13 @@ private:
     void nrt_thread_callback();
     void compute_ref_traj(double time);
     void saturate_input();
+    void peisekah_transition();
+
+    // ROS topic callback
+    void on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg);
+
+    // XBot2.0 pub/sub/server wrapping the ones from ROS
+    SubscriberPtr<awesome_leg_pholus::EllTrajRt> _ell_traj_sub;
 
 };
 

@@ -12,15 +12,15 @@ void CartesioEllConfigRt::get_params_from_config()
     bool damping_found = getParam("~damping", _damping);
     bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
-    
-    bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
-    bool n_samples_found = getParam("~n_samples", _n_samples);
 
     bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
 
     bool use_vel_ff_found = getParam("~use_vel_ff", _use_vel_ff);
     bool use_acc_ff_found = getParam("~use_acc_ff", _use_acc_ff);
 
+    bool traj_prm_rmp_time_found = getParam("~traj_prm_rmp_time", _traj_prm_rmp_time);
+    bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
+    bool forward_found = getParam("~forward", _is_forward);
     bool a_found = getParam("~a", _a_ellps);
     bool b_found = getParam("~b", _b_ellps);
     bool x_c_found = getParam("~x_c", _x_c_ellps);
@@ -28,7 +28,6 @@ void CartesioEllConfigRt::get_params_from_config()
     bool alpha_found = getParam("~alpha", _alpha);
 
     bool is_interaction_found = getParam("~is_interaction", _is_interaction);
-
 }
 
 void CartesioEllConfigRt::init_model_interface()
@@ -150,7 +149,6 @@ void CartesioEllConfigRt::compute_ref_traj(double time)
     Eigen::Vector3d traj_offset, traj, traj_dot, traj_ddot, traj_wrt_center, rot_axis;
     rot_axis << 0, 1, 0; // rotate trajectory around y axis (same direction as the hip joint)
 
-
     // Traj wrt rotated frame
 
     traj_offset << _x_c_ellps, 
@@ -173,7 +171,6 @@ void CartesioEllConfigRt::compute_ref_traj(double time)
                 0, 
                 -_b_ellps * 4 * pow(M_PI, 2) / pow(_t_exec_traj, 2) * sin(2 * M_PI * time/_t_exec_traj);
 
-    
     // Rotating everything in the base frame
 
     Eigen::Affine3d A_pos = Eigen::Translation3d(traj_offset) * Eigen::AngleAxisd(- _alpha, rot_axis) * Eigen::Translation3d(-traj_offset); // affine transf. for the position trajectory 
@@ -193,10 +190,106 @@ void CartesioEllConfigRt::compute_ref_traj(double time)
 
 }
 
+void CartesioEllConfigRt::on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg)
+{
+    _traj_par_callback_trigger = true; // to signal to other methods that a callback was received
+    
+    // Resetting parameters trajectory time 
+    _time_traj_par = 0;
+
+    _is_forward = msg.is_forward; // trajectory direction
+
+    // Assigning read trajectory parameters to target variables
+    _t_exec_traj_trgt = abs(msg.t_exec);
+    _x_c_ellps_trgt = msg.x_c;
+    _z_c_ellps_trgt = msg.z_c;
+    _a_ellps_trgt = _is_forward ? abs(msg.a_ellps): - abs(msg.a_ellps); 
+    _b_ellps_trgt = abs(msg.b_ellps);
+    _alpha_trgt = msg.alpha;
+
+    _use_vel_ff = msg.use_vel_ff;
+    _use_acc_ff = msg.use_acc_ff;
+
+    // Assigning current trajectory parameters values
+    _t_exec_traj_init = _t_exec_traj;
+    _x_c_ellps_init = _x_c_ellps;
+    _z_c_ellps_init = _z_c_ellps;
+    _a_ellps_init = _a_ellps;
+    _b_ellps_init = _b_ellps;
+    _alpha_init = _alpha;
+    
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "Received new traj. configuration:\n");
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "t_exec: {}\n", _t_exec_traj_trgt);
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "a_ellps: {}\n", _a_ellps_trgt);
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "b_ellps: {}\n", _b_ellps_trgt);
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "x_c_ellps: {}\n", _x_c_ellps_trgt);
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "z_c_ellps: {}\n", _z_c_ellps_trgt);
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "alpha: {}\n", _alpha_trgt);
+    
+    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta), "\n");
+
+}
+
+void CartesioEllConfigRt::peisekah_transition()
+{
+    
+    if (_traj_par_callback_trigger) // a callback was received (defaults to false)
+    {
+        if (_time_traj_par >= _traj_prm_rmp_time) // parameter transition trajectory completed --> set params to their target, to avoid numerical errors
+        {
+
+            _t_exec_traj = _t_exec_traj_trgt;
+            _x_c_ellps = _x_c_ellps_trgt;
+            _z_c_ellps = _z_c_ellps_trgt;
+            _a_ellps = _a_ellps_trgt;
+            _b_ellps = _b_ellps_trgt;
+            _alpha = _alpha_trgt;
+
+            _traj_par_callback_trigger = false; // reset callback counter, since parameters' trajectory has terminated
+        }
+        else
+        {
+            // Smooth transition for the traj paramters changed via ROS topic 
+            double common_part_traj = (126.0 * pow(_time_traj_par/_traj_prm_rmp_time, 5) - 420.0 * pow(_time_traj_par/_traj_prm_rmp_time, 6) + 540.0 * pow(_time_traj_par/_traj_prm_rmp_time, 7) - 315.0 * pow(_time_traj_par/_traj_prm_rmp_time, 8) + 70.0 * pow(_time_traj_par/_traj_prm_rmp_time, 9));
+            
+            _t_exec_traj = _t_exec_traj_init + (_t_exec_traj_trgt - _t_exec_traj_init) *  common_part_traj;
+            _x_c_ellps = _x_c_ellps_init + (_x_c_ellps_trgt - _x_c_ellps_init) *  common_part_traj;
+            _z_c_ellps = _z_c_ellps_init + (_z_c_ellps_trgt - _z_c_ellps_init) *  common_part_traj;
+            _a_ellps = _a_ellps_init + (_a_ellps_trgt - _a_ellps_init) *  common_part_traj;
+            _b_ellps = _b_ellps_init + (_b_ellps_trgt - _b_ellps_init) *  common_part_traj;
+            _alpha = _alpha_init + (_alpha_trgt - _alpha_init) *  common_part_traj;
+        }
+
+        _time_traj_par += _dt; // incrementing trajory parameter time
+    }
+
+}
+
 bool CartesioEllConfigRt::on_initialize()
 {
 
-    _nh = std::make_unique<ros::NodeHandle>();
+    // create a nodehandle with namespace equal to
+    // the plugin name
+    ros::NodeHandle nh(getName());
+    // use it to create our 'RosSupport' class
+    // note: this must run *after* ros::init, which
+    // at this point is guaranteed to be true
+    _ros = std::make_unique<RosSupport>(nh);
+
+    /* Subscriber */
+    _ell_traj_sub = _ros->subscribe("my_ell_traj",
+                                &CartesioEllConfigRt::on_ell_traj_recv,
+                                this,
+                                1,  // queue size
+                                &_queue);
     
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
@@ -244,6 +337,8 @@ void CartesioEllConfigRt::starting()
 
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0.0;
+    // initializing time (used for interpolation of trajectory parameters)
+    _time_traj_par = 0.0;
 
     // // Update the model with the current robot state
     update_state();  
@@ -263,6 +358,12 @@ void CartesioEllConfigRt::starting()
 
 void CartesioEllConfigRt::run()
 {   
+    // process callbacks
+    _queue.run();
+    
+    // Compute a smooth transition for the (potentially) changed trajectory parameters. 
+    peisekah_transition();
+    
     /* Receive commands from nrt */
     _nrt_solver->callAvailable(_solver.get());
     
@@ -307,18 +408,18 @@ void CartesioEllConfigRt::run()
     // Check input for bound violations
     saturate_input(); 
 
-    // Set the effort commands (and also stiffness/damping)
-    _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
+    // Set the commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command + _tau_tilde);
+    _robot->setPositionReference(_q_p_meas);
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 
     // Send commands to the robot
     _robot->move(); 
 
-    // Update time
+    // Update time(s)
     _time += _dt;
-
+    
     if (_time >= _t_exec_traj)
     {
         _time = _time - _t_exec_traj;
@@ -330,8 +431,23 @@ void CartesioEllConfigRt::run()
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
     
-    _logger->add("target_tip_pos", _target_pose.translation());
-    _logger->add("meas_tip_pos", _meas_pose.translation());
+    _logger->add("tip_pos_ref", _target_pose.translation());
+    _logger->add("tip_pos_meas", _meas_pose.translation());
+
+    _logger->add("t_exec_traj", _t_exec_traj);
+    _logger->add("a_ellps", _a_ellps);
+    _logger->add("b_ellps", _b_ellps);
+    _logger->add("x_c_ellps", _x_c_ellps);
+    _logger->add("z_c_ellps", _z_c_ellps);
+    _logger->add("alpha", _alpha);
+
+    _logger->add("traj_prm_rmp_time",_traj_prm_rmp_time);
+
+    _logger->add("q_p_meas", _q_p_meas);
+    _logger->add("q_p_dot_meas", _q_p_dot_meas);
+
+    _logger->add("use_vel_ff", _use_vel_ff);
+    _logger->add("use_acc_ff", _use_acc_ff);
 
     if (_int_task)
     {
@@ -348,17 +464,19 @@ void CartesioEllConfigRt::on_stop()
 {
     // Read the current state
     update_state();
+
     // Setting references before exiting
+
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
     _robot->setPositionReference(_q_p_meas);
+
     // Sending references
     _robot->move();
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _logger.reset();
-    
 }
 
 void CartesioEllConfigRt::stopping()
