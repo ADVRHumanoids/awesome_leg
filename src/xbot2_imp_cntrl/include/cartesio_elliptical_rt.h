@@ -88,9 +88,6 @@ private:
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
 
-    Eigen::Matrix6d _cart_stiffness_cmd = Eigen::Matrix6d::Zero();
-    Eigen::Matrix6d _cart_damping_cmd = Eigen::Matrix6d::Zero();
-
     XBot::Cartesian::RosServerClass::Ptr _ros_srv;
 
     std::unique_ptr<thread> _nrt_thread;
@@ -98,9 +95,8 @@ private:
     std::unique_ptr<ros::NodeHandle> _nh;
 
     bool _rt_active, _nrt_exit, _is_interaction, 
-         _use_vel_ff, _use_acc_ff,
-         _use_local_stiff;
-
+         _use_vel_ff, _use_acc_ff;
+         
     double _dt, _time, 
            _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha, 
            _delta_effort_lim;
@@ -117,8 +113,6 @@ private:
     void nrt_thread_callback();
     void compute_ref_traj(double time);
     void saturate_input();
-    void rot_impedance(Eigen::Vector6d vel_vector);
-
 };
 
 #endif // CARTESIO_ELLIPTICAL_RT

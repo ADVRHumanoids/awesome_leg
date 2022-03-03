@@ -92,10 +92,6 @@ xbotcore_plugins:
             x_c: {value: -0.15, type: double} # ellipsis center x-coordinate
             z_c: {value: -0.5, type: double} # ellipsis center y-coordinate
             alpha: {value: 0.0, type: double} # ellipsis rotation angle
-            use_local_stiff: {value: true, type: bool} # whether of not to set the cartesian impedance on the frame tangent to the
-            local_cart_stiff: {value: [1000, 0, 1000], type: Eigen::VectorXd} # required cartesian stiffness wrt the frame tangent to the input traj
-            local_cart_damp: {value: [20, 0, 20], type: Eigen::VectorXd} # required cartesian damping wrt the frame tangent to the input traj
-
 
     ell_config_rt: 
         thread: rt_ci_ell_cnfg

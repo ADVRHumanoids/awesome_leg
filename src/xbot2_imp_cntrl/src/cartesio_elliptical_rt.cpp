@@ -29,10 +29,6 @@ void CartesioEllipticalRt::get_params_from_config()
 
     bool interaction_found = getParam("~is_interaction", _is_interaction);
 
-    bool use_local_stiff_found = getParam("~use_local_stiff", _use_local_stiff);
-    bool local_cart_stiff_found = getParam("~local_cart_stiff", _local_cart_stiff);
-    bool local_cart_damp_found = getParam("~local_cart_damp", _local_cart_damp);
-
 }
 
 void CartesioEllipticalRt::init_model_interface()
@@ -196,35 +192,6 @@ void CartesioEllipticalRt::compute_ref_traj(double time)
 
 }
 
-void CartesioEllipticalRt::rot_impedance(Eigen::Vector6d velocity)
-{
-
-
-    // // Only for a planar trajectory for now
-    // Eigen::VectorXd rot_stiffness, rot_damping;
-    // Eigen::Vector3d rot_axis;
-    // rot_axis << 0.0, 1.0, 0.0;
-    
-    // double cos_theta = velocity(0) / sqrt((pow(velocity(0), 2) + pow(velocity(2), 2)));
-    // double sin_theta = velocity(2) / sqrt((pow(velocity(0), 2) + pow(velocity(2), 2)));
-    // double theta = atan2(sin_theta, cos_theta);
-
-    // Eigen::AngleAxisd rot = Eigen::AngleAxisd(-theta, rot_axis); // affine transf. for the vel and acceleration trajectories
-    
-    // rot_stiffness = rot * _local_cart_stiff;
-    // rot_damping = rot * _local_cart_damp;
-
-    // for(int i = 0; i < 3; i++)  // only assign diagonal elements (translational impedance)
-    // {
-    //     _cart_stiffness_cmd(i, i) = abs(rot_stiffness[i]); // stiffness coeff always positive
-    //     _cart_damping_cmd(i, i) = abs(rot_damping[i]); // damping coeff always positive
-    // }
-    
-    // _impedance.stiffness = _cart_stiffness_cmd;
-    // _impedance.damping = _cart_damping_cmd;
-    
-}
-
 bool CartesioEllipticalRt::on_initialize()
 {
     _nh = std::make_unique<ros::NodeHandle>();
@@ -332,14 +299,7 @@ void CartesioEllipticalRt::run()
 
     if (_int_task)
     {
-        if (_use_local_stiff)
-        {
-            // Rotating the local impedance in the base frame and setting it
-            rot_impedance(_target_vel);
-
-            _int_task->setImpedance(_impedance);
-        }
-        
+   
         // Logging impedance for post-processing
         _impedance= _int_task->getImpedance();
         _cart_stiffness = _impedance.stiffness; 
