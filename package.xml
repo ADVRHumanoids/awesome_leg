@@ -15,7 +15,6 @@
    <!-- <build_depend>xbot_msgs</build_depend> -->
 
    <buildtool_depend>catkin</buildtool_depend>
-   <buildtool_depend>catkin</buildtool_depend> 
    
    <!-- <build_export_depend>xbot_msgs</build_export_depend> -->
 
