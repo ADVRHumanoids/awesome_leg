@@ -112,7 +112,8 @@ xbotcore_plugins:
             use_vel_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             use_acc_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             traj_prm_rmp_time: {value: 4.0, type: double} # when traj. params are changes via topic, they are ramped to their target within this time
-            t_exec_traj: {value: 1.0, type: double} # trajectory execution time
+            t_exec_traj: {value: 0.01, type: double} # trajectory execution time
+            t_exec_lb: {value: 0.1, type: double} # is t_exec_traj < t_exec_lb, then t_exec_traj is set to t_exec_lb, for safety reasons
             is_forward: {value: true, type: bool} # trajectory execution direction
             a: {value: 0.1, type: double} # "horizontal" semi-axis length
             b: {value: 0.05, type: double} # "vertical" semi-axis length

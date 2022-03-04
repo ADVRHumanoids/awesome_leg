@@ -108,14 +108,15 @@ private:
 
     double _dt, _time, 
            _time_traj_par,
-           _traj_prm_rmp_time, _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha,
+           _traj_prm_rmp_time, _t_exec_lb,
+                               _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha,
                                _t_exec_traj_init, _a_ellps_init, _b_ellps_init, _x_c_ellps_init, _z_c_ellps_init, _alpha_init,
                                _t_exec_traj_trgt, _a_ellps_trgt, _b_ellps_trgt, _x_c_ellps_trgt, _z_c_ellps_trgt, _alpha_trgt,
            _delta_effort_lim;
 
     int _n_jnts_model, _n_jnts_robot;
 
-    void get_params_from_config();
+    bool get_params_from_config();
     void init_model_interface();
     void init_cartesio_solver();
     void update_state();

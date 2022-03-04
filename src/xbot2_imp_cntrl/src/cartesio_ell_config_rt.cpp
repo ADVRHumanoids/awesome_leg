@@ -1,6 +1,6 @@
 #include "cartesio_ell_config_rt.h"
 
-void CartesioEllConfigRt::get_params_from_config()
+bool CartesioEllConfigRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -20,14 +20,37 @@ void CartesioEllConfigRt::get_params_from_config()
 
     bool traj_prm_rmp_time_found = getParam("~traj_prm_rmp_time", _traj_prm_rmp_time);
     bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
-    bool forward_found = getParam("~forward", _is_forward);
+    bool t_exec_lb_found = getParam("~t_exec_lb", _t_exec_lb);
+    bool forward_found = getParam("~is_forward", _is_forward);
     bool a_found = getParam("~a", _a_ellps);
     bool b_found = getParam("~b", _b_ellps);
     bool x_c_found = getParam("~x_c", _x_c_ellps);
     bool z_c_found = getParam("~z_c", _z_c_ellps);
     bool alpha_found = getParam("~alpha", _alpha);
 
-    bool is_interaction_found = getParam("~is_interaction", _is_interaction);
+    if (
+        !(tau_tilde_found && 
+        urdf_path_found && srdf_path_found && cartesio_path_found &&
+        stiffness_found && damping_found && stop_stiffness_found && stop_damping_found &&
+        delta_effort_lim_found && 
+        use_vel_ff_found && use_acc_ff_found && 
+        traj_prm_rmp_time_found && t_exec_traj_found && t_exec_lb_found && 
+        forward_found && 
+        a_found && b_found && x_c_found && z_c_found && alpha_found)
+        )
+    { // not all necessary parameters were read -> throw error
+        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have correctly assigned all of them.");
+                
+        return false;
+    }
+
+    if (abs(_t_exec_traj) < abs(_t_exec_lb))
+    { // saturating (towards its lower bound) the trajectory execution time for safety reasons.
+        _t_exec_traj = _t_exec_lb; 
+        jhigh().jwarn("The selected t_exec_traj is less than the set t_exec_lb.\n Setting t_exec_traj to {} s.", _t_exec_lb);  
+    }
+
+    return true;
 }
 
 void CartesioEllConfigRt::init_model_interface()
