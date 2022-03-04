@@ -92,7 +92,7 @@ private:
     int _n_jnts_model, _n_jnts_robot;
 
     // method for computing joint efforts using the measured robot state
-    void get_params_from_config();
+    bool get_params_from_config();
     void init_model_interface();
     void init_cartesio_solver();
     void update_state();

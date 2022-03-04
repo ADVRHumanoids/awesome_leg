@@ -1,6 +1,6 @@
 #include "grav_comp_cart_rt.h"
 
-void GravCompCartesio::get_params_from_config()
+bool GravCompCartesio::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -12,6 +12,18 @@ void GravCompCartesio::get_params_from_config()
     bool damping_found = getParam("~damping", _damping);
     bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
     bool stop_damping_found = getParam("~stop_damping", _stop_damping);
+
+    if (
+        !(tau_tilde_found && 
+        urdf_path_found && srdf_path_found && cartesio_path_found &&
+        stiffness_found && damping_found && stop_stiffness_found && stop_damping_found)
+        )
+    { // not all necessary parameters were read -> throw error
+        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have correctly assigned all of them.");
+                
+        return false;
+    }
+    return true;
 }
 
 void GravCompCartesio::init_model_interface()

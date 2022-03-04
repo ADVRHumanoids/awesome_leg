@@ -1,6 +1,6 @@
 #include "cartesio_imp_cntrl_ros_rt.h"
 
-void CartesioImpCntrlRosRt::get_params_from_config()
+bool CartesioImpCntrlRosRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
@@ -14,6 +14,16 @@ void CartesioImpCntrlRosRt::get_params_from_config()
 
     bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
 
+    if (
+        !(urdf_path_found && srdf_path_found && cartesio_path_found &&
+        stiffness_found && damping_found && stop_stiffness_found && stop_damping_found &&
+        delta_effort_lim_found)
+        )
+    { // not all necessary parameters were read -> throw error
+        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have correctly assigned all of them.");
+                
+        return false;
+    }
 }
 
 void CartesioImpCntrlRosRt::init_model_interface()
