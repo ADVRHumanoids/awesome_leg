@@ -40,7 +40,7 @@ xbotcore_plugins:
     
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-    imp_cntrl_rt: 
+    imp_cntrl_rt: # point-to-point motion with impedance control
         thread: rt_cart_imp
         type: cartesio_imp_cntrl_rt
         params:
@@ -56,7 +56,7 @@ xbotcore_plugins:
             stop_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
-    imp_cntrl_ros_rt: 
+    imp_cntrl_ros_rt: # point-to-point motion with impedance control employing RViz interactive marker
         thread: rt_ros_cart_imp
         type: cartesio_imp_cntrl_ros_rt
         params:
@@ -71,7 +71,7 @@ xbotcore_plugins:
             stop_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
-    elliptical_rt: 
+    elliptical_rt: # elliptical trajectory tracking without configurable parameters (offline)
         thread: rt_cart_ellipt
         type: cartesio_elliptical_rt
         params:
@@ -94,7 +94,7 @@ xbotcore_plugins:
             z_c: {value: -0.5, type: double} # ellipsis center y-coordinate
             alpha: {value: 0.0, type: double} # ellipsis rotation angle
 
-    ell_config_rt: 
+    ell_config_rt: # elliptical trajectory tracking with configurable parameters (online, via dedicated ROS topics)
         thread: rt_ci_ell_cnfg
         type: cartesio_ell_config_rt
         params:
