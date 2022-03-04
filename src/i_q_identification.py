@@ -16,8 +16,6 @@ import yaml
 
 from awesome_leg_pholus.param_identification_utilities import *
 
-import matplotlib as plt
-
 ######################### PRE-INITIALIZATIONS #########################
 
 # Loading actuator paramters
