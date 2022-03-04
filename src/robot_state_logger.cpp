@@ -133,7 +133,7 @@ int aux_type_encoder(string msg_type)
         g_logger -> add(msg_type + "_aux_code", aux_types_encode_number); // add the pair key-value associated with this signal to the .mat file for post-processing
     }
 
-    msg_code=aux_msg_type_map.at(msg_type); // read the key associated with the msg_type from the aux code map
+    msg_code = aux_msg_type_map.at(msg_type); // read the key associated with the msg_type from the aux code map
 
     return msg_code;
 }
@@ -157,7 +157,7 @@ auto aux_mapper(xbot_msgs::CustomStateConstPtr msg)
     {
         indices = map_indices(js_names, msg->name); // this runs only the first time an aux message is received (joint mapping is assumed to be constant throughout a session)
       
-        is_first_aux_msg=false; // mapping not needed anymore 
+        is_first_aux_msg = false; // mapping not needed anymore 
     }
 
     for (int i = 0; i < n_names; i++) // mapping
@@ -183,7 +183,7 @@ void log_chain_ids(xbot_msgs::JointStateConstPtr msg)
     for(const auto& pair : g_model->getChainMap()) // slide through each model chain
     {
         vector<int> ch_idx;
-        bool at_least1_jnt_found=false; // whether or not at least one joint from the msg was found in this chain
+        bool at_least1_jnt_found = false; // whether or not at least one joint from the msg was found in this chain
 
         for(const auto& jname : pair.second->getJointNames()) // slide through each joint name of the chain
         {
@@ -202,7 +202,7 @@ void log_chain_ids(xbot_msgs::JointStateConstPtr msg)
         g_logger->add(pair.first, ch_idx);
     }
     
-    js_names=msg->name; // assigning the received joint names to an auxiliary global vector (joint names and their order do not change by hypothesis)
+    js_names = msg->name; // assigning the received joint names to an auxiliary global vector (joint names and their order do not change by hypothesis)
 
     auto jnames_cell = XBot::matlogger2::MatData::make_cell(js_names.size());
     auto chnames_cell = XBot::matlogger2::MatData::make_cell(ch_names.size());
@@ -270,7 +270,12 @@ void on_aux_received(xbot_msgs::CustomStateConstPtr msg)
 
     @param msg Input message
     */
-
+    
+    if(!g_logger)
+    {
+        return;
+    }
+    
     auto remapped_tuple = aux_mapper(msg); // remapping aux types
 
     g_logger->add("aux_time", msg->header.stamp.toSec());
