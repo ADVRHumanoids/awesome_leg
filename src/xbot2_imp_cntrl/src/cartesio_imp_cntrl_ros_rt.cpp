@@ -24,6 +24,8 @@ bool CartesioImpCntrlRosRt::get_params_from_config()
                 
         return false;
     }
+
+    return true;
 }
 
 void CartesioImpCntrlRosRt::init_model_interface()
@@ -208,6 +210,12 @@ void CartesioImpCntrlRosRt::starting()
     // signal nrt thread that rt is active
     _rt_active = true;
 
+    _logger->add("plugin_dt", _dt);
+    _logger->add("stop_stiffness", _stop_stiffness);
+    _logger->add("stop_damping", _stop_damping);
+    _logger->add("stiffness", _stiffness);
+    _logger->add("damping", _damping);
+
     // Move on to run()
     start_completed();
 }
@@ -244,14 +252,23 @@ void CartesioImpCntrlRosRt::run()
     // Update time
     _time += _dt;
 
+    // Getting some additional useful data
     _model->getInertiaMatrix(_M);
     _model->getJacobian("tip", _J);
 
-    // Logging stuff
+    _model->getPose("tip", _meas_pose); 
+
+    // Adding that useful data to logger
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("effort_command", _effort_command);
+
     _logger->add("M", _M);
     _logger->add("J", _J);
+
+    _logger->add("tip_pos_meas", _meas_pose.translation());
+
+    _logger->add("q_p_meas", _q_p_meas);
+    _logger->add("q_p_dot_meas", _q_p_dot_meas);
 
     if (_int_task)
     {

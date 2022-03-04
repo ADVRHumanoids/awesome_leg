@@ -59,6 +59,8 @@ private:
 
     Eigen::Affine3d _target_pose;
 
+    Eigen::Affine3d _meas_pose;
+
     std::string _urdf_path, _srdf_path, _cartesio_path;
 
     XBot::ModelInterface::Ptr _model, _nrt_model;  

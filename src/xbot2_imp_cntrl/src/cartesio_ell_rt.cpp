@@ -379,19 +379,18 @@ void CartesioEllRt::starting()
     // signal nrt thread that rt is active
     _rt_active = true;
 
-    // Move on to run()
-    start_completed();
-
+    _logger->add("plugin_dt", _dt);
     _logger->add("stop_stiffness", _stop_stiffness);
     _logger->add("stop_damping", _stop_damping);
     _logger->add("stiffness", _stiffness);
     _logger->add("damping", _damping);
     _logger->add("use_vel_ff", _use_vel_ff);
     _logger->add("use_acc_ff", _use_acc_ff);
-    _logger->add("use_acc_ff", _traj_prm_rmp_time);
     _logger->add("t_exec_lb", _t_exec_lb);
     _logger->add("traj_prm_rmp_time",_traj_prm_rmp_time);
 
+    // Move on to run()
+    start_completed();
 }
 
 void CartesioEllRt::run()
@@ -463,11 +462,17 @@ void CartesioEllRt::run()
         _time = _time - _t_exec_traj;
     }
     
-    // Getting tip pose for debugging
+    // Getting some additional useful data
     _model->getPose("tip", _meas_pose);
+    _model->getInertiaMatrix(_M);
+    _model->getJacobian("tip", _J);
 
+    // Adding that useful data to logger
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
+
+    _logger->add("M", _M);
+    _logger->add("J", _J);
     
     _logger->add("tip_pos_ref", _target_pose.translation());
     _logger->add("tip_pos_meas", _meas_pose.translation());
