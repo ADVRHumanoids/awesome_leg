@@ -125,7 +125,7 @@ class LogLoader:
             
         if 'joint_names' in name: # assigns the joint names to a dictionary
 
-            ds=self.mat_file_h5py[name] # extract a "dataset" from the loaded file
+            ds = self.mat_file_h5py[name] # extract a "dataset" from the loaded file
 
             for i in range(ds.size):
                 self.joints[self.__read_str_from_ds(ds, i)] = i+1 # assign an incremental code to each joint, based on how they are already ordered
