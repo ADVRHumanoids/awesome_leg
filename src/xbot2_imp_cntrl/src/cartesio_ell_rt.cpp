@@ -374,7 +374,7 @@ void CartesioEllRt::starting()
     _solver->reset(_time);
 
     // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
 
     // signal nrt thread that rt is active
     _rt_active = true;

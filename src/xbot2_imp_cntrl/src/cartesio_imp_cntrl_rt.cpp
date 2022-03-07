@@ -152,7 +152,7 @@ void CartesioImpCntrlRt::starting()
     _int_task->setPoseTarget(_target_pose, _t_exec);
 
     // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
 
     // Move on to run()
     start_completed();
@@ -176,7 +176,7 @@ void CartesioImpCntrlRt::run()
 
     // Set the effort commands (and also stiffness/damping)
     _robot->setEffortReference(_effort_command);
-    // _robot->setPositionReference(_q_p_meas); // sending also position reference only to improve the transition between torque and position control when stopping the plugin
+    _robot->setPositionReference(_q_p_meas); // sending also position reference only to avoid bad behavior when stopping the plugin
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
 
