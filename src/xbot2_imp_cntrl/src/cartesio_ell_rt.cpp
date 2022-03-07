@@ -19,23 +19,22 @@ bool CartesioEllRt::get_params_from_config()
     bool use_acc_ff_found = getParam("~use_acc_ff", _use_acc_ff);
 
     bool traj_prm_rmp_time_found = getParam("~traj_prm_rmp_time", _traj_prm_rmp_time);
-    bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj);
+    bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj_trgt);
     bool t_exec_lb_found = getParam("~t_exec_lb", _t_exec_lb);
     bool forward_found = getParam("~is_forward", _is_forward);
-    bool a_found = getParam("~a", _a_ellps);
-    bool b_found = getParam("~b", _b_ellps);
-    bool x_c_found = getParam("~x_c", _x_c_ellps);
-    bool z_c_found = getParam("~z_c", _z_c_ellps);
-    bool alpha_found = getParam("~alpha", _alpha);
+    bool a_found = getParam("~a", _a_ellps_trgt);
+    bool b_found = getParam("~b", _b_ellps_trgt);
+    bool x_c_found = getParam("~x_c", _x_c_ellps_trgt);
+    bool z_c_found = getParam("~z_c", _z_c_ellps_trgt);
+    bool alpha_found = getParam("~alpha", _alpha_trgt);
 
     if (
         !(tau_tilde_found && 
         urdf_path_found && srdf_path_found && cartesio_path_found &&
         stiffness_found && damping_found && stop_stiffness_found && stop_damping_found &&
         delta_effort_lim_found && 
-        use_vel_ff_found && use_acc_ff_found && 
-        traj_prm_rmp_time_found && t_exec_traj_found && t_exec_lb_found && 
-        forward_found && 
+        use_vel_ff_found && use_acc_ff_found &&
+        traj_prm_rmp_time_found && t_exec_traj_found && t_exec_lb_found && forward_found &&
         a_found && b_found && x_c_found && z_c_found && alpha_found)
         )
     { // not all necessary parameters were read -> throw error
@@ -49,6 +48,8 @@ bool CartesioEllRt::get_params_from_config()
         _t_exec_traj = _t_exec_lb; 
         jhigh().jwarn("The selected t_exec_traj is less than the set t_exec_lb.\n Setting t_exec_traj to {} s.", _t_exec_lb);  
     }
+
+
 
     return true;
 }
@@ -267,7 +268,6 @@ void CartesioEllRt::on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg)
 
 void CartesioEllRt::peisekah_transition()
 {
-    
     if (_traj_par_callback_trigger) // a callback was received (defaults to false)
     {
         if (_time_traj_par >= _traj_prm_rmp_time) // parameter transition trajectory completed --> set params to their target, to avoid numerical errors
@@ -343,6 +343,8 @@ bool CartesioEllRt::on_initialize()
 
 void CartesioEllRt::starting()
 {
+    // Resetting flag for reaching the initial tip position
+    _first_run = true;
 
     // Creating a logger for post-processing
     MatLogger2::Options opt;
@@ -367,7 +369,7 @@ void CartesioEllRt::starting()
     // initializing time (used for interpolation of trajectory parameters)
     _time_traj_par = 0.0;
 
-    // // Update the model with the current robot state
+    // Update the model with the current robot state
     update_state();  
 
     // Reset CartesIO solver
@@ -391,10 +393,29 @@ void CartesioEllRt::starting()
 
     // Move on to run()
     start_completed();
+
 }
 
 void CartesioEllRt::run()
 {   
+    if (_first_run)
+    { // first time entering the run
+
+        _traj_par_callback_trigger = true; //  faking a received trajectory configuration
+
+        update_state();
+        _model->getPose("tip", _meas_pose); // getting initial tip position
+        
+        _t_exec_traj_init = _t_exec_traj_trgt;
+        _a_ellps_init = 0;
+        _b_ellps_init = 0;
+        _alpha_init = 0;
+        _x_c_ellps_init = _meas_pose.translation()[0];
+        _z_c_ellps_init = _meas_pose.translation()[2];
+
+        _first_run = false;
+        
+    }
     // process callbacks
     _queue.run();
     
@@ -415,6 +436,7 @@ void CartesioEllRt::run()
 
     // Setting target trajectory 
     _cart_task->setPoseReference(_target_pose); 
+
     if (_use_vel_ff)
     {
         _cart_task->setVelocityReference(_target_vel);

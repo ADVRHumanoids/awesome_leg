@@ -15,6 +15,8 @@
 
 #include <awesome_leg_pholus/EllTrajRt.h>
 
+#include <thread>
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 
@@ -107,7 +109,8 @@ private:
     bool _rt_active, _nrt_exit, _is_interaction,
          _traj_par_callback_trigger = false,
          _use_vel_ff, _use_acc_ff,
-         _is_forward;
+         _is_forward, 
+         _first_run = true;
 
     double _dt, _time, 
            _time_traj_par,
@@ -115,7 +118,8 @@ private:
                                _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha,
                                _t_exec_traj_init, _a_ellps_init, _b_ellps_init, _x_c_ellps_init, _z_c_ellps_init, _alpha_init,
                                _t_exec_traj_trgt, _a_ellps_trgt, _b_ellps_trgt, _x_c_ellps_trgt, _z_c_ellps_trgt, _alpha_trgt,
-           _delta_effort_lim;
+           _delta_effort_lim, 
+           _stop_loop_dt;
 
     int _n_jnts_model, _n_jnts_robot;
 
