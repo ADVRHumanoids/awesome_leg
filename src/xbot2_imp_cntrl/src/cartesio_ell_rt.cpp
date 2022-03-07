@@ -2,7 +2,7 @@
 
 bool CartesioEllRt::get_params_from_config()
 {
-    // Reading some paramters from XBot2 config. YAML file
+    // Reading some parameters from XBot2 config. YAML file
 
     bool tau_tilde_found = getParam("~torque_bias", _tau_tilde); // estimated bias torques
     bool urdf_path_found = getParam("~urdf_path", _urdf_path); // urdf specific to gravity compensator
@@ -39,7 +39,7 @@ bool CartesioEllRt::get_params_from_config()
         a_found && b_found && x_c_found && z_c_found && alpha_found)
         )
     { // not all necessary parameters were read -> throw error
-        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have correctly assigned all of them.");
+        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have assigned all of them correctly.");
                 
         return false;
     }

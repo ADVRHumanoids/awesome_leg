@@ -191,10 +191,6 @@ void CartesioImpCntrlRosRt::starting()
         jerror("tip task not cartesian");
     }
 
-    // _model->setJointPosition(Eigen::ArrayXd::Zero(_n_jnts_model)); // only used to properly initialize the target pose
-    // _model->update();
-    // _model->getPose("tip", _target_pose); 
-
     // initializing time (used for interpolation of trajectories inside CartesIO)
     _time = 0.0;
 
@@ -258,6 +254,21 @@ void CartesioImpCntrlRosRt::run()
 
     _model->getPose("tip", _meas_pose); 
 
+    if (!_int_task)
+    { // interaction task
+
+        _cart_task->getPoseReference(_target_pose);
+        // _int_task->getLambda();
+        // _int_task->getLambda2();
+    }
+    else 
+    { // otherwise, assuming cartesian task
+
+        _int_task->getPoseReference(_target_pose);
+        // _cart_task->getLambda();
+        // _cart_task->getLambda2();
+    }
+
     // Adding that useful data to logger
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("effort_command", _effort_command);
@@ -266,6 +277,7 @@ void CartesioImpCntrlRosRt::run()
     _logger->add("J", _J);
 
     _logger->add("tip_pos_meas", _meas_pose.translation());
+    _logger->add("tip_pos_ref", _target_pose.translation());
 
     _logger->add("q_p_meas", _q_p_meas);
     _logger->add("q_p_dot_meas", _q_p_dot_meas);
