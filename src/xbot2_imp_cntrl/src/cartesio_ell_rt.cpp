@@ -506,13 +506,15 @@ void CartesioEllRt::run()
 void CartesioEllRt::on_stop()
 {
     // Read the current state
-    update_state();
+    _robot->sense();
+    _robot->getJointPosition(_q_p_meas);
+    _robot->getMotorVelocity(_q_p_dot_meas);  
 
     // Setting references before exiting
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
 
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
     _robot->setPositionReference(_q_p_meas);
 
     // Sending references
