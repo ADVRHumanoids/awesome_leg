@@ -4,26 +4,15 @@ bool CartesioImpCntrlRosRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
-    bool urdf_path_found = getParam("~urdf_path", _urdf_path); // urdf specific to gravity compensator
-    bool srdf_path_found = getParam("~srdf_path", _srdf_path); // srdf_path specific to gravity compensator
-    bool cartesio_path_found = getParam("~cartesio_yaml_path", _cartesio_path); // srdf_path specific to gravity compensator
-    bool stiffness_found = getParam("~stiffness", _stiffness);
-    bool damping_found = getParam("~damping", _damping);
-    bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
-    bool stop_damping_found = getParam("~stop_damping", _stop_damping);
+    _urdf_path = getParamOrThrow<std::string>("~urdf_path"); // urdf specific to gravity compensator
+    _srdf_path = getParamOrThrow<std::string>("~srdf_path"); // srdf_path specific to gravity compensator
+    _cartesio_path = getParamOrThrow<std::string>("~cartesio_yaml_path"); // srdf_path specific to gravity compensator
+    _stiffness = getParamOrThrow<Eigen::VectorXd>("~stiffness");
+    _damping = getParamOrThrow<Eigen::VectorXd>("~damping");
+    _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
+    _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
 
-    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
-
-    if (
-        !(urdf_path_found && srdf_path_found && cartesio_path_found &&
-        stiffness_found && damping_found && stop_stiffness_found && stop_damping_found &&
-        delta_effort_lim_found)
-        )
-    { // not all necessary parameters were read -> throw error
-        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have correctly assigned all of them.");
-                
-        return false;
-    }
+    _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
 
     return true;
 }
