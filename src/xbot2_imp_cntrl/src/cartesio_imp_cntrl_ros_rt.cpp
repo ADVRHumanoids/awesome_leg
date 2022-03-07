@@ -296,12 +296,16 @@ void CartesioImpCntrlRosRt::run()
 void CartesioImpCntrlRosRt::on_stop()
 {
     // Read the current state
-    update_state();
+    _robot->sense();
+
     // Setting references before exiting
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
     _robot->setPositionReference(_q_p_meas);
+
     // Sending references
     _robot->move();
 

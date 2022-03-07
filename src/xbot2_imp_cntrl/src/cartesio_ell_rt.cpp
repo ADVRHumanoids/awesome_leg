@@ -49,8 +49,6 @@ bool CartesioEllRt::get_params_from_config()
         jhigh().jwarn("The selected t_exec_traj is less than the set t_exec_lb.\n Setting t_exec_traj to {} s.", _t_exec_lb);  
     }
 
-
-
     return true;
 }
 
@@ -529,14 +527,13 @@ void CartesioEllRt::on_stop()
 {
     // Read the current state
     _robot->sense();
-    _robot->getJointPosition(_q_p_meas);
-    _robot->getMotorVelocity(_q_p_dot_meas);  
 
     // Setting references before exiting
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
 
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
+    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
     _robot->setPositionReference(_q_p_meas);
 
     // Sending references
