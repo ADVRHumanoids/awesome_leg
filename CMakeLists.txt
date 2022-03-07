@@ -6,6 +6,9 @@ find_package(XBotInterface REQUIRED)
 find_package(xbot_msgs REQUIRED)
 find_package(matlogger2 QUIET)
 find_package(cartesian_interface REQUIRED)
+find_package(xbot2 QUIET)
+
+option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 
 add_message_files(
   FILES
@@ -33,8 +36,8 @@ set_target_properties(robot_state_logger PROPERTIES INSTALL_RPATH_USE_LINK_PATH 
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY worlds DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY description/sdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY description/urdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY description/srdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
-install(DIRECTORY description/meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY description/sdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
+install(DIRECTORY description/urdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
+install(DIRECTORY description/srdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
+install(DIRECTORY description/meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
 
