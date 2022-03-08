@@ -10,6 +10,10 @@ add_xbot2_plugin(cartesio_imp_cntrl_ros_rt
 
 add_xbot2_plugin(cartesio_ell_rt
     src/cartesio_ell_rt.cpp)
+    
+add_dependencies(cartesio_imp_cntrl_rt awesome_leg_pholus_generate_messages)
+add_dependencies(cartesio_imp_cntrl_ros_rt awesome_leg_pholus_generate_messages)
+add_dependencies(cartesio_ell_rt awesome_leg_pholus_generate_messages)
 
 include_directories(include)
 
