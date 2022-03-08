@@ -4,44 +4,28 @@ bool CartesioEllRt::get_params_from_config()
 {
     // Reading some parameters from XBot2 config. YAML file
 
-    bool tau_tilde_found = getParam("~torque_bias", _tau_tilde); // estimated bias torques
-    bool urdf_path_found = getParam("~urdf_path", _urdf_path); // urdf specific to gravity compensator
-    bool srdf_path_found = getParam("~srdf_path", _srdf_path); // srdf_path specific to gravity compensator
-    bool cartesio_path_found = getParam("~cartesio_yaml_path", _cartesio_path); // srdf_path specific to gravity compensator
-    bool stiffness_found = getParam("~stiffness", _stiffness);
-    bool damping_found = getParam("~damping", _damping);
-    bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
-    bool stop_damping_found = getParam("~stop_damping", _stop_damping);
+    _urdf_path = getParamOrThrow<std::string>("~urdf_path"); // urdf specific to gravity compensator
+    _srdf_path = getParamOrThrow<std::string>("~srdf_path"); // srdf_path specific to gravity compensator
+    _cartesio_path = getParamOrThrow<std::string>("~cartesio_yaml_path"); // srdf_path specific to gravity compensator
+    _stiffness = getParamOrThrow<Eigen::VectorXd>("~stiffness");
+    _damping = getParamOrThrow<Eigen::VectorXd>("~damping");
+    _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
+    _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
 
-    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
+    _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
 
-    bool use_vel_ff_found = getParam("~use_vel_ff", _use_vel_ff);
-    bool use_acc_ff_found = getParam("~use_acc_ff", _use_acc_ff);
+    _use_vel_ff = getParamOrThrow<bool>("~use_vel_ff");
+    _use_acc_ff = getParamOrThrow<bool>("~use_acc_ff");
 
-    bool traj_prm_rmp_time_found = getParam("~traj_prm_rmp_time", _traj_prm_rmp_time);
-    bool t_exec_traj_found = getParam("~t_exec_traj", _t_exec_traj_trgt);
-    bool t_exec_lb_found = getParam("~t_exec_lb", _t_exec_lb);
-    bool forward_found = getParam("~is_forward", _is_forward);
-    bool a_found = getParam("~a", _a_ellps_trgt);
-    bool b_found = getParam("~b", _b_ellps_trgt);
-    bool x_c_found = getParam("~x_c", _x_c_ellps_trgt);
-    bool z_c_found = getParam("~z_c", _z_c_ellps_trgt);
-    bool alpha_found = getParam("~alpha", _alpha_trgt);
-
-    if (
-        !(tau_tilde_found && 
-        urdf_path_found && srdf_path_found && cartesio_path_found &&
-        stiffness_found && damping_found && stop_stiffness_found && stop_damping_found &&
-        delta_effort_lim_found && 
-        use_vel_ff_found && use_acc_ff_found &&
-        traj_prm_rmp_time_found && t_exec_traj_found && t_exec_lb_found && forward_found &&
-        a_found && b_found && x_c_found && z_c_found && alpha_found)
-        )
-    { // not all necessary parameters were read -> throw error
-        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have assigned all of them correctly.");
-                
-        return false;
-    }
+    _traj_prm_rmp_time = getParamOrThrow<double>("~traj_prm_rmp_time");
+    _t_exec_traj_trgt = getParamOrThrow<double>("~t_exec_traj");
+    _t_exec_lb = getParamOrThrow<double>("~t_exec_lb");
+    _is_forward = getParamOrThrow<bool>("~is_forward");
+    _a_ellps_trgt = getParamOrThrow<double>("~a");
+    _b_ellps_trgt = getParamOrThrow<double>("~b");
+    _x_c_ellps_trgt = getParamOrThrow<double>("~x_c");
+    _z_c_ellps_trgt = getParamOrThrow<double>("~z_c");
+    _alpha_trgt = getParamOrThrow<double>("~alpha");
 
     if (abs(_t_exec_traj_trgt) < abs(_t_exec_lb))
     { // saturating (towards its lower bound) the trajectory execution time for safety reasons.
@@ -103,8 +87,8 @@ void CartesioEllRt::create_ros_api()
 {
     /*  Create ros api server */
     RosServerClass::Options opt;
-    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci_ell");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian_ell");
+    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesio_ell_rt");
     _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
 }
 
@@ -212,25 +196,27 @@ void CartesioEllRt::compute_ref_traj(double time)
 
 }
 
-void CartesioEllRt::on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg)
+bool CartesioEllRt::on_ell_traj_recv_srv(const awesome_leg_pholus::EllTrajRtRequest& req,
+                          awesome_leg_pholus::EllTrajRtResponse& res)
 {
+
     _traj_par_callback_trigger = true; // to signal to other methods that a callback was received
     
-    // Resetting parameters trajectory time 
+    // Resetting parameters' trajectory time 
     _time_traj_par = 0;
 
-    _is_forward = msg.is_forward; // trajectory direction
+    _is_forward = req.is_forward; // trajectory direction
 
     // Assigning read trajectory parameters to target variables
-    _t_exec_traj_trgt = abs(msg.t_exec);
-    _x_c_ellps_trgt = msg.x_c;
-    _z_c_ellps_trgt = msg.z_c;
-    _a_ellps_trgt = _is_forward ? abs(msg.a_ellps): - abs(msg.a_ellps); 
-    _b_ellps_trgt = abs(msg.b_ellps);
-    _alpha_trgt = msg.alpha;
+    _t_exec_traj_trgt = abs(req.t_exec) < abs(_t_exec_lb) ? abs(_t_exec_lb): abs(req.t_exec);
+    _x_c_ellps_trgt = req.x_c;
+    _z_c_ellps_trgt = req.z_c;
+    _a_ellps_trgt = _is_forward ? abs(req.a_ellps): - abs(req.a_ellps); 
+    _b_ellps_trgt = abs(req.b_ellps);
+    _alpha_trgt = req.alpha;
 
-    _use_vel_ff = msg.use_vel_ff;
-    _use_acc_ff = msg.use_acc_ff;
+    _use_vel_ff = req.use_vel_ff;
+    _use_acc_ff = req.use_acc_ff;
 
     // Assigning current trajectory parameters values
     _t_exec_traj_init = _t_exec_traj;
@@ -241,7 +227,7 @@ void CartesioEllRt::on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg)
     _alpha_init = _alpha;
     
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Received new traj. configuration: \n");
+                   "\n Received new elliptical trajectory configuration: \n");
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                    "t_exec: {}\n", _t_exec_traj_trgt);
@@ -262,6 +248,11 @@ void CartesioEllRt::on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg)
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta), "\n");
 
+
+    res.message = "You have just sent a new trajectory configuration!";
+    res.success = true;
+
+    return true;
 }
 
 void CartesioEllRt::peisekah_transition()
@@ -299,8 +290,7 @@ void CartesioEllRt::peisekah_transition()
 }
 
 bool CartesioEllRt::on_initialize()
-{
-
+{    
     // create a nodehandle with namespace equal to
     // the plugin name
     ros::NodeHandle nh(getName());
@@ -309,12 +299,12 @@ bool CartesioEllRt::on_initialize()
     // at this point is guaranteed to be true
     _ros = std::make_unique<RosSupport>(nh);
 
-    /* Subscriber */
-    _ell_traj_sub = _ros->subscribe("my_ell_traj",
-                                &CartesioEllRt::on_ell_traj_recv,
-                                this,
-                                1,  // queue size
-                                &_queue);
+    /* Service server */
+    _ell_traj_srv = _ros->advertiseService(
+        "my_ell_traj_srvc",
+        &CartesioEllRt::on_ell_traj_recv_srv,
+        this,
+        &_queue);
     
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
@@ -552,6 +542,20 @@ void CartesioEllRt::stopping()
 
 void CartesioEllRt::on_abort()
 {
+    // Read the current state
+    _robot->sense();
+
+    // Setting references before exiting
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+
+    _robot->setStiffness(_stop_stiffness);
+    _robot->setDamping(_stop_damping);
+    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
+    _robot->setPositionReference(_q_p_meas);
+
+    // Sending references
+    _robot->move();
+
     _rt_active = false;
     _nrt_exit = true;
 }

@@ -90,7 +90,7 @@ private:
     double _dt, _time,
            _delta_effort_lim;
     
-    int _n_jnts_model, _n_jnts_robot;
+    int _n_jnts_model;
 
     // method for computing joint efforts using the measured robot state
     bool get_params_from_config();

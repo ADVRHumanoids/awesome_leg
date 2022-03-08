@@ -1,4 +1,4 @@
-from awesome_leg_pholus.logger_utilities import LogLoader, LogPlotter
+from awesome_leg_pholus_utils.logger_utilities import LogLoader, LogPlotter
 
 import rospkg
 
@@ -12,7 +12,7 @@ from scipy import signal
 
 import yaml
 
-from awesome_leg_pholus.param_identification_utilities import *
+from awesome_leg_pholus_utils.param_identification_utilities import *
 
 ######################### PRE-INITIALIZATIONS #########################
 

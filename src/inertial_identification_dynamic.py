@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from awesome_leg_pholus.logger_utilities import LogLoader, LogPlotter
+from awesome_leg_pholus_utils.logger_utilities import LogLoader, LogPlotter
 
 from xbot_interface import xbot_interface as xbot
 
@@ -10,7 +10,7 @@ from qpsolvers import *
 
 from scipy import signal
 
-from awesome_leg_pholus.param_identification_utilities import *
+from awesome_leg_pholus_utils.param_identification_utilities import *
 
 import pinocchio
 

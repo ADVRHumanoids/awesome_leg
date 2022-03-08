@@ -62,8 +62,7 @@ public:
 
 private:
     
-    Eigen::VectorXd _tau_tilde, 
-                    _stiffness, _damping, 
+    Eigen::VectorXd _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
                     _q_p_meas, _q_p_dot_meas,
                     _effort_command, _meas_effort, 
@@ -118,8 +117,7 @@ private:
                                _t_exec_traj, _a_ellps, _b_ellps, _x_c_ellps, _z_c_ellps, _alpha,
                                _t_exec_traj_init, _a_ellps_init, _b_ellps_init, _x_c_ellps_init, _z_c_ellps_init, _alpha_init,
                                _t_exec_traj_trgt, _a_ellps_trgt, _b_ellps_trgt, _x_c_ellps_trgt, _z_c_ellps_trgt, _alpha_trgt,
-           _delta_effort_lim, 
-           _stop_loop_dt;
+           _delta_effort_lim;
 
     int _n_jnts_model, _n_jnts_robot;
 
@@ -134,12 +132,14 @@ private:
     void saturate_input();
     void peisekah_transition();
 
-    // ROS topic callback
-    void on_ell_traj_recv(const awesome_leg_pholus::EllTrajRt& msg);
+    // ROS service callback
+    bool on_ell_traj_recv_srv(const awesome_leg_pholus::EllTrajRtRequest& req,
+                          awesome_leg_pholus::EllTrajRtResponse& res);
 
-    // XBot2.0 pub/sub/server wrapping the ones from ROS
-    SubscriberPtr<awesome_leg_pholus::EllTrajRt> _ell_traj_sub;
-
+    // XBot2.0 server wrapping the ones from ROS
+    ServiceServerPtr<awesome_leg_pholus::EllTrajRtRequest,
+                     awesome_leg_pholus::EllTrajRtResponse> _ell_traj_srv;
+                     
 };
 
 #endif // CARTESIO_ELL_RT

@@ -10,9 +10,14 @@ find_package(xbot2 QUIET)
 
 option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 
-add_message_files(
+# add_message_files(
+#   FILES
+#   EllTrajRt.msg
+# )
+
+add_service_files(
   FILES
-  EllTrajRt.msg
+  EllTrajRt.srv
 )
 
 generate_messages(

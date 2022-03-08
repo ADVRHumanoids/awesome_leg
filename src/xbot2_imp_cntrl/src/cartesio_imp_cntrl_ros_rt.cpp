@@ -69,7 +69,7 @@ void CartesioImpCntrlRosRt::create_ros_api()
     /*  Create ros api server */
     RosServerClass::Options opt;
     opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian_imp_cntrl_ros");
     _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
 }
 
@@ -135,8 +135,6 @@ void CartesioImpCntrlRosRt::saturate_input()
 bool CartesioImpCntrlRosRt::on_initialize()
 {
 
-    _nh = std::make_unique<ros::NodeHandle>();
-
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
 
@@ -145,9 +143,6 @@ bool CartesioImpCntrlRosRt::on_initialize()
 
     // Initializing XBot2 model interface using the read parameters 
     init_model_interface();
-
-    // Setting robot control mode, stiffness and damping
-    _n_jnts_robot = _robot->getJointNum();
 
     // Initializing CartesIO solver, ros server and spawning the non rt thread
     init_cartesio_solver();
@@ -247,15 +242,12 @@ void CartesioImpCntrlRosRt::run()
     { // interaction task
 
         _cart_task->getPoseReference(_target_pose);
-        // _int_task->getLambda();
-        // _int_task->getLambda2();
+
     }
     else 
     { // otherwise, assuming cartesian task
 
         _int_task->getPoseReference(_target_pose);
-        // _cart_task->getLambda();
-        // _cart_task->getLambda2();
     }
 
     // Adding that useful data to logger
@@ -312,6 +304,17 @@ void CartesioImpCntrlRosRt::stopping()
 
 void CartesioImpCntrlRosRt::on_abort()
 {
+    // Read the current state
+    _robot->sense();
+
+    // Setting references before exiting
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+
+    _robot->setStiffness(_stop_stiffness);
+    _robot->setDamping(_stop_damping);
+    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
+    _robot->setPositionReference(_q_p_meas);
+
     _rt_active = false;
     _nrt_exit = true;
 }
