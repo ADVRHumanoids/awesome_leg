@@ -22,7 +22,6 @@ xbotcore_device_configs:
 xbotcore_threads:
     rt_ci_ell:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     rt_ros_cart_imp:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
-    rt_cart_imp:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -38,22 +37,6 @@ xbotcore_plugins:
     ros_control: {thread: nrt_main, type: ros_control}
     
     ec_ros: {thread: nrt_main, type: ec_ros}
-
-    # imp_cntrl_rt: # point-to-point motion with impedance control
-    #     thread: rt_cart_imp
-    #     type: cartesio_imp_cntrl_rt
-    #     params:
-    #         torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
-    #         urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
-    #         srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} 
-    #         cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} 
-    #         # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} 
-    #         stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
-    #         damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
-    #         q_target: {value: [1, 1], type: Eigen::VectorXd}
-    #         t_exec: {value: 5.0, type: double}
-    #         stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-    #         stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
     imp_cntrl_ros_rt: # point-to-point motion with impedance control employing RViz interactive marker
         thread: rt_ros_cart_imp
