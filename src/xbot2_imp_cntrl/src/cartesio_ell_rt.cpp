@@ -43,9 +43,9 @@ bool CartesioEllRt::get_params_from_config()
         return false;
     }
 
-    if (abs(_t_exec_traj) < abs(_t_exec_lb))
+    if (abs(_t_exec_traj_trgt) < abs(_t_exec_lb))
     { // saturating (towards its lower bound) the trajectory execution time for safety reasons.
-        _t_exec_traj = _t_exec_lb; 
+        _t_exec_traj_trgt = _t_exec_lb; 
         jhigh().jwarn("The selected t_exec_traj is less than the set t_exec_lb.\n Setting t_exec_traj to {} s.", _t_exec_lb);  
     }
 
@@ -467,7 +467,7 @@ void CartesioEllRt::run()
     saturate_input(); 
 
     // Set the commands (and also stiffness/damping)
-    _robot->setEffortReference(_effort_command + _tau_tilde);
+    _robot->setEffortReference(_effort_command);
     _robot->setPositionReference(_q_p_meas);
     _robot->setStiffness(_stiffness);
     _robot->setDamping(_damping);
