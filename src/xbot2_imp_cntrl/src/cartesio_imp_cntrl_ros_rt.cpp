@@ -7,8 +7,7 @@ bool CartesioImpCntrlRosRt::get_params_from_config()
     _urdf_path = getParamOrThrow<std::string>("~urdf_path"); // urdf specific to gravity compensator
     _srdf_path = getParamOrThrow<std::string>("~srdf_path"); // srdf_path specific to gravity compensator
     _cartesio_path = getParamOrThrow<std::string>("~cartesio_yaml_path"); // srdf_path specific to gravity compensator
-    _stiffness = getParamOrThrow<Eigen::VectorXd>("~stiffness");
-    _damping = getParamOrThrow<Eigen::VectorXd>("~damping");
+    
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
 
@@ -69,7 +68,7 @@ void CartesioImpCntrlRosRt::create_ros_api()
     /*  Create ros api server */
     RosServerClass::Options opt;
     opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian_imp_cntrl_ros");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesian");
     _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
 }
 
@@ -134,7 +133,6 @@ void CartesioImpCntrlRosRt::saturate_input()
 
 bool CartesioImpCntrlRosRt::on_initialize()
 {
-
     // Getting nominal control period from plugin method
     _dt = getPeriodSec();
 
@@ -151,6 +149,9 @@ bool CartesioImpCntrlRosRt::on_initialize()
 
     _model->getEffortLimits(_effort_lims);
 
+    _stiffness = Eigen::VectorXd::Zero(_n_jnts_model);
+    _damping = Eigen::VectorXd::Zero(_n_jnts_model);
+
     return true;
 }
 
@@ -164,6 +165,24 @@ void CartesioImpCntrlRosRt::starting()
     opt.enable_compression = true; // enable ZLIB compression
     _logger = MatLogger2::MakeLogger("/tmp/CartesioImpCntrlRosRt", opt); // date-time automatically appended
     _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    // Initializing logger fields to improve rt performance
+    _logger->create("meas_efforts", _n_jnts_model);
+    _logger->create("effort_command", _n_jnts_model);
+
+    _logger->create("M", _n_jnts_model, _n_jnts_model);
+
+    _logger->create("tip_pos_meas", 3);
+    _logger->create("tip_pos_ref", 3);
+
+    _logger->create("q_p_meas", _n_jnts_model);
+    _logger->create("q_p_dot_meas", _n_jnts_model);
+
+    if (_int_task)
+    {
+        _logger->create("cartesian_stiffness", 6, 6);
+        _logger->create("cartesian_damping", 6, 6);
+    }
 
 
     auto task = _solver->getTask("tip"); // Getting tip cartesian task and casting it to cartesian (task)
@@ -234,7 +253,6 @@ void CartesioImpCntrlRosRt::run()
 
     // Getting some additional useful data
     _model->getInertiaMatrix(_M);
-    _model->getJacobian("tip", _J);
 
     _model->getPose("tip", _meas_pose); 
 
@@ -255,7 +273,6 @@ void CartesioImpCntrlRosRt::run()
     _logger->add("effort_command", _effort_command);
 
     _logger->add("M", _M);
-    _logger->add("J", _J);
 
     _logger->add("tip_pos_meas", _meas_pose.translation());
     _logger->add("tip_pos_ref", _target_pose.translation());

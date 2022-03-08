@@ -77,7 +77,6 @@ private:
     Eigen::Matrix6d _cart_damping;
 
     Eigen::MatrixXd _M;
-    Eigen::MatrixXd _J;
 
     XBot::Cartesian::RosServerClass::Ptr _ros_srv;
 

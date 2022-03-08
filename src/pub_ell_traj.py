@@ -14,10 +14,10 @@ set_ell_traj.wait_for_service()
 
 req = EllTrajRtRequest()
 
-req.t_exec = 0.5
+req.t_exec = 1.5
 req.x_c = - 0.15
 req.z_c = - 0.6
-req.a_ellps = 0.2
+req.a_ellps = 0.1
 req.b_ellps = 0.05
 req.alpha = 0.0 
 req.use_vel_ff = True

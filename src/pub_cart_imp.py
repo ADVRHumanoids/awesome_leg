@@ -7,8 +7,8 @@ from cartesian_interface.srv import SetImpedance, SetImpedanceRequest
 
 rospy.init_node("impedance_setter")
 
-# ns = "/cartesian_imp_cntrl_ros"
-ns = "/cartesio_ell_rt"
+ns = "/cartesian"
+# ns = "/cartesio_ell_rt"
 
 set_imp = rospy.ServiceProxy(ns + "/tip/set_impedance", SetImpedance)
 

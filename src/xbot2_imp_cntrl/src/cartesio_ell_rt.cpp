@@ -7,8 +7,7 @@ bool CartesioEllRt::get_params_from_config()
     _urdf_path = getParamOrThrow<std::string>("~urdf_path"); // urdf specific to gravity compensator
     _srdf_path = getParamOrThrow<std::string>("~srdf_path"); // srdf_path specific to gravity compensator
     _cartesio_path = getParamOrThrow<std::string>("~cartesio_yaml_path"); // srdf_path specific to gravity compensator
-    _stiffness = getParamOrThrow<Eigen::VectorXd>("~stiffness");
-    _damping = getParamOrThrow<Eigen::VectorXd>("~damping");
+
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
 
@@ -291,6 +290,7 @@ void CartesioEllRt::peisekah_transition()
 
 bool CartesioEllRt::on_initialize()
 {    
+
     // create a nodehandle with namespace equal to
     // the plugin name
     ros::NodeHandle nh(getName());
@@ -325,6 +325,9 @@ bool CartesioEllRt::on_initialize()
 
     // Reading joint effort limits (used for saturating the trajectory)
     _model->getEffortLimits(_effort_lims);
+    
+    _stiffness = Eigen::VectorXd::Zero(_n_jnts_model);
+    _damping = Eigen::VectorXd::Zero(_n_jnts_model);
 
     return true;
 }
@@ -340,6 +343,36 @@ void CartesioEllRt::starting()
     opt.enable_compression = true; // enable ZLIB compression
     _logger = MatLogger2::MakeLogger("/tmp/CartesioEllConfigRt_log", opt); // date-time automatically appended
     _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    // Initializing logger fields to improve rt performance
+    _logger->create("meas_efforts", _n_jnts_model);
+    _logger->create("computed_efforts", _n_jnts_model);
+
+    _logger->create("M", _n_jnts_model, _n_jnts_model);
+    
+    _logger->create("tip_pos_ref", 3);
+    _logger->create("tip_pos_meas", 3);
+
+    _logger->create("t_exec_traj", 1);
+    _logger->create("a_ellps", 1);
+    _logger->create("b_ellps", 1);
+    _logger->create("x_c_ellps", 1);
+    _logger->create("z_c_ellps", 1);
+    _logger->create("alpha", 1);
+
+    _logger->create("q_p_meas", _n_jnts_model);
+    _logger->create("q_p_dot_meas", _n_jnts_model);
+
+    _logger->create("use_vel_ff", 1);
+    _logger->create("use_acc_ff", 1);
+
+    _logger->create("is_forward", 1);
+
+    if (_int_task)
+    {
+        _logger->create("cartesian_stiffness", 6, 6);
+        _logger->create("cartesian_damping", 6, 6);
+    }
 
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
@@ -387,7 +420,7 @@ void CartesioEllRt::starting()
 void CartesioEllRt::run()
 {   
     if (_first_run)
-    { // first time entering the run
+    { // first time entering the run --> smooth transition from the initial state
 
         _traj_par_callback_trigger = true; //  faking a received trajectory configuration
 
@@ -476,14 +509,12 @@ void CartesioEllRt::run()
     // Getting some additional useful data
     _model->getPose("tip", _meas_pose);
     _model->getInertiaMatrix(_M);
-    _model->getJacobian("tip", _J);
 
     // Adding that useful data to logger
     _logger->add("meas_efforts", _meas_effort);
     _logger->add("computed_efforts", _effort_command);
 
     _logger->add("M", _M);
-    _logger->add("J", _J);
     
     _logger->add("tip_pos_ref", _target_pose.translation());
     _logger->add("tip_pos_meas", _meas_pose.translation());
