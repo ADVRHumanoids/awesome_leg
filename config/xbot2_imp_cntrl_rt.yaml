@@ -57,9 +57,9 @@ xbotcore_plugins:
         params:
             urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
             srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
-            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control
+            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control with singular direction handling
             cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl
-            # cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile}
+            # cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile} 
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double} # a margin used to safely saturate the trajectory

@@ -563,6 +563,9 @@ void CartesioEllRt::on_stop()
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _logger.reset();
+
+    // Get again parameters from YAML, so that next time the plugin starts with the default trajectory
+    get_params_from_config();
 }
 
 void CartesioEllRt::stopping()
