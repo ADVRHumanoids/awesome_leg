@@ -42,12 +42,12 @@ srdf = open(srdf_path, "r").read() # read the URDF
 # solution = ms_loaded.load() # loading the solution dictionary
 
 # Initializing logger utilities
-matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/trot/fixed_hip_ample_trot/'+'robot_state_log__0_2022_01_24__17_14_01.mat' # path to the used .mat file holding the test results
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/cyclic_tests/large_excursion/slow/'+'robot_state_log__0_2022_01_26__16_47_58.mat' # slow cyclic test
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/cyclic_tests/large_excursion/fast/'+'robot_state_log__0_2022_01_26__16_49_17.mat' # fast cyclic test
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/cyclic_tests/large_excursion/faster/'+'robot_state_log__0_2022_01_26__16_50_32.mat' # faster cyclic test
+matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/trot/fixed_hip_ample_trot/'+'robot_state_log__0_2022_01_24__17_14_01.mat' # path to the used .mat file holding the test results
+# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/cyclic_tests/large_excursion/slow/'+'robot_state_log__0_2022_01_26__16_47_58.mat' # slow cyclic test
+# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/cyclic_tests/large_excursion/fast/'+'robot_state_log__0_2022_01_26__16_49_17.mat' # fast cyclic test
+# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/cyclic_tests/large_excursion/faster/'+'robot_state_log__0_2022_01_26__16_50_32.mat' # faster cyclic test
 
-# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/system_identification/'+'robot_state_log__0_2022_01_26__16_49_17.mat' 
+# matfile_path = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/system_identification/'+'robot_state_log__0_2022_01_26__16_49_17.mat' 
 
 log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
 plotter = LogPlotter(log_loader, clr_set_name="tab10") # plotter instance

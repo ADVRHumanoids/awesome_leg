@@ -34,19 +34,19 @@ urdf = open(urdf_path, "r").read() # read the URDF
 srdf = open(srdf_path, "r").read() # read the URDF
 
 # Calibration data path
-matfile_path1 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose1/'+'robot_state_log__0_2022_02_02__17_14_40.mat' 
-matfile_path2 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose2/'+'robot_state_log__0_2022_02_02__17_17_21.mat' 
-matfile_path3 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose3/'+'robot_state_log__0_2022_02_02__17_18_49.mat' 
-matfile_path4 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose4/'+'robot_state_log__0_2022_02_02__17_20_31.mat' 
-matfile_path5 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose5/'+'robot_state_log__0_2022_02_02__17_22_27.mat' 
-matfile_path6 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose6/'+'robot_state_log__0_2022_02_02__17_24_16.mat' 
-matfile_path7 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose7/'+'robot_state_log__0_2022_02_02__17_25_30.mat' 
-matfile_path8 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose8/'+'robot_state_log__0_2022_02_02__17_26_50.mat' 
-matfile_path9 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose9/'+'robot_state_log__0_2022_02_02__17_28_10.mat' 
-matfile_path10 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose10/'+'robot_state_log__0_2022_02_02__17_29_32.mat' 
-matfile_path11 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose11/'+'robot_state_log__0_2022_02_02__17_30_35.mat' 
-matfile_path12 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose12/'+'robot_state_log__0_2022_02_02__17_32_30.mat' 
-matfile_path13 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/tests/static_poses/pose13/'+'robot_state_log__0_2022_02_02__17_33_17.mat' 
+matfile_path1 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose1/'+'robot_state_log__0_2022_02_02__17_14_40.mat' 
+matfile_path2 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose2/'+'robot_state_log__0_2022_02_02__17_17_21.mat' 
+matfile_path3 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose3/'+'robot_state_log__0_2022_02_02__17_18_49.mat' 
+matfile_path4 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose4/'+'robot_state_log__0_2022_02_02__17_20_31.mat' 
+matfile_path5 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose5/'+'robot_state_log__0_2022_02_02__17_22_27.mat' 
+matfile_path6 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose6/'+'robot_state_log__0_2022_02_02__17_24_16.mat' 
+matfile_path7 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose7/'+'robot_state_log__0_2022_02_02__17_25_30.mat' 
+matfile_path8 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose8/'+'robot_state_log__0_2022_02_02__17_26_50.mat' 
+matfile_path9 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose9/'+'robot_state_log__0_2022_02_02__17_28_10.mat' 
+matfile_path10 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose10/'+'robot_state_log__0_2022_02_02__17_29_32.mat' 
+matfile_path11 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose11/'+'robot_state_log__0_2022_02_02__17_30_35.mat' 
+matfile_path12 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose12/'+'robot_state_log__0_2022_02_02__17_32_30.mat' 
+matfile_path13 = rospkg.RosPack().get_path("awesome_leg_pholus")+'/test_results/fixed_hip_setup/static_poses/pose13/'+'robot_state_log__0_2022_02_02__17_33_17.mat' 
 
 matfiles= [matfile_path1, matfile_path2, matfile_path3, matfile_path4, matfile_path5, matfile_path6, matfile_path7, matfile_path8,
            matfile_path9, matfile_path10, matfile_path11, matfile_path12, matfile_path13]
