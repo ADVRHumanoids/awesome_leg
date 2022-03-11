@@ -43,10 +43,10 @@ xbotcore_plugins:
         type: cartesio_imp_cntrl_ros_rt
         params:
         
-            # simulation:
+            # testing:
             urdf_path: {value: $PWD/../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
             srdf_path: {value: $PWD/../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
-            # testing:
+            # simulation:
             # urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
             # srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
 
@@ -64,10 +64,10 @@ xbotcore_plugins:
         type: cartesio_ell_rt
         params:
 
-            # simulation:
+            # testing:
             urdf_path: {value: $PWD/../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
             srdf_path: {value: $PWD/../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
-            # testing:
+            # simulation:
             # urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
             # srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
 
