@@ -13,6 +13,8 @@ bool CartesioEllRt::get_params_from_config()
 
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
 
+    _bias_tau = getParamOrThrow<Eigen::VectorXd>("~torque_bias");
+
     _use_vel_ff = getParamOrThrow<bool>("~use_vel_ff");
     _use_acc_ff = getParamOrThrow<bool>("~use_acc_ff");
 
@@ -80,7 +82,7 @@ void CartesioEllRt::init_cartesio_solver()
     _nrt_solver->pushState(_solver.get(), _model.get());
     _nrt_solver->updateState();
 
-}
+} 
 
 void CartesioEllRt::create_ros_api()
 {
@@ -243,7 +245,7 @@ bool CartesioEllRt::on_ell_traj_recv_srv(const awesome_leg_pholus::EllTrajRtRequ
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                    "use velocity feedforward: {}\n", _use_vel_ff);
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "use acceleration feedforward: {}\n", _use_acc_ff);
+                   "use acceleration feedforward  {}\n", _use_acc_ff);
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta), "\n");
 
@@ -453,7 +455,7 @@ void CartesioEllRt::run()
     // Update the measured state
     update_state();
     
-    // Update (_target_pose) and set tip pose target 
+    // Update _target_pose, _target_vel and _target_acc 
     compute_ref_traj(_time);
 
     // Setting target trajectory 
@@ -485,7 +487,8 @@ void CartesioEllRt::run()
     // Read the joint efforts computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
-    
+    _effort_command += _bias_tau; // adding torque bias
+
     // Check input for bound violations
     saturate_input(); 
 

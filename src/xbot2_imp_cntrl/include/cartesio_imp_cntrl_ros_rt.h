@@ -51,7 +51,8 @@ public:
     void on_abort() override;
 
 private:
-    Eigen::VectorXd _stiffness, _damping, 
+    Eigen::VectorXd _bias_tau,
+                    _stiffness, _damping, 
                     _stop_stiffness, _stop_damping,
                     _q_p_meas, _q_p_dot_meas, _q_p_ddot_meas,
                     _effort_command, _meas_effort,

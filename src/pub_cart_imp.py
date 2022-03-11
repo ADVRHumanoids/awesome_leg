@@ -16,10 +16,10 @@ set_imp.wait_for_service()
 
 req = SetImpedanceRequest()
 
-req.impedance.linear.stiffness.x = 1000
-req.impedance.linear.stiffness.z = 1000
-req.impedance.linear.damping_ratio.x = 50
-req.impedance.linear.damping_ratio.z = 50
+req.impedance.linear.stiffness.x = 200
+req.impedance.linear.stiffness.z = 200
+req.impedance.linear.damping_ratio.x = 10
+req.impedance.linear.damping_ratio.z = 10
 
 res = set_imp(req)
 

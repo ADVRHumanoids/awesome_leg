@@ -13,6 +13,8 @@ bool CartesioImpCntrlRosRt::get_params_from_config()
 
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
 
+    _bias_tau = getParamOrThrow<Eigen::VectorXd>("~torque_bias");
+
     return true;
 }
 
@@ -29,7 +31,7 @@ void CartesioImpCntrlRosRt::init_model_interface()
     // Initializing XBot2 ModelInterface for the rt thread
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
-
+ 
     // Initializing XBot2 ModelInterface for the nrt thread
     _nrt_model = ModelInterface::getModel(xbot_cfg);
 }
@@ -236,6 +238,7 @@ void CartesioImpCntrlRosRt::run()
     // Read the joint efforts computed via CartesIO (computed using acceleration_support)
     _model->getJointEffort(_effort_command);
     _robot->getJointEffort(_meas_effort);
+    _effort_command += _bias_tau; // adding torque bias
 
     saturate_input(); //check input for bound violations
     
