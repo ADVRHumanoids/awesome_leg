@@ -55,7 +55,6 @@ ms = mat_storer.matStorer(opt_res_target)# initializing storer object for opt re
 
 shutil.copyfile(config_path+"actuators.yaml", media_target+"/actuators.yaml") # saving a copy of the used actuator config file for future reference and debugging
 shutil.copyfile(config_path+"horizon_trot_sliding_all.yaml", media_target+"/horizon.yaml") # saving a copy of the used horizon config file for future reference and debugging
-shutil.copyfile(config_path+"xbot2_sim_config.yaml", media_target+"/xbot2.yaml") # saving a copy of the used xbot config file for future reference and debugging
 shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/src"+"/"+scibidibi.path.basename(__file__), media_target+"/"+scibidibi.path.basename(__file__)) # saving a copy of this script for future reference and debugging
 
 if save_sol_as_init: # save the solution as the initialization for the next sim

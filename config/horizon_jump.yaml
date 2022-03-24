@@ -4,9 +4,9 @@ horizon:
  
  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf # urdf relative path (wrt to the package)
  
- media_path: $(find awesome_leg_pholus)/awesome_leg_pholus/media/horizon_jump # relative path where graphs, etc.. are saved
+ media_path: $(find awesome_leg_pholus)/media/horizon_jump # relative path where graphs, etc.. are saved
 
- opt_results_path: $(find awesome_leg_pholus)/awesome_leg_pholus/opt_results/horizon_jump # where optimization .mat files are saved
+ opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_jump # where optimization .mat files are saved
  
  xbot_command_pub: # some horizon-xbot configuration parameters
 
@@ -37,7 +37,7 @@ horizon:
 
    is_adaptive_dt: true 
   
-   is_single_dt: false # not used if is_adaptive_dt is set to false; if true, use a single dt as variable, otherwise multiple
+   is_single_dt: true # not used if is_adaptive_dt is set to false; if true, use a single dt as variable, otherwise multiple
 
    save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
 

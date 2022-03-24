@@ -65,7 +65,6 @@ if is_adaptive_dt: # using dt as an optimization variable
 
         shutil.copyfile(config_path+"actuators.yaml", target+"actuators.yaml") # saving config files for reference and future debugging
         shutil.copyfile(config_path+"horizon_jump.yaml", target+"horizon.yaml")
-        shutil.copyfile(config_path+"xbot2.yaml", target+"xbot2.yaml") 
 
         if save_sol_as_init: # save the solution as the initialization for the next sim
             ms_opt_init = mat_storer.matStorer(opt_res_path+"/single_dt/horizon_offline_solver_init.mat")
@@ -82,7 +81,6 @@ if is_adaptive_dt: # using dt as an optimization variable
 
         shutil.copyfile(config_path+"actuators.yaml", target+"actuators.yaml") # saving config files for reference and future debugging
         shutil.copyfile(config_path+"horizon_jump.yaml", target+"horizon.yaml")
-        shutil.copyfile(config_path+"xbot2_sim_config.yaml", target+"xbot2.yaml") 
 
         if save_sol_as_init: # save the solution as the initialization for the next sim
             ms_opt_init = mat_storer.matStorer(opt_res_path+"/multiple_dt/horizon_offline_solver_init.mat")
@@ -99,7 +97,6 @@ else: # using a fixed dt (chosen in the YAML configuration file)
 
     shutil.copyfile(config_path+"actuators.yaml", target+"actuators.yaml") # saving config files for reference and future debugging
     shutil.copyfile(config_path+"horizon_jump.yaml", target+"horizon_solver.yaml")
-    shutil.copyfile(config_path+"xbot2.yaml", target+"xbot2.yaml")
 
     if save_sol_as_init: # save the solution as the initialization for the next sim
         ms_opt_init = mat_storer.matStorer(opt_res_path+"/fixed_dt/horizon_offline_solver_init.mat")
@@ -122,7 +119,7 @@ if is_adaptive_dt: # using dt as an optimization variable
 
         dt_lb=rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/dt_lb")   # dt lower bound 
         dt_ub=rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/dt_ub")   # dt upper bound
-        test_rig_lb= rospy.get_param("horizon_solver/variable_dt/single_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
+        test_rig_lb= rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/test_rig/lb") # lower bound of the test rig excursion
         test_rig_ub=rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/test_rig/ub") # upper bound of the test rig excursion
         # hip_lb= rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/hip/lb") # lower bound of the hip joint
         # hip_ub=rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/hip/ub") # upper bound of the hip joint
