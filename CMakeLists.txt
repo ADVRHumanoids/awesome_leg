@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.1.3)
 project(awesome_leg_pholus)
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy urdf sensor_msgs xbot_msgs std_msgs message_generation)
+find_package(catkin REQUIRED roscpp rospy urdf sensor_msgs std_msgs message_generation)
 find_package(XBotInterface REQUIRED)
 find_package(xbot_msgs REQUIRED)
 find_package(matlogger2 QUIET)
