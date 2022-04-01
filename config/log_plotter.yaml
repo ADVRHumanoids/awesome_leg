@@ -4,8 +4,8 @@ log_plotter:
 
   actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
 
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_legv2.urdf # urdf relative path (wrt to the package)
-  srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_legv2.srdf # srdf relative path (wrt to the package)
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_RBDL.urdf # urdf relative path (wrt to the package)
+  srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_leg_RBDL.srdf # srdf relative path (wrt to the package)
   
   opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip/horizon_offline_solver.mat # horizon results path
 

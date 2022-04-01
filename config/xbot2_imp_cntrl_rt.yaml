@@ -73,8 +73,8 @@ xbotcore_plugins:
             srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
 
             # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control with singular direction handling
-            cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl
-            # cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # pure acceleration control with constant feedback gains
+            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl
+            cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # pure acceleration control with constant feedback gains
 
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd} # stiffness which is set after the plugin is stopped
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd} # damping which is set after the plugin is stopped

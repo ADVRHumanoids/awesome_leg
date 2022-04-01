@@ -470,17 +470,6 @@ void CartesioEllRt::run()
          _cart_task->setAccelerationReference(_target_acc); 
     }
 
-    // jwarn("_target_pose:\n");
-    // for(int i=0; i<(_target_pose.translation()).rows();i++)  // loop 3 times for three lines
-    //   {
-    //     for(int j=0;j<(_target_pose.translation()).cols();j++)  // loop for the three elements on the line
-    //     {
-    //         jwarn("{}", _target_pose.translation()(i, j));  // display the current element out of the array
-    //         jwarn("\t");
-    //     }
-    //   }
-    // jwarn("\n");
-
     // and update CartesIO solver using the measured state
     _solver->update(_time, _dt);
 

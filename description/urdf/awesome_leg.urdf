@@ -26,7 +26,7 @@
   
     <link name="pelvis">
         <inertial>
-        <mass value="10.0"/> <!-- considering also the mass contribution of the robot torso -->
+        <mass value="10.0"/> <!-- with additional mass contribution to mimic a weight (standard link mass = 1 Kg) -->
         <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
         </inertial>
         <visual>
