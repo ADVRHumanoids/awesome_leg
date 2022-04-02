@@ -79,8 +79,8 @@ xbotcore_plugins:
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd} # stiffness which is set after the plugin is stopped
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd} # damping which is set after the plugin is stopped
             delta_effort_lim: {value: 1e-6, type: double} # a threshold used to saturate the trajectory
-            # torque_bias: {value: [ 0, 0 ], type: Eigen::VectorXd}
-            torque_bias: {value: [ 3.20372297e-01, -2.56218453e-01 ], type: Eigen::VectorXd} # bias torques, estimated via param. identification (to be used only when testing on the real prototype)
+            torque_bias: {value: [ 0, 0 ], type: Eigen::VectorXd}
+            # torque_bias: {value: [ 3.20372297e-01, -2.56218453e-01 ], type: Eigen::VectorXd} # bias torques, estimated via param. identification (to be used only when testing on the real prototype)
             use_vel_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             use_acc_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
             traj_prm_rmp_time: {value: 4.0, type: double} # when traj. params are changes via topic, they are ramped to their target within this time

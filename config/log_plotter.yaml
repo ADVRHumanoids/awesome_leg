@@ -4,14 +4,12 @@ log_plotter:
 
   actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
 
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_RBDL.urdf # urdf relative path (wrt to the package)
-  srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_leg_RBDL.srdf # srdf relative path (wrt to the package)
+  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_reduced_calibrated.urdf # urdf relative path (wrt to the package)
+  srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_leg_reduced.srdf # srdf relative path (wrt to the package)
   
-  opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip/horizon_offline_solver.mat # horizon results path
+  matfile_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/tip_cart_acc_cntrl/checks/robot_state_log1.mat # logged data mat file path
 
-  matfile_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/task_space_traj_track/robot_state_log__0_2022_02_16__22_16_19.mat # logged data mat file path
-
-  save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
+  save_fig: false # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
   
   save_fig_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/task_space_traj_track
 
