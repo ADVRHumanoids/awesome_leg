@@ -19,7 +19,7 @@ from awesome_leg_pholus_utils.param_identification_utilities import *
 config_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/config/"
 
 # Loading some plotter parameters
-plotter_settings = "log_plotter.yaml"
+plotter_settings = "robot_state_log_plotter.yaml"
 plt_settings_path =  config_path + plotter_settings
 with open(plt_settings_path, 'r') as stream:
     plotter_yaml = yaml.safe_load(stream)
@@ -54,8 +54,8 @@ plotter = LogPlotter(log_loader, clr_set_name="tab10") # plotter instance
 
 ######################### INITIALIZATIONS #########################
 
-save_fig_path = plotter_yaml["log_plotter"]["save_fig_path"]
-save_fig = plotter_yaml["log_plotter"]["save_fig"] 
+save_fig_path = plotter_yaml["robot_state_log_plotter"]["save_fig_path"]
+save_fig = plotter_yaml["robot_state_log_plotter"]["save_fig"] 
 
 # Used actuators parameters
 hip_act_params = acts_yaml["actuators"]["hip"] # hip
@@ -137,8 +137,8 @@ i_q_knee_estimate = (knee_rotor_axial_MoI*filtered_diff_jnt_acc[1,:]/knee_red_ra
 i_q_estimate = np.array([i_q_hip_estimate, i_q_knee_estimate])
 i_q_estimate_filt = signal.filtfilt(b_curr, a_curr, i_q_estimate, padlen=150, axis= 1) # filtered i_q currents
 
-i_q_hip_time, i_q_hip_measured=log_loader.extr_from_aux(0,'iq_out_fb_aux_code')
-i_q_knee_time, i_q_knee_measured=log_loader.extr_from_aux(1,'iq_out_fb_aux_code')
+i_q_hip_time, i_q_hip_measured=log_loader.extr_from_aux(1,'iq_out_fb_aux_code')
+i_q_knee_time, i_q_knee_measured=log_loader.extr_from_aux(2,'iq_out_fb_aux_code')
 
 i_q_measured = np.array([i_q_hip_measured, i_q_knee_measured])
 i_q_measured_filt = signal.filtfilt(b_curr, a_curr, i_q_measured, padlen=150, axis= 1) # filtered i_q currents
@@ -146,7 +146,7 @@ i_q_meas_time = np.array([i_q_hip_time, i_q_knee_time])
 
 ######################### PLOTTING STUFF #########################
 
-n_rows1 = len(log_loader.get_joint_names()) # subplot rows
+n_rows1 = len(log_loader.get_joints_names()) # subplot rows
 n_cols1 = 1 # subplot columns
 
 # Initializing figs
@@ -162,9 +162,9 @@ torque_validation_fig = plotter.init_fig(fig_name = "torque_validation")
 current_validation_fig = plotter.init_fig(fig_name = "current_validation") 
 # filtered_jnt_vel_fig = plotter.init_fig(fig_name = "filtered_jnt_vel") 
 
-for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joint_names()):
+for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joints_names()):
 
-    joint_name = log_loader.get_joint_names_from_id([joint_id])[0]
+    joint_name = log_loader.get_joints_names_from_id([joint_id])[0]
 
     plotter.add_subplot(fig_name = "currents", row = n_rows1, column = n_cols1, index = joint_id) 
     plotter.aux_plot(fig_name = "currents", jnt_id = joint_id, title = "Aux signals on joint \""+ joint_name+"\"") 

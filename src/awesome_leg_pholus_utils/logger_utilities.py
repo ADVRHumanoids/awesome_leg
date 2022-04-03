@@ -159,7 +159,7 @@ class LogLoader:
 
         return self.chains
 
-    def get_joint_names(self):
+    def get_joints_names(self):
         
         """
 
@@ -326,7 +326,7 @@ class LogLoader:
 
         return aux_signal_code
     
-    def get_aux_types(self, jnt_id_list=None):
+    def get_aux_types(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the aux_types matrix of the auxiliary state message, given a valid list of joint IDs.
@@ -340,7 +340,7 @@ class LogLoader:
         _, ncols = self.aux_type.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -353,7 +353,7 @@ class LogLoader:
         
         return extr_types
     
-    def get_aux_values(self, jnt_id_list=None):
+    def get_aux_values(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the aux_values matrix of the auxiliary state message, given a valid list of joint IDs.
@@ -367,7 +367,7 @@ class LogLoader:
         _, ncols = self.aux_values.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim =len(jnt_id_list)
 
@@ -380,7 +380,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_pos_references(self, jnt_id_list=None):
+    def get_pos_references(self, jnt_id_list = None):
         
         """
         Retrieve one or more rows from the position_reference matrix of the joint state message, given a valid list of joint IDs.
@@ -394,7 +394,7 @@ class LogLoader:
         _, aux_type_ncols = self.position_reference.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim=  len(jnt_id_list)
 
@@ -407,7 +407,7 @@ class LogLoader:
 
         return extr_values
 
-    def get_links_position(self, jnt_id_list=None):
+    def get_links_position(self, jnt_id_list = None):
         
         """
         Retrieve one or more rows from the link_position matrix of the joint state message, given a valid list of joint IDs.
@@ -421,7 +421,7 @@ class LogLoader:
         _, aux_type_ncols = self.link_position.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -434,7 +434,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_motors_position(self, jnt_id_list=None):
+    def get_motors_position(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the motor_position matrix of the joint state message, given a valid list of joint IDs.
@@ -448,7 +448,7 @@ class LogLoader:
         _, aux_type_ncols = self.motor_position.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -461,7 +461,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_velocity_references(self, jnt_id_list=None):
+    def get_velocity_references(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the velocity_reference matrix of the joint state message, given a valid list of joint IDs.
@@ -475,7 +475,7 @@ class LogLoader:
         _, aux_type_ncols = self.velocity_reference.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -488,7 +488,7 @@ class LogLoader:
 
         return extr_values
 
-    def get_links_velocity(self, jnt_id_list=None):
+    def get_links_velocity(self, jnt_id_list = None):
 
 
         """
@@ -503,7 +503,7 @@ class LogLoader:
         _, aux_type_ncols = self.link_velocity.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -516,7 +516,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_motors_velocity(self, jnt_id_list=None):
+    def get_motors_velocity(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the motor_velocity matrix of the joint state message, given a valid list of joint IDs.
@@ -530,7 +530,7 @@ class LogLoader:
         _, aux_type_ncols = self.motor_velocity.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -543,7 +543,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_joints_efforts(self, jnt_id_list=None):
+    def get_joints_efforts(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the effort matrix of the joint state message, given a valid list of joint IDs.
@@ -557,7 +557,7 @@ class LogLoader:
         _, aux_type_ncols = self.effort.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -570,7 +570,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_joints_efforts_ref(self, jnt_id_list=None):
+    def get_joints_efforts_ref(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the effort_reference matrix of the joint state message, given a valid list of joint IDs.
@@ -584,7 +584,7 @@ class LogLoader:
         _, aux_type_ncols = self.effort_reference.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -597,7 +597,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_temp_motors(self, jnt_id_list=None):
+    def get_temp_motors(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the temperature_motor matrix of the joint state message, given a valid list of joint IDs.
@@ -611,7 +611,7 @@ class LogLoader:
         _, aux_type_ncols = self.temperature_motor.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -624,7 +624,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_temp_drivers(self, jnt_id_list=None):
+    def get_temp_drivers(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the temperature_driver matrix of the joint state message, given a valid list of joint IDs.
@@ -638,7 +638,7 @@ class LogLoader:
         _, aux_type_ncols = self.temperature_driver.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -651,7 +651,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_joints_stiffness(self, jnt_id_list=None):
+    def get_joints_stiffness(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the stiffness matrix of the joint state message, given a valid list of joint IDs.
@@ -665,7 +665,7 @@ class LogLoader:
         _, aux_type_ncols = self.stiffness.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -678,7 +678,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_joints_damping(self, jnt_id_list=None):
+    def get_joints_damping(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the damping matrix of the joint state message, given a valid list of joint IDs.
@@ -692,7 +692,7 @@ class LogLoader:
         _, aux_type_ncols = self.damping.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -705,7 +705,7 @@ class LogLoader:
 
         return extr_values
     
-    def get_faults(self, jnt_id_list=None):
+    def get_faults(self, jnt_id_list = None):
 
         """
         Retrieve one or more rows from the fault matrix of the joint state message, given a valid list of joint IDs.
@@ -719,7 +719,7 @@ class LogLoader:
         _, aux_type_ncols = self.fault.shape
 
         if jnt_id_list is None:
-            jnt_id_list = self.get_joints_id_from_names(self.get_joint_names())
+            jnt_id_list = self.get_joints_id_from_names(self.get_joints_names())
         
         id_list_dim = len(jnt_id_list)
 
@@ -734,11 +734,11 @@ class LogLoader:
  
     ## High-level methods ##
 
-    def get_joint_names_from_id(self, id_list):
+    def get_joints_names_from_id(self, id_list):
         
         """
 
-        Retrieve joints' unique names, given a joint ID.
+        Retrieve joints' unique names, given a list of valid joint IDs.
         If the input is provided as a list of joint IDs, the method will return a list of joint names.
         
         Args:
@@ -772,7 +772,7 @@ class LogLoader:
         If the input is provided as a list of joint names, the method will return a list of joint IDs.
         
         Args:
-            jnt_name_list: list of valid joint names (which can be checked using the get_joint_names() method)
+            jnt_name_list: list of valid joint names (which can be checked using the get_joints_names() method)
 
         """
 
@@ -811,22 +811,23 @@ class LogLoader:
 
         return chains_jnt_id
     
-    def extr_from_aux(self, jnt_index, sgnl_name):
+    def extr_from_aux(self, jnt_id, sgnl_name):
 
         """
 
         Extracts the required information from the aux_values matrix and aux_time vector, based on the provided joint index and signal name.
         
         Args:
-            jnt_index: a valid joint ID (int)
-            sgnl_name: a valid auxiliary signal name
+            jnt_id: a valid joint ID (int) (1 based indexing) -> can be checked, for example, with get_joints_id_from_names() method
+            sgnl_name: a valid auxiliary signal name --> can be checked with 
         
         """
+        jnt_index = jnt_id - 1 # converting to 0-based indexing
 
-        sgnl_code = self.get_aux_signal_codes([sgnl_name])
-        sgn_code_selector = self.get_aux_types()[jnt_index][:] == sgnl_code
-        aux_time_extr = self.get_aux_rel_time()[sgn_code_selector]
-        aux_vals_extr = self.get_aux_values()[jnt_index][sgn_code_selector]
+        sgnl_code = self.get_aux_signal_codes([sgnl_name]) # extracting signal code from given name
+        sgn_code_selector = self.get_aux_types()[jnt_index][:] == sgnl_code # selection matrix
+        aux_time_extr = self.get_aux_rel_time()[sgn_code_selector] # extracting the time vector associated with the required aux signal
+        aux_vals_extr = self.get_aux_values()[jnt_index][sgn_code_selector] # extracting the values associated with the required aux signal 
 
         return aux_time_extr, aux_vals_extr
 
@@ -904,7 +905,7 @@ class LogPlotter():
 
         Args:
             fig_name: figure name (same name used by init_fig)
-            jnt_id: joint id
+            jnt_id: joint id (1-based indexing)
             leg_draggable: draggable legend
             title: plot title
             set_grid: whether to set the grid or not
@@ -914,14 +915,12 @@ class LogPlotter():
 
         """
 
-        jnt_index = jnt_id - 1 # converting to 0-based indexing from Matlab 1-based indexing
-
         if (not add_plot):
             self.lines = [] # clear aux auxiliary attribute (only necessary to make legend picking work properly)
 
         for sgnl_name in self.log_loader.get_aux_signal_names():
 
-            aux_time_extr, aux_vals_extr = self.log_loader.extr_from_aux(jnt_index, sgnl_name)
+            aux_time_extr, aux_vals_extr = self.log_loader.extr_from_aux(jnt_id, sgnl_name)
 
             self.lines.append(self.axes[fig_name].plot(aux_time_extr, aux_vals_extr, label = sgnl_name.replace('_aux_code', ''), drawstyle = draw_style)) # plotting on the last active subplot
 
@@ -964,7 +963,7 @@ class LogPlotter():
         """
 
         jnt_index = jnt_id - 1 # MATLAB INDEXING
-        jnt_name = self.log_loader.get_joint_names_from_id([jnt_id])[0]
+        jnt_name = self.log_loader.get_joints_names_from_id([jnt_id])[0]
 
         if (not add_plot):
             self.lines = [] # clear js auxiliary attribute (only necessary to make legend picking work properly)
@@ -1070,11 +1069,11 @@ def main():
     canvas.init_fig(fig_name="prova1") # initialize the figure
     
     canvas.add_subplot(fig_name = "prova1", row = n_rows1, column = n_cols1, index = 1) # adding a subplot in the specified position
-    canvas.aux_plot(fig_name = "prova1", jnt_id = 1, title="Auxiliary state signals on joint \""+ canvas.log_loader.get_joint_names_from_id([1])[0]+"\"") # plotting the aux signals of a particular joint
+    canvas.aux_plot(fig_name = "prova1", jnt_id = 1, title="Auxiliary state signals on joint \""+ canvas.log_loader.get_joints_names_from_id([1])[0]+"\"") # plotting the aux signals of a particular joint
     
     canvas.add_subplot(fig_name =  "prova1", row = n_rows1, column = n_cols1, index = 2) # adding another subplot
-    canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 12, line_label = canvas.log_loader.get_joint_names_from_id([12])[0]+" torque", title = "Some joint torques") # plotting the torque on a specified joint
-    canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 15, set_grid = False, add_plot = True, line_label = canvas.log_loader.get_joint_names_from_id([15])[0]+" torque") # another torque plot
+    canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 12, line_label = canvas.log_loader.get_joints_names_from_id([12])[0]+" torque", title = "Some joint torques") # plotting the torque on a specified joint
+    canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 15, set_grid = False, add_plot = True, line_label = canvas.log_loader.get_joints_names_from_id([15])[0]+" torque") # another torque plot
 
     input() # necessary to keep all figures opened
 

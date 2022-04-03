@@ -18,12 +18,12 @@ import rospy
 
 ######################### PRE-INITIALIZATIONS #########################
 
-urdf_path = rospy.get_param("/log_plotter/urdf_path") 
-srdf_path = rospy.get_param("/log_plotter/srdf_path") 
-acts_config_path = rospy.get_param("/log_plotter/actuators_config_path") 
-matfile_path = rospy.get_param("/log_plotter/matfile_path") 
-save_fig_path = rospy.get_param("/log_plotter/save_fig_path") 
-save_fig = rospy.get_param("/log_plotter/save_fig") 
+urdf_path = rospy.get_param("/robot_state_log_plotter/urdf_path") 
+srdf_path = rospy.get_param("/robot_state_log_plotter/srdf_path") 
+acts_config_path = rospy.get_param("/robot_state_log_plotter/actuators_config_path") 
+matfile_path = rospy.get_param("/robot_state_log_plotter/matfile_path") 
+save_fig_path = rospy.get_param("/robot_state_log_plotter/save_fig_path") 
+save_fig = rospy.get_param("/robot_state_log_plotter/save_fig") 
 
 # Loading actuator paramters
 with open(acts_config_path, 'r') as stream:
@@ -37,7 +37,8 @@ srdf = open(srdf_path, "r").read() # read the URDF
 log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
 plotter = LogPlotter(log_loader, clr_set_name = "tab10") # plotter instance
 
-jnt_names = log_loader.get_joint_names()
+jnt_names = log_loader.get_joints_names()
+joint_ids = log_loader.get_joints_id_from_names(jnt_names)
 n_jnts = len(jnt_names)
 
 ######################### INITIALIZATIONS #########################
@@ -69,7 +70,7 @@ cutoff_freq_curr = 0.01
 b_curr, a_curr = signal.butter(filter_order_curr, cutoff_freq_curr) # lowpass Butterworth filter with a cutoff of 0.125 times the Nyquist frequency
 
 filter_order_aux = 8
-cutoff_freq_aux = 0.05
+cutoff_freq_aux = 0.08
 b_aux, a_aux = signal.butter(filter_order_aux, cutoff_freq_aux) # lowpass Butterworth filter with a cutoff of 0.125 times the Nyquist frequency
 
 filter_order_vel = 8
@@ -91,105 +92,132 @@ K_d0 = np.array([K_d0_hip, K_d0_knee])
 K_d1 = np.array([K_d1_hip, K_d1_knee])
 
 ######################### COMPUTING STUFF #########################
+
 js_time = log_loader.get_js_rel_time()
-
-diff_jnt_acc = diff_mat(js_time, log_loader.get_motors_velocity()) # differentiated joint accelerations (from measurements)
-filtered_diff_jnt_acc = signal.filtfilt(b_acc, a_acc, diff_jnt_acc, padlen=150, axis= 1) # filtered joint acceleration
-
 jnt_pos = log_loader.get_motors_position()
 jnt_vel = log_loader.get_motors_velocity()
 
-smooth_coeff = 20
-test_tau = compute_tau_over_jnt_traj_xbot(model, jnt_pos[:, 0:-1], jnt_vel[:, 0:-1], filtered_diff_jnt_acc) #efforts computed with the measured joint trajectory
+# obtaining joint acceleration with a simple num. differentiation
+diff_jnt_acc = diff_mat(js_time, jnt_vel) # differentiated joint accelerations (from measurements)
+filtered_diff_jnt_acc = signal.filtfilt(b_acc, a_acc, diff_jnt_acc, padlen = 150, axis = 1) # filtered joint acceleration
 
+test_tau = compute_tau_over_jnt_traj_xbot(model, jnt_pos[:, 0:-1], jnt_vel[:, 0:-1], filtered_diff_jnt_acc) # efforts computed with the measured joint trajectory
+
+# i_q estimation
+smooth_coeff = 20 # how fast the smooth sign function rises 
 total_tau = test_tau + np.dot(K_d0, compute_smooth_sign(jnt_vel[:, 0:-1], coeff = smooth_coeff)) + np.dot(K_d1, jnt_vel[:, 0:-1]) # fictitious total torque (estimated + friction effects)
+i_q_estimate = (hip_rotor_axial_MoI * filtered_diff_jnt_acc / hip_red_ratio + total_tau * hip_red_ratio / hip_efficiency) * 1.0 / hip_K_t
+i_q_estimate_filt = signal.filtfilt(b_curr, a_curr, i_q_estimate, padlen = 150, axis = 1) # filtered i_q currents
 
-i_q_estimate = (hip_rotor_axial_MoI*filtered_diff_jnt_acc/hip_red_ratio+total_tau*hip_red_ratio/hip_efficiency)*1.0/hip_K_t
-i_q_estimate_filt = signal.filtfilt(b_curr, a_curr, i_q_estimate, padlen=150, axis= 1) # filtered i_q currents
-
-# Auxiliary data
-
+# auxiliary data
 aux_signal_names = log_loader.get_aux_signal_names()
 aux_signal_codes = log_loader.get_aux_signal_codes(aux_signal_names)
 aux_signal_number = len(aux_signal_codes) # number of auxiliary signals
 
-aux_times = [] # list, because the rows will in general have different number of cols
-aux_val = [] # aux values
-aux_val_filt = [] # filtered aux values 
+aux_times = [None] * (n_jnts * aux_signal_number) # list, because the rows will in general have different number of cols
+aux_val = [None] * (n_jnts * aux_signal_number) # aux values
+aux_val_postproc = [None] * (n_jnts * aux_signal_number) # post-processed aux values (in particular, filtered)
 
-for jnt in range(0, n_jnts):
+is_iq_in_aux = False
+for aux_name in aux_signal_names: # if aux signals contain iq data, than hold it also in a separate container (to be used for current model validation)
+
+    if ("iq" in aux_name):
+
+        i_q_meas = [None] * (n_jnts) # measured i_q 
+        i_q_meas_filt = [None] * (n_jnts) # filtered measured i_q
+        i_q_meas_time = [None] * (n_jnts) # i_q time vector
+
+        is_iq_in_aux = True # signal that an iq was indeed found
+
+        break # exit the loop
+
+# building the objects which will hold aux data
+
+for joint_id in joint_ids: 
+
+    joint_index = joint_id - 1 # converting to 0-based indexing
 
     for aux_name in aux_signal_names:
 
-        aux_code = log_loader.get_aux_signal_code(aux_name)
+        times, vals = log_loader.extr_from_aux(joint_id, aux_name)
 
-        code_index = aux_code - 1 # converting to 0-based indexing
+        code_index = log_loader.get_aux_signal_code(aux_name) - 1
 
-        times, vals = log_loader.extr_from_aux(jnt, aux_signal_names[code_index])
+        aux_times[code_index + joint_index * aux_signal_number] = times
+        aux_val[code_index + joint_index * aux_signal_number] = vals
 
-        aux_times.append(times)
-        aux_val.append(vals)
+        if (not ("ref" in aux_name)): # not a reference signal --> filter it
+            
+            filt_val = signal.filtfilt(b_aux, a_aux, vals, padlen = 150, axis = 0) 
 
-        if not ("ref" in aux_name): # not a reference signal --> filter it
+            aux_val_postproc[code_index + joint_index * aux_signal_number] = filt_val
 
-            filt_val = signal.filtfilt(b_aux, a_aux, vals, padlen=150, axis= 0) 
-
-            aux_val_filt.append(filt_val) 
+            if ("iq" in aux_name): # also assign iq data to separate container
+                
+                i_q_meas[joint_index] = vals
+                i_q_meas_filt[joint_index] = filt_val
+                i_q_meas_time[joint_index] = times
 
         else: # reference signal --> append raw values
-
-            aux_val_filt.append(vals) 
+            
+            aux_val_postproc[code_index + joint_index * aux_signal_number] = vals
 
 ######################### PLOTTING STUFF #########################
 
-n_cols_subplot = 1 
 n_rows_subplot = n_jnts
+n_cols_subplot = 1 
 
 # Initializing figs
-aux_fig = plotter.init_fig(fig_name = "aux") 
+aux_fig = plotter.init_fig(fig_name = "aux_raw") 
 aux_fig_filtered = plotter.init_fig(fig_name = "aux_filtered") 
 motor_positions_fig = plotter.init_fig(fig_name = "motor_positions") 
 motor_velocities_fig = plotter.init_fig(fig_name = "motor_velocities") 
-joint_efforts_fig = plotter.init_fig(fig_name = "joint_efforts") 
+joint_efforts_fig = plotter.init_fig(fig_name = "raw_joint_efforts") 
 temperature_driver_fig = plotter.init_fig(fig_name = "temperature_driver") 
 temperature_motor_fig = plotter.init_fig(fig_name = "temperature_motor") 
-# horizon_torques_fig = plotter.init_fig(fig_name = "horizon_torques") 
 differentiated_jnt_acc_fig = plotter.init_fig(fig_name = "differentiated_jnt_acc") 
 torque_validation_fig = plotter.init_fig(fig_name = "torque_validation") 
 current_validation_fig = plotter.init_fig(fig_name = "current_validation") 
-# filtered_jnt_vel_fig = plotter.init_fig(fig_name = "filtered_jnt_vel") 
 
 # Plotting
-joint_ids = log_loader.get_joints_id_from_names(jnt_names)
 
 for joint_id in joint_ids:
 
-    joint_name = log_loader.get_joint_names_from_id([joint_id])[0]
+    joint_name = log_loader.get_joints_names_from_id([joint_id])[0]
 
-    plotter.add_subplot(fig_name = "aux", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-    plotter.aux_plot(fig_name = "aux", jnt_id = joint_id, title = "Unfiltered aux signals on joint (" + joint_name +")") 
+    # raw aux signals
+
+    plotter.add_subplot(fig_name = "aux_raw", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
+    plotter.aux_plot(fig_name = "aux_raw", jnt_id = joint_id, title = "Unfiltered aux signals on joint (" + joint_name +")") 
+
+    # post-processed aux signals
 
     plotter.add_subplot(fig_name = "aux_filtered", row = n_rows_subplot, column = n_cols_subplot, index = joint_id)
     
-    j = 0 # only used to check when adding the first plot
+    first_plot = True # only used to check when adding the first plot
     for aux_name in aux_signal_names:
 
         aux_code = log_loader.get_aux_signal_code(aux_name)
         code_index = aux_code - 1 #converting to 0-based indexing
 
-        if j == 0: # first plot --> add title and grid
+        if first_plot: # first plot --> add title and grid
+
             plot_title = "Filtered aux signals (" + joint_name +")"
             set_grid = True
             add_plot = False
-            j=+1
+
+            first_plot = False
 
         else:
+
             plot_title = None 
             set_grid = False
             add_plot = True
         
-        plotter.vect_plot(fig_name = "aux_filtered", x_data = aux_times[code_index + (joint_id - 1) * aux_signal_number], input_vector = aux_val_filt[code_index + (joint_id - 1) * aux_signal_number], title = plot_title, line_label = aux_name.replace('_aux_code', ''), set_grid = set_grid, add_plot = add_plot)
+        plotter.vect_plot(fig_name = "aux_filtered", x_data = aux_times[code_index + (joint_id - 1) * aux_signal_number], input_vector = aux_val_postproc[code_index + (joint_id - 1) * aux_signal_number], title = plot_title, line_label = aux_name.replace('_aux_code', ''), set_grid = set_grid, add_plot = add_plot)
     
+    # joint positions and velocities
+
     plotter.add_subplot(fig_name = "motor_positions", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
     plotter.js_plot(fig_name = "motor_positions", input_matrix = log_loader.get_motors_position(), jnt_id = joint_id, line_label = joint_name + " motor position", title = "Motor position VS Reference (" + joint_name +")") 
     plotter.js_plot(fig_name = "motor_positions", input_matrix = log_loader.get_pos_references(), jnt_id = joint_id, line_label = joint_name + " position ref", set_grid = False, add_plot = True) 
@@ -199,9 +227,19 @@ for joint_id in joint_ids:
     plotter.js_plot(fig_name = "motor_velocities", input_matrix = log_loader.get_motors_velocity(), jnt_id = joint_id, line_label = joint_name + " motor velocity", title = "Motor velocity VS Reference (" + joint_name +")") 
     plotter.js_plot(fig_name = "motor_velocities", input_matrix = log_loader.get_velocity_references(), jnt_id = joint_id, line_label = joint_name + " velocity ref", set_grid = False, add_plot = True) 
 
-    plotter.add_subplot(fig_name = "joint_efforts", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-    plotter.js_plot(fig_name = "joint_efforts", input_matrix = log_loader.get_joints_efforts_ref(), jnt_id = joint_id, line_label = joint_name + " effort ref", title = "Joint effort VS Reference (" + joint_name +")", draw_style = 'steps-pre') 
-    plotter.js_plot(fig_name = "joint_efforts", input_matrix = log_loader.get_joints_efforts(), jnt_id = joint_id, line_label = joint_name + " effort", set_grid = False, add_plot = True, draw_style = 'steps-pre') 
+    # raw joint efforts
+
+    plotter.add_subplot(fig_name = "raw_joint_efforts", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
+    plotter.js_plot(fig_name = "raw_joint_efforts", input_matrix = log_loader.get_joints_efforts_ref(), jnt_id = joint_id, line_label = joint_name + " effort ref", title = "Unfiltered joint effort VS Reference (" + joint_name +")", draw_style = 'steps-pre') 
+    plotter.js_plot(fig_name = "raw_joint_efforts", input_matrix = log_loader.get_joints_efforts(), jnt_id = joint_id, line_label = joint_name + " effort", set_grid = False, add_plot = True, draw_style = 'steps-pre') 
+
+    # raw joint efforts vs estimated ones (via inverse dynamics)
+
+    plotter.add_subplot(fig_name = "torque_validation", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
+    plotter.js_plot(fig_name = "torque_validation", input_matrix = log_loader.get_joints_efforts(), jnt_id = joint_id, line_label = joint_name + " measured effort", draw_style = 'steps-pre') 
+    plotter.js_plot(fig_name = "torque_validation", x_data=js_time[1:len(js_time)], input_matrix = test_tau, jnt_id = joint_id, line_label = joint_name + " computed effort", title = "Effort on " + joint_name + " (validation)", draw_style = 'steps-pre', set_grid = False, add_plot = True) 
+
+    # temperature data
 
     plotter.add_subplot(fig_name = "temperature_driver", row = n_rows_subplot, column=n_cols_subplot, index = joint_id) 
     plotter.js_plot(fig_name = "temperature_driver", input_matrix=log_loader.get_temp_drivers(), jnt_id=joint_id, line_label = joint_name + " driver temperature", title = "Driver temperature (" + joint_name +")") 
@@ -209,21 +247,23 @@ for joint_id in joint_ids:
     plotter.add_subplot(fig_name = "temperature_motor", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
     plotter.js_plot(fig_name = "temperature_motor", input_matrix = log_loader.get_temp_motors(), jnt_id = joint_id, line_label = joint_name + " motor temperature", title = "Motor temeperature (" + joint_name +")") 
 
-    plotter.add_subplot(fig_name = "torque_validation", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-    plotter.js_plot(fig_name = "torque_validation", input_matrix = log_loader.get_joints_efforts(), jnt_id = joint_id, line_label = joint_name + " measured effort", draw_style = 'steps-pre') 
-    plotter.js_plot(fig_name = "torque_validation", x_data=js_time[1:len(js_time)], input_matrix = test_tau, jnt_id = joint_id, line_label = joint_name + " computed effort", title = "Effort on " + joint_name + " (validation)", draw_style = 'steps-pre', set_grid = False, add_plot = True) 
+    # diff. joint acceleration vs filtered diff. joint acceleration
 
     plotter.add_subplot(fig_name = "differentiated_jnt_acc", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-    plotter.js_plot(fig_name = "differentiated_jnt_acc", x_data=js_time[1:len(js_time)], input_matrix = filtered_diff_jnt_acc, jnt_id = joint_id, line_label = joint_name + " diff jnt acc. (filtered)", title = "Differentiated joint acc. of " + joint_name + " joint") 
-    plotter.js_plot(fig_name = "differentiated_jnt_acc", x_data=js_time[1:len(js_time)], input_matrix = diff_jnt_acc, jnt_id = joint_id, line_label = joint_name + " diff jnt acc. ",  set_grid = False, add_plot = True) 
+    plotter.js_plot(fig_name = "differentiated_jnt_acc", x_data = js_time[1:len(js_time)], input_matrix = filtered_diff_jnt_acc, jnt_id = joint_id, line_label = joint_name + " diff jnt acc. (filtered)", title = "Differentiated joint acc. of " + joint_name + " joint") 
+    plotter.js_plot(fig_name = "differentiated_jnt_acc", x_data = js_time[1:len(js_time)], input_matrix = diff_jnt_acc, jnt_id = joint_id, line_label = joint_name + " diff jnt acc. ",  set_grid = False, add_plot = True) 
+
+    # i_q model validation
 
     plotter.add_subplot(fig_name = "current_validation", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-    # plotter.js_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id-1, :], input_matrix = i_q_measured, jnt_id = joint_id, line_label = joint_name + " measured i_q", title = "Measured VS estimated i_q on " + joint_name + " joint") 
+    # unfiltered data
+    plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_meas[joint_id - 1], title = "Measured VS estimated i_q on " + joint_name + " joint", line_label = joint_name + " measured i_q", set_grid = True, add_plot = False)
     plotter.js_plot(fig_name = "current_validation", x_data = js_time[1:len(js_time)], input_matrix = i_q_estimate, jnt_id = joint_id, line_label = joint_name + " estimated i_q", set_grid = False, add_plot = True) 
-    # plotter.js_plot(fig_name = "current_validation", x_data =  i_q_meas_time[joint_id - 1, :], input_matrix = i_q_measured_filt, jnt_id = joint_id, line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True) 
+    # filtered data
+    plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_meas_filt[joint_id - 1], line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True)
     plotter.js_plot(fig_name = "current_validation", x_data =  js_time[1:len(js_time)], input_matrix = i_q_estimate_filt, jnt_id = joint_id, line_label = joint_name + " estimated i_q (filtered)", set_grid = False, add_plot = True) 
 
-if save_fig:
+if save_fig: # save figures
 
     aux_fig.set_size_inches(16, 12)
     motor_positions_fig.set_size_inches(16, 12)

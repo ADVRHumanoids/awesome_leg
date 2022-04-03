@@ -1,6 +1,6 @@
-# log_plotter.py config file
+# robot_state_log_plotter.py config file
 
-log_plotter:
+robot_state_log_plotter:
 
   actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
 

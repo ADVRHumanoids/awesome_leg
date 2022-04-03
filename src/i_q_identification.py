@@ -95,8 +95,8 @@ test_tau = compute_tau_over_jnt_traj_xbot(model, jnt_pos[:, 0:-1], jnt_vel[:, 0:
 meas_tau = log_loader.get_joints_efforts()
 filt_meas_tau = signal.filtfilt(b_tau, a_tau, meas_tau, padlen=150, axis= 1)
 
-i_q_hip_time, i_q_hip_measured = log_loader.extr_from_aux(jnt_index = 0, sgnl_name = 'iq_out_fb_aux_code')
-i_q_knee_time, i_q_knee_measured = log_loader.extr_from_aux(jnt_index = 1, sgnl_name = 'iq_out_fb_aux_code')
+i_q_hip_time, i_q_hip_measured = log_loader.extr_from_aux(jnt_id = 1, sgnl_name = 'iq_out_fb_aux_code')
+i_q_knee_time, i_q_knee_measured = log_loader.extr_from_aux(jnt_id = 2, sgnl_name = 'iq_out_fb_aux_code')
 i_q_measured = [i_q_hip_measured, i_q_knee_measured]
 i_q_measured_filt = signal.filtfilt(b_curr, a_curr, i_q_measured, padlen=150, axis= 1) # filtered i_q currents
 i_q_meas_time = [i_q_hip_time, i_q_knee_time]
@@ -191,14 +191,14 @@ i_q_estimate_filt = signal.filtfilt(b_curr, a_curr, i_q_estimate, padlen=150, ax
 
 plotter = LogPlotter(log_loader, clr_set_name="tab10") # plotter instance
 
-n_rows1 = len(log_loader.get_joint_names()) # subplot rows
+n_rows1 = len(log_loader.get_joints_names()) # subplot rows
 n_cols1 = 1 # subplot columns
 
 fig = plotter.init_fig(fig_name = "current_validation") 
 
-for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joint_names()):
+for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joints_names()):
 
-    joint_name = log_loader.get_joint_names_from_id([joint_id])[0]
+    joint_name = log_loader.get_joints_names_from_id([joint_id])[0]
 
     plotter.add_subplot(fig_name = "current_validation", row = n_rows1, column = n_cols1, index = joint_id) 
     plotter.js_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1][:], input_matrix = i_q_measured, jnt_id = joint_id, line_label = joint_name + " measured i_q", title = "Measured VS estimated i_q on " + joint_name + " joint") 
