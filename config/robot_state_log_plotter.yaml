@@ -7,9 +7,8 @@ robot_state_log_plotter:
   urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_reduced_calibrated.urdf # urdf relative path (wrt to the package)
   srdf_path: $(find awesome_leg_pholus)/description/srdf/awesome_leg_reduced.srdf # srdf relative path (wrt to the package)
   
-  matfile_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/tip_cart_acc_cntrl/checks/robot_state_log1.mat # logged data mat file path
+  matfile_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/tip_cart_acc_cntrl/checks/real_tests/1_04_22/robot_state_log1.mat # logged data mat file path
 
   save_fig: false # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
   
-  save_fig_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/task_space_traj_track
-
+  save_fig_path: /tmp

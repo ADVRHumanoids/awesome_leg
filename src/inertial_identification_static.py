@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 
-from matplotlib.pyplot import axis
-from awesome_leg_pholus_utils.logger_utilities import LogLoader, LogPlotter
-
-from xbot_interface import xbot_interface as xbot
+from awesome_leg_pholus_utils.logger_utilities import LogLoader
 
 import numpy as np
 
@@ -26,10 +23,11 @@ urdf = open(urdf_path, "r").read() # read the URDF
 matfiles = rospy.get_param("/inertial_identification_static/matfile_paths")
 
 # Initializing a LogLoaders for reading and using the data inside the .mat file
-log_loaders = []
+matfile_number = len(matfiles)
+log_loaders = [None] * (matfile_number)
 
-for i in range(len(matfiles)):
-    log_loaders.append(LogLoader(matfiles[i]))
+for i in range(matfile_number):
+    log_loaders[i] = LogLoader(matfiles[i])
 
 ######################### INITIALIZATIONS #########################
 
@@ -51,29 +49,29 @@ filter_order_tau = 8
 cutoff_freq_tau = 0.008
 b_tau, a_tau = signal.butter(filter_order_tau, cutoff_freq_tau) # lowpass Butterworth filter 
 
-js_times= []
-diff_jnt_accs = []
-jnt_positions = []
-jnt_velocities = []
-filtered_diff_jnt_accs = []
-test_taus = []
-test_taus_filt = []
+js_times = [None] * (matfile_number)
+diff_jnt_accs = [None] * (matfile_number)
+jnt_positions = [None] * (matfile_number)
+jnt_velocities = [None] * (matfile_number)
+filtered_diff_jnt_accs = [None] * (matfile_number)
+test_taus = [None] * (matfile_number)
+test_taus_filt = [None] * (matfile_number)
 
-for i in range(len(matfiles)):
-    js_times.append(log_loaders[i].get_js_rel_time())
-    jnt_positions.append(log_loaders[i].get_motors_position())
-    jnt_velocities.append(log_loaders[i].get_motors_velocity())
-    diff_jnt_accs.append(diff_mat(js_times[i], jnt_velocities[i]))
-    filtered_diff_jnt_accs.append(signal.filtfilt(b_acc, a_acc, diff_jnt_accs[i], padlen=150, axis= 1))
-    test_taus.append(log_loaders[i].get_joints_efforts())
-    test_taus_filt.append(signal.filtfilt(b_tau, a_tau, test_taus[i], padlen=150, axis= 1))
+for i in range(matfile_number):
+    js_times[i] = log_loaders[i].get_js_rel_time()
+    jnt_positions[i] = log_loaders[i].get_motors_position()
+    jnt_velocities[i] = log_loaders[i].get_motors_velocity()
+    diff_jnt_accs[i] = diff_mat(js_times[i], jnt_velocities[i])
+    filtered_diff_jnt_accs[i] = signal.filtfilt(b_acc, a_acc, diff_jnt_accs[i], padlen=150, axis= 1)
+    test_taus[i] = log_loaders[i].get_joints_efforts())
+    test_taus_filt[i] = signal.filtfilt(b_tau, a_tau, test_taus[i], padlen=150, axis= 1)
 
-avrg_static_taus = []
-avrg_static_pos = []
+avrg_static_taus = [None] * (matfile_number)
+avrg_static_pos = [None] * (matfile_number)
 
-for i in range(len(matfiles)):
-    avrg_static_pos.append(np.mean(jnt_positions[i], axis = 1))
-    avrg_static_taus.append(np.mean(test_taus[i], axis = 1))
+for i in range(matfile_number):
+    avrg_static_pos[i] = np.mean(jnt_positions[i], axis = 1)
+    avrg_static_taus[i] = np.mean(test_taus[i], axis = 1)
 
 q_p = rearrange_test_mat(avrg_static_pos)
 q_p_dot = np.zeros((len(q_p[:, 0]), len(q_p[0, :])))
