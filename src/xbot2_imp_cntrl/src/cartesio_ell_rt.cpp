@@ -347,12 +347,22 @@ void CartesioEllRt::starting()
     _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
     // Initializing logger fields to improve rt performance
+
+    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
+    dscrptn_files_cell[0] = _urdf_path;
+    dscrptn_files_cell[1] = _srdf_path;
+    _logger->save("description_files", dscrptn_files_cell);
+    
     _logger->create("meas_efforts", _n_jnts_model);
     _logger->create("computed_efforts", _n_jnts_model);
 
     _logger->create("M", _n_jnts_model, _n_jnts_model);
     
     _logger->create("tip_pos_ref", 3);
+    _logger->create("tip_orient_ref", 3, 3);
+    _logger->create("tip_vel_ref", 6);
+    _logger->create("tip_acc_ref", 6);
+
     _logger->create("tip_pos_meas", 3);
 
     _logger->create("t_exec_traj", 1);
@@ -509,6 +519,9 @@ void CartesioEllRt::run()
     _logger->add("M", _M);
     
     _logger->add("tip_pos_ref", _target_pose.translation());
+    _logger->add("tip_orient_ref", _target_pose.rotation());
+    _logger->add("tip_vel_ref", _target_vel);
+    _logger->add("tip_acc_ref", _target_acc);
     _logger->add("tip_pos_meas", _meas_pose.translation());
 
     _logger->add("t_exec_traj", _t_exec_traj);
