@@ -1,0 +1,7 @@
+float64[] jnt_stiffness_setpoint
+float64[] jnt_damping_setpoint
+---
+
+string message
+
+bool success

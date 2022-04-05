@@ -7,9 +7,13 @@ add_xbot2_plugin(cartesio_imp_cntrl_ros_rt
 
 add_xbot2_plugin(cartesio_ell_rt
     src/cartesio_ell_rt.cpp)
-    
+
+add_xbot2_plugin(bypass_dsp_rt
+    src/bypass_dsp.cpp)
+
 add_dependencies(cartesio_imp_cntrl_ros_rt awesome_leg_pholus_generate_messages)
 add_dependencies(cartesio_ell_rt awesome_leg_pholus_generate_messages)
+add_dependencies(bypass_dsp_rt awesome_leg_pholus_generate_messages)
 
 include_directories(include)
 
@@ -17,6 +21,8 @@ target_link_libraries(cartesio_imp_cntrl_ros_rt PRIVATE ${cartesian_interface_LI
 
 target_link_libraries(cartesio_ell_rt PRIVATE ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
 
+target_link_libraries(bypass_dsp_rt PRIVATE ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
+
 install(
-    TARGETS cartesio_imp_cntrl_ros_rt cartesio_ell_rt
+    TARGETS cartesio_imp_cntrl_ros_rt cartesio_ell_rt bypass_dsp_rt
     DESTINATION lib)

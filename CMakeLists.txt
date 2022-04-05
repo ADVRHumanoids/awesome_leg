@@ -13,6 +13,8 @@ option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 add_service_files(
   FILES
   EllTrajRt.srv
+  SinJointTraj.srv
+  BypassDspRt.srv
 )
 
 generate_messages(
