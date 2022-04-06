@@ -14,10 +14,10 @@ set_ell_traj.wait_for_service()
 
 req = SinJointTrajRequest()
 
-req.t_exec = [4.0, 3.0]
-req.center = [0.1, -0.3]
-req.phase_off = [0.0, 1.5]
-req.overshoot = [0.8, 0.8]
+req.t_exec = [4.0, 4.0]
+req.center = [0.0, 0.0]
+req.phase_off = [0.0, 0]
+req.overshoot = [1, 1]
 
 res = set_ell_traj(req)
 

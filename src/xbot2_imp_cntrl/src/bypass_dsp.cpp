@@ -2,7 +2,7 @@
 
 bool BypassDsp::get_params_from_config()
 {
-    // Reading some parameters from XBot2 config. YAML file
+    // Reading some parameters from XBot2 config. YAML file (here only minimal checks are made)
 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
@@ -13,13 +13,15 @@ bool BypassDsp::get_params_from_config()
     _imp_rmp_time = getParamOrThrow<double>("~imp_rmp_time");
 
     _t_exec_trgt = getParamOrThrow<Eigen::VectorXd>("~t_exec");
-    // _t_exec_lb = getParamOrThrow<double>("~t_exec_lb");
+    _t_exec_lb = getParamOrThrow<double>("~t_exec_lb");
     _center_trgt = getParamOrThrow<Eigen::VectorXd>("~center");
     _phase_off_trgt = getParamOrThrow<Eigen::VectorXd>("~phase_off");
     _overshoot_trgt = getParamOrThrow<Eigen::VectorXd>("~overshoot");
 
     _stiffness_trgt = getParamOrThrow<Eigen::VectorXd>("~jnt_stiffness");
     _damping_trgt = getParamOrThrow<Eigen::VectorXd>("~jnt_damping");
+
+    _jnt_imp_lims = getParamOrThrow<Eigen::VectorXd>("~jnt_imp_lims");
 
     if (    (_t_exec_trgt.size() != _n_jnts_robot) ||
             (_center_trgt.size() != _n_jnts_robot) ||
@@ -165,12 +167,29 @@ bool BypassDsp::on_sin_traj_recv_srv(const awesome_leg_pholus::SinJointTrajReque
     // Assigning read trajectory parameters to target variables
     for (int i = 0; i < _n_jnts_robot; i++)
     {
-        _t_exec_trgt[i] = req.t_exec[i];
+        _t_exec_trgt[i] = abs(req.t_exec[i]) < abs(_t_exec_lb) ? abs(_t_exec_lb) : abs(req.t_exec[i]); // first check the execution time
+
+        // checking for joint position/velocity bound violations --> if bounds violated do not set the new trajectory
+        if ( (req.center[i] - abs(req.overshoot[i])) < _q_min[i] || ((req.center[i] + abs(req.overshoot[i])) > _q_max[i])  || 
+             2 * M_PI /  _t_exec_trgt[i] * abs(_overshoot[i]) > _q_dot_max[i] )
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n The received traj. configuration exceeds joint position OR velocity limits.\n The trajectory will not be set.");
+
+            res.message = "Required trajectory exceeds joint limits!";
+
+            res.success = false;
+
+            _traj_par_callback_trigger = false; // do not signal trajectory change to other parts of the code
+
+            return res.success;
+        }
+
         _center_trgt[i] = req.center[i];
+        _overshoot_trgt[i] = abs(req.overshoot[i]);
+
         _phase_off_trgt[i] = req.phase_off[i];
-        _overshoot_trgt[i] = req.overshoot[i];
     }
-    
 
     // Assigning current trajectory parameters values
     _t_exec_init = _t_exec;
@@ -179,7 +198,7 @@ bool BypassDsp::on_sin_traj_recv_srv(const awesome_leg_pholus::SinJointTrajReque
     _overshoot_init = _overshoot;
     
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Received new joint sinusoidal trajectory configuration: \n");
+                   "\n Setting joint sinusoidal trajectory configuration to: \n");
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                    "t_exec: {}\n", _t_exec_trgt);
@@ -220,8 +239,8 @@ bool BypassDsp::on_jnt_imp_setpoint_recv_srv(const awesome_leg_pholus::BypassDsp
     // Assigning read trajectory parameters to target variables
     for (int i = 0; i < _n_jnts_robot; i++)
     {
-        _stiffness_trgt[i] = req.jnt_stiffness_setpoint[i];
-        _damping_trgt[i] = req.jnt_damping_setpoint[i];
+        _stiffness_trgt[i] = abs(req.jnt_stiffness_setpoint[i]) > abs(_jnt_imp_lims[0]) ? abs(_jnt_imp_lims[0]) : abs(req.jnt_stiffness_setpoint[i]); // assign value checking impedance limits violations
+        _damping_trgt[i] = abs(req.jnt_damping_setpoint[i]) > abs(_jnt_imp_lims[1]) ? abs(_jnt_imp_lims[1]) : abs(req.jnt_damping_setpoint[i]);
     
     }
 
@@ -263,6 +282,9 @@ bool BypassDsp::on_initialize()
 {    
 
     _n_jnts_robot = _robot->getJointNum();
+
+    _robot->getJointLimits(_q_min, _q_max);
+    _robot->getVelocityLimits(_q_dot_max);
 
     // Define dimension of dinamic vectors
 

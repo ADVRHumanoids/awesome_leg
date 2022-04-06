@@ -68,8 +68,11 @@ private:
                     _stop_stiffness, _stop_damping,
                     _q_p_meas, _q_p_dot_meas,
                     _q_p_trgt, _q_p_dot_trgt,
+                    _q_min, _q_max,
+                    _q_dot_max,  
                     _effort_command, _meas_effort, 
-                    _effort_lims;
+                    _effort_lims,
+                    _jnt_imp_lims;
 
     std::string _urdf_path, _srdf_path, _cartesio_path;
 
