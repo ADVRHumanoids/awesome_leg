@@ -63,7 +63,7 @@ for i in range(matfile_number):
     jnt_velocities[i] = log_loaders[i].get_motors_velocity()
     diff_jnt_accs[i] = diff_mat(js_times[i], jnt_velocities[i])
     filtered_diff_jnt_accs[i] = signal.filtfilt(b_acc, a_acc, diff_jnt_accs[i], padlen=150, axis= 1)
-    test_taus[i] = log_loaders[i].get_joints_efforts())
+    test_taus[i] = log_loaders[i].get_joints_efforts()
     test_taus_filt[i] = signal.filtfilt(b_tau, a_tau, test_taus[i], padlen=150, axis= 1)
 
 avrg_static_taus = [None] * (matfile_number)
