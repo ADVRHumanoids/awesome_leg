@@ -74,7 +74,7 @@
     <joint name="hip_pitch_1" type="revolute">
         <parent link="world"/>
         <child link="shank"/>
-        <origin rpy="-1.57 0 0" xyz="0.0 0.0 0.0"/>
+        <origin rpy="-1.57079632679 0 0" xyz="0.0 0.0 0.0"/>
         <axis xyz="0 0 1"/>
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>

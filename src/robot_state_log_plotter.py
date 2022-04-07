@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from re import S
 from awesome_leg_pholus_utils.logger_utilities import LogLoader, LogPlotter
 
 from xbot_interface import xbot_interface as xbot
@@ -8,13 +9,47 @@ from xbot_interface import xbot_interface as xbot
 
 import numpy as np
 
-from scipy import signal
+from scipy import signal, linalg
 
 import yaml
 
 from awesome_leg_pholus_utils.param_identification_utilities import *
 
 import rospy
+
+import sympy 
+
+#######################################################################
+def ind_rows(A, threshold): # Cauchy-Schwarz inequality check for retrieving lin.independent rows a real matrix
+
+    n_rows = A.shape[0]
+
+    is_indep = np.array(np.ones((n_rows, 1), dtype = bool))
+
+    for i in range(n_rows):
+
+        is_indep_single_row = np.array(np.ones((n_rows, 1), dtype = bool))
+
+        for j in range(n_rows):
+            if i != j:
+                inner_product = np.inner(
+                    A[i, :],
+                    A[j, :]
+                )
+                norm_i = np.linalg.norm(A[i, :])
+                norm_j = np.linalg.norm(A[j, :])
+
+                print(np.abs(inner_product - norm_j * norm_i))
+                if np.abs(inner_product - norm_j * norm_i) < abs(threshold): 
+                    
+                    is_indep_single_row[j] = False
+        
+        if not np.all(is_indep_single_row): # not independent
+
+            is_indep[i] = False
+
+    return is_indep
+
 
 ######################### PRE-INITIALIZATIONS #########################
 
@@ -132,7 +167,6 @@ for aux_name in aux_signal_names: # if aux signals contain iq data, than hold it
         break # exit the loop
 
 # building the objects which will hold aux data
-
 for joint_id in joint_ids: 
 
     joint_index = joint_id - 1 # converting to 0-based indexing
@@ -161,6 +195,75 @@ for joint_id in joint_ids:
         else: # reference signal --> append raw values
             
             aux_val_postproc[code_index + joint_index * aux_signal_number] = vals
+
+# computing the tip cartesian impedance produced by the used joint impedance
+log_stiffness = log_loader.get_joints_stiffness()
+log_damping = log_loader.get_joints_damping()
+motor_positions = log_loader.get_links_position()
+n_log_samples = log_stiffness.shape[1]
+
+# M = np.zeros((n_jnts, n_jnts, n_log_samples)) # here to be fixed to work also with floating base robots
+# J = np.zeros((6, n_jnts, n_log_samples))
+# K_c = np.zeros((6, 6, n_log_samples)) # cartesian impedance matrix
+# K_j = np.zeros((n_jnts, n_jnts, n_log_samples))
+# K_d = np.zeros((n_jnts, n_jnts, n_log_samples))
+
+
+# # only works for the leg and the specific URDF (a check on the linear indep. rows/cols of K_c_inv and K_d_inv should be performed)
+# for i in range(0, n_log_samples): # loop through every sample
+
+#     model.setJointPosition(motor_positions[:, i])
+#     model.update()
+#     # M[:, :, i] = model.getInertiaMatrix()
+#     J[:, :, i] = model.getJacobian("tip")
+
+#     for j in range(0, n_jnts): # loop through joints and build joint impedance matrices
+#         K_j[j, j, i] = log_stiffness[j, i]
+#         K_d[j, j, i] = log_damping[j, i]
+
+#     K_j[j, j, i] = log_stiffness[j, i]
+#     K_d[j, j, i] = log_damping[j, i]
+
+#     K_c_inv = np.dot(np.dot( J[:, :, i], np.linalg.inv(K_j[:, :, i])), J[:, :, i].transpose())
+#     K_d_inv = np.dot(np.dot( J[:, :, i], np.linalg.inv(K_d[:, :, i])), J[:, :, i].transpose())
+
+#     # lambdas, V =  np.linalg.eig(K_c_inv.T)
+
+#     print(K_c_inv)
+#     K_c[:, :, i] = np.linalg.inv(K_c_inv)
+#     K_d[:, :, i] = np.linalg.inv(K_d_inv)
+
+J_tip = np.zeros((6, n_jnts, n_log_samples))
+K_c = np.zeros((2, 2, n_log_samples)) # cartesian impedance matrices
+K_d = np.zeros((2, 2, n_log_samples))
+
+K_js = np.zeros((n_jnts, n_jnts, n_log_samples))
+K_jd = np.zeros((n_jnts, n_jnts, n_log_samples))
+
+
+# only works for the leg and the specific URDF (a check on the linear indep. rows/cols of K_c_inv and K_d_inv should be performed)
+for i in range(0, n_log_samples): # loop through every sample
+
+    model.setJointPosition(motor_positions[:, i])
+    model.update()
+    # M[:, :, i] = model.getInertiaMatrix()
+    J_tip[:, :, i] = model.getJacobian("tip")
+
+    for j in range(0, n_jnts): # loop through joints and build joint impedance matrices
+        K_js[j, j, i] = log_stiffness[j, i]
+        K_jd[j, j, i] = log_damping[j, i]
+
+    K_c_inv = np.dot(np.dot( J_tip[:, :, i], np.linalg.inv(K_js[:, :, i])), J_tip[:, :, i].transpose())
+    K_d_inv = np.dot(np.dot( J_tip[:, :, i], np.linalg.inv(K_jd[:, :, i])), J_tip[:, :, i].transpose())
+
+    K_c_inv_red = [[K_c_inv[0, 0], K_c_inv[0, 2]], [K_c_inv[2, 0], K_c_inv[2, 2]]] # only independent rows
+    K_d_inv_red = [[K_d_inv[0, 0], K_d_inv[0, 2]], [K_d_inv[2, 0], K_d_inv[2, 2]]]
+
+    K_c[:, :, i] = np.linalg.inv(K_c_inv_red)
+    K_d[:, :, i] = np.linalg.inv(K_d_inv_red)
+
+print(K_c[:, :, 50])
+print(K_d[:, :, 50])
 
 ######################### PLOTTING STUFF #########################
 

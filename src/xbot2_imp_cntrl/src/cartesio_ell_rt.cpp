@@ -385,6 +385,12 @@ void CartesioEllRt::starting()
         _logger->create("cartesian_stiffness", 6, 6);
         _logger->create("cartesian_damping", 6, 6);
     }
+    else
+    {
+        _logger->create("lambda", 1);
+        // _logger->add("Kp", 6, 6);
+        // _logger->add("Kd", 6, 6);
+    }
 
     // Getting tip cartesian task and casting it to cartesian (task)
     auto task = _solver->getTask("tip");
@@ -540,12 +546,20 @@ void CartesioEllRt::run()
     _logger->add("is_forward", _is_forward ? 1: 0);
 
     if (_int_task)
-    {
+    {// impedance control-specific data
         _impedance= _int_task->getImpedance();
         _cart_stiffness = _impedance.stiffness; 
         _cart_damping = _impedance.damping;
         _logger->add("cartesian_stiffness", _cart_stiffness);
         _logger->add("cartesian_damping", _cart_damping);
+    }
+    else
+    { // pure acceleration-specific data
+        double lambda = _cart_task->getLambda();
+        _logger->add("lambda", lambda);
+        // _logger->add("Kp", _cart_task->getKp());
+        // _logger->add("Kd", _cart_task->getKd());
+
     }
 
 }
