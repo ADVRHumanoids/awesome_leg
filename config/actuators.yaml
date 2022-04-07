@@ -35,8 +35,8 @@ actuators:
   
  knee:
 
-  K_d0: 10.75 # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-  K_d1: 1.74 # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+  K_d0: 10.72 # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+  K_d1: 1.77 # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
   
   rotor_axial_MoI: 6.6e-5 # approximate axial moment of inertia of the rotor ([Kg m^2]) 
   rotor_mass: 0.27 # mass of the rotor ([Kg])

@@ -26,8 +26,8 @@ with open(acts_config_path, 'r') as stream:
     acts_yaml = yaml.safe_load(stream)
 
 # Model description
-urdf_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/urdf/awesome_legv2.urdf"   # urdf absolute path (remember RBDL might have some problems parsing the first link, if it has not a d.o.f.)
-srdf_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/srdf/awesome_legv2.srdf"   # srdf absolute path
+urdf_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/urdf/awesome_leg_RBDL.urdf"   # urdf absolute path (remember RBDL might have some problems parsing the first link, if it has not a d.o.f.)
+srdf_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/srdf/awesome_leg_RBDL.srdf"   # srdf absolute path
 urdf = open(urdf_path, "r").read() # read the URDF
 srdf = open(srdf_path, "r").read() # read the URDF
 
@@ -201,9 +201,11 @@ for joint_id in log_loader.get_joints_id_from_names(log_loader.get_joints_names(
     joint_name = log_loader.get_joints_names_from_id([joint_id])[0]
 
     plotter.add_subplot(fig_name = "current_validation", row = n_rows1, column = n_cols1, index = joint_id) 
-    plotter.js_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1][:], input_matrix = i_q_measured, jnt_id = joint_id, line_label = joint_name + " measured i_q", title = "Measured VS estimated i_q on " + joint_name + " joint") 
+    # unfiltered data
+    plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_measured[joint_id - 1], title = "Measured VS estimated i_q on " + joint_name + " joint", line_label = joint_name + " measured i_q", set_grid = True, add_plot = False)
     plotter.js_plot(fig_name = "current_validation", x_data = js_time[1:len(js_time)], input_matrix = i_q_estimate, jnt_id = joint_id, line_label = joint_name + " estimated i_q", set_grid = False, add_plot = True) 
-    plotter.js_plot(fig_name = "current_validation", x_data =  i_q_meas_time[joint_id - 1][:], input_matrix = i_q_measured_filt, jnt_id = joint_id, line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True) 
+    # filtered data
+    plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_measured_filt[joint_id - 1], line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True)
     plotter.js_plot(fig_name = "current_validation", x_data =  js_time[1:len(js_time)], input_matrix = i_q_estimate_filt, jnt_id = joint_id, line_label = joint_name + " estimated i_q (filtered)", set_grid = False, add_plot = True) 
 
 input() # necessary to keep all the figures open
