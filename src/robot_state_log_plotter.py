@@ -242,28 +242,26 @@ K_jd = np.zeros((n_jnts, n_jnts, n_log_samples))
 
 
 # only works for the leg and the specific URDF (a check on the linear indep. rows/cols of K_c_inv and K_d_inv should be performed)
-for i in range(0, n_log_samples): # loop through every sample
+# for i in range(0, n_log_samples): # loop through every sample
 
-    model.setJointPosition(motor_positions[:, i])
-    model.update()
-    # M[:, :, i] = model.getInertiaMatrix()
-    J_tip[:, :, i] = model.getJacobian("tip")
+#     model.setJointPosition(motor_positions[:, i])
+#     model.update()
+#     # M[:, :, i] = model.getInertiaMatrix()
+#     J_tip[:, :, i] = model.getJacobian("tip")
 
-    for j in range(0, n_jnts): # loop through joints and build joint impedance matrices
-        K_js[j, j, i] = log_stiffness[j, i]
-        K_jd[j, j, i] = log_damping[j, i]
+#     for j in range(0, n_jnts): # loop through joints and build joint impedance matrices
+#         K_js[j, j, i] = log_stiffness[j, i]
+#         K_jd[j, j, i] = log_damping[j, i]
 
-    K_c_inv = np.dot(np.dot( J_tip[:, :, i], np.linalg.inv(K_js[:, :, i])), J_tip[:, :, i].transpose())
-    K_d_inv = np.dot(np.dot( J_tip[:, :, i], np.linalg.inv(K_jd[:, :, i])), J_tip[:, :, i].transpose())
+#     K_c_inv = np.dot(np.dot( J_tip[:, :, i], np.linalg.inv(K_js[:, :, i])), J_tip[:, :, i].transpose())
+#     K_d_inv = np.dot(np.dot( J_tip[:, :, i], np.linalg.inv(K_jd[:, :, i])), J_tip[:, :, i].transpose())
 
-    K_c_inv_red = [[K_c_inv[0, 0], K_c_inv[0, 2]], [K_c_inv[2, 0], K_c_inv[2, 2]]] # only independent rows
-    K_d_inv_red = [[K_d_inv[0, 0], K_d_inv[0, 2]], [K_d_inv[2, 0], K_d_inv[2, 2]]]
+#     K_c_inv_red = [[K_c_inv[0, 0], K_c_inv[0, 2]], [K_c_inv[2, 0], K_c_inv[2, 2]]] # only independent rows
+#     K_d_inv_red = [[K_d_inv[0, 0], K_d_inv[0, 2]], [K_d_inv[2, 0], K_d_inv[2, 2]]]
 
-    K_c[:, :, i] = np.linalg.inv(K_c_inv_red)
-    K_d[:, :, i] = np.linalg.inv(K_d_inv_red)
+#     K_c[:, :, i] = np.linalg.inv(K_c_inv_red)
+#     K_d[:, :, i] = np.linalg.inv(K_d_inv_red)
 
-print(K_c[:, :, 50])
-print(K_d[:, :, 50])
 
 ######################### PLOTTING STUFF #########################
 
@@ -281,6 +279,7 @@ temperature_motor_fig = plotter.init_fig(fig_name = "temperature_motor")
 differentiated_jnt_acc_fig = plotter.init_fig(fig_name = "differentiated_jnt_acc") 
 torque_validation_fig = plotter.init_fig(fig_name = "torque_validation") 
 current_validation_fig = plotter.init_fig(fig_name = "current_validation") 
+jnt_impedance_fig = plotter.init_fig(fig_name = "jnt_impedance") 
 
 # Plotting
 
@@ -365,6 +364,10 @@ for joint_id in joint_ids:
     # filtered data
     plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_meas_filt[joint_id - 1], line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True)
     plotter.js_plot(fig_name = "current_validation", x_data =  js_time[1:len(js_time)], input_matrix = i_q_estimate_filt, jnt_id = joint_id, line_label = joint_name + " estimated i_q (filtered)", set_grid = False, add_plot = True) 
+
+    plotter.add_subplot(fig_name = "jnt_impedance", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
+    plotter.js_plot(fig_name = "jnt_impedance", x_data = js_time, input_matrix = log_stiffness, jnt_id = joint_id, line_label = joint_name + " joint stiffness", title = "Impedance setpoint of joint " + joint_name + " joint") 
+    plotter.js_plot(fig_name = "jnt_impedance", x_data = js_time, input_matrix = log_damping, jnt_id = joint_id, line_label = joint_name + " joint damping ",  set_grid = False, add_plot = True) 
 
 if save_fig: # save figures
 

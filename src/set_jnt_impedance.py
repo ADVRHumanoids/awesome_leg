@@ -12,8 +12,8 @@ set_jnt_impedance.wait_for_service()
 
 req = BypassDspRtRequest()
 
-req.jnt_stiffness_setpoint = [100.0, 100.0]
-req.jnt_damping_setpoint = [10, 10]
+req.jnt_stiffness_setpoint = [500.0, 500.0]
+req.jnt_damping_setpoint = [30, 30]
 
 res = set_jnt_impedance(req)
 
