@@ -9,6 +9,8 @@ bool BypassDsp::get_params_from_config()
 
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
 
+    _use_motor_side_readings = getParamOrThrow<bool>("~use_motor_side_readings");
+
     _traj_prm_rmp_time = getParamOrThrow<double>("~traj_prm_rmp_time");
     _imp_rmp_time = getParamOrThrow<double>("~imp_rmp_time");
 
@@ -57,8 +59,15 @@ void BypassDsp::update_state()
     // "sensing" the robot
     _robot->sense();
     // Getting robot state
+    if (_use_motor_side_readings)
+    {
+        _robot->getMotorPosition(_q_p_meas);
+        _robot->getMotorVelocity(_q_p_dot_meas); 
+    }
+
     _robot->getJointPosition(_q_p_meas);
-    _robot->getMotorVelocity(_q_p_dot_meas);    
+    _robot->getJointVelocity(_q_p_dot_meas); 
+       
 }
 
 void BypassDsp::compute_ref_traj(Eigen::VectorXd time)
@@ -403,6 +412,7 @@ void BypassDsp::starting()
     _logger->add("stop_damping", _stop_damping);
     _logger->add("t_exec_lb", _t_exec_lb);
     _logger->add("traj_prm_rmp_time",_traj_prm_rmp_time);
+    _logger->add("use_motor_side_readings",_use_motor_side_readings);
 
     // Move on to run()
     start_completed();

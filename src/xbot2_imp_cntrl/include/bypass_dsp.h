@@ -92,7 +92,8 @@ private:
 
     bool _rt_active, _nrt_exit,
          _traj_par_callback_trigger = false, _imp_callback_trigger = false,
-         _first_run = true;
+         _first_run = true, 
+         _use_motor_side_readings;
 
     double _time_traj_par, _time_jnt_imp,
            _dt, 

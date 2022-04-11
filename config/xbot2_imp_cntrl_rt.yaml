@@ -102,7 +102,8 @@ xbotcore_plugins:
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd} # stiffness which is set after the plugin is stopped
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd} # damping which is set after the plugin is stopped
             delta_effort_lim: {value: 1e-6, type: double} # a threshold used to saturate the trajectory
-            
+            use_motor_side_readings: {value: false, type: bool} # whether to use motor side reading or not
+
             traj_prm_rmp_time: {value: 4.0, type: double} # when traj. params are changes via topic, they are ramped to their target within this time
             imp_rmp_time: {value: 4.0, type: double} # when impedance setpoints are changes via topic, they are ramped to their target within this time
             
