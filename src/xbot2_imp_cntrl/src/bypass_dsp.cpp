@@ -11,6 +11,8 @@ bool BypassDsp::get_params_from_config()
 
     _use_motor_side_readings = getParamOrThrow<bool>("~use_motor_side_readings");
 
+    _bypass_dsp = getParamOrThrow<bool>("~bypass_dsp");
+
     _traj_prm_rmp_time = getParamOrThrow<double>("~traj_prm_rmp_time");
     _imp_rmp_time = getParamOrThrow<double>("~imp_rmp_time");
 
@@ -401,8 +403,20 @@ void BypassDsp::starting()
     // Update the state variables by reading from the robot
     update_state();  
 
-    // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+    if (!_bypass_dsp)
+    { // do not bypass the DSP --> send position and velocity references and let the DSP compute the control torque using the imp. settings on the GUI
+        
+        _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity());
+        // _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Stiffness() + ControlMode::Damping());
+
+    }
+    else
+    { // bypass DSP --> effort + imp. needed (pos and vel only for having references available)
+
+        _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+   
+    }
+    
 
     // signal nrt thread that rt is active
     _rt_active = true;
@@ -413,10 +427,10 @@ void BypassDsp::starting()
     _logger->add("t_exec_lb", _t_exec_lb);
     _logger->add("traj_prm_rmp_time",_traj_prm_rmp_time);
     _logger->add("use_motor_side_readings",_use_motor_side_readings);
-
+    _logger->add("bypass_dsp",_bypass_dsp);
+    
     // Move on to run()
     start_completed();
-
 
 }
 
@@ -457,6 +471,12 @@ void BypassDsp::run()
     
     compute_ref_traj(_time);
     
+    if (!_bypass_dsp)
+    {// if using the DSP, read imp from robot and set it to compute the torque (which in this case is only used for post-processing)
+        _robot->getStiffness(_stiffness);
+        _robot->getDamping(_damping);
+    }
+
     // Compute impedance cntrl effort
     compute_jnt_imp_cntrl();
     
@@ -469,8 +489,19 @@ void BypassDsp::run()
     _robot->setEffortReference(_effort_command);
     _robot->setPositionReference(_q_p_trgt);
     _robot->setVelocityReference(_q_p_dot_trgt);
-    _robot->setStiffness(Eigen::VectorXd::Zero(_n_jnts_robot));
-    _robot->setDamping(Eigen::VectorXd::Zero(_n_jnts_robot));
+
+    if (_bypass_dsp)
+    { // setting imp. to zero, so that the DSP does not apply any imp. torque
+
+        _robot->setStiffness(Eigen::VectorXd::Zero(_n_jnts_robot));
+        _robot->setDamping(Eigen::VectorXd::Zero(_n_jnts_robot));
+
+    }
+    else
+    { // read imp. values from the robot for postprocessing, if the DSP is not bypassed
+        
+    }
+    
 
     // Send commands to the robot
     _robot->move(); 

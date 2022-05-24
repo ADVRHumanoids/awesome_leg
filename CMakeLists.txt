@@ -4,7 +4,7 @@ project(awesome_leg_pholus)
 find_package(catkin REQUIRED roscpp rospy urdf sensor_msgs std_msgs message_generation)
 find_package(XBotInterface REQUIRED)
 find_package(xbot_msgs REQUIRED)
-find_package(matlogger2 QUIET)
+find_package(matlogger2 1.3.1 REQUIRED)
 find_package(cartesian_interface REQUIRED)
 find_package(xbot2 QUIET)
 

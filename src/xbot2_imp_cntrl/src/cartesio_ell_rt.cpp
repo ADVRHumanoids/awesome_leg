@@ -343,6 +343,7 @@ void CartesioEllRt::starting()
     MatLogger2::Options opt;
     opt.default_buffer_size = 1e6; // set default buffer size
     opt.enable_compression = true; // enable ZLIB compression
+    opt.load_file_from_path = false; 
     _logger = MatLogger2::MakeLogger("/tmp/CartesioEllConfigRt_log", opt); // date-time automatically appended
     _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
