@@ -1,8 +1,11 @@
 #ifndef CARTESIO_ELL_RT
 #define CARTESIO_ELL_RT
 
+#include "/home/andreap/matlogger_ws/install/include/matlogger2/matlogger2.h"
+// #include <matlogger2/matlogger2.h>
+
 #include <xbot2/xbot2.h>
-#include <matlogger2/matlogger2.h>
+
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/sdk/problem/Interaction.h>
 

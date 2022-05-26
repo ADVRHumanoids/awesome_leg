@@ -343,10 +343,22 @@ void CartesioEllRt::starting()
     MatLogger2::Options opt;
     opt.default_buffer_size = 1e6; // set default buffer size
     opt.enable_compression = true; // enable ZLIB compression
-    opt.load_file_from_path = false; 
+    // opt.load_file_from_path = false; 
     _logger = MatLogger2::MakeLogger("/tmp/CartesioEllConfigRt_log", opt); // date-time automatically appended
     _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
+    // Just a test to read mat files
+    // XBot::MatLogger2::Options opts2;
+    // opts2.load_file_from_path = true;
+    // opt.enable_compression = true; // enable ZLIB compression
+
+    // std::string mat_path = "/tmp/my_log.mat";
+    // auto logger2 = XBot::MatLogger2::MakeLogger(mat_path, opts2);
+
+    // std::vector<std::string> var_names;
+
+    // logger2->get_mat_var_names(var_names);
+    
     // Initializing logger fields to improve rt performance
 
     auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
