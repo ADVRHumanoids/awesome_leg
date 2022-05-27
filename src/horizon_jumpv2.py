@@ -66,7 +66,7 @@ if save_sol_as_init: # save the solution as the initialization for the next sim
 if employ_opt_init: # initialize variables with the previously saved solution
     ms_load_path = opt_res_path + "/adaptive_dt/" + opt_init_name + ".mat"
     ms_load = mat_storer.matStorer(ms_load_path)
-    shutil.copyfile(ms_load_path, target) 
+    shutil.copyfile(ms_load_path, target + "horizon_offline_solver_init" + current_time + ".mat") 
     loaded_sol=ms_load.load() # loading the solution dictionary
 
 ##################### LOADING SOLVER PARAMETERS FROM SERVER #########################
@@ -302,6 +302,8 @@ slvr.solve()  # solving
 solution_time = time.time() - t
 print(f'solved in {solution_time} s')
 solution = slvr.getSolutionDict() # extracting solution
+cnstr_opt = slvr.getConstraintSolutionDict()
+tau_sol = cnstr_opt["tau_limits"]
 
 ################### RESAMPLING (necessary because dt is variable) #####################
 
@@ -315,7 +317,7 @@ dae = {'x': x, 'p': q_ddot_sym, 'ode': x_dot, 'quad': 1}
 dt_res = rospy.get_param("horizon/horizon_resampler/dt")
 sol_contact_map = dict(tip = solution["f_contact"])  # creating a contact map for applying the input to the foot
 
-p_res, v_res, a_res, frame_res_force_mapping, tau_res = resampler_trajectory.resample_torques(solution["q_p"],
+p_res, v_res, a_res, sol_contact_map_res, tau_res = resampler_trajectory.resample_torques(solution["q_p"],
                                                                                               solution["q_p_dot"],
                                                                                               solution["q_p_ddot"],
                                                                                               slvr.getDt().flatten(),
@@ -325,53 +327,63 @@ p_res, v_res, a_res, frame_res_force_mapping, tau_res = resampler_trajectory.res
                                                                                               casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED)
 
 print("tau:")
-cnstr_opt = slvr.getConstraintSolutionDict()
-print( cnstr_opt["tau_limits"])
+print( tau_sol)
 
 print("tau res:")
 print( tau_res)
 
-print("frame force map:")
-print(frame_res_force_mapping)
+print("frame force map res:")
+print(sol_contact_map_res)
 # Replaying trajectory
 
-joint_names = urdf_awesome_leg.joint_names()
-joint_names.remove("universe")  # removing the "universe joint"
-rpl_traj = replay_trajectory(dt_res, joint_names, p_res, frame_res_force_mapping, cas_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED, urdf_awesome_leg)  # replaying the (resampled) trajectory
-rpl_traj.sleep(1.)
-rpl_traj.replay(is_floating_base=False)
+print("frame force map:")
+print(sol_contact_map)
+# Replaying trajectory
 
-# ##############################################
+################### POST PROCESSING AND SOLUTION STORAGE #####################
 
-# # Post-processing and solution storage
+# Hip and knee quadrature current estimation
+i_q_n_samples = len(solution["q_p_ddot"][0, :])
+i_q = np.zeros((n_q, i_q_n_samples))
+for i in range(n_q - 1):
+    compensated_tau = tau_sol[i + 1, :] + K_d0[i] * np.tanh( tanh_coeff * solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]) + K_d1[i] * solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]
+    i_q[i, :] = (rotor_axial_MoI[i] * solution["q_p_ddot"][i + 1, :] / red_ratio[i] + compensated_tau * red_ratio[i] / efficiency[i]) / K_t[i]
 
-# # Hip and knee quadrature current estimation
-# i_q = np.zeros((n_q, len(solution["q_p_ddot"][0, :])))
-# for i in range(n_q):
-#     i_q[i, :] = (rotor_axial_MoI[i] * solution["q_p_ddot"][i, :] / red_ratio[i] + tau_res[i, :] * red_ratio[i] / efficiency[i]) * 1.0/K_t[i]
+solution_GRF = solution["f_contact"]
+solution_q_p = solution["q_p"]
+solution_foot_tip_position = fk_foot(q = solution_q_p)["ee_pos"][2,:].toarray()  # foot position
+solution_hip_position = fk_hip(q=solution_q_p)["ee_pos"][2,:].toarray()   # hip position
+init_solution_foot_tip_position_aux = np.tile(foot_tip_position_init,(1, n_nodes + 1)) # auxiliary matrix to compute position excursion
+init_solution_hip_position_aux = np.tile(hip_position_initial,(1, n_nodes + 1))
+solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
+solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
-# solution_GRF = solution["f_contact"]
-# solution_q_p = solution["q_p"]
-# solution_foot_tip_position = fk_foot(q=solution_q_p)["ee_pos"][2,:].toarray()  # foot position
-# solution_hip_position = fk_hip(q=solution_q_p)["ee_pos"][2,:].toarray()   # hip position
-# init_solution_foot_tip_position_aux = np.tile(foot_tip_position_init,(1,n_nodes + 1))
-# init_solution_hip_position_aux = np.tile(hip_position_initial,(1,n_nodes + 1))
-# solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
-# solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
+useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:],
+                 "tau":cnstr_opt["tau_limits"], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
+                 "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
+                 "hip_height":np.transpose(solution_hip_position-init_solution_hip_position_aux[2,:]), 
+                 "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
+                 "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
+                 "sol_time":solution_time}
 
-# useful_solutions={"q_p":solution["q_p"][1:3,:],"q_p_dot":solution["q_p_dot"][1:3,:], "q_p_ddot":solution["q_p_ddot"][1:3,:],
-#                  "tau":cnstr_opt["tau_limits"], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
-#                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
-#                  "hip_height":np.transpose(solution_hip_position-init_solution_hip_position_aux[2,:]), 
-#                  "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
-#                  "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
-#                  "sol_time":solution_time}
+##
+ms.store(useful_solutions) # saving solution data to file
 
-# ##
-# ms.store(useful_solutions) # saving solution data to file
-    
-# shutil.copyfile(opt_res_path + "/adaptive_dt/horizon_offline_solver.mat", target + "horizon_offline_solver.mat")
+# copying stuff for future debugging
+shutil.copyfile(opt_res_path + "/adaptive_dt/horizon_offline_solver.mat", target + "horizon_offline_solver" + current_time + ".mat")
 
-# if save_sol_as_init: # save the solution as the initialization for the next sim
-#     ms_opt_init.store(useful_solutions) # saving initialization data to file    
-#     shutil.copyfile(opt_res_path+"/adaptive_dt/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
+if save_sol_as_init: # save the solution as the initialization for the next sim
+    ms_opt_init.store(useful_solutions) # saving initialization data to file    
+    shutil.copyfile(opt_res_path+"/adaptive_dt/horizon_offline_solver_init.mat", target + "horizon_offline_solver_init" + current_time + ".mat")
+
+################### REPLAYING TRAJECTORY ON RVIZ #####################
+
+replay_traj = rospy.get_param("/horizon/replay_trajectory")
+
+if replay_traj:
+    joint_names = urdf_awesome_leg.joint_names()
+    joint_names.remove("universe")  # removing the "universe joint"
+    rpl_traj = replay_trajectory(dt_res, joint_names, p_res, sol_contact_map_res, cas_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED, urdf_awesome_leg)  # replaying the (resampled) trajectory
+    rpl_traj.sleep(1.)
+    rpl_traj.replay(is_floating_base = False)
+

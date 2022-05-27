@@ -7,12 +7,14 @@ horizon:
  media_path: $(find awesome_leg_pholus)/media/horizon_jump # relative path where graphs, etc.. are saved
 
  opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_jump # where optimization .mat files are saved
+
+ replay_trajectory:  true # whether to replay the optimized trajectory on RViz or not
  
  horizon_solver:
   
-   save_sol_as_init: false # if true, the solution is also saved as a candidate for future optimization initializations
+   save_sol_as_init: true # if true, the solution is also saved as a candidate for future optimization initializations
 
-   employ_opt_init: false # whether to use the initial guess or not
+   employ_opt_init: true # whether to use the initial guess or not
 
    opt_init_name: "horizon_offline_solver_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
 
@@ -22,8 +24,8 @@ horizon:
      n_takeoff: 40
      n_touchdown: 75
  
-     dt_lb: 0.005
-     dt_ub: 0.01
+     dt_lb: 0.01
+     dt_ub: 0.1
  
      solver:
        name: "ipopt"
