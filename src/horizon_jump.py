@@ -273,6 +273,7 @@ ubs = urdf_awesome_leg.q_max()
 
 print("lbs: ", lbs)
 print("ubs: ", ubs)
+
 ##############################################
 
 # tau_lim = np.array([hip_tau_peak_ar, knee_tau_peak_ar])  # effort limits (test_rig passive joint effort limit)
@@ -481,7 +482,8 @@ else: # using a fixed dt (chosen in the YAML configuration file)
             ms_opt_init.store(useful_solutions) # saving initialization data to file    
             shutil.copyfile(opt_res_path+"/fixed_dt/horizon_offline_solver_init.mat", target+"horizon_offline_solver_init.mat")
 
-################### RESAMPLING (necessary because dt is variable) #####################à
+################### RESAMPLING (necessary because dt is variable) #####################
+
 q_sym = cs.SX.sym('q', n_q)
 q_dot_sym = cs.SX.sym('q_dot', n_v)
 q_ddot_sym = cs.SX.sym('q_ddot', n_v)
