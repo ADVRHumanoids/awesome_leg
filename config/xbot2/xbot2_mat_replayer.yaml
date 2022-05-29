@@ -1,0 +1,93 @@
+# XBot2 Awesome Leg configuration file, with a tip cartesian impedance control plugin.
+
+# description
+XBotInterface:
+  urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg_RBDL.urdf
+  srdf_path: $(rospack find awesome_leg_pholus)/description/srdf/awesome_leg_RBDL.srdf
+
+# model interface
+ModelInterface:
+  model_type: RBDL
+  is_model_floating_base: false
+
+# hal
+xbotcore_device_configs:
+    sim: $PWD/ecat_config/hal/awesome_leg_gz.yaml
+    dummy: $PWD/ecat_config/hal/awesome_leg_dummy.yaml
+    ec_pos: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_imp: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_idle: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+
+# threads
+xbotcore_threads:
+    rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    nrt_main: {sched: other, prio: 0 , period: 0.005}
+
+# plugins
+xbotcore_plugins:
+
+    homing:
+        thread: rt_main
+        type: homing_example
+
+    ros_io: {thread: nrt_main, type: ros_io}
+
+    ros_control: {thread: nrt_main, type: ros_control}
+    
+    ec_ros: {thread: nrt_main, type: ec_ros}
+
+    mat_replayer_rt:
+        thread: rt_mat_replayer
+        type: mat_replayer_rt
+        params:
+            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
+            stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            delta_effort_lim: {value: 1e-6, type: double} # used for input saturation
+            torque_bias: {value: [ 0, 0 ], type: Eigen::VectorXd}
+            # torque_bias: {value: [ 3.20372297e-01, -2.56218453e-01 ], type: Eigen::VectorXd} # bias torques, estimated via param. identification
+
+
+    ell_traj_rt: # elliptical trajectory tracking with configurable parameters (online, via dedicated ROS topics)
+        thread: rt_ci_ell
+        type: cartesio_ell_rt
+        params:
+
+            # For testing on the real prototype:
+            # urdf_path: {value: $PWD/../../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # For simulation:
+            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
+
+            # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control with singular direction handling
+            # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl
+            cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # pure acceleration control with constant feedback gains
+
+            stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd} # stiffness which is set after the plugin is stopped
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd} # damping which is set after the plugin is stopped
+            delta_effort_lim: {value: 1e-6, type: double} # a threshold used to saturate the trajectory
+            torque_bias: {value: [ 0, 0 ], type: Eigen::VectorXd}
+            # torque_bias: {value: [ 3.20372297e-01, -2.56218453e-01 ], type: Eigen::VectorXd} # bias torques, estimated via param. identification (to be used only when testing on the real prototype)
+            use_vel_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
+            use_acc_ff: {value: true, type: bool} # whether or not to send task acc references to the optimizer
+            traj_prm_rmp_time: {value: 4.0, type: double} # when traj. params are changes via topic, they are ramped to their target within this time
+            t_exec_traj: {value: 4, type: double} # trajectory execution time
+            t_exec_lb: {value: 1, type: double} # if t_exec_traj < t_exec_lb, then t_exec_traj is set to t_exec_lb, for safety
+            is_forward: {value: true, type: bool} # trajectory execution direction
+            a: {value: 0, type: double} # "horizontal" semi-axis length
+            b: {value: 0, type: double} # "vertical" semi-axis length
+            x_c: {value: -0.15, type: double} # ellipsis center x-coordinate
+            z_c: {value: -0.6, type: double} # ellipsis center y-coordinate
+            alpha: {value: 0, type: double} # ellipsis rotation angle
+
+# global parameters
+xbotcore_param:
+    /jm/tx_filter_autostart: {value: true, type: bool}
+    /jm/tx_filter_cutoff: {value: 2.0, type: double}
+    # /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+
+    
+    
