@@ -41,6 +41,7 @@ if task_type == "jump":
     if plot_res:
 
         sol_mat_name = rospy.get_param("/horizon/horizon_solver/res_sol_mat_name")
+
     else:
 
         sol_mat_name = rospy.get_param("/horizon/horizon_solver/sol_mat_name")
@@ -114,18 +115,18 @@ P_knee=(knee_rotor_axial_MoI*q_p_ddot[1,:]/knee_red_ratio+tau[1,:]*knee_red_rati
 
 ########################## PLOTTING STUFF ##########################
 
-if (GRF.size!=0):
-    f1=plt.figure()
-    plt.plot(time_vector[1:-1], GRF[0, :-1], label=r"F_x")
-    plt.plot(time_vector[1:-1], GRF[1, :-1], label=r"F_y")
-    plt.plot(time_vector[1:-1], GRF[2, :-1], label=r"F_z")
-    plt.legend(loc="upper left")
-    plt.xlabel(r"t [s]")
-    plt.ylabel('[N]')
-    plt.title("Ground reaction forces", fontdict=None, loc='center')
-    plt.grid()
-    if save_fig:
-        plt.savefig(save_path+"GRF.pdf", format="pdf")
+
+f1=plt.figure()
+plt.plot(time_vector[1:-1], GRF[0, :-1], label=r"F_x")
+plt.plot(time_vector[1:-1], GRF[1, :-1], label=r"F_y")
+plt.plot(time_vector[1:-1], GRF[2, :-1], label=r"F_z")
+plt.legend(loc="upper left")
+plt.xlabel(r"t [s]")
+plt.ylabel('[N]')
+plt.title("Ground reaction forces", fontdict=None, loc='center')
+plt.grid()
+if save_fig:
+    plt.savefig(save_path+"GRF.pdf", format="pdf")
 
 f2=plt.figure()
 plt.plot(time_vector[:-1], q_p[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")

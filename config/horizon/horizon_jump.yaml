@@ -67,9 +67,8 @@ horizon:
     show_plots: true # whether or not to show the plots when the plotter node is run
     save_fig: false # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
     save_path: $(find awesome_leg_pholus)/media/horizon_jump/jump_test
-    plt_resample: false # whether to plot the resampled solution or the original one
+    plt_resample: true # whether to plot the resampled solution or the original one
 
- 
  horizon_i_q_estimator: 
 
     tanh_coeff: 20 # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) ). Kd0 and Kd1 are found in actuators.yaml
