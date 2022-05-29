@@ -39,9 +39,6 @@ class HorizonXbotCmdPub:
         ## Based on the task_type, load the right solution from the auxiliary folder
         if self.task_type == "jump":
 
-            self.is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
-            self.is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
-
             # In the case of jump, the position, vel and acc solution also holds the test rig d.o.f. --> this has to be removed
             self.solution = self.ms.load() 
             self.q_p = self.solution["q_p"][1:3,:]
