@@ -1,6 +1,6 @@
 #!/usr/bin/python3 
 
-### A minimal node for exploiting the my_ell_traj_srvc service ###
+### A minimal node for exploiting the my_sin_jnt_traj_srvc service ###
 
 import rospy
 

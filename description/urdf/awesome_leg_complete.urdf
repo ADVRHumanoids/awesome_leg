@@ -49,7 +49,7 @@
 
     <link name="pelvis">
         <inertial>
-        <mass value="10.0"/> <!-- considering also the mass contribution of the robot torso -->
+        <mass value="1.0"/> <!-- considering also the mass contribution of the robot torso -->
         <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
         </inertial>
         <visual>
@@ -143,7 +143,7 @@
       <origin xyz="0 0 0.1" />
       <axis xyz="0 0 1" />
       <dynamics damping="0.0" friction="0.0" />
-      <limit lower="-0.8" upper="10.0" effort="80" velocity="15.0" />
+      <limit lower="-1" upper="1.0" effort="80" velocity="15.0" />
   </joint>
 
     <joint name="hip_yaw_1" type="fixed">

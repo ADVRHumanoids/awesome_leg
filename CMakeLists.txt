@@ -24,10 +24,10 @@ generate_messages(
 
 catkin_package(CATKIN_DEPENDS message_runtime)
 
-add_subdirectory(src/xbot2_grav_comp)
-add_subdirectory(src/xbot2_imp_cntrl)
+add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
+add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
 
-add_executable(robot_state_logger src/robot_state_logger.cpp)
+add_executable(robot_state_logger src/awesome_leg_pholus_utils/robot_state_logger.cpp)
 target_link_libraries(robot_state_logger ${catkin_LIBRARIES} ${XBotInterface_LIBRARIES} matlogger2::matlogger2)
 target_include_directories(robot_state_logger PRIVATE ${catkin_INCLUDE_DIRS} ${XBotInterface_INCLUDE_DIRS} ${xbot_msgs_INCLUDE_DIRS})
 set_target_properties(robot_state_logger PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)

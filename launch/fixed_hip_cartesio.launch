@@ -10,7 +10,7 @@
         textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg_complete_fixed.srdf"/>
 
     <param name="cartesian/problem_description"
-        textfile="$(find awesome_leg_pholus)/config/cartesio_fixed_hip.yaml"/>
+        textfile="$(find awesome_leg_pholus)/config/cartesio/cartesio_fixed_hip.yaml"/>
         
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <!-- Control frequency (Hz) -->

@@ -15,6 +15,7 @@ from horizon.utils import mat_storer
 import numpy as np
 
 import pinocchio as pin
+
 #########################################################
 
 class HorizonXbotCmdPub:
@@ -41,47 +42,37 @@ class HorizonXbotCmdPub:
             self.is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
             self.is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
 
-            if self.is_adaptive_dt:
+            # In the case of jump, the position, vel and acc solution also holds the test rig d.o.f. --> this has to be removed
+            self.solution = self.ms.load() 
+            self.q_p = self.solution["q_p"][1:3,:]
+            self.q_p_dot = self.solution["q_p_dot"][1:3,:]
+            self.q_p_ddot = self.solution["q_p_ddot"][1:3,:]
+            self.tau = self.solution["tau"][1:3,:]
+            self.f_contact = self.solution["f_contact"]
+            self.solution_time = self.solution["sol_time"]
+            self.dt = self.solution["dt_opt"].flatten() 
 
-                if self.is_single_dt:
-
-                    self.n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/single_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-                else:
-
-                    self.n_nodes = rospy.get_param("horizon/horizon_solver/variable_dt/multiple_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+            self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
             
-            else:
+            self.res_sol_mat_name = rospy.get_param("horizon/horizon_solver/res_sol_mat_name")
 
-                self.n_nodes = rospy.get_param("horizon/horizon_solver/constant_dt/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-
-            if self.is_adaptive_dt:
-
-                if self.is_single_dt:
-
-                    self.ms = mat_storer.matStorer(self.opt_res_path+"/single_dt/horizon_offline_solver.mat")
+            self.ms = mat_storer.matStorer(self.opt_res_path + "/jump_test/" + self.res_sol_mat_name)
                     
-                else:
-
-                    self.ms= mat_storer.matStorer(self.opt_res_path+"/multiple_dt/horizon_offline_solver.mat")
-            else:
-
-                self.ms = mat_storer.matStorer(self.opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
-
         elif self.task_type=="trot":
 
             self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
             self.ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
 
-        ## Loading the solution dictionary, based on the selected task_type 
+            self.solution = self.ms.load() 
+            self.q_p = self.solution["q_p"]
+            self.q_p_dot = self.solution["q_p_dot"]
+            self.q_p_ddot = self.solution["q_p_ddot"]
+            self.tau = self.solution["tau"]
+            self.f_contact = self.solution["f_contact"]
+            self.solution_time = self.solution["sol_time"]
+            self.dt = self.solution["dt_opt"].flatten() 
 
-        self.solution = self.ms.load() 
-        self.q_p = self.solution["q_p"]
-        self.q_p_dot = self.solution["q_p_dot"]
-        self.q_p_ddot = self.solution["q_p_ddot"]
-        self.tau = self.solution["tau"]
-        self.f_contact = self.solution["f_contact"]
-        self.solution_time = self.solution["sol_time"]
-        self.dt = self.solution["dt_opt"].flatten() 
+        ## Loading the solution dictionary, based on the selected task_type 
 
         self.n_samples = len(self.tau[0, :])
         self.n_jnts = len(self.q_p[:, 0])

@@ -5,8 +5,11 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
-        - /Grid1
         - /RobotModel1
+        - /RobotModel1/Links1
+        - /RobotModel1/Links1/hip1_11
+        - /RobotModel1/Links1/test_rig1
+        - /RobotModel1/Links1/tip1
       Splitter Ratio: 0.4977678656578064
     Tree Height: 573
   - Class: rviz/Selection
@@ -53,7 +56,7 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: world
       Value: true
-    - Alpha: 1
+    - Alpha: 0.5
       Class: rviz/RobotModel
       Collision Enabled: false
       Enabled: true
@@ -65,7 +68,7 @@ Visualization Manager:
         Link Tree Style: Links in Alphabetic Order
         hip1_1:
           Alpha: 1
-          Show Axes: false
+          Show Axes: true
           Show Trail: false
           Value: true
         hip2_1:
@@ -85,12 +88,12 @@ Visualization Manager:
           Value: true
         test_rig:
           Alpha: 1
-          Show Axes: false
+          Show Axes: true
           Show Trail: false
           Value: true
         tip:
           Alpha: 1
-          Show Axes: false
+          Show Axes: true
           Show Trail: false
         world:
           Alpha: 1
@@ -130,7 +133,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.505014419555664
+      Distance: 2.1268820762634277
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -138,17 +141,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.3186829090118408
-        Y: 0.40035149455070496
-        Z: -0.06507320702075958
+        X: 0.07930579036474228
+        Y: 0.45139530301094055
+        Z: -0.06507840752601624
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.20480042695999146
+      Pitch: 0.22480043768882751
       Target Frame: <Fixed Frame>
-      Yaw: 0.3499796390533447
+      Yaw: 6.198171138763428
     Saved: ~
 Window Geometry:
   Displays:
@@ -166,5 +169,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 364
-  Y: -24
+  X: 1633
+  Y: 25

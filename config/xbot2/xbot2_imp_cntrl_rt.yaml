@@ -45,15 +45,15 @@ xbotcore_plugins:
         params:
         
             # For testing on the real prototype:
-            # urdf_path: {value: $PWD/../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
-            # srdf_path: {value: $PWD/../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # urdf_path: {value: $PWD/../../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
             # For simulation:
-            urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
-            srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
+            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
 
-            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control
-            cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} 
-            # cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # classical acceleration control
+            # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control
+            cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} 
+            # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # classical acceleration control
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double}
@@ -67,15 +67,15 @@ xbotcore_plugins:
         params:
 
             # For testing on the real prototype:
-            # urdf_path: {value: $PWD/../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
-            # srdf_path: {value: $PWD/../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # urdf_path: {value: $PWD/../../description/urdf/awesome_leg_reduced_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
             # For simulation:
-            urdf_path: {value: $PWD/../description/urdf/awesome_leg_RBDL.urdf, type: file} 
-            srdf_path: {value: $PWD/../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
+            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} # cartesian impedance control
 
-            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control with singular direction handling
-            # cartesio_yaml_path: {value: $PWD/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl
-            cartesio_yaml_path: {value: $PWD/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # pure acceleration control with constant feedback gains
+            # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control with singular direction handling
+            # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl
+            cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_acc_cntrl_rt.yaml, type: yamlfile} # pure acceleration control with constant feedback gains
 
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd} # stiffness which is set after the plugin is stopped
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd} # damping which is set after the plugin is stopped

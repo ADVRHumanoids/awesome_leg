@@ -4,7 +4,7 @@
     
     <arg name="launch_pose_init" default="true"/>
     
-    <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_xbot_cmd_pub.yaml" subst_value="true"/> 
+    <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon/horizon_xbot_cmd_pub.yaml" subst_value="true"/> 
 
     <!-- Simply load all the necessary parameters into the parameter server -->
     <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>

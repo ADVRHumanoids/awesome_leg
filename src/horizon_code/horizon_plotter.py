@@ -29,7 +29,6 @@ today_is = today.strftime("%d-%m-%Y")
 
 urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf absolute path 
 media_path = rospy.get_param("/horizon/media_path")  # media absolute path
-simulation_name = rospy.get_param("/horizon/simulation_name")  # simulation name (used to save different simulations to different locations, for the trot task type)
 
 opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results absolute path
 
@@ -37,36 +36,37 @@ task_type = rospy.get_param("/horizon/task_type")  # task type
 
 if task_type == "jump":
     
-    is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
-    is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
+    plot_res = rospy.get_param("/horizon/horizon_plotter/plt_resample")  # optimal results absolute path
 
-    ## Creating folders for saving data (if not already existing). Does not work recursively, so also the top directory has to be checked.
-    if  (not scibidibi.path.isdir(media_path+"/"+today_is)):
-        scibidibi.makedirs(media_path+"/"+today_is)
+    if plot_res:
 
-    if  (not scibidibi.path.isdir(media_path+"/"+today_is+"/single_dt/")):
-        scibidibi.mkdir(media_path+"/"+today_is+"/single_dt")
-
-    if (not scibidibi.path.isdir(media_path+"/"+today_is+"/multiple_dt/")): 
-        scibidibi.mkdir(media_path+"/"+today_is+"/multiple_dt")
-
-    if (not scibidibi.path.isdir(media_path+"/"+today_is+"/fixed_dt/")):
-        scibidibi.mkdir(media_path+"/"+today_is+"/fixed_dt")
-
-    ##
-    if is_adaptive_dt:
-        if is_single_dt:
-            ms_loaded = mat_storer.matStorer(opt_res_path+"/single_dt/horizon_offline_solver.mat")
-            save_path=media_path+"/"+today_is+"/single_dt/"
-        else:
-            ms_loaded = mat_storer.matStorer(opt_res_path+"/multiple_dt/horizon_offline_solver.mat")
-            save_path=media_path+"/"+today_is+"/multiple_dt/"
+        sol_mat_name = rospy.get_param("/horizon/horizon_solver/res_sol_mat_name")
     else:
-        ms_loaded = mat_storer.matStorer(opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
-        save_path=media_path+"/"+today_is+"/fixed_dt/"
+
+        sol_mat_name = rospy.get_param("/horizon/horizon_solver/sol_mat_name")
+
+    ms_loaded = mat_storer.matStorer(opt_res_path + "/jump_test/" + sol_mat_name + ".mat")
+    
+    save_path = rospy.get_param("/horizon/horizon_plotter/save_path")
+
+    solution=ms_loaded.load() # loading the solution dictionary
+
+    q_p=solution["q_p"][1:3,:] # excluding test rig dof
+    q_p_dot=solution["q_p_dot"][1:3,:]
+    q_p_ddot=solution["q_p_ddot"][1:3,:]
+    i_q=solution["i_q"]
+    GRF=solution["f_contact"]
+    tau=solution["tau"][1:3,:] 
+    dt=solution["dt_opt"].flatten()
+    hip_height=solution["hip_height"]
+    foot_tip_height=solution["foot_tip_height"]
+    foot_tip_vel=solution["tip_velocity"]
+    hip_vel=solution["hip_velocity"]
 
 elif task_type == "trot":
     
+    simulation_name = rospy.get_param("/horizon/simulation_name")  # simulation name (used to save different simulations to different locations, for the trot task type)
+
     ## Creating folders for saving data (if not already existing)
 
     if  (not scibidibi.path.isdir(media_path+"/"+today_is+"/"+simulation_name)):
@@ -74,25 +74,24 @@ elif task_type == "trot":
 
     ms_loaded = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver.mat")
    
-    save_path=media_path+"/"+today_is+"/"+simulation_name+"/"
+    save_path = media_path+"/" + today_is + "/" + simulation_name + "/"
+
+    solution=ms_loaded.load() # loading the solution dictionary
+
+    q_p=solution["q_p"]
+    q_p_dot=solution["q_p_dot"]
+    q_p_ddot=solution["q_p_ddot"]
+    i_q=solution["i_q"]
+    GRF=solution["f_contact"]
+    tau=solution["tau"]
+    dt=solution["dt_opt"].flatten()
+    hip_height=solution["hip_height"]
+    foot_tip_height=solution["foot_tip_height"]
+    foot_tip_vel=solution["tip_velocity"]
+    hip_vel=solution["hip_velocity"]
        
 else:
     raise Exception('You did not specify a valid task type')
-
-
-solution=ms_loaded.load() # loading the solution dictionary
-
-q_p=solution["q_p"]
-q_p_dot=solution["q_p_dot"]
-q_p_ddot=solution["q_p_ddot"]
-i_q=solution["i_q"]
-GRF=solution["f_contact"]
-tau=solution["tau"]
-dt=solution["dt_opt"].flatten()
-hip_height=solution["hip_height"]
-foot_tip_height=solution["foot_tip_height"]
-foot_tip_vel=solution["tip_velocity"]
-hip_vel=solution["hip_velocity"]
 
 time_vector = np.zeros([tau[0,:].size+1])
 for i in range(tau[0,:].size):

@@ -46,26 +46,23 @@ class HorizonXbotInitPosPub:
 
         ## Based on the task_type, load the right solution from the auxiliary folder
         if self.task_type == "jump":
+            
+            self.res_sol_mat_name = rospy.get_param("horizon/horizon_solver/res_sol_mat_name") # resampled solution
 
-            self.is_adaptive_dt = rospy.get_param("horizon/horizon_solver/is_adaptive_dt")  # if true, use an adaptive dt
-            self.is_single_dt = rospy.get_param("horizon/horizon_solver/is_single_dt")  # if true (and if addaptive dt is enable), use only one dt over the entire opt. horizon 
+            ms =mat_storer.matStorer(self.opt_res_path + "/jump_test/" + self.res_sol_mat_name)
 
-            if self.is_adaptive_dt:
-                if self.is_single_dt:
-                    ms = mat_storer.matStorer(self.opt_res_path+"/single_dt/horizon_offline_solver.mat")
-                else:
-                    ms = mat_storer.matStorer(self.opt_res_path+"/multiple_dt/horizon_offline_solver.mat")
-            else:
-                ms = mat_storer.matStorer(self.opt_res_path+"/fixed_dt/horizon_offline_solver.mat")
+            self.s = self.solution["q_p"][1:3,:] # excluding sliding guide dof
 
         elif self.task_type=="trot":
 
             ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
+
+            self.q_p = self.solution["q_p"] # only used to extract the first traj. sample
             
         ## Loading the solution dictionary, based on the selected task_type 
         self.solution = ms.load() 
 
-        self.q_p = self.solution["q_p"] # only used to extract the first traj. sample
+        
         self.dt = self.T_exec_approach/self.n_int_approach_traj
 
         self.time_vector = np.zeros(self.n_int_approach_traj + 1)

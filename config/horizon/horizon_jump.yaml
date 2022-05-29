@@ -11,20 +11,24 @@ horizon:
  replay_trajectory:  true # whether to replay the optimized trajectory on RViz or not
  
  horizon_solver:
+
+   sol_mat_name: "horizon_offline_solver" # name of custom mat file where results will be saved
+
+   res_sol_mat_name: "horizon_offline_solver_res" # name of custom mat file where resampled results will be saved
   
    save_sol_as_init: true # if true, the solution is also saved as a candidate for future optimization initializations
 
-   employ_opt_init: true # whether to use the initial guess or not
+   employ_opt_init: false # whether to use the initial guess or not
 
    opt_init_name: "horizon_offline_solver_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
 
    problem_settings:  
- 
+
      n_nodes: 100 # number of intervals (total nodes are n_nodes+1)
-     n_takeoff: 40
-     n_touchdown: 75
+     n_takeoff: 35
+     n_touchdown: 80
  
-     dt_lb: 0.01
+     dt_lb: 0.005
      dt_ub: 0.1
  
      solver:
@@ -38,27 +42,33 @@ horizon:
        integrator: "RK4"
  
      test_rig:
-       lb: -0.4
-       ub:  0.4      
+       lb: -1.0
+       ub:  1.0 
  
      initial_conditions: 
        q_p:     [0.0, 0.0, 0.0]
        q_p_dot: [0.0, 0.0, 0.0]
- 
+     
+     jump_excursion: 0.1
+
      cost_weights:
        contact_force: 0.01
        small_q_p_ddot: 1
-       big_hip_jump: 300
-       big_foot_tip_clearance: 10
-       weight_min_input_diff: 0.01 # cost for penalizing differences between successive inputs
+       big_hip_jump: 500
+       hip_jump_target: 0.00000001
+       big_foot_tip_clearance: 0.00000000001
+       weight_min_input_diff: 1 # cost for penalizing differences between successive inputs
 
  horizon_resampler:
-   dt: 0.01
+   dt: 0.001
    
  horizon_plotter: # custom plot utility settings
 
     show_plots: true # whether or not to show the plots when the plotter node is run
-    save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
+    save_fig: false # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
+    save_path: $(find awesome_leg_pholus)/media/horizon_jump/jump_test
+    plt_resample: false # whether to plot the resampled solution or the original one
+
  
  horizon_i_q_estimator: 
 

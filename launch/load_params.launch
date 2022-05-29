@@ -11,7 +11,7 @@
 
     <group if="$(eval arg('task_type')=='jump')">
       <!-- loading some horizon solver parameters-->
-      <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_jumpv2.yaml" subst_value="true"/> 
+      <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon/horizon_jump.yaml" subst_value="true"/> 
       <param name="horizon/task_type" type="string" value="jump" />
     </group>
 
@@ -21,17 +21,17 @@
 
       <group if="$(eval arg('trot_type')=='fixed_hip')">
         <param name="horizon/trot_type" type="string" value="fixed_hip" />
-        <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_trot_fixed_hip.yaml" subst_value="true"/> 
+        <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon/horizon_trot_fixed_hip.yaml" subst_value="true"/> 
       </group>
 
       <group if="$(eval arg('trot_type')=='sliding_hip')">
         <param name="horizon/trot_type" type="string" value="sliding_hip" />
-        <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_trot_sliding_hip.yaml" subst_value="true"/> 
+        <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon/horizon_trot_sliding_hip.yaml" subst_value="true"/> 
       </group>
 
       <group if="$(eval arg('trot_type')=='sliding_all')">
         <param name="horizon/trot_type" type="string" value="sliding_all" />
-        <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon_trot_sliding_all.yaml" subst_value="true"/> 
+        <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon/horizon_trot_sliding_all.yaml" subst_value="true"/> 
       </group>
 
     </group>
