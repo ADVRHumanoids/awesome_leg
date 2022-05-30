@@ -49,19 +49,21 @@ class HorizonXbotInitPosPub:
             
             self.res_sol_mat_name = rospy.get_param("horizon/horizon_solver/res_sol_mat_name") # resampled solution
 
-            ms =mat_storer.matStorer(self.opt_res_path + "/jump_test/" + self.res_sol_mat_name)
+            ms =mat_storer.matStorer(self.opt_res_path + "/jump_test/" + self.res_sol_mat_name + ".mat")
 
-            self.s = self.solution["q_p"][1:3,:] # excluding sliding guide dof
+            self.solution = ms.load() 
+
+            self.q_p = self.solution["q_p"][1:3,:] # excluding sliding guide dof
 
         elif self.task_type=="trot":
 
             ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
 
+            self.solution = ms.load() 
+
             self.q_p = self.solution["q_p"] # only used to extract the first traj. sample
             
         ## Loading the solution dictionary, based on the selected task_type 
-        self.solution = ms.load() 
-
         
         self.dt = self.T_exec_approach/self.n_int_approach_traj
 

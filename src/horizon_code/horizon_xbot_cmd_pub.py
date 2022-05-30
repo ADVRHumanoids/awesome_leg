@@ -38,6 +38,10 @@ class HorizonXbotCmdPub:
 
         ## Based on the task_type, load the right solution from the auxiliary folder
         if self.task_type == "jump":
+            
+            self.res_sol_mat_name = rospy.get_param("horizon/horizon_solver/res_sol_mat_name")
+
+            self.ms = mat_storer.matStorer(self.opt_res_path + "/jump_test/" + self.res_sol_mat_name + ".mat")
 
             # In the case of jump, the position, vel and acc solution also holds the test rig d.o.f. --> this has to be removed
             self.solution = self.ms.load() 
@@ -46,18 +50,13 @@ class HorizonXbotCmdPub:
             self.q_p_ddot = self.solution["q_p_ddot"][1:3,:]
             self.tau = self.solution["tau"][1:3,:]
             self.f_contact = self.solution["f_contact"]
-            self.solution_time = self.solution["sol_time"]
             self.dt = self.solution["dt_opt"].flatten() 
 
-            self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
-            
-            self.res_sol_mat_name = rospy.get_param("horizon/horizon_solver/res_sol_mat_name")
-
-            self.ms = mat_storer.matStorer(self.opt_res_path + "/jump_test/" + self.res_sol_mat_name)
-                    
+            self.n_nodes = len(self.q_p[0, :]) - 1
+                            
         elif self.task_type=="trot":
 
-            self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes (remember to run the optimized node before, otherwise the parameter server will not be populated)
+            self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes 
             self.ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
 
             self.solution = self.ms.load() 
@@ -66,7 +65,6 @@ class HorizonXbotCmdPub:
             self.q_p_ddot = self.solution["q_p_ddot"]
             self.tau = self.solution["tau"]
             self.f_contact = self.solution["f_contact"]
-            self.solution_time = self.solution["sol_time"]
             self.dt = self.solution["dt_opt"].flatten() 
 
         ## Loading the solution dictionary, based on the selected task_type 
@@ -109,6 +107,8 @@ class HorizonXbotCmdPub:
 
     def xbot_cmd_publisher(self):
 
+        self.rate = rospy.Rate(1/self.dt[0]) # here, assuming a constant dt
+
         while not rospy.is_shutdown(): 
 
             if self.wait_until_initial_pose:
@@ -117,25 +117,23 @@ class HorizonXbotCmdPub:
         
                 if self.is_initial_pose_reached:
 
-                    if self.pub_iterator > (self.n_nodes-1):
+                    if self.pub_iterator > (self.n_nodes - 1):
 
                         self.pub_iterator = 0 # replaying trajectory after end
                         # rospy.sleep(2) # sleep between replayed trajectories
 
-                    self.pub_iterator = self.pub_iterator+1 # incrementing publishing counter
-                    self.rate = rospy.Rate(1/self.dt[self.pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
+                    self.pub_iterator = self.pub_iterator + 1 # incrementing publishing counter
                     self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 
                     self.xbot_cmd_pub.publish(self.joint_command) # publish the commands
                     self.rate.sleep() # wait
             else:
 
-                if self.pub_iterator > (self.n_nodes-1):
+                if self.pub_iterator > (self.n_nodes - 1):
 
                         self.pub_iterator = 0 # replaying trajectory after end
                         # rospy.sleep(2) # sleep between replayed trajectories
 
                 self.pub_iterator = self.pub_iterator + 1 # incrementing publishing counter
-                self.rate = rospy.Rate(1/self.dt[self.pub_iterator-1]) # potentially, a trajectory with variable dt can be provided
                 self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 
                 self.xbot_cmd_pub.publish(self.joint_command) # publish the commands
                 self.rate.sleep() # wait
