@@ -90,6 +90,8 @@ test_rig_ub=rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/ub
 q_p_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
 q_p_dot_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
 
+jnt_limit_margin = rospy.get_param("horizon/horizon_solver/problem_settings/jnt_limit_margin") # margin to be added to joint limits 
+
 # cost weights
 
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
@@ -167,8 +169,9 @@ urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
 n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
-lbs = urdf_awesome_leg.q_min()
-ubs = urdf_awesome_leg.q_max()
+jnt_lim_margin_array = np.tile(jnt_limit_margin, (n_q))
+lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
+ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
 
 tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (also on the passive d.o.f.)
 

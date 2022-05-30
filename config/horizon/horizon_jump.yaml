@@ -30,6 +30,8 @@ horizon:
  
      dt_lb: 0.005
      dt_ub: 0.1
+
+     jnt_limit_margin: 0.08 # [rad]
  
      solver:
        name: "ipopt"
