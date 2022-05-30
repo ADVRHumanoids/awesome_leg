@@ -16,6 +16,8 @@ import numpy as np
 
 import pinocchio as pin
 
+from scipy import interpolate
+
 #########################################################
 
 class HorizonXbotCmdPub:
@@ -32,7 +34,10 @@ class HorizonXbotCmdPub:
         self.joint_names = []
         [self.joint_names.append((self.pin_model.names[i])) for i in range(1, self.n_jnts + 1)]
 
-        self.wait_until_initial_pose = rospy.get_param("/horizon_xbot_cmd_pub/approaching_traj/wait_until_initial_pose") # used 
+        self.wait_until_initial_pose = rospy.get_param("/horizon_xbot_cmd_pub/approaching_traj/wait_until_initial_pose")
+        self.sample_dt =  abs(rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/sample_dt"))
+        self.traj_pause_time =  abs(rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/traj_pause_time"))
+
         self.opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results relative path (wrt to the package)
         self.task_type = rospy.get_param("/horizon/task_type")  # task type
 
@@ -47,34 +52,23 @@ class HorizonXbotCmdPub:
             self.solution = self.ms.load() 
             self.q_p = self.solution["q_p"][1:3,:]
             self.q_p_dot = self.solution["q_p_dot"][1:3,:]
-            self.q_p_ddot = self.solution["q_p_ddot"][1:3,:]
             self.tau = self.solution["tau"][1:3,:]
-            self.f_contact = self.solution["f_contact"]
-            self.dt = self.solution["dt_opt"].flatten() 
-
-            self.n_nodes = len(self.q_p[0, :]) - 1
+            self.opt_dt = self.solution["dt_opt"].flatten() 
                             
         elif self.task_type=="trot":
 
-            self.n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes") # number of optimization nodes 
             self.ms = mat_storer.matStorer(self.opt_res_path+"/horizon_offline_solver.mat")
 
             self.solution = self.ms.load() 
             self.q_p = self.solution["q_p"]
             self.q_p_dot = self.solution["q_p_dot"]
-            self.q_p_ddot = self.solution["q_p_ddot"]
             self.tau = self.solution["tau"]
-            self.f_contact = self.solution["f_contact"]
-            self.dt = self.solution["dt_opt"].flatten() 
+            self.opt_dt = self.solution["dt_opt"].flatten() 
 
         ## Loading the solution dictionary, based on the selected task_type 
 
-        self.n_samples = len(self.tau[0, :])
+        self.n_samples = len(self.tau[0, :]) # length of the input vector and not the state vector (these way samples are aligned)
         self.n_jnts = len(self.q_p[:, 0])
-
-        self.time_vector = np.zeros(self.dt.size+1) # time vector used by the trajectory publisher
-        for i in range(self.dt.size):
-            self.time_vector[i+1] = self.time_vector[i] + self.dt[i]
 
         self.joint_command = JointCommand() # initializing object for holding the joint command
         self.joint_command.ctrl_mode = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/ctrl_mode")  
@@ -83,7 +77,42 @@ class HorizonXbotCmdPub:
         self.joint_command.damping = rospy.get_param("/horizon_xbot_cmd_pub/horizon_trajectory/damping")  
 
         self.pub_iterator = 0 # used to slide through the solution
+
+        self.adapt_traj2des_rate() 
     
+    def adapt_traj2des_rate(self):
+
+        if self.opt_dt[0] > self.sample_dt + 0.0000001:
+
+            raise Exception("Sorry, you have set a publish dt ( " + str(self.sample_dt) + " ) lower than the one of the loaded trajectory ( " + str(self.opt_dt[0]) + ").")             
+        
+        elif self.opt_dt[0] < self.sample_dt - 0.0000001:
+
+            t_exec = self.opt_dt[0] * (self.n_samples - 1)
+
+            time_vector = np.zeros(self.n_samples)
+            for i in range(self.n_samples - 1):
+                time_vector[i + 1] = time_vector[i] + self.opt_dt[0]
+
+            self.n_samples_res = round(t_exec / self.sample_dt)
+            time_vector_res = np.zeros(self.n_samples_res)
+            for i in range(self.n_samples_res - 1):
+                time_vector_res[i + 1] = time_vector_res[i] + self.sample_dt
+
+            f_q_p = interpolate.interp1d(time_vector, self.q_p[:, 1:])
+            f_q_p_dot = interpolate.interp1d(time_vector, self.q_p_dot[:, 1:])
+            f_tau = interpolate.interp1d(time_vector, self.tau)
+
+            self.q_p = f_q_p(time_vector_res)
+            self.q_p_dot = f_q_p_dot(time_vector_res)
+            self.tau = f_tau(time_vector_res)
+
+            self.n_samples = self.n_samples_res
+
+        else:
+
+            self.sample_dt = self.opt_dt[0]
+
     def pack_xbot2_message(self):
             
         if self.pub_iterator < self.n_samples: # continue sliding and publishing until the end of the solution is reached
@@ -103,11 +132,11 @@ class HorizonXbotCmdPub:
             self.joint_command.effort = np.ndarray.tolist(effort_command)  
             
             rospy.loginfo("Publishing command sample n.:\t" + str(self.pub_iterator + 1) + "," + "\n") # print a simple debug message
-            rospy.loginfo("with a rate of :\t" + str(1/self.dt[self.pub_iterator]) + "Hz \n") # print a simple debug message
+            rospy.loginfo("with a rate of :\t" + str(1/self.sample_dt) + "Hz \n") # print a simple debug message
 
     def xbot_cmd_publisher(self):
 
-        self.rate = rospy.Rate(1/self.dt[0]) # here, assuming a constant dt
+        self.rate = rospy.Rate(1/self.sample_dt) # here, assuming a constant dt
 
         while not rospy.is_shutdown(): 
 
@@ -117,10 +146,10 @@ class HorizonXbotCmdPub:
         
                 if self.is_initial_pose_reached:
 
-                    if self.pub_iterator > (self.n_nodes - 1):
+                    if self.pub_iterator > (self.n_samples - 1):
 
                         self.pub_iterator = 0 # replaying trajectory after end
-                        # rospy.sleep(2) # sleep between replayed trajectories
+                        rospy.sleep(self.traj_pause_time) # sleep between replayed trajectories
 
                     self.pub_iterator = self.pub_iterator + 1 # incrementing publishing counter
                     self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 
@@ -128,10 +157,10 @@ class HorizonXbotCmdPub:
                     self.rate.sleep() # wait
             else:
 
-                if self.pub_iterator > (self.n_nodes - 1):
+                if self.pub_iterator > (self.n_samples - 1):
 
                         self.pub_iterator = 0 # replaying trajectory after end
-                        # rospy.sleep(2) # sleep between replayed trajectories
+                        rospy.sleep(self.traj_pause_time) # sleep between replayed trajectories
 
                 self.pub_iterator = self.pub_iterator + 1 # incrementing publishing counter
                 self.pack_xbot2_message() # copy the optimized trajectory to xbot command object 

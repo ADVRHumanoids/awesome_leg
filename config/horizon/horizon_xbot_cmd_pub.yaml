@@ -21,5 +21,8 @@ horizon_xbot_cmd_pub:
         ctrl_mode: [25, 25]
         stiffness: [500, 500]
         damping:  [5, 5]
+
+        sample_dt: 0.01 # desired sample publishing dt (the provided trajectory will be undersampled based on the required dt)
+        # careful: do not go below 0.01 --> this is not a real time safe way of publishing commands!! Try with a xbot2 real-time plugin
         
-        # right angle, tip high-left -> init pose: [1.57, -1.57]; final: [-1.57, 1.57]; T_execution: 3.0; standby_time: 0.0
+        traj_pause_time: 3 # seconds to wait before replaying trajectory
