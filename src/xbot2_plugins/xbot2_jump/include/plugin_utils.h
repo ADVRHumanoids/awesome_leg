@@ -9,10 +9,11 @@ namespace plugin_utils{
     {
         double common_part_traj = (126.0 * pow(time/exec_time, 5) - 420.0 * pow(time/exec_time, 6) + 540.0 * pow(time/exec_time, 7) - 315.0 * pow(time/exec_time, 8) + 70.0 * pow(time/exec_time, 9));
 
-        value = start_point + (end_point - start_point) *  common_part_traj;
+        auto value = start_point + (end_point - start_point) *  common_part_traj;
 
-        return value
+        return value;
     }
+
 
 }
 

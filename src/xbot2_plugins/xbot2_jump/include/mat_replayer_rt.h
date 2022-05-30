@@ -1,26 +1,11 @@
 #ifndef MAT_REPLAYER_RT
 #define MAT_REPLAYER_RT
 
-#include "/home/andreap/matlogger_ws/install/include/matlogger2/matlogger2.h"
-// #include <matlogger2/matlogger2.h>
-
+#include <matlogger2/matlogger2.h>
 #include <xbot2/xbot2.h>
-
-#include <cartesian_interface/CartesianInterfaceImpl.h>
-#include <cartesian_interface/sdk/problem/Interaction.h>
-
-#include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
-#include <cartesian_interface/ros/RosServerClass.h>
-
 #include <xbot2/ros/ros_support.h>
 
-#include <math.h> 
-
-// #include <awesome_leg_pholus/EllTrajRt.h>
-
 #include <thread>
-
-#include "plugin_utils.h"
 
 using namespace XBot;
 using namespace XBot::Cartesian;
@@ -67,64 +52,44 @@ public:
 
 private:
     
-    Eigen::VectorXd _bias_tau,
-                    _stiffness, _damping, 
-                    _stop_stiffness, _stop_damping,
-                    _q_p_meas, _q_p_dot_meas,
-                    _effort_command, _meas_effort, 
-                    _effort_lims;
-
-    Eigen::Affine3d _meas_pose;
-
     std::string _urdf_path, _srdf_path;
 
-    XBot::ModelInterface::Ptr _model, _nrt_model; 
+    Eigen::VectorXd _stop_stiffness, _stop_damping, 
+                    _cntrl_mode, 
+                    _replay_stiffness, _replay_damping, 
+                    _q_p_meas, 
+                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
+                    _traj_time_vector;
+
+    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _dt_opt;
+
+    bool _looped_traj = false, 
+         _approach_traj_started = false, _approach_traj_finished = false, 
+         _traj_started = false, _traj_finished = false, 
+         _first_run = true;
+
+    double _delta effort_lim,
+           _replay_dt, _traj_pause_time,
+           _loop_time = 0.0, _plugin_dt,
+           _t_exec_traj;
+
+    int _n_jnts_model, 
+        _sample_index = 0, _n_samples;
+
+    XBot::ModelInterface::Ptr _model;
 
     MatLogger2::Ptr _logger;
 
-    Eigen::MatrixXd _M;
-
-    XBot::Cartesian::RosServerClass::Ptr _ros_srv;
-
-    std::unique_ptr<thread> _nrt_thread;
-
-    std::unique_ptr<ros::NodeHandle> _nh;
+   // handle adapting ROS primitives for RT support
+    RosSupport::UniquePtr _ros;
 
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
-    // handle adapting ROS primitives for RT support
-    RosSupport::UniquePtr _ros;
-
-    bool _rt_active, _nrt_exit,
-         _traj_par_callback_trigger = false,
-         _first_run = true;
-
-    double _dt, _time, 
-           _time_traj_par,
-           _traj_prm_rmp_time, _t_exec_lb,
-           _delta_effort_lim;
-
-    int _n_jnts_model, _n_jnts_robot;
-
-    bool get_params_from_config();
-    void init_model_interface();
-    void init_cartesio_solver();
-    void update_state();
-    void create_ros_api();
-    void spawn_rnt_thread();
-    void nrt_thread_callback();
-    void saturate_input();
-    void peisekah_transition();
-
-    // ROS service callback
-    // bool on_ell_traj_recv_srv(const awesome_leg_pholus::EllTrajRtRequest& req,
-    //                       awesome_leg_pholus::EllTrajRtResponse& res);
-
-    // XBot2.0 server wrapping the ones from ROS
-    // ServiceServerPtr<awesome_leg_pholus::EllTrajRtRequest,
-    //                  awesome_leg_pholus::EllTrajRtResponse> _ell_traj_srv;
-                     
+    void get_params_from_config();
+    bool load_opt_data();
+    void send_trajectory();
+                 
 };
 
 #endif // MAT_REPLAYER_RT
