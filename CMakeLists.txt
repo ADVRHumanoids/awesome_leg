@@ -4,7 +4,7 @@ project(awesome_leg_pholus)
 find_package(catkin REQUIRED roscpp rospy urdf sensor_msgs std_msgs message_generation)
 find_package(XBotInterface REQUIRED)
 find_package(xbot_msgs REQUIRED)
-find_package(matlogger2 1.3.1 REQUIRED)
+find_package(matlogger2 REQUIRED)
 find_package(cartesian_interface REQUIRED)
 find_package(xbot2 QUIET)
 
@@ -24,8 +24,8 @@ generate_messages(
 
 catkin_package(CATKIN_DEPENDS message_runtime)
 
-add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
-add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
+# add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
+# add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
 add_subdirectory(src/xbot2_plugins/xbot2_jump)
 
 add_executable(robot_state_logger src/awesome_leg_pholus_utils/robot_state_logger.cpp)
