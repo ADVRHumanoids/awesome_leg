@@ -5,6 +5,8 @@
 #include <xbot2/xbot2.h>
 #include <xbot2/ros/ros_support.h>
 
+#include <cartesian_interface/CartesianInterfaceImpl.h>
+
 #include <thread>
 
 using namespace XBot;
@@ -52,14 +54,15 @@ public:
 
 private:
     
-    std::string _urdf_path, _srdf_path;
+    std::string _urdf_path, _srdf_path, _mat_path;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
                     _q_p_meas, 
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
-                    _traj_time_vector;
+                    _traj_time_vector, 
+                    _effort_lims;
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _dt_opt;
 
@@ -68,7 +71,7 @@ private:
          _traj_started = false, _traj_finished = false, 
          _first_run = true;
 
-    double _delta effort_lim,
+    double _delta_effort_lim,
            _replay_dt, _traj_pause_time,
            _loop_time = 0.0, _plugin_dt,
            _t_exec_traj;
@@ -87,8 +90,11 @@ private:
     CallbackQueue _queue;
 
     void get_params_from_config();
+    void init_model_interface();
     bool load_opt_data();
     void send_trajectory();
+    void send_approach_traj();
+    void saturate_input();
                  
 };
 
