@@ -54,17 +54,18 @@ public:
 
 private:
     
-    std::string _urdf_path, _srdf_path, _mat_path;
+    std::string _mat_path;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
-                    _q_p_meas, 
+                    _q_p_meas, _q_p_dot_meas, 
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
                     _traj_time_vector, 
-                    _effort_lims;
+                    _effort_lims, 
+                    _dt_opt;
 
-    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _dt_opt;
+    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
 
     bool _looped_traj = false, 
          _approach_traj_started = false, _approach_traj_finished = false, 
@@ -72,16 +73,16 @@ private:
          _first_run = true;
 
     double _delta_effort_lim,
-           _replay_dt, _traj_pause_time,
+           _nominal_traj_dt, _replay_dt, _traj_pause_time,
            _loop_time = 0.0, _plugin_dt,
            _t_exec_traj;
 
     int _n_jnts_model, 
         _sample_index = 0, _n_samples;
 
-    XBot::ModelInterface::Ptr _model;
+    // XBot::ModelInterface::Ptr _model;
 
-    MatLogger2::Ptr _logger;
+    MatLogger2::Ptr _dump_logger, _load_logger;
 
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
@@ -90,11 +91,16 @@ private:
     CallbackQueue _queue;
 
     void get_params_from_config();
-    void init_model_interface();
+    // void init_model_interface();
+    void update_clocks();
     bool load_opt_data();
+    void sample_trajectory();
     void send_trajectory();
-    void send_approach_traj();
     void saturate_input();
+    void update_state();
+    void init_dump_logger();
+    void add_data2dump_logger();
+    void init_nrt_ros_bridge();
                  
 };
 
