@@ -62,10 +62,9 @@ private:
                     _q_p_meas, _q_p_dot_meas, 
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
                     _traj_time_vector, 
-                    _effort_lims, 
-                    _dt_opt;
+                    _effort_lims;
 
-    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
+    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _dt_opt;
 
     bool _looped_traj = false, 
          _approach_traj_started = false, _approach_traj_finished = false, 
