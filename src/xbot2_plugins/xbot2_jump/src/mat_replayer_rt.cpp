@@ -111,6 +111,15 @@ void MatReplayerRt::load_opt_data()
     {
         jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
     }
+    
+    _traj_time_vector = Eigen::VectorXd::Zero();
+
+    for (int i = 0; i < (_n_nodes - 1); i++)
+    {
+        _sample_times(i + 1) = _sample_times(i) + _dt_opt(i);
+    }
+
+    _traj.resample(res_dt, _q_p_ref, _q_p_dot_refs, _tau_ref);
 
 }
 

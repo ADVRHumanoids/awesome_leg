@@ -364,6 +364,8 @@ namespace plugin_utils{
                 {
                     _sample_times(i + 1) = _sample_times(i) + _dt_opt(i);
                 }
+                _exec_time = _sample_times.tail(1) - _sample_times(0);
+
 
                 int interp_dir = (_column_major_order) ? 1 : 0;
                 opt_traj.emplace(_q_p_name, TrajLinInterp(_sample_times, _q_p, interp_dir));
@@ -419,19 +421,23 @@ namespace plugin_utils{
                 return _n_nodes;
             }
 
-            Eigen::MatrixXd eval_q_p_at(Eigen::VectorXd& times)
+            void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res)
             {
-                return opt_traj[_q_p_name].eval_at(times);
+                Eigen::VectorXd times = compute_res_times(res_dt);
+                
+                q_p_res =  opt_traj[_q_p_name].eval_at(times);
+                q_p_dot_res = opt_traj[_q_p_dot_name].eval_at(times);
+                tau_res =  opt_traj[_efforts_name].eval_at(times);
             }
 
-            Eigen::MatrixXd eval_q_p_dot_at(Eigen::VectorXd& times)
+            Eigen::MatrixXd resample_q_p_dot(double res_dt)
             {
-                return opt_traj[_q_p_dot_name].eval_at(times);
+                
             }
 
-            Eigen::MatrixXd eval_tau_at(Eigen::VectorXd& times)
+            Eigen::MatrixXd resample_tau(double res_dt)
             {
-                return opt_traj[_efforts_name].eval_at(times);
+                
             }
 
             
@@ -449,6 +455,8 @@ namespace plugin_utils{
             Eigen::MatrixXd _q_p_dot;
             Eigen::MatrixXd _tau;
             Eigen::VectorXd _dt_opt, _sample_times;
+
+            double _exec_time;
 
             int _n_nodes, _n_jnts;
 
@@ -513,6 +521,8 @@ namespace plugin_utils{
                 }
 
             }
+
+            
 
             void load_data_from_csv(std::string data_path)
             {
@@ -581,7 +591,10 @@ namespace plugin_utils{
 
             }
 
-
+            void compute_res_times(double dt_res)
+            {
+                
+            }
     };
 }
 
