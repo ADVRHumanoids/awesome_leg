@@ -30,6 +30,7 @@ void MatReplayerRt::get_params_from_config()
     // Reading some parameters from XBot2 config. YAML file
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
+    _math_name = getParamOrThrow<std::string>("~mat_name"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
@@ -102,39 +103,7 @@ void MatReplayerRt::init_nrt_ros_bridge()
 bool MatReplayerRt::load_opt_data()
 {   
     
-    // // Reading data using a mat file
 
-    // XBot::MatLogger2::Options opts;
-    // opts.load_file_from_path = true; // enable reading
-
-    // _load_logger = XBot::MatLogger2::MakeLogger(_mat_path, opts);
-
-    // int slices; // not needed -> we should make it an optional argument to readvar
-    // bool q_p_read_ok = _load_logger->readvar("q_p", _q_p_ref, slices);
-    // bool q_p_dot_read ok = _load_logger->readvar("q_p_dot", _q_p_dot_ref, slices);
-    // bool tau_read_ok = _load_logger->readvar("tau", _tau_ref, slices);
-    // bool dt_read_ok = _load_logger->readvar("dt_opt", _dt_opt, slices);
-
-    // _n_traj_samples = _q_p_ref.cols() - 1; // the first sample is the initial condition, so is removed. This way state and input targets have the same size
-
-    // if (q_p_read_ok && q_p_dot_read && tau_read_ok && dt_read_ok)
-    // { // all variables read successfully
-    //     return true;
-    // }
-    // else
-    // { // at leas one reading failed
-    //     return false;
-    // }
-
-    // Temporary reading from CSV files
-
-    std::string data_path = _mat_path;
-
-    _q_p_ref = plugin_utils::openData(data_path + "q_p.csv");
-    _q_p_dot_ref = plugin_utils::openData(data_path + "q_p_dot.csv");
-    _tau_ref = plugin_utils::openData(data_path + "tau.csv");
-    _dt_opt = plugin_utils::openData(data_path + "dt_opt.csv");
-    
     auto n_traj_jnts = _q_p_ref.rows();
     _n_traj_samples = _q_p_ref.cols();
 
@@ -153,6 +122,10 @@ bool MatReplayerRt::load_opt_data()
     {
         _traj_time_vector[i + 1] = _traj_time_vector[i] + _nominal_traj_dt;  
     }   
+
+
+    // 
+    // _traj = plugin_utils::TrajLinInterp();
 
     return true;
 
@@ -173,10 +146,12 @@ void MatReplayerRt::saturate_input()
     }
 }
 
-void MatReplayerRt::sample_trajectory()
+void MatReplayerRt::resample_trajectory()
 {
 
+    
 }
+
 void MatReplayerRt::compute_approach_traj()
 {
     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
@@ -231,8 +206,9 @@ void MatReplayerRt::send_trajectory()
     }
 
     if (_traj_started && !_traj_finished)
-    { 
+    { // publish current trajectory sample
         
+
     }
 
     if (_traj_finished && _looped_traj)

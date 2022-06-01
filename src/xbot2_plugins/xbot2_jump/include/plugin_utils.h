@@ -4,6 +4,8 @@
 #include <math.h> 
 
 #include <Eigen/Dense>
+#include <Eigen/Core>
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -131,43 +133,6 @@ namespace plugin_utils{
             }
 
     };
-
-    Eigen::MatrixXd openData(std::string fileToOpen)
-    {
-        using namespace Eigen;
-        using namespace std;
-
-        vector<double> matrixEntries;
-    
-        // in this object we store the data from the matrix
-        ifstream matrixDataFile(fileToOpen);
-    
-        // this variable is used to store the row of the matrix that contains commas 
-        string matrixRowString;
-    
-        // this variable is used to store the matrix entry;
-        string matrixEntry;
-    
-        // this variable is used to track the number of rows
-        int matrixRowNumber = 0;
-    
-    
-        while (getline(matrixDataFile, matrixRowString)) // here we read a row by row of matrixDataFile and store every line into the string variable matrixRowString
-        {
-            stringstream matrixRowStringStream(matrixRowString); //convert matrixRowString that is a string to a stream variable.
-    
-            while (getline(matrixRowStringStream, matrixEntry, ' ')) // here we read pieces of the stream matrixRowStringStream until every comma, and store the resulting character into the matrixEntry
-            {
-                matrixEntries.push_back(stod(matrixEntry));   //here we convert the string to double and fill in the row vector storing all the matrix entries
-            }
-            matrixRowNumber++; //update the column numbers
-        }
-    
-        // here we convet the vector variable into the matrix and return the resulting object, 
-        // note that matrixEntries.data() is the pointer to the first memory location at which the entries of the vector matrixEntries are stored;
-        return Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(matrixEntries.data(), matrixRowNumber, matrixEntries.size() / matrixRowNumber);
-    
-    }
 
     class TrajLinInterp
     {
@@ -358,7 +323,240 @@ namespace plugin_utils{
             }
     };
 
+    class TrajLoader
+    {
+        public:
 
+            TrajLoader(); // default constructor
+
+            TrajLoader(std::string data_path, bool column_major = true)
+            :_data_path{data_path}, _column_major_order{column_major}
+            {
+
+                std::string extension = get_file_extension(data_path);
+
+                if (extension == "")
+                { // no extension --> this class will assume the user wants to read from csv files
+                    
+                    load_data_from_csv(data_path);
+
+                }
+                else if(extension == "mat")
+                { // load from .mat database
+
+                    load_data_from_mat(data_path);
+
+                }
+                else
+                { // unsupported extension 
+
+                    throw std::runtime_error(std::string("Unsupported extension ") + extension + std::string("provided.\n"));
+
+                }
+
+                check_loaded_data_dims();
+                
+                _n_nodes = get_n_samples(_q_p);
+                _n_jnts = get_n_jnts(_q_p);
+
+                _sample_times = Eigen::VectorXd::Zero(_n_nodes);
+                for (int i = 0; i < (_n_nodes - 1); i++)
+                {
+                    _sample_times(i + 1) = _sample_times(i) + _dt_opt(i);
+                }
+
+                int interp_dir = (_column_major_order) ? 1 : 0;
+                opt_traj.emplace(_q_p_name, TrajLinInterp(_sample_times, _q_p, interp_dir));
+                opt_traj.emplace(_q_p_dot_name, TrajLinInterp(_sample_times, _q_p_dot, interp_dir));
+                opt_traj.emplace(_efforts_name, TrajLinInterp(_sample_times.head(_n_nodes - 1), _tau, interp_dir));          
+                
+            }
+
+            Eigen::MatrixXd read_data_from_csv(std::string data_path)
+            { // keep it public so it can also be used outside class instances
+                using namespace Eigen;
+                using namespace std;
+
+                vector<double> matrixEntries;
+            
+                // in this object we store the data from the matrix
+                ifstream matrixDataFile(data_path);
+            
+                // this variable is used to store the row of the matrix that contains commas 
+                string matrixRowString;
+            
+                // this variable is used to store the matrix entry;
+                string matrixEntry;
+            
+                // this variable is used to track the number of rows
+                int matrixRowNumber = 0;
+            
+            
+                while (getline(matrixDataFile, matrixRowString)) // here we read a row by row of matrixDataFile and store every line into the string variable matrixRowString
+                {
+                    stringstream matrixRowStringStream(matrixRowString); //convert matrixRowString that is a string to a stream variable.
+            
+                    while (getline(matrixRowStringStream, matrixEntry, ' ')) // here we read pieces of the stream matrixRowStringStream until every comma, and store the resulting character into the matrixEntry
+                    {
+                        matrixEntries.push_back(stod(matrixEntry));   //here we convert the string to double and fill in the row vector storing all the matrix entries
+                    }
+                    matrixRowNumber++; //update the column numbers
+                }
+            
+                // here we convet the vector variable into the matrix and return the resulting object, 
+                // note that matrixEntries.data() is the pointer to the first memory location at which the entries of the vector matrixEntries are stored;
+                return Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(matrixEntries.data(), matrixRowNumber, matrixEntries.size() / matrixRowNumber);
+            
+            }
+            
+        private:
+
+            std::string _data_path;
+            bool _column_major_order; 
+
+            std::string _q_p_name = "q_p";
+            std::string _q_p_dot_name = "q_p_dot";
+            std::string _efforts_name = "tau";
+            std::string _dt_name = "dt_opt";
+
+            Eigen::MatrixXd _q_p;
+            Eigen::MatrixXd _q_p_dot;
+            Eigen::MatrixXd _tau;
+            Eigen::VectorXd _dt_opt, _sample_times;
+
+            int _n_nodes, _n_jnts;
+
+            std::map<std::string, TrajLinInterp> opt_traj; 
+
+            std::string get_file_extension(std::string file)
+            {
+                std::vector<std::string> token_list;
+                boost::split(token_list, file, [](char c){return c == '.';});
+                
+                if(token_list.size() > 1)
+                {
+                    return token_list.back();
+                }
+                
+                return "";
+            }
+
+            int get_n_jnts(Eigen::MatrixXd& mat)
+            {
+                if(_column_major_order)
+                {
+                    return mat.rows();
+                }
+                else
+                {
+                    return mat.cols();
+                }
+            }
+            
+            int get_n_samples(Eigen::MatrixXd& mat)
+            {
+                if(_column_major_order)
+                {
+                    return mat.cols();
+                }
+                else
+                {
+                    return mat.rows();
+                }
+            }
+
+            void check_loaded_data_dims()
+            {
+                if ( !( ( get_n_jnts(_q_p) == get_n_jnts(_q_p_dot) ) && (get_n_jnts(_q_p_dot) == get_n_jnts(_tau)) ) )
+                { // check number of joints consistency between data
+
+                    throw std::invalid_argument(std::string("The number of rows (i.e. joints) of the loaded data does not match!\n"));
+
+                }
+
+                if ( !( (get_n_samples(_q_p) == get_n_samples(_q_p_dot)) && (get_n_samples(_q_p_dot) == (get_n_samples(_tau) + 1 )) ) )
+                { // check cols (torque matri)
+
+                    throw std::invalid_argument(std::string("The number of columns (i.e. samples) of the loaded data does not match!\n"));
+
+                }
+
+                if (get_n_samples(_tau) != _dt_opt.size())
+                {
+                    throw std::invalid_argument(std::string("The size of the loaded dt vector does not match the other data!.\n"));
+                }
+
+            }
+
+            void load_data_from_csv(std::string data_path)
+            {
+
+                std::string q_p_path = data_path + _q_p_name + std::string(".csv");
+                std::string q_p_dot_path = data_path + _q_p_dot_name + std::string(".csv");
+                std::string tau_path = data_path + _efforts_name + std::string(".csv");
+                std::string dt_path = data_path + _dt_name + std::string(".csv");
+
+                _q_p = read_data_from_csv(q_p_path);
+                _q_p_dot = read_data_from_csv(q_p_dot_path);
+                _tau = read_data_from_csv(tau_path);
+                _dt_opt = read_data_from_csv(dt_path);
+
+                if (_q_p.size() == 0)
+                { // reading failed    
+                    throw std::runtime_error(std::string("Failed to find q_p at ") + q_p_path);
+                }
+                if (_q_p_dot.size() == 0)
+                { // reading failed    
+                    throw std::runtime_error(std::string("Failed to find q_p_dot at ") + q_p_dot_path);
+                }
+                if (_tau.size() == 0)
+                { // reading failed    
+                    throw std::runtime_error(std::string("Failed to find tau at ") + tau_path);
+                }
+                if (_dt_opt.size() == 0)
+                { // reading failed    
+                    throw std::runtime_error(std::string("Failed to find dt_opt at ") + dt_path);
+                }
+
+
+            }
+
+            void load_data_from_mat(std::string math_path)
+            {
+                
+                throw std::invalid_argument(std::string("Reading from mat databases is not yet supported !! \n")); // to be removed upon new MatLogger2 merge
+
+                // XBot::MatLogger2::Options opts;
+                // opts.load_file_from_path = true; // enable reading
+                // XBot::MatLogger2::Ptr _load_logger = XBot::MatLogger2::MakeLogger(math_path, opts);
+
+                // int slices; // not needed, used just to call the method properly 
+                // bool q_p_read_ok = _load_logger->readvar(_q_p_name, _q_p, slices);
+                // bool q_p_dot_read_ok = _load_logger->readvar(_q_p_dot_name, _q_p_dot, slices);
+                // bool tau_read_ok = _load_logger->readvar(_efforts_name, _tau, slices);
+                // bool dt_read_ok = _load_logger->readvar(_dt_name, _dt_opt, slices);
+
+                // if (!q_p_read_ok)
+                // { // reading failed    
+                //     throw std::runtime_error(std::string("Failed to find q_p from mat database at ") + math_path);
+                // }
+                // if (!q_p_dot_read_ok)
+                // { // reading failed    
+                //     throw std::runtime_error(std::string("Failed to find q_p_dot from mat database at ") + math_path);
+                // }
+                // if (!tau_read_ok)
+                // { // reading failed    
+                //     throw std::runtime_error(std::string("Failed to find tau from mat database at ") + math_path);
+                // }
+                // if (!dt_read_ok)
+                // { // reading failed    
+                //     throw std::runtime_error(std::string("Failed to find dt_opt from mat database at ") + math_path);
+                // }
+
+            }
+
+
+    };
 }
 
 #endif

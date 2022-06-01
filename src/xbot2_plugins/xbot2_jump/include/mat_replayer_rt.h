@@ -2,6 +2,7 @@
 #define MAT_REPLAYER_RT
 
 #include <matlogger2/matlogger2.h>
+
 #include <xbot2/xbot2.h>
 #include <xbot2/ros/ros_support.h>
 
@@ -56,7 +57,7 @@ public:
 
 private:
     
-    std::string _mat_path;
+    std::string _mat_path, _math_name;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
@@ -86,11 +87,11 @@ private:
 
 
     plugin_utils::PeisekahTrans _approach_traj;
-    plugin_utils::TrajLinInterp _traj;
+    plugin_utils::TrajLoader _traj;
 
     // XBot::ModelInterface::Ptr _model;
 
-    MatLogger2::Ptr _dump_logger, _load_logger;
+    MatLogger2::Ptr _dump_logger;
 
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
@@ -103,7 +104,7 @@ private:
     void init_clocks();
     void update_clocks();
     bool load_opt_data();
-    void sample_trajectory();
+    void resample_trajectory();
     void compute_approach_traj();
 
     void send_approach_trajectory();
