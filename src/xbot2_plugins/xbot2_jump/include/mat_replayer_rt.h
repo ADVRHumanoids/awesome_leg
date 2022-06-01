@@ -68,7 +68,7 @@ private:
                     _effort_lims,
                     _approach_traj_target;
 
-    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _dt_opt;
+    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
 
     bool _looped_traj = false, 
          _approach_traj_started = false, _approach_traj_finished = false, 
@@ -103,7 +103,7 @@ private:
     // void init_model_interface();
     void init_clocks();
     void update_clocks();
-    bool load_opt_data();
+    void load_opt_data();
     void resample_trajectory();
     void compute_approach_traj();
 

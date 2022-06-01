@@ -150,7 +150,7 @@ namespace plugin_utils{
 
             }
 
-            Eigen::MatrixXd eval_at(Eigen::VectorXd interp_times)
+            Eigen::MatrixXd eval_at(Eigen::VectorXd& interp_times)
             {
                 // check interp_times is within _sample_times
                 check_time_vector(interp_times);
@@ -408,6 +408,32 @@ namespace plugin_utils{
                 return Map<Matrix<double, Dynamic, Dynamic, RowMajor>>(matrixEntries.data(), matrixRowNumber, matrixEntries.size() / matrixRowNumber);
             
             }
+
+            int get_n_jnts()
+            {
+                return _n_jnts;
+            }
+
+            int get_n_nodes()
+            {
+                return _n_nodes;
+            }
+
+            Eigen::MatrixXd eval_q_p_at(Eigen::VectorXd& times)
+            {
+                return opt_traj[_q_p_name].eval_at(times);
+            }
+
+            Eigen::MatrixXd eval_q_p_dot_at(Eigen::VectorXd& times)
+            {
+                return opt_traj[_q_p_dot_name].eval_at(times);
+            }
+
+            Eigen::MatrixXd eval_tau_at(Eigen::VectorXd& times)
+            {
+                return opt_traj[_efforts_name].eval_at(times);
+            }
+
             
         private:
 

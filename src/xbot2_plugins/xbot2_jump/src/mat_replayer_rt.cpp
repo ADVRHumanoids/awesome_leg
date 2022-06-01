@@ -85,9 +85,7 @@ void MatReplayerRt::add_data2dump_logger()
 }
 
 void MatReplayerRt::init_nrt_ros_bridge()
-{
-
-    ros::NodeHandle nh(getName());
+{    ros::NodeHandle nh(getName());
 
     _ros = std::make_unique<RosSupport>(nh);
 
@@ -100,12 +98,12 @@ void MatReplayerRt::init_nrt_ros_bridge()
 
 }
 
-bool MatReplayerRt::load_opt_data()
+void MatReplayerRt::load_opt_data()
 {   
-    
 
-    auto n_traj_jnts = _q_p_ref.rows();
-    _n_traj_samples = _q_p_ref.cols();
+    _traj = plugin_utils::TrajLoader(_mat_path);
+    int n_traj_jnts = _traj.get_n_jnts();
+    int _n_traj_samples = _traj.get_n_nodes();
 
     // Here some checks on dimension consistency should be added
 
@@ -113,21 +111,6 @@ bool MatReplayerRt::load_opt_data()
     {
         jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
     }
-
-    _nominal_traj_dt = _dt_opt(0);
-    // _t_exec_traj = _dt_opt(0) * (_n_traj_samples - 1); 
-    _traj_time_vector = Eigen::VectorXd::Zero(_n_traj_samples);
-
-    for (int i = 0; i < _n_traj_samples - 1; i++) // populating trajectory time vector
-    {
-        _traj_time_vector[i + 1] = _traj_time_vector[i] + _nominal_traj_dt;  
-    }   
-
-
-    // 
-    // _traj = plugin_utils::TrajLinInterp();
-
-    return true;
 
 }
 
@@ -146,14 +129,9 @@ void MatReplayerRt::saturate_input()
     }
 }
 
-void MatReplayerRt::resample_trajectory()
-{
-
-    
-}
-
 void MatReplayerRt::compute_approach_traj()
 {
+
     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
 
 }
@@ -237,7 +215,7 @@ bool MatReplayerRt::on_initialize()
 
     _robot->getEffortLimits(_effort_lims);
 
-    bool data_loaded_ok = load_opt_data(); // load trajectory from file
+    load_opt_data(); // load trajectory from file
 
     init_dump_logger();
 
