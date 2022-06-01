@@ -9,6 +9,8 @@
 
 #include <thread>
 
+#include "plugin_utils.h"
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 
@@ -62,7 +64,8 @@ private:
                     _q_p_meas, _q_p_dot_meas, 
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
                     _traj_time_vector, 
-                    _effort_lims;
+                    _effort_lims,
+                    _approach_traj_target;
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _dt_opt;
 
@@ -72,12 +75,18 @@ private:
          _first_run = true;
 
     double _delta_effort_lim,
-           _nominal_traj_dt, _replay_dt, _traj_pause_time,
-           _loop_time = 0.0, _plugin_dt,
-           _t_exec_traj;
+           _nominal_traj_dt, _replay_dt, _plugin_dt,
+           _traj_pause_time, 
+           _loop_time = 0.0, _loop_reset_time = 30.0,
+           _approach_traj_time = 0.0, _approach_traj_exec_time = 4.0;
 
     int _n_jnts_model, 
-        _sample_index = 0, _n_samples;
+        _sample_index = 0,
+        _n_traj_samples = -1, _n_app_traj_samples = -1;
+
+
+    plugin_utils::PeisekahTrans _approach_traj;
+    plugin_utils::TrajLinInterp _traj;
 
     // XBot::ModelInterface::Ptr _model;
 
@@ -91,9 +100,13 @@ private:
 
     void get_params_from_config();
     // void init_model_interface();
+    void init_clocks();
     void update_clocks();
     bool load_opt_data();
     void sample_trajectory();
+    void compute_approach_traj();
+
+    void send_approach_trajectory();
     void send_trajectory();
     void saturate_input();
     void update_state();

@@ -12,17 +12,125 @@
 
 namespace plugin_utils{
 
-
-
-    bool compute_peisekah_val(double time, double exec_time, double start_point, double end_point)
+    class PeisekahTrans
     {
-        double common_part_traj = (126.0 * pow(time/exec_time, 5) - 420.0 * pow(time/exec_time, 6) + 540.0 * pow(time/exec_time, 7) - 315.0 * pow(time/exec_time, 8) + 70.0 * pow(time/exec_time, 9));
+        public:
 
-        auto value = start_point + (end_point - start_point) *  common_part_traj;
+            PeisekahTrans(); // default constructor
 
-        return value;
-    }
+            PeisekahTrans(Eigen::VectorXd start_point, Eigen::VectorXd end_point, double exec_time, double dt)
+            : _start_point{start_point}, _end_point{end_point}, _exec_time{exec_time}, _dt{dt}
+            {
 
+                check_input_dim();
+
+                compute_traj();
+
+            }
+
+            Eigen::VectorXd eval_at(int node)
+            {
+
+                return _traj.col(node);
+
+            }
+
+            double get_exec_time()
+            {
+                return _exec_time;
+            }
+
+            double get_traj_dt()
+            {
+                return _dt;
+            }
+
+            double get_n_nodes()
+            {
+                return _n_nodes;
+            }
+
+            double get_n_dim()
+            {
+                return _n_dim;
+            }
+
+        private:
+
+            Eigen::VectorXd _start_point, _end_point;
+            Eigen::MatrixXd _traj;
+
+            double _exec_time, _dt;
+            int _n_nodes, _n_dim;
+
+            void check_input_dim()
+            {   
+                int start_size = _start_point.size(); 
+                int end_size = _end_point.size();
+                if ( start_size != end_size)
+                { 
+
+                    std::string exception = std::string("The starting point and end point dimensions do not match: ") + 
+                                            std::to_string(start_size) + std::string(" VS ") + std::to_string(end_size) + std::string("\n");
+                                            
+                    throw std::invalid_argument(exception);
+                    
+                }
+            }
+
+            void rate_adapter()
+            {
+                double dt_des = _dt;
+
+                double n_int_aux = floor(_exec_time / dt_des);
+
+                double dt1 = _exec_time / n_int_aux;
+                double dt2 = _exec_time / (n_int_aux + 1);
+                double abs_diff1 = abs(dt1);
+                double abs_diff2 = abs(dt2);
+
+                if (abs_diff1 < abs_diff2)
+                { 
+                    _n_nodes = n_int_aux + 1;
+                    _dt = dt1;
+                }
+                else
+                {
+                    _n_nodes = n_int_aux + 2;  
+                    _dt = dt2;
+                }
+            }
+
+            double compute_peisekah_val(int node, int n_nodes, double start_point, double end_point)
+            {
+
+                double common_part_traj = (126.0 * pow(node/(n_nodes - 1), 5) - 420.0 * pow(node/(n_nodes - 1), 6) + 540.0 * pow(node/(n_nodes - 1), 7) - 315.0 * pow(node/(n_nodes - 1), 8) + 70.0 * pow(node/(n_nodes - 1), 9));
+
+                auto value = start_point + (end_point - start_point) *  common_part_traj;
+
+                return value;
+
+            }
+
+            void compute_traj()
+            {
+                rate_adapter(); // adapt _dt and _n_nodes to match the required _exec_time
+
+                for (int k = 0; k < _n_dim; k++)
+                { // loop through joints (rows)
+
+                    for (int i = 0; i < _n_nodes; i++)
+                    { // loop through samples (columns)
+
+                        _traj(k, i) = compute_peisekah_val(i, _n_nodes, _start_point(k), _end_point(k));
+
+                    }
+
+                }
+                
+            }
+
+    };
 
     Eigen::MatrixXd openData(std::string fileToOpen)
     {
@@ -64,6 +172,8 @@ namespace plugin_utils{
     class TrajLinInterp
     {
         public:
+
+            TrajLinInterp(); // default constructor
 
             TrajLinInterp(Eigen::VectorXd sample_time, Eigen::MatrixXd input_traj, int interp_dir = 1)
             : _sample_times{sample_time}, _traj{input_traj}, _interp_dir{interp_dir}

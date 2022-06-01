@@ -2,28 +2,39 @@
 
 #include <math.h> 
 
-#include "plugin_utils.h"
+void MatReplayerRt::init_clocks()
+{
+    _loop_time = 0.0; // reset loop time clock
+    _approach_traj_time = 0.0;
+}
 
 void MatReplayerRt::update_clocks()
 {
     // Update time(s)
     _loop_time += _plugin_dt;
+    _approach_traj_time += _plugin_dt;
     
-    if (_loop_time >= _t_exec_traj)
+    // Reset timers, if necessary
+    if (_loop_time >= _loop_reset_time)
     {
-        _loop_time = _loop_time - _t_exec_traj;
+        _loop_time = _loop_time - _loop_reset_time;
+    }
+    if (_approach_traj_time >= _approach_traj_exec_time)
+    {
+        _approach_traj_time = _approach_traj_time - _approach_traj_exec_time;
     }
 }
+
 void MatReplayerRt::get_params_from_config()
 {
     // Reading some parameters from XBot2 config. YAML file
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
-
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
-
+    _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
+    _approach_traj_target = getParamOrThrow<Eigen::VectorXd>("~approach_traj_target");
     _cntrl_mode: getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
     _replay_stiffness: getParamOrThrow<Eigen::VectorXd>("~cntrl_mode"); 
     _replay_damping: getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
@@ -32,22 +43,6 @@ void MatReplayerRt::get_params_from_config()
     _traj_pause_time: getParamOrThrow<double>("~cntrl_mode");
 
 }
-
-// void MatReplayerRt::init_model_interface()
-// {
-    
-//     XBot::ConfigOptions xbot_cfg;
-//     xbot_cfg.set_urdf_path(_urdf_path);
-//     xbot_cfg.set_srdf_path(_srdf_path);
-//     xbot_cfg.generate_jidmap();
-//     xbot_cfg.set_parameter("is_model_floating_base", false);
-//     xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
-
-//     // Initializing XBot2 ModelInterface for the rt thread
-//     _model = XBot::ModelInterface::getModel(xbot_cfg); 
-//     _n_jnts_model = _model->getJointNum();
-
-// }
 
 void MatReplayerRt::update_state()
 {
@@ -120,7 +115,7 @@ bool MatReplayerRt::load_opt_data()
     // bool tau_read_ok = _load_logger->readvar("tau", _tau_ref, slices);
     // bool dt_read_ok = _load_logger->readvar("dt_opt", _dt_opt, slices);
 
-    // _n_samples = _q_p_ref.cols() - 1; // the first sample is the initial condition, so is removed. This way state and input targets have the same size
+    // _n_traj_samples = _q_p_ref.cols() - 1; // the first sample is the initial condition, so is removed. This way state and input targets have the same size
 
     // if (q_p_read_ok && q_p_dot_read && tau_read_ok && dt_read_ok)
     // { // all variables read successfully
@@ -141,7 +136,7 @@ bool MatReplayerRt::load_opt_data()
     _dt_opt = plugin_utils::openData(data_path + "dt_opt.csv");
     
     auto n_traj_jnts = _q_p_ref.rows();
-    _n_samples = _q_p_ref.cols();
+    _n_traj_samples = _q_p_ref.cols();
 
     // Here some checks on dimension consistency should be added
 
@@ -151,10 +146,10 @@ bool MatReplayerRt::load_opt_data()
     }
 
     _nominal_traj_dt = _dt_opt(0);
-    _t_exec_traj = _dt_opt(0) * (_n_samples - 1); 
-    _traj_time_vector = Eigen::VectorXd::Zero(_n_samples);
+    // _t_exec_traj = _dt_opt(0) * (_n_traj_samples - 1); 
+    _traj_time_vector = Eigen::VectorXd::Zero(_n_traj_samples);
 
-    for (int i = 0; i < _n_samples - 1; i++) // populating trajectory time vector
+    for (int i = 0; i < _n_traj_samples - 1; i++) // populating trajectory time vector
     {
         _traj_time_vector[i + 1] = _traj_time_vector[i] + _nominal_traj_dt;  
     }   
@@ -182,12 +177,78 @@ void MatReplayerRt::sample_trajectory()
 {
 
 }
+void MatReplayerRt::compute_approach_traj()
+{
+    _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
+
+}
+
+void MatReplayerRt::send_approach_trajectory()
+{
+    if (_first_run)
+    { // first time entering the control loop
+
+        _approach_traj_started = true; // flag signaling the start of the approach trajectory
+
+    }
+
+    if (_sample_index > (_approach_traj.get_n_nodes() - 1))
+    { // reached the end of the trajectory
+
+        _approach_traj_finished = true;
+        _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+
+    }
+    else
+    {
+        _q_p_cmd = _approach_traj.eval_at(_sample_index);
+
+        _robot->setPositionReference(_q_p_cmd);
+    }
+    
+}
 
 void MatReplayerRt::send_trajectory()
 {
-    // _robot->setPositionReference();
+    if (_first_run)
+    { // first time entering the control loop
 
-    _traj_finished = true;
+        _approach_traj_started = true; // flag signaling the start of the approach trajectory
+
+    }
+
+    if (_approach_traj_started && !_approach_traj_finished)
+    { // still publishing the approach trajectory
+
+        send_approach_trajectory();
+    }
+
+    if (_approach_traj_finished)
+    { // start publishing the loaded trajectory
+
+        _traj_started = true;
+
+    }
+
+    if (_traj_started && !_traj_finished)
+    { 
+        
+    }
+
+    if (_traj_finished && _looped_traj)
+    { // finished publishing trajectory
+
+        _sample_index = 0; // reset publishing index
+        _traj_finished = false; // reset flag
+
+    }
+
+    if (_looped_traj)
+    { // restart publishing trajectory
+
+       
+    }
+
 }
 
 bool MatReplayerRt::on_initialize()
@@ -202,8 +263,6 @@ bool MatReplayerRt::on_initialize()
 
     bool data_loaded_ok = load_opt_data(); // load trajectory from file
 
-    // init_model_interface();
-
     init_dump_logger();
 
     init_nrt_ros_bridge();
@@ -214,12 +273,18 @@ bool MatReplayerRt::on_initialize()
 void MatReplayerRt::starting()
 {
     _first_run = true; // reset flag in case the plugin is run multiple times
-    _loop_time = 0.0; // reset loop time clock
+    _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
+
+    init_clocks(); // initialize clocks timers
 
     // setting the control mode to effort + stiffness + damping
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
     _robot->setStiffness(_replay_stiffness);
     _robot->setDamping(_replay_damping);
+
+    update_state(); // read current jnt positions and velocities
+
+    compute_approach_traj(); // based on the current state, compute a smooth transition to the first trajectory position sample
 
     // Move on to run()
     start_completed();
@@ -228,36 +293,19 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    if (_first_run)
-    { // first time entering the control loop
 
-        _approach_traj_started = true; // flag signaling the start of the approach trajectory
-
-    }
-
-    if (_approach_traj_finished)
-    { // start publishing the loaded trajectory
-        _traj_started = true;
-    }
-
-    if (_traj_finished)
-    { // finished publishing trajectory
-
-        if (_looped_traj)
-        { // restart publishing trajectory
-
-            _traj_finished = false; // reset flag
-
-        }
-
-    }
-    {
-        send_trajectory();
-    }
+    send_trajectory();
 
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
+
+    if (_first_run == true)
+    { // this is the end of the first control loop
+        _first_run = false;
+    }
+
+    _sample_index++; // incrementing loop counter
 
 }
 
