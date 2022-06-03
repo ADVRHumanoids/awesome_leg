@@ -36,12 +36,14 @@ void MatReplayerRt::get_params_from_config()
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
     _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
     _approach_traj_target = getParamOrThrow<Eigen::VectorXd>("~approach_traj_target");
-    _cntrl_mode: getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
-    _replay_stiffness: getParamOrThrow<Eigen::VectorXd>("~cntrl_mode"); 
-    _replay_damping: getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
-    _replay_dt: getParamOrThrow<double>("~cntrl_mode");  
-    _looped_traj: getParamOrThrow<bool>("~cntrl_mode");
-    _traj_pause_time: getParamOrThrow<double>("~cntrl_mode");
+    _cntrl_mode =  getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
+    _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
+    _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
+    _looped_traj = getParamOrThrow<bool>("~looped_traj");
+    _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
+    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
+    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
+    _send_effort_ref = getParamOrThrow<bool>("~send_effort_ref");
 
 }
 
@@ -85,7 +87,8 @@ void MatReplayerRt::add_data2dump_logger()
 }
 
 void MatReplayerRt::init_nrt_ros_bridge()
-{    ros::NodeHandle nh(getName());
+{    
+    ros::NodeHandle nh(getName());
 
     _ros = std::make_unique<RosSupport>(nh);
 
@@ -103,23 +106,14 @@ void MatReplayerRt::load_opt_data()
 
     _traj = plugin_utils::TrajLoader(_mat_path);
     int n_traj_jnts = _traj.get_n_jnts();
-    int _n_traj_samples = _traj.get_n_nodes();
-
-    // Here some checks on dimension consistency should be added
 
     if(n_traj_jnts != _n_jnts_model) 
     {
         jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
     }
-    
-    _traj_time_vector = Eigen::VectorXd::Zero();
 
-    for (int i = 0; i < (_n_nodes - 1); i++)
-    {
-        _sample_times(i + 1) = _sample_times(i) + _dt_opt(i);
-    }
 
-    _traj.resample(res_dt, _q_p_ref, _q_p_dot_refs, _tau_ref);
+    _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref);
 
 }
 
@@ -147,17 +141,12 @@ void MatReplayerRt::compute_approach_traj()
 
 void MatReplayerRt::send_approach_trajectory()
 {
-    if (_first_run)
-    { // first time entering the control loop
-
-        _approach_traj_started = true; // flag signaling the start of the approach trajectory
-
-    }
 
     if (_sample_index > (_approach_traj.get_n_nodes() - 1))
     { // reached the end of the trajectory
 
         _approach_traj_finished = true;
+        _traj_started = true; // start to publish the loaded trajectory starting from the next control loop
         _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
 
     }
@@ -177,25 +166,10 @@ void MatReplayerRt::send_trajectory()
 
         _approach_traj_started = true; // flag signaling the start of the approach trajectory
 
-    }
-
-    if (_approach_traj_started && !_approach_traj_finished)
-    { // still publishing the approach trajectory
-
-        send_approach_trajectory();
-    }
-
-    if (_approach_traj_finished)
-    { // start publishing the loaded trajectory
-
-        _traj_started = true;
-
-    }
-
-    if (_traj_started && !_traj_finished)
-    { // publish current trajectory sample
-        
-
+        _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping()); // setting control mode for the approach traj
+        _robot->setStiffness(_replay_stiffness);
+        _robot->setDamping(_replay_damping);
+       
     }
 
     if (_traj_finished && _looped_traj)
@@ -206,10 +180,48 @@ void MatReplayerRt::send_trajectory()
 
     }
 
-    if (_looped_traj)
-    { // restart publishing trajectory
+    if (_approach_traj_started && !_approach_traj_finished)
+    { // still publishing the approach trajectory
 
-       
+        send_approach_trajectory();
+    }
+
+    if (_traj_started && !_traj_finished)
+    { // publish current trajectory sample
+        
+        if (_sample_index > (_traj.get_n_nodes() - 1))
+        { // reached the end of the trajectory
+
+            _traj_finished = true;
+            _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+
+        }
+        else
+        { // send command
+
+            _q_p_cmd = _q_p_ref.col(_sample_index);
+
+            _q_p_dot_cmd = _q_p_ref.col(_sample_index);
+
+            _tau_cmd = _tau_ref.col(_sample_index);
+
+            if(_send_pos_ref)
+            {
+                _robot->setPositionReference(_q_p_cmd);
+            }
+
+            if(_send_vel_ref)
+            {
+                _robot->setVelocityReference(_q_p_dot_cmd);
+            }
+
+            if(_send_effort_ref)
+            {
+                _robot->setEffortReference(_tau_cmd);
+            }
+            
+        }
+
     }
 
 }

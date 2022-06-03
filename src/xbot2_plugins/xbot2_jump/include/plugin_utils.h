@@ -140,8 +140,8 @@ namespace plugin_utils{
 
             TrajLinInterp(); // default constructor
 
-            TrajLinInterp(Eigen::VectorXd sample_time, Eigen::MatrixXd input_traj, int interp_dir = 1)
-            : _sample_times{sample_time}, _traj{input_traj}, _interp_dir{interp_dir}
+            TrajLinInterp(Eigen::VectorXd sample_time, Eigen::MatrixXd input_traj, int interp_dir = 1, double time_check_tol = 0.000000001)
+            : _sample_times{sample_time}, _traj{input_traj}, _interp_dir{interp_dir}, _time_check_tol{time_check_tol}
             {
                 
                 check_dim_match(); // at this point, it is guaranteed that dimensions along the interpolation axis (which now is for sure valid) match
@@ -150,7 +150,7 @@ namespace plugin_utils{
 
             }
 
-            Eigen::MatrixXd eval_at(Eigen::VectorXd& interp_times)
+            Eigen::MatrixXd eval_at(Eigen::VectorXd interp_times)
             {
                 // check interp_times is within _sample_times
                 check_time_vector(interp_times);
@@ -182,6 +182,8 @@ namespace plugin_utils{
 
         private: 
 
+            double _time_check_tol; // parameter used by check_time_vector
+
             Eigen::MatrixXd _traj; // will be casted to the right type upon constructor call
             Eigen::VectorXd _sample_times;
 
@@ -193,8 +195,8 @@ namespace plugin_utils{
             {
                 int n_int_samples = interp_times.size();
 
-                if ( (interp_times(0) <  _sample_times(0)) || (interp_times(n_int_samples - 1) > _sample_times(_n_samples)) )
-                { // checking interp_times is actually within _sample_times 
+                if ( (interp_times(0) <  _sample_times(0) - _time_check_tol) || (interp_times(n_int_samples - 1) > _sample_times(_n_samples) + _time_check_tol ) )
+                { // checking interp_times is actually within _sample_times (with a tolerance given by _time_check_tol)  
 
                     std::string exception = std::string("The provided interpolation array ") + 
                                             std::string("[") + std::to_string(interp_times(0)) + std::string(", ") + std::to_string(interp_times(n_int_samples - 1)) + std::string("]") +
@@ -346,8 +348,8 @@ namespace plugin_utils{
 
             TrajLoader(); // default constructor
 
-            TrajLoader(std::string data_path, bool column_major = true)
-            :_data_path{data_path}, _column_major_order{column_major}
+            TrajLoader(std::string data_path, bool column_major = true, double resample_err_tol = 0.0001)
+            :_data_path{data_path}, _column_major_order{column_major}, _resample_err_tol{resample_err_tol}
             {
 
                 std::string extension = get_file_extension(data_path);
@@ -438,32 +440,38 @@ namespace plugin_utils{
                 return _n_nodes;
             }
 
+            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::VectorXd& dt_opt)
+            {
+
+                q_p = _q_p;
+                q_p_dot = _q_p_dot;
+                tau = _tau;
+                dt_opt = _dt_opt;
+
+            }
+
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res)
             {
                 Eigen::VectorXd times = compute_res_times(res_dt);
-                
+                double n_res_nodes = times.size();
+
                 q_p_res =  opt_traj[_q_p_name].eval_at(times);
                 q_p_dot_res = opt_traj[_q_p_dot_name].eval_at(times);
-                tau_res =  opt_traj[_efforts_name].eval_at(times);
-            }
+                tau_res =  opt_traj[_efforts_name].eval_at(times.head(n_res_nodes - 1)); // tau is resampled excluding the last instant of time
 
-            Eigen::MatrixXd resample_q_p_dot(double res_dt)
-            {
-                
-            }
-
-            Eigen::MatrixXd resample_tau(double res_dt)
-            {
-                
+                tau_res.conservativeResize(tau_res.rows(), tau_res.cols() + 1);
+                tau_res.col(tau_res.cols() - 1) = Eigen::VectorXd::Zero(_n_jnts); // to be able to potentially send the whole trajectory concurrently
+                // a dummy null control input is added on the last sample time
             }
 
             
         private:
 
-            std::string _data_path;
-            bool _column_major_order; 
+            std::string _data_path; // path to directory where data is stored. If a file name and mat extension is provided, data il loaded from a .mat database, otherwise from CSV file
+            bool _column_major_order; // if true, the n. joints is given by the rows of the data and the number of samples by the columns, viceversa otherwise
+            double _resample_err_tol; // acceptable resample execution time tolerance below which the resampled trajectory is considered valid
 
-            std::string _q_p_name = "q_p";
+            std::string _q_p_name = "q_p"; // these names have to match the ones of the loaded data
             std::string _q_p_dot_name = "q_p_dot";
             std::string _efforts_name = "tau";
             std::string _dt_name = "dt_opt";
@@ -577,7 +585,7 @@ namespace plugin_utils{
             void load_data_from_mat(std::string math_path)
             {
                 
-                throw std::invalid_argument(std::string("Reading from mat databases is not yet supported !! \n")); // to be removed upon new MatLogger2 merge
+                throw std::invalid_argument(std::string("Reading from mat databases is not supported yet!! \n")); // to be removed upon new MatLogger2 merge
 
                 // XBot::MatLogger2::Options opts;
                 // opts.load_file_from_path = true; // enable reading
@@ -610,6 +618,31 @@ namespace plugin_utils{
 
             Eigen::VectorXd compute_res_times(double dt_res)
             {
+                // in case a _exec_time / dt_res has not zero remainder, the resulting resampled trajectory will be replayed by the plugin
+                // with a different execution time w.r.t. the expected one. The error is _exec_time - n_nodes * dt_plugin 
+                
+                int n_nodes = round(_exec_time / dt_res); // if _exec_time is exactly divisible by dt_res, round returns the right number of nodes
+                // if not, the number which allows the smallest deviation from the nominal execution time
+                
+                double exec_time_res_error = _exec_time - n_nodes * dt_res;
+
+                if (abs(exec_time_res_error) > _resample_err_tol)
+                { // the resulting execution error is beyond the set threshold -> throw error
+
+                    std::string error = std::string("The error on the execution time resulting from resampling at \n") + 
+                                        std::to_string(dt_res) + std::string( "s is ") + 
+                                        std::to_string(exec_time_res_error) + std::string("s,\n which in absolute value greater than") +
+                                        std::to_string(_resample_err_tol) + std::string("s,\n");
+
+                    throw std::invalid_argument(error);
+                }
+                Eigen::VectorXd times_res = Eigen::VectorXd::Zero(n_nodes);
+                for (int i = 0; i < (n_nodes - 1); i++)
+                {
+                    times_res(i + 1) = times_res(i) + dt_res;
+                }
+
+                return times_res;
                 
             }
     };

@@ -53,6 +53,9 @@ xbotcore_plugins:
             replay_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             looped_traj: {value: true, type: bool}
             traj_pause_time: {value: 3, type: double}
+            send_pos_ref: {value: true, type: bool}
+            send_vel_ref: {value: true, type: bool}
+            send_effort_ref: {value: true, type: bool}
 
 # global parameters
 xbotcore_param:

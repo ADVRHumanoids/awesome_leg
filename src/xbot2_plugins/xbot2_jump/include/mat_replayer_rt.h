@@ -73,7 +73,8 @@ private:
     bool _looped_traj = false, 
          _approach_traj_started = false, _approach_traj_finished = false, 
          _traj_started = false, _traj_finished = false, 
-         _first_run = true;
+         _first_run = true,  
+         _send_pos_ref = true, _send_vel_ref = false, _send_effort_ref = false;
 
     double _delta_effort_lim,
            _nominal_traj_dt, _plugin_dt,
@@ -82,9 +83,7 @@ private:
            _approach_traj_time = 0.0, _approach_traj_exec_time = 4.0;
 
     int _n_jnts_model, 
-        _sample_index = 0,
-        _n_traj_samples = -1, _n_app_traj_samples = -1;
-
+        _sample_index = 0;
 
     plugin_utils::PeisekahTrans _approach_traj;
     plugin_utils::TrajLoader _traj;
