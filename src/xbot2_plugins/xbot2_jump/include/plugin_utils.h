@@ -297,6 +297,7 @@ namespace plugin_utils{
 
             std::vector<int> get_closest_points(double inter_time)
             {
+                
                 std::vector<int> closest_pnts_indexes(-1, -1); // initialize indeces to -1 
         
                 Eigen::VectorXd diff_array = Eigen::VectorXd::Zero(_n_samples); 
@@ -310,11 +311,27 @@ namespace plugin_utils{
 
                 if (diff_array[index_aux] < 0)
                 {
+                    if (index_aux == 0)
+                    { // working outside the time sample array, before the first element --> indexes cannot be negative
+
+                        closest_pnts_indexes[0] = 0;
+                        closest_pnts_indexes[1] = 1;
+
+                    }
+
                     closest_pnts_indexes[0] = index_aux - 1;
                     closest_pnts_indexes[1] = index_aux;
                 }
                 else
                 {
+                    if (index_aux == _n_samples - 1)
+                    { // working outside the time sample array, past the first element --> indexes cannot go outside the array length
+
+                        closest_pnts_indexes[0] = _n_samples - 2;
+                        closest_pnts_indexes[1] = _n_samples - 1;
+
+                    }
+
                     closest_pnts_indexes[0] = index_aux;
                     closest_pnts_indexes[1] = index_aux + 1;
                 }
@@ -364,7 +381,7 @@ namespace plugin_utils{
                 {
                     _sample_times(i + 1) = _sample_times(i) + _dt_opt(i);
                 }
-                _exec_time = _sample_times.tail(1) - _sample_times(0);
+                _exec_time = _sample_times(_n_nodes - 1) - _sample_times(0);
 
 
                 int interp_dir = (_column_major_order) ? 1 : 0;
@@ -591,7 +608,7 @@ namespace plugin_utils{
 
             }
 
-            void compute_res_times(double dt_res)
+            Eigen::VectorXd compute_res_times(double dt_res)
             {
                 
             }
