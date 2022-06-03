@@ -10,7 +10,7 @@
 
 #include <thread>
 
-#include "plugin_utils.h"
+#include "plugin_utils.hpp"
 
 using namespace XBot;
 using namespace XBot::Cartesian;

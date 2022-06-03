@@ -9,11 +9,14 @@ message("")
 add_xbot2_plugin(mat_replayer_rt
     src/mat_replayer_rt.cpp)
 
-add_dependencies(mat_replayer_rt ${PROJECT_NAME}_generate_messages)
+add_library(PluginUtils src/plugin_utils.cpp)
 
-include_directories(include ${matlogger2_INCLUDE_DIRS})
+add_dependencies(mat_replayer_rt ${PROJECT_NAME}_generate_messages PluginUtils)
 
-target_link_libraries(mat_replayer_rt PRIVATE ${cartesian_interface_LIBRARIES})
+target_include_directories(mat_replayer_rt PRIVATE include ${matlogger2_INCLUDE_DIRS})
+
+target_link_libraries(PluginUtils PRIVATE ${eig} Eigen3::Eigen)
+target_link_libraries(mat_replayer_rt PRIVATE ${cartesian_interface_LIBRARIES} PluginUtils)
 
 install(
     TARGETS mat_replayer_rt DESTINATION lib)
