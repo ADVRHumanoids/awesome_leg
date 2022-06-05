@@ -85,6 +85,8 @@ void MatReplayerRt::add_data2dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("stop_stiffness", _stop_stiffness);
     _dump_logger->add("stop_damping", _stop_damping);
+    _dump_logger->add("q_p_meas", _q_p_meas);
+    _dump_logger->add("q_p_dot_meas", _q_p_meas);
 
 }
 
@@ -246,9 +248,7 @@ bool MatReplayerRt::on_initialize()
 
     _robot->getEffortLimits(_effort_lims);
 
-    load_opt_data(); // load trajectory from file
-
-    init_dump_logger();
+    
 
     init_nrt_ros_bridge();
 
@@ -257,6 +257,10 @@ bool MatReplayerRt::on_initialize()
 
 void MatReplayerRt::starting()
 {
+    load_opt_data(); // load trajectory from file (to be èut in starting because otherwise a seg fault will arise)
+
+    init_dump_logger();
+
     _first_run = true; // reset flag in case the plugin is run multiple times
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
 
