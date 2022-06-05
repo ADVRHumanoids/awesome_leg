@@ -213,7 +213,7 @@ void MatReplayerRt::send_trajectory()
 
             _q_p_cmd = _q_p_ref.col(_sample_index);
 
-            _q_p_dot_cmd = _q_p_ref.col(_sample_index);
+            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
 
             _tau_cmd = _tau_ref.col(_sample_index);
 
@@ -248,8 +248,6 @@ bool MatReplayerRt::on_initialize()
 
     _robot->getEffortLimits(_effort_lims);
 
-    
-
     init_nrt_ros_bridge();
 
     return true;
@@ -282,7 +280,16 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
+    // jhigh().jwarn("_approach_traj_started {}", _approach_traj_started);
+    // jhigh().jwarn("_approach_traj_finished {}", _approach_traj_finished);
+    // jhigh().jwarn("_traj_started {}", _traj_started);
+    // if (_traj_finished)
+    // {
+    //     jhigh().jwarn("_traj_finished {}", _traj_finished);
+    // }
 
+    // jhigh().jwarn("_send_pos_ref {}", _send_pos_ref);
+    
     send_trajectory();
 
     add_data2dump_logger(); // add data to the logger
@@ -320,6 +327,8 @@ void MatReplayerRt::on_stop()
 
 void MatReplayerRt::stopping()
 {
+    _first_run = true; 
+
     stop_completed();
 }
 
