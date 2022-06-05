@@ -11,6 +11,11 @@
 
 using namespace plugin_utils;
 
+
+///////////////////////////// PeisekahTrans /////////////////////////////
+
+PeisekahTrans::PeisekahTrans(){};
+
 PeisekahTrans::PeisekahTrans(Eigen::VectorXd start_point, Eigen::VectorXd end_point, double exec_time, double dt)
 : _start_point{start_point}, _end_point{end_point}, _exec_time{exec_time}, _dt{dt}
 {
@@ -61,18 +66,20 @@ void PeisekahTrans::check_input_dim()
         throw std::invalid_argument(exception);
         
     }
+
+    _n_dim = start_size;
 }
 
 void PeisekahTrans::rate_adapter()
 {
     double dt_des = _dt;
 
-    double n_int_aux = floor(_exec_time / dt_des);
+    int n_int_aux = floor(_exec_time / dt_des);
 
     double dt1 = _exec_time / n_int_aux;
     double dt2 = _exec_time / (n_int_aux + 1);
-    double abs_diff1 = abs(dt1);
-    double abs_diff2 = abs(dt2);
+    double abs_diff1 = abs(_exec_time - dt_des * (n_int_aux));
+    double abs_diff2 = abs(_exec_time - dt_des * (n_int_aux + 1));
 
     if (abs_diff1 < abs_diff2)
     { 
@@ -84,12 +91,15 @@ void PeisekahTrans::rate_adapter()
         _n_nodes = n_int_aux + 2;  
         _dt = dt2;
     }
+
 }
 
 double PeisekahTrans::compute_peisekah_val(int node, int n_nodes, double start_point, double end_point)
-{
+{   
 
-    double common_part_traj = (126.0 * pow(node/(n_nodes - 1), 5) - 420.0 * pow(node/(n_nodes - 1), 6) + 540.0 * pow(node/(n_nodes - 1), 7) - 315.0 * pow(node/(n_nodes - 1), 8) + 70.0 * pow(node/(n_nodes - 1), 9));
+    double phase = (double) node/(n_nodes - 1);
+
+    double common_part_traj = (126.0 * pow(phase, 5) - 420.0 * pow(phase, 6) + 540.0 * pow(phase, 7) - 315.0 * pow(phase, 8) + 70.0 * pow(phase, 9));
 
     auto value = start_point + (end_point - start_point) *  common_part_traj;
 
@@ -101,19 +111,31 @@ void PeisekahTrans::compute_traj()
 {
     rate_adapter(); // adapt _dt and _n_nodes to match the required _exec_time
 
+    _traj = Eigen::MatrixXd::Zero(_n_dim, _n_nodes);
+
     for (int k = 0; k < _n_dim; k++)
     { // loop through joints (rows)
 
         for (int i = 0; i < _n_nodes; i++)
         { // loop through samples (columns)
 
-            _traj(k, i) = compute_peisekah_val(i, _n_nodes, _start_point(k), _end_point(k));
+            _traj(k, i) = compute_peisekah_val(i, _n_nodes, _start_point(k), _end_point(k)); 
 
         }
 
     }
+
+}
+
+Eigen::MatrixXd PeisekahTrans::get_traj()
+{
+
+    return _traj;
     
 }
+///////////////////////////// TrajLinInterp /////////////////////////////
+
+TrajLinInterp::TrajLinInterp(){};
 
 TrajLinInterp::TrajLinInterp(Eigen::VectorXd sample_time, Eigen::MatrixXd input_traj, int interp_dir, double time_check_tol)
 : _sample_times{sample_time}, _traj{input_traj}, _interp_dir{interp_dir}, _time_check_tol{time_check_tol}
@@ -160,13 +182,13 @@ void TrajLinInterp::check_time_vector(Eigen::VectorXd interp_times)
 {
     int n_int_samples = interp_times.size();
 
-    if ( (interp_times(0) <  _sample_times(0) - _time_check_tol) || (interp_times(n_int_samples - 1) > _sample_times(_n_samples) + _time_check_tol ) )
+    if ( (interp_times(0) <  _sample_times(0) - _time_check_tol) || (interp_times(n_int_samples - 1) > _sample_times(_n_samples - 1) + _time_check_tol ) )
     { // checking interp_times is actually within _sample_times (with a tolerance given by _time_check_tol)  
 
-        std::string exception = std::string("The provided interpolation array ") + 
+        std::string exception = std::string("check_time_vector: The provided interpolation array ") + 
                                 std::string("[") + std::to_string(interp_times(0)) + std::string(", ") + std::to_string(interp_times(n_int_samples - 1)) + std::string("]") +
                                 std::string(" is outside the trajectory time array ") +
-                                std::string("[") + std::to_string(_sample_times(0)) + std::string(", ") + std::to_string(_sample_times(_n_samples)) + std::string("]\n");
+                                std::string("[") + std::to_string(_sample_times(0)) + std::string(", ") + std::to_string(_sample_times(_n_samples - 1)) + std::string("]\n");
 
         throw std::invalid_argument(exception);
         
@@ -193,7 +215,7 @@ int TrajLinInterp::get_traj_n_samples()
         }
         else
         {
-            std::string exception = "Invalid interpolation direction " + std::to_string(_interp_dir) + "provided. " +
+            std::string exception = "get_traj_n_samples: Invalid interpolation direction " + std::to_string(_interp_dir) + "provided. " +
                                     "Allowed values are 0(row-wise) and 1(colum-wise)\n";
 
             _interp_dir = -1;
@@ -209,10 +231,10 @@ void TrajLinInterp::check_dim_match()
 {
     _n_samples = get_traj_n_samples();
 
-    if ( (_n_samples != _sample_times.rows()) || (_n_samples != _sample_times.cols()) )
+    if ( !(_n_samples == _sample_times.rows()) || (_n_samples == _sample_times.cols()) )
     { // checking that time vector and trajectory dimensions match 
 
-        std::string exception = std::string("Time array and trajectory dimension do not match. ") + 
+        std::string exception = std::string("check_dim_match: Time array and trajectory dimension do not match. ") + 
                                 std::string("They are, respectively,") + 
                                 std::string(" (") + std::to_string(_sample_times.rows()) + std::string(", ") + std::to_string(_sample_times.cols()) + std::string(")") +
                                 std::string("and") + 
@@ -229,44 +251,47 @@ Eigen::VectorXd TrajLinInterp::interp_1d(Eigen::VectorXd& interp_times, int dim_
 
     Eigen::VectorXd interp_vect = Eigen::VectorXd::Zero(n_int_samples);
     
+
     for (int i = 0; i < n_int_samples; i++)
     {
-        std::vector<int> points_index = get_closest_points(interp_times(i));
 
-        double interval_dt = _sample_times(points_index[1]) - _sample_times(points_index[0]);
+        int first_indx = -1;
+        int second_indx = -1;
 
-        double t_norm = interp_times(i) - _sample_times(points_index[0]);
+        get_closest_points(interp_times(i), first_indx, second_indx);
 
-        interp_vect(i) = interp_0d(t_norm, interval_dt, points_index, dim_index);
+        double interval_dt = _sample_times(second_indx) - _sample_times(first_indx);
+
+        double t_norm = interp_times(i) - _sample_times(first_indx);
+
+        interp_vect(i) = interp_0d(t_norm, interval_dt, first_indx, second_indx, dim_index);
     }
 
     return interp_vect;
 }
 
-double TrajLinInterp::interp_0d(double t_norm, double interval_dt, std::vector<int> points_index, int dim_index)
+double TrajLinInterp::interp_0d(double t_norm, double interval_dt, int first_indx, int second_indx, int dim_index)
 {   
     double interp_val;
 
     if (_interp_dir == 1)
     { // row-wise
 
-        interp_val = _traj(dim_index, points_index[0]) + t_norm / interval_dt * (_traj(dim_index, points_index[1]) - _traj(dim_index, points_index[0]));
+        interp_val = _traj(dim_index, first_indx) + t_norm / interval_dt * (_traj(dim_index, second_indx) - _traj(dim_index, first_indx));
 
     } // col-wise
     else{
 
-        interp_val = _traj(points_index[0], dim_index) + t_norm / interval_dt * (_traj(points_index[1], dim_index) - _traj(points_index[0], dim_index));
+        interp_val = _traj(first_indx, dim_index) + t_norm / interval_dt * (_traj(second_indx, dim_index) - _traj(first_indx, dim_index));
 
     }
     
     return interp_val;
 }
 
-std::vector<int> TrajLinInterp::get_closest_points(double inter_time)
+void TrajLinInterp::get_closest_points(double inter_time, int& first_indx, int& second_indx)
 {
     
-    std::vector<int> closest_pnts_indexes(-1, -1); // initialize indeces to -1 
-
     Eigen::VectorXd diff_array = Eigen::VectorXd::Zero(_n_samples); 
 
     for (int i = 0; i < _n_samples; i++)
@@ -281,30 +306,46 @@ std::vector<int> TrajLinInterp::get_closest_points(double inter_time)
         if (index_aux == 0)
         { // working outside the time sample array, before the first element --> indexes cannot be negative
 
-            closest_pnts_indexes[0] = 0;
-            closest_pnts_indexes[1] = 1;
+            first_indx = 0;
+            second_indx = 1;
+
+        }
+        else
+        {
+
+            first_indx = index_aux;
+            second_indx = index_aux + 1;
 
         }
 
-        closest_pnts_indexes[0] = index_aux - 1;
-        closest_pnts_indexes[1] = index_aux;
+        
     }
     else
     {
-        if (index_aux == _n_samples - 1)
-        { // working outside the time sample array, past the first element --> indexes cannot go outside the array length
 
-            closest_pnts_indexes[0] = _n_samples - 2;
-            closest_pnts_indexes[1] = _n_samples - 1;
+        if (index_aux == _n_samples - 1)
+        { // working outside the time sample array, past the last element --> indexes cannot go outside the array length
+
+            first_indx = _n_samples - 2;
+            second_indx = _n_samples - 1;
+
+        }
+        else
+        {
+
+            first_indx = index_aux;
+            second_indx = index_aux + 1;
 
         }
 
-        closest_pnts_indexes[0] = index_aux;
-        closest_pnts_indexes[1] = index_aux + 1;
+        
     }
 
-    return closest_pnts_indexes;
 }
+
+///////////////////////////// TrajLoader /////////////////////////////
+
+TrajLoader::TrajLoader(){};
 
 TrajLoader::TrajLoader(std::string data_path, bool column_major, double resample_err_tol)
 :_data_path{data_path}, _column_major_order{column_major}, _resample_err_tol{resample_err_tol}
@@ -327,7 +368,7 @@ TrajLoader::TrajLoader(std::string data_path, bool column_major, double resample
     else
     { // unsupported extension 
 
-        throw std::runtime_error(std::string("Unsupported extension ") + extension + std::string("provided.\n"));
+        throw std::runtime_error(std::string("TrajLoader: Unsupported extension ") + extension + std::string("provided.\n"));
 
     }
 
@@ -410,7 +451,9 @@ void TrajLoader::get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot,
 
 void TrajLoader::resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res)
 {
+
     Eigen::VectorXd times = compute_res_times(res_dt);
+
     double n_res_nodes = times.size();
 
     q_p_res =  opt_traj[_q_p_name].eval_at(times);
@@ -420,6 +463,7 @@ void TrajLoader::resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::Matrix
     tau_res.conservativeResize(tau_res.rows(), tau_res.cols() + 1);
     tau_res.col(tau_res.cols() - 1) = Eigen::VectorXd::Zero(_n_jnts); // to be able to potentially send the whole trajectory concurrently
     // a dummy null control input is added on the last sample time
+
 }
 
 std::string TrajLoader::get_file_extension(std::string file)
@@ -459,25 +503,33 @@ int TrajLoader::get_n_samples(Eigen::MatrixXd& mat)
     }
 }
 
+double TrajLoader::get_exec_time()
+{
+    return _exec_time;
+}
+
 void TrajLoader::check_loaded_data_dims()
 {
     if ( !( ( get_n_jnts(_q_p) == get_n_jnts(_q_p_dot) ) && (get_n_jnts(_q_p_dot) == get_n_jnts(_tau)) ) )
     { // check number of joints consistency between data
 
-        throw std::invalid_argument(std::string("The number of rows (i.e. joints) of the loaded data does not match!\n"));
+        throw std::invalid_argument(std::string("check_loaded_data_dims: The number of rows (i.e. joints) of the loaded data does not match!\n"));
 
     }
 
     if ( !( (get_n_samples(_q_p) == get_n_samples(_q_p_dot)) && (get_n_samples(_q_p_dot) == (get_n_samples(_tau) + 1 )) ) )
     { // check cols (torque matri)
 
-        throw std::invalid_argument(std::string("The number of columns (i.e. samples) of the loaded data does not match!\n"));
+        throw std::invalid_argument(std::string("check_loaded_data_dims: The number of columns (i.e. samples) of the loaded data does not match!\n"));
 
     }
 
     if (get_n_samples(_tau) != _dt_opt.size())
     {
-        throw std::invalid_argument(std::string("The size of the loaded dt vector does not match the other data!.\n"));
+        int a = get_n_samples(_tau);
+        throw std::invalid_argument(std::to_string(a) + std::string(" ") );
+
+        throw std::invalid_argument(std::string("check_loaded_data_dims: The size of the loaded dt vector does not match the other data!.\n"));
     }
 
 }
@@ -493,32 +545,34 @@ void TrajLoader::load_data_from_csv(std::string data_path)
     _q_p = read_data_from_csv(q_p_path);
     _q_p_dot = read_data_from_csv(q_p_dot_path);
     _tau = read_data_from_csv(tau_path);
-    _dt_opt = read_data_from_csv(dt_path);
+
+    Eigen::MatrixXd dt_opt_aux1 = read_data_from_csv(dt_path);
+    Eigen::Map<Eigen::VectorXd> dt_opt_aux2(dt_opt_aux1.data(), dt_opt_aux1.size()); // converting to vector
+    _dt_opt = dt_opt_aux2;
 
     if (_q_p.size() == 0)
     { // reading failed    
-        throw std::runtime_error(std::string("Failed to find q_p at ") + q_p_path);
+        throw std::runtime_error(std::string("load_data_from_csv: Failed to find q_p at ") + q_p_path);
     }
     if (_q_p_dot.size() == 0)
     { // reading failed    
-        throw std::runtime_error(std::string("Failed to find q_p_dot at ") + q_p_dot_path);
+        throw std::runtime_error(std::string("load_data_from_csv: Failed to find q_p_dot at ") + q_p_dot_path);
     }
     if (_tau.size() == 0)
     { // reading failed    
-        throw std::runtime_error(std::string("Failed to find tau at ") + tau_path);
+        throw std::runtime_error(std::string("load_data_from_csv: Failed to find tau at ") + tau_path);
     }
     if (_dt_opt.size() == 0)
     { // reading failed    
-        throw std::runtime_error(std::string("Failed to find dt_opt at ") + dt_path);
+        throw std::runtime_error(std::string("load_data_from_csv: Failed to find dt_opt at ") + dt_path);
     }
-
 
 }
 
 void TrajLoader::load_data_from_mat(std::string math_path)
 {
     
-    throw std::invalid_argument(std::string("Reading from mat databases is not supported yet!! \n")); // to be removed upon new MatLogger2 merge
+    throw std::invalid_argument(std::string("load_data_from_mat: Reading from mat databases is not supported yet!! \n")); // to be removed upon new MatLogger2 merge
 
     // XBot::MatLogger2::Options opts;
     // opts.load_file_from_path = true; // enable reading
@@ -554,21 +608,22 @@ Eigen::VectorXd TrajLoader::compute_res_times(double dt_res)
     // in case a _exec_time / dt_res has not zero remainder, the resulting resampled trajectory will be replayed by the plugin
     // with a different execution time w.r.t. the expected one. The error is _exec_time - n_nodes * dt_plugin 
     
-    int n_nodes = round(_exec_time / dt_res); // if _exec_time is exactly divisible by dt_res, round returns the right number of nodes
+    int n_nodes = round(_exec_time / dt_res) + 1; // if _exec_time is exactly divisible by dt_res, round returns the right number of nodes
     // if not, the number which allows the smallest deviation from the nominal execution time
     
-    double exec_time_res_error = _exec_time - n_nodes * dt_res;
+    double exec_time_res_error = _exec_time - (n_nodes - 1) * dt_res;
 
     if (abs(exec_time_res_error) > _resample_err_tol)
     { // the resulting execution error is beyond the set threshold -> throw error
 
-        std::string error = std::string("The error on the execution time resulting from resampling at \n") + 
+        std::string error = std::string("compute_res_times: The error on the execution time resulting from resampling at \n") + 
                             std::to_string(dt_res) + std::string( "s is ") + 
-                            std::to_string(exec_time_res_error) + std::string("s,\n which in absolute value greater than") +
+                            std::to_string(exec_time_res_error) + std::string("s,\n which in absolute value greater than ") +
                             std::to_string(_resample_err_tol) + std::string("s,\n");
 
         throw std::invalid_argument(error);
     }
+
     Eigen::VectorXd times_res = Eigen::VectorXd::Zero(n_nodes);
     for (int i = 0; i < (n_nodes - 1); i++)
     {

@@ -25,7 +25,7 @@ namespace plugin_utils{
             double get_traj_dt();
             double get_n_nodes();
             double get_n_dim();
-            
+            Eigen::MatrixXd get_traj();
 
         private:
 
@@ -56,7 +56,7 @@ namespace plugin_utils{
 
             double _time_check_tol; // parameter used by check_time_vector
 
-            Eigen::MatrixXd _traj; // will be casted to the right type upon constructor call
+            Eigen::MatrixXd _traj; 
             Eigen::VectorXd _sample_times;
 
             int _n_samples, _n_dims;
@@ -67,8 +67,8 @@ namespace plugin_utils{
             int get_traj_n_samples();
             void check_dim_match();
             Eigen::VectorXd interp_1d(Eigen::VectorXd& interp_times, int dim_index);
-            double interp_0d(double t_norm, double interval_dt, std::vector<int> points_index, int dim_index);
-            std::vector<int> get_closest_points(double inter_time);
+            double interp_0d(double t_norm, double interval_dt, int first_indx, int second_indx, int dim_index);
+            void get_closest_points(double inter_time, int& first_indx, int& second_indx);
     };
 
     class TrajLoader
@@ -82,6 +82,7 @@ namespace plugin_utils{
             Eigen::MatrixXd read_data_from_csv(std::string data_path);
             int get_n_jnts();
             int get_n_nodes();
+            double get_exec_time();
             void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::VectorXd& dt_opt);
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res);
 

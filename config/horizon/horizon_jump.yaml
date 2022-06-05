@@ -63,6 +63,8 @@ horizon:
 
  horizon_resampler:
    dt: 0.001
+   mat_path: $(find awesome_leg_pholus)/opt_results/horizon_jump/jump_test
+   dump_path: /home/andreap/Desktop
    
  horizon_plotter: # custom plot utility settings
 
