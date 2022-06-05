@@ -78,9 +78,9 @@ private:
 
     double _delta_effort_lim,
            _nominal_traj_dt, _plugin_dt,
-           _traj_pause_time, 
            _loop_time = 0.0, _loop_reset_time = 30.0,
-           _approach_traj_time = 0.0, _approach_traj_exec_time = 4.0;
+           _approach_traj_time = 0.0, _approach_traj_exec_time = 4.0, 
+           _pause_time, _traj_pause_time = 2.0;
 
     int _n_jnts_model, 
         _sample_index = 0;

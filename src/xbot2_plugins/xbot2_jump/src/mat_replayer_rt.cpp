@@ -6,6 +6,7 @@ void MatReplayerRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
     _approach_traj_time = 0.0;
+    _pause_time = 0.0;
 }
 
 void MatReplayerRt::update_clocks()
@@ -13,6 +14,7 @@ void MatReplayerRt::update_clocks()
     // Update time(s)
     _loop_time += _plugin_dt;
     _approach_traj_time += _plugin_dt;
+    _pause_time += _plugin_dt;
     
     // Reset timers, if necessary
     if (_loop_time >= _loop_reset_time)
@@ -112,7 +114,6 @@ void MatReplayerRt::load_opt_data()
         jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
     }
 
-
     _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref);
 
 }
@@ -175,9 +176,18 @@ void MatReplayerRt::send_trajectory()
     if (_traj_finished && _looped_traj)
     { // finished publishing trajectory
 
-        _sample_index = 0; // reset publishing index
-        _traj_finished = false; // reset flag
+        if (_pause_time  < _traj_pause_time)
+        { // do nothing in this control loop
 
+        }
+        else
+        { // pause time is expired
+
+            _sample_index = 0; // reset publishing index
+            _traj_finished = false; // reset flag
+
+        }
+        
     }
 
     if (_approach_traj_started && !_approach_traj_finished)

@@ -41,8 +41,8 @@ xbotcore_plugins:
         thread: rt_mat_replayer
         type: mat_replayer_rt
         params:
-            mat_path: {value: $PWD/../../opt_results/horizon_jump/jump_test/, type: file}
-            mat_name: {value: horizon_offline_solver_res.mat, type: file}
+            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg_pholus/opt_results/horizon_jump/jump_test/, type: string}
+            mat_name: {value: horizon_offline_solver_res.mat, type: string}
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double} 
@@ -54,8 +54,8 @@ xbotcore_plugins:
             looped_traj: {value: true, type: bool}
             traj_pause_time: {value: 3, type: double}
             send_pos_ref: {value: true, type: bool}
-            send_vel_ref: {value: true, type: bool}
-            send_effort_ref: {value: true, type: bool}
+            send_vel_ref: {value: false, type: bool}
+            send_effort_ref: {value: false, type: bool}
 
 # global parameters
 xbotcore_param:

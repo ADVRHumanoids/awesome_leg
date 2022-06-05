@@ -368,7 +368,7 @@ TrajLoader::TrajLoader(std::string data_path, bool column_major, double resample
     else
     { // unsupported extension 
 
-        throw std::runtime_error(std::string("TrajLoader: Unsupported extension ") + extension + std::string("provided.\n"));
+        throw std::runtime_error(std::string("TrajLoader: Unsupported extension ") + extension + std::string(" provided.\n"));
 
     }
 

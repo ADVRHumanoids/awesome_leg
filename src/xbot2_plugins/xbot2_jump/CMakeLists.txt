@@ -13,7 +13,7 @@ add_library(plugin_utils src/plugin_utils.cpp)
 
 add_dependencies(mat_replayer_rt ${PROJECT_NAME}_generate_messages plugin_utils)
 
-target_include_directories(mat_replayer_rt PRIVATE include ${matlogger2_INCLUDE_DIRS})
+target_include_directories(mat_replayer_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS})
 target_include_directories(plugin_utils PRIVATE include ${EIGEN3_INCLUDE_DIR})
 
 target_link_libraries(plugin_utils PRIVATE ${eig} Eigen3::Eigen)
