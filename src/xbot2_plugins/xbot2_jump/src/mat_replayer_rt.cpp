@@ -8,6 +8,22 @@ void MatReplayerRt::init_clocks()
     _pause_time = 0.0;
 }
 
+void MatReplayerRt::reset_flags()
+{
+
+    _first_run = true; // reset flag in case the plugin is run multiple times
+    _approach_traj_started = false;
+    _approach_traj_finished = false;
+    _traj_started = false;
+    _traj_finished = false;
+    _pause_started = false;
+    _pause_finished = false;
+    _send_eff_ref = false;
+
+    _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
+
+}
+
 void MatReplayerRt::update_clocks()
 {
     // Update time(s)
@@ -48,8 +64,7 @@ void MatReplayerRt::get_params_from_config()
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
-    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
-    _send_effort_ref = getParamOrThrow<bool>("~send_effort_ref");
+    _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
 }
 
@@ -175,40 +190,7 @@ void MatReplayerRt::send_trajectory()
     { // first time entering the control loop
 
         _approach_traj_started = true; // flag signaling the start of the approach trajectory
-
-        _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping()); // setting control mode for the approach traj
-        _robot->setStiffness(_replay_stiffness);
-        _robot->setDamping(_replay_damping);
        
-    }
-
-    // Set the control mode and stiffness for publishing the loaded trajectory
-    if (_sample_index == 0 && !_first_run)
-    { // first sample of the loaded trajectory
-
-        if(_send_pos_ref && !_send_effort_ref)
-        {
-
-            _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-            _robot->setStiffness(_replay_stiffness);
-            _robot->setDamping(_replay_damping);
-
-        }
-
-        if(_send_effort_ref && !_send_pos_ref)
-        {
-            _robot->setControlMode(ControlMode::Effort());
-            _robot->setStiffness(Eigen::VectorXd::Zero(_n_jnts_model));
-            _robot->setDamping(Eigen::VectorXd::Zero(_n_jnts_model));
-        }
-
-        if(_send_effort_ref && _send_pos_ref)
-        {
-            _robot->setControlMode(ControlMode::Position() + ControlMode::Effort());
-            _robot->setStiffness(_replay_stiffness);
-            _robot->setDamping(_replay_damping);
-        }
-
     }
 
     // Loop again thorugh the trajectory, if it is finished and the associated flag is active
@@ -255,25 +237,21 @@ void MatReplayerRt::send_trajectory()
 
             _q_p_cmd = _q_p_ref.col(_sample_index);
 
-            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
+            // _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
 
             _tau_cmd = _tau_ref.col(_sample_index);
 
-            if(_send_pos_ref && !_send_effort_ref)
-            {
-                _robot->setPositionReference(_q_p_cmd);
-            }
+            _robot->setPositionReference(_q_p_cmd);
 
-            if(_send_effort_ref && !_send_pos_ref)
+            if(_send_eff_ref)
             {
                 _robot->setEffortReference(_tau_cmd);
             }
+            
+            _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
+            _robot->setDamping(_replay_damping);
 
-            if(_send_effort_ref && _send_pos_ref)
-            {
-                _robot->setVelocityReference(_q_p_dot_cmd);
-                _robot->setEffortReference(_tau_cmd);
-            }
+            saturate_input();  
 
             _robot->move(); // Send commands to the robot
         
@@ -304,13 +282,12 @@ void MatReplayerRt::starting()
 
     init_dump_logger();
 
-    _first_run = true; // reset flag in case the plugin is run multiple times
-    _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
+    reset_flags();
 
     init_clocks(); // initialize clocks timers
 
     // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
     _robot->setStiffness(_replay_stiffness);
     _robot->setDamping(_replay_damping);
 
@@ -325,15 +302,6 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    // jhigh().jwarn("_pause_time {}", _pause_time);
-    // jhigh().jwarn("_approach_traj_finished {}", _approach_traj_finished);
-    // jhigh().jwarn("_traj_started {}", _traj_started);
-    // if (_traj_finished)
-    // {
-    //     jhigh().jwarn("_traj_finished {}", _traj_finished);
-    // }
-
-    // jhigh().jwarn("_send_pos_ref {}", _send_pos_ref);
     
     send_trajectory();
 

@@ -50,11 +50,10 @@ xbotcore_plugins:
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
             cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
             replay_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
-            replay_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
+            replay_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            send_eff_ref: {value: true, type: bool}
             looped_traj: {value: true, type: bool}
-            traj_pause_time: {value: 1, type: double}
-            send_pos_ref: {value: true, type: bool}
-            send_effort_ref: {value: false, type: bool}
+            traj_pause_time: {value: 5, type: double}
 
 # global parameters
 xbotcore_param:

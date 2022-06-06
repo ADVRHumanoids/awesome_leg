@@ -74,8 +74,8 @@ private:
          _approach_traj_started = false, _approach_traj_finished = false, 
          _traj_started = false, _traj_finished = false, 
          _first_run = true,  
-         _send_pos_ref = true, _send_effort_ref = false, 
-         _pause_started = false, _pause_finished = false;
+         _pause_started = false, _pause_finished = false, 
+         _send_eff_ref = false;
 
     double _delta_effort_lim,
            _nominal_traj_dt, _plugin_dt,
