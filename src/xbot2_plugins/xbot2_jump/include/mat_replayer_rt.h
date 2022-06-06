@@ -102,6 +102,7 @@ private:
     void get_params_from_config();
     // void init_model_interface();
     void init_clocks();
+    void reset_flags();
     void update_clocks();
     void load_opt_data();
     void resample_trajectory();

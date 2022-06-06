@@ -616,9 +616,10 @@ Eigen::VectorXd TrajLoader::compute_res_times(double dt_res)
     if (abs(exec_time_res_error) > _resample_err_tol)
     { // the resulting execution error is beyond the set threshold -> throw error
 
-        std::string error = std::string("compute_res_times: The error on the execution time resulting from resampling at \n") + 
+        std::string error = std::string("compute_res_times: The error on the execution time (" + std::to_string(_exec_time) +
+                            " s) resulting from resampling at \n") + 
                             std::to_string(dt_res) + std::string( "s is ") + 
-                            std::to_string(exec_time_res_error) + std::string("s,\n which in absolute value greater than ") +
+                            std::to_string(exec_time_res_error) + std::string("s, which in absolute value greater than the allowed one: i.e. ") +
                             std::to_string(_resample_err_tol) + std::string("s,\n");
 
         throw std::invalid_argument(error);
