@@ -325,7 +325,7 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    jhigh().jwarn("_pause_time {}", _pause_time);
+    // jhigh().jwarn("_pause_time {}", _pause_time);
     // jhigh().jwarn("_approach_traj_finished {}", _approach_traj_finished);
     // jhigh().jwarn("_traj_started {}", _traj_started);
     // if (_traj_finished)
@@ -396,7 +396,7 @@ void MatReplayerRt::on_abort()
 
 void MatReplayerRt::on_close()
 {
-    jinfo("Closing");
+    jinfo("Closing MatReplayerRt");
 }
 
 XBOT2_REGISTER_PLUGIN(MatReplayerRt, mat_replayer_rt)
