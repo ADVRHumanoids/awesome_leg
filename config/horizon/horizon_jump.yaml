@@ -31,7 +31,7 @@ horizon:
      dt_lb: 0.005
      dt_ub: 0.1
 
-     jnt_limit_margin: 0.08 # [rad]
+     jnt_limit_margin: 0.0 # [rad] --> this value will broaden the limits of the joint (uniformly)
  
      solver:
        name: "ipopt"
@@ -51,11 +51,9 @@ horizon:
        q_p:     [0.0, 0.0, 0.0]
        q_p_dot: [0.0, 0.0, 0.0]
      
-     jump_excursion: 0.1
-
      cost_weights:
        contact_force: 0.01
-       small_q_p_ddot: 1
+       small_q_p_ddot: 3
        big_hip_jump: 500
        hip_jump_target: 0.00000001
        big_foot_tip_clearance: 0.00000000001

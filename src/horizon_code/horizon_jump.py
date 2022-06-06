@@ -170,8 +170,8 @@ n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
 jnt_lim_margin_array = np.tile(jnt_limit_margin, (n_q))
-lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
-ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
+lbs = urdf_awesome_leg.q_min() - jnt_lim_margin_array
+ubs = urdf_awesome_leg.q_max() + jnt_lim_margin_array
 
 tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (also on the passive d.o.f.)
 
