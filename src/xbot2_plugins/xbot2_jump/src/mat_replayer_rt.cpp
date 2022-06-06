@@ -5,7 +5,6 @@
 void MatReplayerRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
-    _approach_traj_time = 0.0;
     _pause_time = 0.0;
 }
 
@@ -13,18 +12,24 @@ void MatReplayerRt::update_clocks()
 {
     // Update time(s)
     _loop_time += _plugin_dt;
-    _approach_traj_time += _plugin_dt;
-    _pause_time += _plugin_dt;
     
+    if(_pause_started && !_pause_finished)
+    {
+        _pause_time += _plugin_dt;
+    }
+
     // Reset timers, if necessary
     if (_loop_time >= _loop_reset_time)
     {
         _loop_time = _loop_time - _loop_reset_time;
     }
-    if (_approach_traj_time >= _approach_traj_exec_time)
+
+    if(_pause_time >= _traj_pause_time)
     {
-        _approach_traj_time = _approach_traj_time - _approach_traj_exec_time;
+        _pause_finished = true;
+        _pause_time = _pause_time - _traj_pause_time;
     }
+    
 }
 
 void MatReplayerRt::get_params_from_config()
@@ -44,7 +49,6 @@ void MatReplayerRt::get_params_from_config()
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
-    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_effort_ref = getParamOrThrow<bool>("~send_effort_ref");
 
 }
@@ -158,12 +162,15 @@ void MatReplayerRt::send_approach_trajectory()
         _q_p_cmd = _approach_traj.eval_at(_sample_index);
 
         _robot->setPositionReference(_q_p_cmd);
+
+        _robot->move(); // Send commands to the robot
     }
     
 }
 
 void MatReplayerRt::send_trajectory()
 {
+    // first, set the control mode and stiffness when entering the first control loop (to be used during the approach traj)
     if (_first_run)
     { // first time entering the control loop
 
@@ -175,29 +182,64 @@ void MatReplayerRt::send_trajectory()
        
     }
 
+    // Set the control mode and stiffness for publishing the loaded trajectory
+    if (_sample_index == 0 && !_first_run)
+    { // first sample of the loaded trajectory
+
+        if(_send_pos_ref && !_send_effort_ref)
+        {
+
+            _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+            _robot->setStiffness(_replay_stiffness);
+            _robot->setDamping(_replay_damping);
+
+        }
+
+        if(_send_effort_ref && !_send_pos_ref)
+        {
+            _robot->setControlMode(ControlMode::Effort());
+            _robot->setStiffness(Eigen::VectorXd::Zero(_n_jnts_model));
+            _robot->setDamping(Eigen::VectorXd::Zero(_n_jnts_model));
+        }
+
+        if(_send_effort_ref && _send_pos_ref)
+        {
+            _robot->setControlMode(ControlMode::Position() + ControlMode::Effort());
+            _robot->setStiffness(_replay_stiffness);
+            _robot->setDamping(_replay_damping);
+        }
+
+    }
+
+    // Loop again thorugh the trajectory, if it is finished and the associated flag is active
     if (_traj_finished && _looped_traj)
     { // finished publishing trajectory
 
-        if (_pause_time  < _traj_pause_time)
+        _pause_started = true;
+
+        if (!_pause_finished)
         { // do nothing in this control loop
 
         }
-        else
-        { // pause time is expired
-
+        else 
+        {
             _sample_index = 0; // reset publishing index
             _traj_finished = false; // reset flag
-
+            
+            _pause_started = false;
+            _pause_finished = false;
         }
         
     }
 
+    // If publishing the approach traj -> call the associated method
     if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
 
         send_approach_trajectory();
     }
 
+    // Publishing loaded traj samples
     if (_traj_started && !_traj_finished)
     { // publish current trajectory sample
         
@@ -217,21 +259,24 @@ void MatReplayerRt::send_trajectory()
 
             _tau_cmd = _tau_ref.col(_sample_index);
 
-            if(_send_pos_ref)
+            if(_send_pos_ref && !_send_effort_ref)
             {
                 _robot->setPositionReference(_q_p_cmd);
             }
 
-            if(_send_vel_ref)
-            {
-                _robot->setVelocityReference(_q_p_dot_cmd);
-            }
-
-            if(_send_effort_ref)
+            if(_send_effort_ref && !_send_pos_ref)
             {
                 _robot->setEffortReference(_tau_cmd);
             }
-            
+
+            if(_send_effort_ref && _send_pos_ref)
+            {
+                _robot->setVelocityReference(_q_p_dot_cmd);
+                _robot->setEffortReference(_tau_cmd);
+            }
+
+            _robot->move(); // Send commands to the robot
+        
         }
 
     }
@@ -280,7 +325,7 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    // jhigh().jwarn("_approach_traj_started {}", _approach_traj_started);
+    jhigh().jwarn("_pause_time {}", _pause_time);
     // jhigh().jwarn("_approach_traj_finished {}", _approach_traj_finished);
     // jhigh().jwarn("_traj_started {}", _traj_started);
     // if (_traj_finished)

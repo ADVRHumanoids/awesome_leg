@@ -74,12 +74,13 @@ private:
          _approach_traj_started = false, _approach_traj_finished = false, 
          _traj_started = false, _traj_finished = false, 
          _first_run = true,  
-         _send_pos_ref = true, _send_vel_ref = false, _send_effort_ref = false;
+         _send_pos_ref = true, _send_effort_ref = false, 
+         _pause_started = false, _pause_finished = false;
 
     double _delta_effort_lim,
            _nominal_traj_dt, _plugin_dt,
            _loop_time = 0.0, _loop_reset_time = 30.0,
-           _approach_traj_time = 0.0, _approach_traj_exec_time = 4.0, 
+           _approach_traj_exec_time = 4.0, 
            _pause_time, _traj_pause_time = 2.0;
 
     int _n_jnts_model, 

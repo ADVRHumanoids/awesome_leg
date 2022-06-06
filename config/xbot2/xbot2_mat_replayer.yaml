@@ -46,22 +46,21 @@ xbotcore_plugins:
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double} 
-            approach_traj_exec_time: {value: 4.0, type: double} 
+            approach_traj_exec_time: {value: 5.0, type: double} 
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
             cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
             replay_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
-            replay_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            replay_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
             looped_traj: {value: true, type: bool}
-            traj_pause_time: {value: 3, type: double}
+            traj_pause_time: {value: 1, type: double}
             send_pos_ref: {value: true, type: bool}
-            send_vel_ref: {value: false, type: bool}
             send_effort_ref: {value: false, type: bool}
 
 # global parameters
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}
     /jm/tx_filter_cutoff: {value: 2.0, type: double}
-    # /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+    /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 
     
     
