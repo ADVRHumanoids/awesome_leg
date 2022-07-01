@@ -53,11 +53,11 @@ horizon:
      
      cost_weights:
        contact_force: 0.01
-       small_q_p_ddot: 3
-       big_hip_jump: 500
+       small_q_p_ddot: 0.5
+       big_hip_jump: 10
        hip_jump_target: 0.00000001
-       big_foot_tip_clearance: 0.00000000001
-       weight_min_input_diff: 1 # cost for penalizing differences between successive inputs
+       big_foot_tip_clearance: 1
+       weight_min_input_diff: 0.1 # cost for penalizing differences between successive inputs
 
  horizon_resampler:
    dt: 0.001

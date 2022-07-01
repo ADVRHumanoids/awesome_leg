@@ -59,7 +59,7 @@ void MatReplayerRt::get_params_from_config()
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
     _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
     _approach_traj_target = getParamOrThrow<Eigen::VectorXd>("~approach_traj_target");
-    _cntrl_mode =  getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
+    // _cntrl_mode =  getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
     _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
@@ -135,7 +135,7 @@ void MatReplayerRt::load_opt_data()
         jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
     }
 
-    _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref);
+    _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
 
 }
 

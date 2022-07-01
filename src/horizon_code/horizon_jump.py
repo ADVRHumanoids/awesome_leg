@@ -90,7 +90,7 @@ test_rig_ub=rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/ub
 q_p_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
 q_p_dot_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
 
-jnt_limit_margin = rospy.get_param("horizon/horizon_solver/problem_settings/jnt_limit_margin") # margin to be added to joint limits 
+jnt_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/jnt_limit_margin")) # margin to be added to joint limits 
 
 # cost weights
 
@@ -170,8 +170,8 @@ n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
 jnt_lim_margin_array = np.tile(jnt_limit_margin, (n_q))
-lbs = urdf_awesome_leg.q_min() - jnt_lim_margin_array
-ubs = urdf_awesome_leg.q_max() + jnt_lim_margin_array
+lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
+ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
 
 tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (also on the passive d.o.f.)
 
@@ -299,7 +299,7 @@ prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.su
 prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2])),
                            nodes=range(n_takeoff, n_touchdown))
 
-prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot-q_p_ddot.getVarOffset(-1)),nodes = range(1, n_nodes))  
+prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot - q_p_ddot.getVarOffset(-1)),nodes = range(1, n_nodes))  
 
 ##############################################
 
@@ -361,9 +361,7 @@ useful_solutions={"q_p":solution["q_p"],"q_p_dot":solution["q_p_dot"], "q_p_ddot
                  "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
                  "sol_time":solution_time}
 
-
 ms.store(useful_solutions) # saving solution data to file
-
 
 ## Resampled solution
 # Hip and knee quadrature current estimation

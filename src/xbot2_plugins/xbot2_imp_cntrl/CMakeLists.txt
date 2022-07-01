@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 
 find_package(xbot2 REQUIRED)
 find_package(matlogger2 1.3.1 REQUIRED)
-message("")
-message("MatLogger2 include path is set to: " ${matlogger2_INCLUDE_DIRS})
-message("")
 
 add_xbot2_plugin(cartesio_imp_cntrl_ros_rt
     src/cartesio_imp_cntrl_ros_rt.cpp)
