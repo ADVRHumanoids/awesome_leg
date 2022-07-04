@@ -1,9 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>awesome_leg</name>
+  <name>awesome_leg_pholus</name>
   <version>0.0.0</version>
-  <description>The awesome_leg package</description>
-
+  <description>The awesome_leg_pholus package</description>
 
   <maintainer email="andrea.patrizi@iit.it">andrea</maintainer>
   <license>TODO</license>
@@ -13,9 +12,11 @@
    <build_depend>roscpp</build_depend>
    <build_depend>rospy</build_depend>
    <build_depend>urdf</build_depend>
+   <!-- <build_depend>xbot_msgs</build_depend> -->
 
    <buildtool_depend>catkin</buildtool_depend>
-   <buildtool_depend>catkin</buildtool_depend> 
+   
+   <!-- <build_export_depend>xbot_msgs</build_export_depend> -->
 
    <run_depend>message_runtime</run_depend> 
    <run_depend>tf</run_depend>
@@ -26,5 +27,7 @@
    <run_depend>gazebo_ros</run_depend>
    <run_depend>gazebo_ros_control</run_depend>
    <run_depend>xacro</run_depend>
+
+  <!-- <exec_depend>xbot_msgs</exec_depend> -->
    
 </package>

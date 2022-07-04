@@ -1,0 +1,65 @@
+# XBot2 Awesome Leg configuration file, with a tip cartesian impedance control plugin.
+
+# description
+XBotInterface:
+  urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg_RBDL.urdf
+  srdf_path: $(rospack find awesome_leg_pholus)/description/srdf/awesome_leg_RBDL.srdf
+
+# model interface
+ModelInterface:
+  model_type: RBDL
+  is_model_floating_base: false
+
+# hal
+xbotcore_device_configs:
+    sim: $PWD/ecat_config/hal/awesome_leg_gz.yaml
+    dummy: $PWD/ecat_config/hal/awesome_leg_dummy.yaml
+    ec_pos: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_imp: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_idle: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+
+# threads
+xbotcore_threads:
+    rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    nrt_main: {sched: other, prio: 0 , period: 0.005}
+
+# plugins
+xbotcore_plugins:
+
+    homing:
+        thread: rt_main
+        type: homing_example
+
+    ros_io: {thread: nrt_main, type: ros_io}
+
+    ros_control: {thread: nrt_main, type: ros_control}
+    
+    ec_ros: {thread: nrt_main, type: ec_ros}
+
+    mat_replayer_rt:
+        thread: rt_mat_replayer
+        type: mat_replayer_rt
+        params:
+            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg_pholus/opt_results/horizon_jump/jump_test/, type: string}
+            mat_name: {value: horizon_offline_solver_res.mat, type: string}
+            stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            delta_effort_lim: {value: 1e-6, type: double} 
+            approach_traj_exec_time: {value: 5.0, type: double} 
+            approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
+            replay_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
+            replay_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            send_eff_ref: {value: true, type: bool}
+            looped_traj: {value: true, type: bool}
+            traj_pause_time: {value: 5, type: double}
+
+# global parameters
+xbotcore_param:
+    /jm/tx_filter_autostart: {value: true, type: bool}
+    /jm/tx_filter_cutoff: {value: 2.0, type: double}
+    #/jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+
+    
+    

@@ -1,0 +1,70 @@
+# XBot2 Awesome Leg configuration file, with gravity compensation plugins.
+
+# description
+XBotInterface:
+  urdf_path: $(rospack find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
+  srdf_path: $(rospack find awesome_leg_pholus)/description/srdf/awesome_leg.srdf
+
+# model interface
+ModelInterface:
+  model_type: RBDL
+  is_model_floating_base: false
+
+# hal
+xbotcore_device_configs:
+    sim: $PWD/ecat_config/hal/awesome_leg_gz.yaml
+    dummy: $PWD/ecat_config/hal/awesome_leg_dummy.yaml
+    ec_pos: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_imp: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_idle: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+
+# threads
+xbotcore_threads:
+    rt_gravity_comp:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    grav_comp_cart:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    nrt_main: {sched: other, prio: 0 , period: 0.005}
+
+# plugins
+xbotcore_plugins:
+
+    homing:
+        thread: rt_main
+        type: homing_example
+
+    ros_io: {thread: nrt_main, type: ros_io}
+
+    ros_control: {thread: nrt_main, type: ros_control}
+    
+    ec_ros: {thread: nrt_main, type: ec_ros}
+
+    grav_comp_rt: 
+        thread: rt_gravity_comp
+        type: grav_comp_rt
+        params:
+            torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
+            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} 
+            stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [20.0, 20.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+
+    grav_comp_cart_rt: 
+        thread: grav_comp_cart
+        type: grav_comp_cart_rt
+        params:
+            torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
+            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} 
+            cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_grav_comp.yaml, type: yamlfile} 
+            stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [20.0, 20.0], type: Eigen::VectorXd}
+            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+
+# global parameters
+xbotcore_param:
+    /jm/tx_filter_autostart: {value: true, type: bool}
+    /jm/tx_filter_cutoff: {value: 2.0, type: double}
+    

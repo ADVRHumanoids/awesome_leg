@@ -1,0 +1,44 @@
+# Tip CARTESIAN impedance control using CartesIO Acceleration Support Interaction extension
+
+# Interaction + postural task for making the control robust wrt singularities
+
+solver_options:
+    regularization: 0.0
+    back_end: qpoases
+    # back_end: osqp
+    # front_end: nhqp
+    # nhqp_min_sv_ratio: 0.1
+  
+stack: # tasks
+    - [tip, postural]
+
+constraints: # [JointLimits, VelocityLimits] # more robust without this constraints 
+#(they can produce torque spikes and oscillations near the limits)
+
+tip:
+  lib_name: libcartesio_acceleration_support.so
+  type: Interaction # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
+  lambda: 1 # if using Interaction, this is simply a scaling factor
+  stiffness: [1000, 0, 1000, 0, 0, 0]
+  damping: [100, 0, 100, 0, 0, 0]
+  distal_link: tip
+  indices: [0, 2]
+
+postural: # postural used to prevent ill-conditioned QP matrices in singular positions
+  lib_name: libcartesio_acceleration_support.so
+  type: Postural
+  use_inertia: true
+  lambda: 0 # no pos feedback
+  lambda2: 0.05 # vel gain
+  weight: 0.01 # task weight (if use_inertia = true, then the task weight is weight * M)
+
+JointLimits:
+  lib_name: libcartesio_acceleration_support.so
+  type: JointLimits
+  bound_scaling: 1
+
+VelocityLimits:
+  lib_name: libcartesio_acceleration_support.so
+  type: VelocityLimits
+  bound_scaling: 1
+       

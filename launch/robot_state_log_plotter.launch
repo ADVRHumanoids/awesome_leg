@@ -1,0 +1,7 @@
+<launch>
+
+    <rosparam command="load" file="$(find awesome_leg_pholus)/config/robot_state_log_plotter.yaml" subst_value="true"/> 
+
+    <node name="robot_state_log_plotter" pkg="awesome_leg_pholus" type="robot_state_log_plotter.py" output="screen"/> 
+
+</launch>

@@ -1,14 +1,16 @@
 <?xml version="1.0"?>
 
+<!-- 
+    Leg complete xacro with sliding hip. The main leg URDF is imported and the necessary links are added to it. Used by Gazebo
+-->
+
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
   
   <!--%%%%%%%%%%%%%%%% CONSTANTS %%%%%%%%%%%%%%%%-->
 
-  <!--<xacro:property name="PI" value="3.1415926535897931"/> -->
-
   <!--%%%%%%%%%%%%%%%% IMPORTING ALL GAZEBO CUSTOMIZATION ELEMENTS %%%%%%%%%%%%%%%%-->
 
-  <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf" />
+  <xacro:include filename="$(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf" />
 
   <!--%%%%%%%%%%%%%%%% LOCALLY DEFINED LINKS (not included through URDFs) %%%%%%%%%%%%%%%%-->
 
@@ -16,14 +18,14 @@
   
   <link name="test_rig"> <!-- test rig link; defined here to be able to cope with passive joints -->
       <visual>
-          <origin rpy="0 0 0" xyz="0.08 -0.13 0" />
+          <origin rpy="0 0 0" xyz="-0.12 0 0" />
           <geometry>
               <box size="0.1 0.1 1" />
           </geometry>
-          <material name="test_rig_material" />
+          <material name="brown"/>
       </visual>
       <collision>
-          <origin rpy="0 0 0" xyz="0.08 -0.13 0" />
+          <origin rpy="0 0 0" xyz="-0.12 0 0" />
           <geometry>
               <box size="0.1 0.1 1" />
           </geometry>
@@ -46,13 +48,13 @@
   </joint>
 
   <!-- Test rig to leg joint (prismatic); needs to be defined here since xbot2 cannot have passive joints in the URDF of the robot -->
-  <joint name="test_rig_LF_HIP" type="prismatic">
+  <joint name="passive_joint" type="prismatic">
       <parent link="test_rig" />
-      <child link="LF_HIP" />
-      <origin xyz="0 0 0.1" />
+      <child link="pelvis" />
+      <origin xyz="0 0 0.4" />
       <axis xyz="0 0 1" />
       <dynamics damping="0.0" friction="0.0" />
-      <limit lower="-0.5" upper="0.5" effort="80" velocity="15.0" />
+      <limit lower="-10" upper="10.0" effort="500" velocity="50.0" />
   </joint>
 
 </robot>

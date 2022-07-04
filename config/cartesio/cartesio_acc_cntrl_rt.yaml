@@ -1,0 +1,31 @@
+# Point to point trajectory task using CartesIO
+
+solver_options:
+    regularization: 1e-3
+    back_end: "qpoases"
+    # back_end: osqp
+    # front_end: nhqp
+    # nhqp_min_sv_ratio: 0.1
+
+stack: # tasks
+    - ["tip"]
+
+constraints: [] #["JointLimits", "VelocityLimits"]
+
+tip:
+  lib_name: libcartesio_acceleration_support.so
+  type: "Cartesian"
+  lambda: 0.001
+  distal_link: "tip"
+  indices: [0, 2] 
+
+JointLimits:
+  lib_name: libcartesio_acceleration_support.so
+  type: "JointLimits"
+  bound_scaling: 1.0
+
+VelocityLimits:
+  lib_name: libcartesio_acceleration_support.so
+  type: "VelocityLimits"
+  bound_scaling: 1.0
+       

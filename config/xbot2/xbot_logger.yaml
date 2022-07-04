@@ -1,0 +1,6 @@
+# Configuration file of the logger script (robot_state_logger.cpp)
+
+xbot_logger:
+
+  # mat_dump_path: $(find awesome_leg_pholus)/test_results/fixed_hip_setup/tip_cart_imp_cntrl/checks/torque_current_checks
+  mat_dump_path: /tmp
