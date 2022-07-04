@@ -48,7 +48,7 @@ xbotcore_plugins:
             delta_effort_lim: {value: 1e-6, type: double} 
             approach_traj_exec_time: {value: 5.0, type: double} 
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
-            cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
+            # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
             replay_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
             replay_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             send_eff_ref: {value: true, type: bool}
@@ -59,7 +59,7 @@ xbotcore_plugins:
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}
     /jm/tx_filter_cutoff: {value: 2.0, type: double}
-    #/jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+    /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 
     
     

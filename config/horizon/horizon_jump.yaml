@@ -31,7 +31,7 @@ horizon:
      dt_lb: 0.005
      dt_ub: 0.1
 
-     jnt_limit_margin: 0.0 # [rad] --> this value will broaden the limits of the joint (uniformly)
+     jnt_limit_margin: 0.02 # [rad] --> this value will shorten the limits of the joint (uniformly)
  
      solver:
        name: "ipopt"
@@ -53,10 +53,10 @@ horizon:
      
      cost_weights:
        contact_force: 0.01
-       small_q_p_ddot: 0.5
+       small_q_p_ddot: 0.07
        big_hip_jump: 10
-       hip_jump_target: 0.00000001
-       big_foot_tip_clearance: 1
+       hip_jump_target: 0.0000000001
+       big_foot_tip_clearance: 0.00000000001
        weight_min_input_diff: 0.1 # cost for penalizing differences between successive inputs
 
  horizon_resampler:
