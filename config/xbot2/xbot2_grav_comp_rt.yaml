@@ -43,8 +43,8 @@ xbotcore_plugins:
         type: grav_comp_rt
         params:
             torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
-            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} 
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_cartesio.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_cartesio.srdf, type: file} 
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
             damping: {value: [0.0, 0.0], type: Eigen::VectorXd}
             stop_stiffness: {value: [20.0, 20.0], type: Eigen::VectorXd}
@@ -55,8 +55,8 @@ xbotcore_plugins:
         type: grav_comp_cart_rt
         params:
             torque_bias: {value: [0, 0], type: Eigen::VectorXd} # bias torques, estimated via param. identification
-            urdf_path: {value: $PWD/../../description/urdf/awesome_leg_RBDL.urdf, type: file} 
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_RBDL.srdf, type: file} 
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_cartesio.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_cartesio.srdf, type: file} 
             cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_grav_comp.yaml, type: yamlfile} 
             stiffness: {value: [0.0, 0.0], type: Eigen::VectorXd}
             damping: {value: [0.0, 0.0], type: Eigen::VectorXd}

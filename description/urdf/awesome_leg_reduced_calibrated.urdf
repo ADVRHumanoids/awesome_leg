@@ -2,12 +2,11 @@
 
 <!-- 
     Leg modified base URDF (basically a simple double pendulum), with calibrated inertial parameters.
-    It is the awesome_leg_param_id.urdf file with modified inertial parameters obtained via the identification procedure.
+    It is the awesome_leg_reduced.urdf file with modified inertial parameters obtained via an
+    identification procedure.
 -->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-    <!-- ################### MATERIAL DEFINITIONS ################### -->
 
     <material name="sky_blue">
         <color rgba="0.13 0.44 0.70 1"/>
@@ -22,9 +21,16 @@
         <color rgba="0.59 0.29 0.0 1"/>
     </material>
     
-    <!-- ################### LINKS ################### -->
     <link name="world"/>
 
+    <joint name="hip_pitch_1" type="revolute">
+        <parent link="world"/>
+        <child link="shank"/>
+        <origin rpy="-1.57079632679 0 0" xyz="0.0 0.0 0.0"/>
+        <axis xyz="0 0 1"/>
+        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
+    </joint>
+    
     <link name="shank">
         <inertial>
         <origin xyz="2.02539722e-03 2.36232975e-01 8.56697560e-02"/>
@@ -46,6 +52,14 @@
         </collision>
     </link>
 
+    <joint name="knee_pitch_1" type="revolute">
+        <parent link="shank"/>
+        <child link="shin"/>
+        <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
+        <axis xyz="0 0 1"/>grey
+        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
+    </joint>
+    
     <link name="shin">
         <inertial>
         <mass value="1.23787877e+00"/>
@@ -67,35 +81,14 @@
         </collision>
     </link>
 
-    <link name="tip">
-    </link>
-    
-    <!-- ################### JOINTS ################### -->
-
-    <joint name="hip_pitch_1" type="revolute">
-        <parent link="world"/>
-        <child link="shank"/>
-        <origin rpy="-1.57079632679 0 0" xyz="0.0 0.0 0.0"/>
-        <axis xyz="0 0 1"/>
-        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
-    </joint>
-
-    <joint name="knee_pitch_1" type="revolute">
-        <parent link="shank"/>
-        <child link="shin"/>
-        <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
-        <axis xyz="0 0 1"/>grey
-        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
-    </joint>
-    
     <joint name="tip_joint" type="fixed">
         <parent link="shin"/>
         <child link="tip"/>
         <origin xyz="0.45 0.0 -0.02"/>
     </joint>
-    
-    <!-- ################### TRANSMISSION ELEMENTS ################### -->
 
+    <link name="tip">
+    </link>
    
     <transmission name="hip_trans">
         <type>transmission_interface/SimpleTransmission</type>
@@ -118,8 +111,6 @@
         </actuator>
     </transmission>
 
-    <!-- ################### MODEL PLUGINS ################### -->
-
     <!-- xbot2 joint device driver-->
     <gazebo>  
         <plugin name='xbot2_gz_joint_server' filename='libxbot2_gz_joint_server.so'> 
@@ -141,9 +132,6 @@
         <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
     </gazebo>
     
-
-    <!-- ################### OTHER STUFF ################### -->
-
     <!--Gazebo-specific tags-->
 
     <gazebo reference="pelvis">

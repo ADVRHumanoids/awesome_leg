@@ -2,8 +2,8 @@
 
 # description
 XBotInterface:
-  urdf_path: $(rospack find awesome_leg)/description/urdf/awesome_leg_RBDL.urdf
-  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg_RBDL.srdf
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf
+  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg_cartesio.srdf
 
 # model interface
 ModelInterface:

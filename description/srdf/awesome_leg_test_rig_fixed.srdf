@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-    MODIFIED AWESOME LEG SRDF to cope with RBDL parsing issues (standalone leg without test rig, etc..)
+    AWESOME LEG COMPLETE SRDF (test rig included, fixed hip)
 -->
 
-<robot name="awesome_leg">
+<robot name="awesome_leg_test_rig_fixed">
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
     <!--LINKS: When a link is specified, the parent joint of that link (if it exists) is automatically included-->
     <!--JOINTS: When a joint is specified, the child link of that joint (which will always exist) is automatically included-->
     <!--CHAINS: When a chain is specified, all the links along the chain (including endpoints) are included in the group. Additionally, all the joints that are parents to included links are also included. This means that joints along the chain and the parent joint of the base link are included in the group-->
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     <group name="leg">
+        <link name="pelvis"/>
         <link name="hip1_1"/>
         <link name="hip2_1"/>
         <link name="knee_1"/>
         <link name="tip"/>
+        <joint name="hip_yaw_1"/>
         <joint name="hip_pitch_1"/>
         <joint name="knee_pitch_1"/>
         <joint name="tip_joint"/>
-        <chain base_link="hip1_1" tip_link="tip"/>
+        <chain base_link="pelvis" tip_link="tip"/>
     </group>
     <group name="chains">
         <group name="leg"/>
@@ -30,7 +32,7 @@
         <joint name="knee_pitch_1" value="1"/>
     </group_state>
     <!--END EFFECTOR: Purpose: Represent information about an end effector.-->
-    <end_effector name="tip" parent_link="hip1_1" group="leg" parent_group="leg"/>
+    <end_effector name="tip" parent_link="pelvis" group="leg" parent_group="leg"/>
 
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <disable_collisions link1="hip1_1" link2="hip2_1" reason="Adjacent"/>

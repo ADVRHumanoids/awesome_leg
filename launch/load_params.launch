@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="task_type" default="trot" /> <!-- task of which to load arguments. Allowed values: "jump", "trot" -->
+  <arg name="task_type" default="jump" /> <!-- task of which to load arguments. Allowed values: "jump", "trot" -->
   <arg name="trot_type" default="fixed_hip" /> <!-- trot type to be solved. Allowed values: "fixed_hip", "sliding_hip", "sliding_all" -->
 
   <!-- loading some useful actuators parameters-->
@@ -11,7 +11,7 @@
 
     <group if="$(eval arg('task_type')=='jump')">
       <!-- loading some horizon solver parameters-->
-      <rosparam command="load" file="$(find awesome_leg)/config/horizon/horizon_jump.yaml" subst_value="true"/> 
+      <rosparam command="load" file="$(find awesome_leg)/config/horizon/jump_generation.yaml" subst_value="true"/> 
       <param name="horizon/task_type" type="string" value="jump" />
     </group>
 

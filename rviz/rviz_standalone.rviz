@@ -5,9 +5,13 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Grid1
         - /RobotModel1
         - /RobotModel1/Links1
         - /RobotModel1/Links1/hip1_11
+        - /RobotModel1/Links1/hip1_11/Position1
+        - /RobotModel1/Links1/knee_11
+        - /RobotModel1/Links1/pelvis1
         - /RobotModel1/Links1/tip1
         - /RobotModel1/Links1/world1
       Splitter Ratio: 0.4977678656578064
@@ -41,7 +45,7 @@ Visualization Manager:
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz/Grid
-      Color: 160; 160; 164
+      Color: 36; 119; 164
       Enabled: true
       Line Style:
         Line Width: 0.029999999329447746
@@ -53,7 +57,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 100
       Reference Frame: world
       Value: true
     - Alpha: 0.5
@@ -83,7 +87,7 @@ Visualization Manager:
           Value: true
         pelvis:
           Alpha: 1
-          Show Axes: false
+          Show Axes: true
           Show Trail: false
           Value: true
         test_rig:
@@ -109,7 +113,7 @@ Visualization Manager:
   Global Options:
     Background Color: 220; 220; 220
     Default Light: true
-    Fixed Frame: test_rig
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -133,7 +137,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 2.1268820762634277
+      Distance: 1.4079678058624268
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -141,17 +145,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.07930579036474228
-        Y: 0.45139530301094055
-        Z: -0.06507840752601624
+        X: 0.024486619979143143
+        Y: 0.21261854469776154
+        Z: 0.5015144944190979
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.20980052649974823
+      Pitch: 0.2848004400730133
       Target Frame: <Fixed Frame>
-      Yaw: 5.963171482086182
+      Yaw: 0.34499505162239075
     Saved: ~
 Window Geometry:
   Displays:
@@ -169,5 +173,5 @@ Window Geometry:
   Views:
     collapsed: true
   Width: 1920
-  X: 1919
-  Y: 0
+  X: -4
+  Y: -32

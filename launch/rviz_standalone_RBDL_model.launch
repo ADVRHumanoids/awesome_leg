@@ -5,7 +5,7 @@
     <arg name="gui" default="true"/>
     <arg name="use_joint_publisher_gui" default="true"/>
 
-    <param name="robot_description" textfile="$(find awesome_leg)/description/urdf/awesome_leg_RBDL.urdf"/>
+    <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf.xacro'" />
    
     <node if="$(arg gui)"
             type="rviz"

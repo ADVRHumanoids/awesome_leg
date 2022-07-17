@@ -2,6 +2,7 @@
 
 ##################### Imports #########################
 
+from fileinput import filename
 import os as scibidibi
 import shutil
 import time
@@ -20,6 +21,11 @@ from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
 
 from datetime import datetime
 
+import subprocess
+
+file_name = scibidibi.path.splitext(scibidibi.path.basename(__file__))[0]
+file_name.replace(".py", "")
+
 ##################### Reading the solution modes from config YAML config file #########################
 
 save_sol_as_init = rospy.get_param("horizon/horizon_solver/save_sol_as_init")  # if true, the solution is also saved as a candidate for future optimization initializations
@@ -27,12 +33,26 @@ employ_opt_init = rospy.get_param("horizon/horizon_solver/employ_opt_init")  # i
 
 opt_init_name = rospy.get_param("horizon/horizon_solver/opt_init_name") # name of the initialization file to be loaded
 
+xacro_path = rospy.get_param("/horizon/xacro_path")  # urdf relative path (wrt to the package)
 urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf relative path (wrt to the package)
+urdf_name = rospy.get_param("/horizon/urdf_name")  # urdf relative path (wrt to the package)
 
 media_path = rospy.get_param("/horizon/media_path")  # urdf relative path (wrt to the package)
 opt_res_path = rospy.get_param("/horizon/opt_results_path")  # urdf relative path (wrt to the package)
 
 tanh_coeff = rospy.get_param("horizon/horizon_i_q_estimator/tanh_coeff")  # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) )
+
+##################### Generate urdf #########################
+
+try:
+
+    xacro_gen = subprocess.check_call(["xacro", "-o",\
+                                    urdf_path + "/" + urdf_name + ".urdf",\
+                                    xacro_path + "/" + urdf_name + ".urdf.xacro"])
+            
+except:
+
+    print('Failed to generate URDF.')
 
 ##################### Initializing objects for .mat storage #########################
 
@@ -59,16 +79,16 @@ res_sol_mat_name = rospy.get_param("/horizon/horizon_solver/res_sol_mat_name")
 
 ms = mat_storer.matStorer(opt_res_path + "/jump_test/horizon_offline_solver.mat")  # original opt. sol
 ms_res = mat_storer.matStorer(opt_res_path + "/jump_test/horizon_offline_solver_res.mat") # resampled sol
-ms_aux = mat_storer.matStorer(media_path + "/" + today_is + "/" + "/jump_test/" + sol_mat_name + current_time + ".mat") # additional location
 
 target = media_path + "/" + today_is + "/jump_test/"
 
 shutil.copyfile(config_path + "actuators.yaml", target + "actuators" + current_time + ".yaml") # saving config files for reference and future debugging
-shutil.copyfile(horizon_config_path + "horizon_jump.yaml", target + "horizon" + current_time + ".yaml")
-shutil.copyfile(urdf_path, target + "awesome_leg_complete_" + current_time + ".urdf")
+shutil.copyfile(horizon_config_path + file_name + ".yaml", target + "horizon" + current_time + ".yaml")
+shutil.copyfile(urdf_path + "/" + urdf_name + ".urdf", target + "awesome_leg" + current_time + ".urdf")
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
     ms_opt_init = mat_storer.matStorer(opt_res_path + "/jump_test/" + opt_init_name + ".mat")
+
 if employ_opt_init: # initialize variables with the previously saved solution
     ms_load_path = opt_res_path + "/jump_test/" + opt_init_name + ".mat"
     ms_load = mat_storer.matStorer(ms_load_path)
@@ -82,6 +102,8 @@ if employ_opt_init: # initialize variables with the previously saved solution
 n_nodes = rospy.get_param("horizon/horizon_solver/problem_settings/n_nodes")  # optimization horizon
 n_takeoff =rospy.get_param("horizon/horizon_solver/problem_settings/n_takeoff")   # instant of takeoff
 n_touchdown =rospy.get_param("horizon/horizon_solver/problem_settings/n_touchdown")   # instant of touchdown
+
+hip_jump_trgt = rospy.get_param("horizon/horizon_solver/problem_settings/hip_jump_trgt")
 
 dt_lb=rospy.get_param("horizon/horizon_solver/problem_settings/dt_lb")   # dt lower bound 
 dt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/dt_ub")   # dt upper bound
@@ -97,14 +119,15 @@ jnt_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
 weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
 weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_hip_jump") # maximizing the jump height (measured at the hip)
-weight_hip_height_target = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/hip_jump_target") # minimizing the difference to a reference excursion
 weight_tip_clearance=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") # maximizing the jump height (measured at the tip)
 weight_min_input_diff=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
 
 # solver options
 
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"),
-    "ipopt.max_iter": rospy.get_param("horizon/horizon_solver/problem_settings/solver/max_iter")} 
+    "ipopt.max_iter": rospy.get_param("horizon/horizon_solver/problem_settings/solver/max_iter"),
+    "ipopt.constr_viol_tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/cnstrnt_tolerance")} 
+
 slvr_name=rospy.get_param("horizon/horizon_solver/problem_settings/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
 
 trans_name = rospy.get_param("horizon/horizon_solver/problem_settings/transcription/name")
@@ -163,7 +186,7 @@ for i in range(n_actuators):
 
 ##################### SETTING THE OPT PROBLEM #########################
 
-urdf = open(urdf_path, "r").read()
+urdf = open(urdf_path + "/" + urdf_name + ".urdf", "r").read()
 urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
 
 n_q = urdf_awesome_leg.nq()  # number of joints
@@ -173,7 +196,8 @@ jnt_lim_margin_array = np.tile(jnt_limit_margin, (n_q))
 lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
 ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
 
-tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (also on the passive d.o.f.)
+tau_lim = np.array([0, tau_peak_ar[0], tau_peak_ar[1]])  # effort limits (0 on the passive d.o.f.)
+# tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (0 on the passive d.o.f.)
 
 prb = Problem(n_nodes)  # initialization of a problem object
 
@@ -188,7 +212,8 @@ dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
 dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
 dt3.setBounds(dt_lb, dt_ub)  # bounds on dt3
 
-Dt=[dt1]*n_takeoff+[dt2]*(n_touchdown-n_takeoff)+[dt3]*(n_nodes-n_touchdown) # holds the complete time list
+Dt=[dt1]*n_takeoff + [dt2] * (n_touchdown-n_takeoff) +\
+    [dt3] * (n_nodes-n_touchdown) # holds the complete time list
 
 prb.setDt(Dt)
 
@@ -262,7 +287,7 @@ tau_limits = prb.createIntermediateConstraint("tau_limits", tau)  # torque limit
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 
 prb.createConstraint("foot_vel_bf_touchdown", v_foot_tip,
-                     nodes=range(0, n_takeoff + 1))  # no velocity of the foot before takeoff
+                     nodes=range(0, n_takeoff))  # no velocity of the foot before takeoff
 prb.createConstraint("foot_vel_aftr_touchdown", v_foot_tip,
                      nodes=range(n_touchdown, n_nodes + 1))  # no velocity of the foot after touchdown
 
@@ -272,6 +297,9 @@ prb.createConstraint("GRF_zero", f_contact,
 prb.createFinalConstraint("leg_pose_restoration", q_p - q_p_init)
 
 prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still at the end of the optimization horizon
+
+# prb.createConstraint("peak_trgt", hip_position[2] - hip_jump_trgt,
+#                      nodes= n_takeoff + round((n_takeoff - n_touchdown)/ 2))  # 0 GRF during flight
 
 # hip_over_foot_tip = prb.createConstraint("hip_over_foot_tip", hip_position[2] -  foot_tip_position[2]) # always keep the hip above the tip 
 # hip_over_foot_tip.setBounds(0, cs.inf)
@@ -287,16 +315,18 @@ prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still a
 
 ##############################################
 
+epsi = 1
+
 ## Costs
 prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact))
 
-prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
-    q_p_ddot))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+# prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
+#     q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
 prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2])),
                            nodes=range(n_takeoff, n_touchdown))
 
-prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2])),
+prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
                            nodes=range(n_takeoff, n_touchdown))
 
 prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot - q_p_ddot.getVarOffset(-1)),nodes = range(1, n_nodes))  
@@ -353,15 +383,15 @@ init_solution_hip_position_aux = np.tile(hip_position_initial,(1, n_nodes + 1))
 solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
-useful_solutions={"q_p":solution["q_p"],"q_p_dot":solution["q_p_dot"], "q_p_ddot":solution["q_p_ddot"],
-                 "tau":cnstr_opt["tau_limits"], "f_contact":solution["f_contact"], "i_q":i_q, "dt_opt":slvr.getDt(),
+other_stuff={"tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
                  "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
                  "hip_height":np.transpose(solution_hip_position-init_solution_hip_position_aux[2,:]), 
                  "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
                  "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
                  "sol_time":solution_time}
 
-ms.store(useful_solutions) # saving solution data to file
+
+ms.store({**solution, **cnstr_opt, **other_stuff}) # saving solution data to file
 
 ## Resampled solution
 # Hip and knee quadrature current estimation
@@ -396,7 +426,7 @@ shutil.copyfile(opt_res_path + "/jump_test/horizon_offline_solver.mat", target +
 shutil.copyfile(opt_res_path + "/jump_test/horizon_offline_solver_res.mat", target + res_sol_mat_name + current_time + ".mat")
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
-    ms_opt_init.store(useful_solutions) # saving initialization data to file    
+    ms_opt_init.store({**solution, **other_stuff}) # saving initialization data to file    
 
 ################### REPLAYING TRAJECTORY ON RVIZ #####################
 

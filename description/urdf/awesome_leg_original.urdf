@@ -1,204 +1,312 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <!-- 
-    Leg base original URDF (no external links). Only for reference. 
+    ORIGINAL URDF WITHOUT ANY CHANGES (just useful for reference).
+    Taken from: https://github.com/ADVRHumanoids/single_leg_test/blob/master/single_leg_urdf/urdf/single_leg.urdf
 -->
 
-<robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
-    <!-- ################### MATERIAL DEFINITIONS ################### -->
-
-    <material name="sky_blue">
-        <color rgba="0.13 0.44 0.70 1"/>
-    </material>
-    <material name="grey">
-        <color rgba=" 0.6 0.6 0.6 1"/>
-    </material>
-    <material name="black">
-        <color rgba="0.4 0.4 0.4 1"/>
-    </material>
-    <material name="brown">
-        <color rgba="0.59 0.29 0.0 1"/>
-    </material>
-    
-    <!-- ################### LINKS ################### -->
+<robot name="awesome_leg">
+  <!-- 
+  ROS urdf definition of the CENTAURO humanoid robot by Istituto Italiano di Tecnologia
   
-    <link name="pelvis">
-        <inertial>
-        <mass value="1.0"/> <!-- considering also the mass contribution of the robot torso -->
-        <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
-        </inertial>
-        <visual>
-        <geometry>
-            <cylinder length="0.1" radius="0.1"/>
-        </geometry>
-        </visual>
-        <visual>
-        <geometry>
-            <cylinder length="0.1" radius="0.1"/>
-        </geometry>
-        </visual>
-    </link>
-
-    <link name="hip1_1">
-        <inertial>
-        <origin xyz="0.010214199 0.0 0.038090987"/>
-        <mass value="1.9194403"/>
-        <inertia ixx="0.0047439572" ixy="-0.0" ixz="-0.0003784138" iyy="0.0040551878" iyz="-0.0" izz="0.0034146219"/>
-        </inertial>
-        <visual>
-        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/visual/hip-yaw.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        <material name="grey"/>
-        </visual>
-        <collision>
-        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/collision/hip-yaw.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
-
-    <link name="hip2_1"> <!-- #### -->
-        <inertial>
-        <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
-        <mass value="2.7264471"/>
-        <!-- org: 4.5 -->
-        <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
-        </inertial>
-        <visual>
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-        <material name="sky_blue"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/visual/hip-pitch.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </visual>
-        <collision>
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/collision/hip-pitch.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
-
-    <link name="knee_1"> <!-- #### -->
-        <inertial>
-        <mass value="1.1927236"/>
-        <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>
-        <inertia ixx="0.0013302597" ixy="0.00060307457" ixz="0.0" iyy="0.035313402" iyz="-1.1029574e-07" izz="0.035530025"/>
-        </inertial>
-        <visual>
-        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
-        <material name="grey"/>
-        <geometry name="1_stick_visual">
-            <mesh filename="package://awesome_leg/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </visual>
-        <collision name="foot_tip_collision">
-        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
-        <geometry name="1_stick_collision">
-            <mesh filename="package://awesome_leg/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
-    
-    <link name="tip"/> <!-- just for reference-->
-
-    <!-- ################### JOINTS ################### -->
-
-    <joint name="hip_yaw_1" type="fixed">
-        <parent link="pelvis"/>
-        <child link="hip1_1"/>
-        <origin rpy="3.14159265359 0.0 0.0" xyz="0.0 -0.0 -0.0566"/>
-    </joint>
-
-    <joint name="hip_pitch_1" type="revolute">
-        <parent link="hip1_1"/>
-        <child link="hip2_1"/>
-        <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
-        <axis xyz="0 0 1"/>
-        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
-    </joint>
-
-    <joint name="knee_pitch_1" type="revolute">
-        <parent link="hip2_1"/>
-        <child link="knee_1"/>
-        <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
-        <axis xyz="0 0 1"/>grey
-        <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
-    </joint>
-    
-    <joint name="tip_joint" type="fixed">
-        <parent link="knee_1"/>
-        <child link="tip"/>
-        <origin xyz="0.45 0.0 -0.02"/>
-    </joint>
-        
-    <!-- ################### TRANSMISSION ELEMENTS ################### -->
-
-   
-    <transmission name="hip_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="hip_pitch_1">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="hip_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="knee_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="knee_pitch_1">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="knee_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-
-    <!-- ################### MODEL PLUGINS ################### -->
-
-    <!-- xbot2 joint device driver-->
-    <gazebo>  
-        <plugin name='xbot2_gz_joint_server' filename='libxbot2_gz_joint_server.so'> 
-            <pid>
-
-                <gain name="null_mode"  p="0"  d="0"/>
-                <gain name="small_mot"  p="250"  d="5"/>
-                <gain name="medium_mot" p="1000" d="10"/>
-                <gain name="big_mot"    p="3000" d="10"/>
-
-                <gain name="test_rig2HIP" profile="null_mode"/>
-                <gain name="hip_actuation" profile="medium_mot"/>
-                <gain name="knee_actuation" profile="medium_mot"/>
-            </pid>
-        </plugin>
-    </gazebo>
-
-    <gazebo> 
-        <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
-    </gazebo>
-    
-
-    <!-- ################### OTHER STUFF ################### -->
-
-    <!--Gazebo-specific tags-->
-
-    <gazebo reference="pelvis">
-    <material>Gazebo/Grey  </material>
-    </gazebo>
-    <gazebo reference="hip1_1">
-        <material>Gazebo/Grey   </material>
-    </gazebo>
-    <gazebo reference="hip2_1">
-        <material>Gazebo/SkyBlue </material>
-    </gazebo>
-    <gazebo reference="knee_1">
-        <material>Gazebo/Grey  </material>
-    </gazebo>
-  
-  </robot>
+  Author: Enrico Mingo Hoffman
+-->
+  <!-- scaling facto for available peack torque link side, from 0 to 1 -->
+  <material name="black">
+    <color rgba="0.4 0.4 0.4 1"/>
+  </material>
+  <material name="dark">
+    <color rgba="0.1 0.1 0.1 1"/>
+  </material>
+  <!-- ??? -->
+  <!-- ??? -->
+  <!-- Origin -->
+  <!-- <xacro:property name="hip_yaw_lower" value="${[-2.827,-2.583, -2.583 ,-2.827]}"/>
+<xacro:property name="hip_yaw_upper" value="${[ 2.583, 2.827,  2.827 , 2.583]}"/> -->
+  <!-- along z -->
+  <link name="base_link">
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.1 0.1 1.5"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.1 0.1 1.5"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="pelvis">
+    <inertial>
+      <mass value="1.0"/>
+      <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <cylinder length="0.1" radius="0.1"/>
+      </geometry>
+    </visual>
+    <visual>
+      <geometry>
+        <cylinder length="0.1" radius="0.1"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="passive_joint" type="prismatic">
+    <parent link="base_link"/>
+    <child link="pelvis"/>
+    <origin xyz="0.15 0. 0.8"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="1000.0" lower="-3.5" upper="3.5" velocity="100."/>
+  </joint>
+  <!-- /macro legs -->
+  <link name="hip1_1">
+    <inertial>
+      <origin xyz="0.010214199 0.0 0.038090987"/>
+      <mass value="1.9194403"/>
+      <!-- org: 2 -->
+      <inertia ixx="0.0047439572" ixy="-0.0" ixz="-0.0003784138" iyy="0.0040551878" iyz="-0.0" izz="0.0034146219"/>
+      <!-- <inertia ixx="0.01" ixy="0.01" ixz="0.01" iyy="0.01" iyz="0.01" izz="0.01"/> -->
+    </inertial>
+    <visual>
+      <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://centauro_urdf/meshes/hip-yaw.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+      <material name="dark_grey"/>
+    </visual>
+    <collision>
+      <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://centauro_urdf/meshes/simple/hip-yaw.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="hip2_1">
+    <inertial>
+      <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
+      <mass value="2.7264471"/>
+      <!-- org: 4.5 -->
+      <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
+      <!-- <inertia ixx="0.01" ixy="0.01" ixz="0.01" iyy="0.01" iyz="0.01" izz="0.01"/> -->
+    </inertial>
+    <visual>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://centauro_urdf/meshes/hip-pitch.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <mesh filename="package://centauro_urdf/meshes/simple/hip-pitch.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="knee_1">
+    <inertial>
+      <mass value="1.1927236"/>
+      <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>
+      <!--origin xyz="${1.4549221e+01*mmTom} ${-2.0785942e+01*mmTom} ${-1.9572282e+02*mmTom}" rpy="0.0 0.0 0.0"/-->
+      <!--inertia ixx="${3.5313402e+04*mm2Tom2}"  ixy="${0.0*mm2Tom2}"  ixz="${1.1029574e-01*mm2Tom2}" iyy="${3.5530025e+04*mm2Tom2}" iyz="${-6.0307457e+02*mm2Tom2}" izz="${1.3302597e+03*mm2Tom2}" /-->
+      <inertia ixx="0.0013302597" ixy="0.00060307457" ixz="0.0" iyy="0.035313402" iyz="-1.1029574e-07" izz="0.035530025"/>
+    </inertial>
+    <visual>
+      <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
+      <material name="black"/>
+      <geometry name="1_stick_visual">
+        <mesh filename="package://centauro_urdf/meshes/front_right_stick.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
+      <geometry name="1_stick_collision">
+        <mesh filename="package://centauro_urdf/meshes/simple/front_right_stick.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="hip_yaw_1" type="fixed">
+    <parent link="pelvis"/>
+    <child link="hip1_1"/>
+    <origin rpy="3.14159265359 0.0 0.0" xyz="0.0 -0.0 -0.0566"/>
+    <!-- axis xyz="0 0 1"/>
+        <limit lower="${hip_yaw_lower[leg_num-1]}" upper="${hip_yaw_upper[leg_num-1]}" effort="${motor_A_effort}" velocity="${motor_A_velocity}"/-->
+    <!-- 200 Nm, 1 rad/s-->
+  </joint>
+  <joint name="hip_pitch_1" type="revolute">
+    <parent link="hip1_1"/>
+    <child link="hip2_1"/>
+    <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="3040" lower="-2.0226" upper="2.02748" velocity="28.8"/>
+    <!-- 200 Nm, 1 rad/s-->
+  </joint>
+  <joint name="knee_pitch_1" type="revolute">
+    <parent link="hip2_1"/>
+    <child link="knee_1"/>
+    <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
+    <axis xyz="0 0 1"/>
+    <limit effort="3040" lower="-2.4056" upper="2.3994" velocity="28.8"/>
+    <!-- 200 Nm, 1 rad/s-->
+  </joint>
+  <joint name="tip_joint" type="fixed">
+    <parent link="knee_1"/>
+    <child link="tip"/>
+    <origin xyz="0.45 0.0 -0.02"/>
+  </joint>
+  <link name="tip"/>
+  <!-- <xacro:if value="${ADD_LEGS}">
+	<xacro:include filename="$(find centauro_urdf)/urdf/parts/legs.urdf.xacro" />
+</xacro:if> -->
+  <!-- ************ Control frames ************ -->
+  <!--xacro:include filename="$(find pholus_urdf)/urdf/control_frames.urdf.xacro"/-->
+  <link name="world"/>
+  <joint name="reference" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <!-- <xacro:include filename="$(find centauro_urdf)/urdf/gazebo/centauro.gazebo.xacro" /> -->
+  <gazebo>
+    <plugin filename="libxbot2_gz_joint_server.so" name="xbot2_gz_joint_server">
+      <pid>
+        <gain d="20" name="mot" p="5000"/>
+        <gain d="0" name="passive" p="0"/>
+        <pid name="passive_joint" profile="passive"/>
+        <pid name="hip_pitch_1" profile="mot"/>
+        <pid name="knee_pitch_1" profile="mot"/>
+      </pid>
+    </plugin>
+  </gazebo>
+  <gazebo reference="pelvis">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="hip1_1">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="hip2_1">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="knee_1">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle1_1">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle2_1">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="wheel_1">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="hip1_2">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="hip2_2">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="knee_2">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle1_2">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle2_2">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="wheel_2">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="hip1_3">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="hip2_3">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="knee_3">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle1_3">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle2_3">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="wheel_3">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="hip1_4">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="hip2_4">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="knee_4">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle1_4">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ankle2_4">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="wheel_4">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="torso_2">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="arm1_1">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="arm1_2">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm1_3">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm1_4">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm1_5">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="arm1_6">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm1_7">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm2_1">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="arm2_2">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm2_3">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm2_4">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm2_5">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="arm2_6">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="arm2_7">
+    <material>Gazebo/LightBlueLaser</material>
+  </gazebo>
+  <gazebo reference="ball1">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <gazebo reference="ball2">
+    <material>Gazebo/BlackTransparent</material>
+  </gazebo>
+  <origin rpy="0 0 0" xyz="0.0 0.0 1.2"/>
+</robot>
