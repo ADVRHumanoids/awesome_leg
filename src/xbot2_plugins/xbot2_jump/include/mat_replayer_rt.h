@@ -4,13 +4,18 @@
 #include <matlogger2/matlogger2.h>
 
 #include <xbot2/xbot2.h>
-#include <xbot2/ros/ros_support.h>
 
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 
 #include <thread>
 
 #include "plugin_utils.hpp"
+
+#include <xbot2/ros/ros_support.h>
+#include <std_msgs/Bool.h>
+#include <awesome_leg/JumpNow.h>
+
+#include <cartesian_interface/ros/RosServerClass.h>
 
 using namespace XBot;
 using namespace XBot::Cartesian;
@@ -71,17 +76,19 @@ private:
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
 
     bool _looped_traj = false, 
-         _approach_traj_started = false, _approach_traj_finished = false, 
-         _traj_started = false, _traj_finished = false, 
-         _first_run = true,  
-         _pause_started = false, _pause_finished = false, 
-         _send_eff_ref = false;
+        _approach_traj_started = false, _approach_traj_finished = false, 
+        _traj_started = false, _traj_finished = false, 
+        _first_run = true,  
+        _pause_started = false, _pause_finished = false, 
+        _send_eff_ref = false,
+        _jump = false,
+        _recompute_approach_traj = true;
 
     double _delta_effort_lim,
-           _nominal_traj_dt, _plugin_dt,
-           _loop_time = 0.0, _loop_reset_time = 30.0,
-           _approach_traj_exec_time = 4.0, 
-           _pause_time, _traj_pause_time = 2.0;
+        _nominal_traj_dt, _plugin_dt,
+        _loop_time = 0.0, _loop_timer_reset_time = 30.0,
+        _approach_traj_exec_time = 4.0, 
+        _pause_time, _traj_pause_time = 2.0;
 
     int _n_jnts_model, 
         _sample_index = 0;
@@ -115,6 +122,12 @@ private:
     void init_dump_logger();
     void add_data2dump_logger();
     void init_nrt_ros_bridge();
+
+    bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
+                          awesome_leg::JumpNowResponse& res);
+
+    ServiceServerPtr<awesome_leg::JumpNowRequest,
+                     awesome_leg::JumpNowResponse> _jump_now_srv;
                  
 };
 

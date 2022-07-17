@@ -15,6 +15,7 @@ add_service_files(
   EllTrajRt.srv
   SinJointTraj.srv
   BypassDspRt.srv
+  JumpNow.srv
 )
 
 generate_messages(

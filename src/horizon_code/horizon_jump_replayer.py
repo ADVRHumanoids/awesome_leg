@@ -44,7 +44,7 @@ q_p=solution["q_p"]
 GRF=solution["f_contact"]
 dt=solution["dt_opt"].flatten()
 
-subprocess.Popen(["roslaunch", abs_launch_path + "rviz_standalone_complete.launch", 'gazebo_model_type:=sliding_hip', 'use_joint_publisher_gui:=false'])
+subprocess.Popen(["roslaunch", abs_launch_path + "rviz_standalone.launch", 'use_joint_publisher_gui:=false'])
 rospy.loginfo("leg jump replay visualization on RViz started")
 
 joint_names.remove("universe")  # removing the "universe joint"

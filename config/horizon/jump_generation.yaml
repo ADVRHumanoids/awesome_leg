@@ -5,7 +5,7 @@ horizon:
   xacro_path: $(find awesome_leg)/description/urdf # urdf relative path (wrt to the package)
   
   urdf_path: $(find awesome_leg)/description/urdf/generated
-  
+
   urdf_name: awesome_leg_test_rig
 
   media_path: $(find awesome_leg)/media/horizon_jump # relative path where graphs, etc.. are saved
@@ -59,11 +59,11 @@ horizon:
         q_p_dot: [0.0, 0.0, 0.0]
       
       cost_weights:
-        contact_force: 0.0001
-        small_q_p_ddot: 0.001
+        contact_force: 0.001
+        # small_q_p_ddot: 0.001
         big_hip_jump: 10
-        big_foot_tip_clearance: 1
-        weight_min_input_diff: 0.0001 # cost for penalizing differences between successive inputs
+        big_foot_tip_clearance: 0.1
+        weight_min_input_diff: 0.001 # cost for penalizing differences between successive inputs
   
   horizon_resampler:
     dt: 0.001

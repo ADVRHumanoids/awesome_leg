@@ -19,6 +19,8 @@ void MatReplayerRt::reset_flags()
     _pause_started = false;
     _pause_finished = false;
     _send_eff_ref = false;
+    _jump_now = false;
+    _recompute_approach_traj = true;
 
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
 
@@ -35,9 +37,9 @@ void MatReplayerRt::update_clocks()
     }
 
     // Reset timers, if necessary
-    if (_loop_time >= _loop_reset_time)
+    if (_loop_time >= _loop_timer_reset_time)
     {
-        _loop_time = _loop_time - _loop_reset_time;
+        _loop_time = _loop_time - _loop_timer_reset_time;
     }
 
     if(_pause_time >= _traj_pause_time)
@@ -106,6 +108,7 @@ void MatReplayerRt::add_data2dump_logger()
     _dump_logger->add("stop_damping", _stop_damping);
     _dump_logger->add("q_p_meas", _q_p_meas);
     _dump_logger->add("q_p_dot_meas", _q_p_meas);
+    _dump_logger->add("plugin_time", _loop_time);
 
 }
 
@@ -115,13 +118,44 @@ void MatReplayerRt::init_nrt_ros_bridge()
 
     _ros = std::make_unique<RosSupport>(nh);
 
-    // /* Service server */
-    // _ell_traj_srv = _ros->advertiseService(
-    //     "my_ell_traj_srvc",
-    //     &MatReplayerRt::on_ell_traj_recv_srv,
-    //     this,
-    //     &_queue);
+    /* Service server */
+    _jump_now_srv = _ros->advertiseService(
+        "my_jump_now",
+        &MatReplayerRt::on_jump_msg_rcvd,
+        this,
+        &_queue);
 
+}
+
+bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
+                    awesome_leg::JumpNowResponse& res)
+{
+
+    _jump = req.jump_now;
+
+    if (req.jump_now)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n Received jump signal! Hopefully the robot won't break...\n");
+
+        res.message = "Starting replaying of jump trajectory!";
+        
+    }
+
+    if (!req.jump_now)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n Stopping trajectory replay ...\n");
+
+        res.message = "Stopping trajectory replay!";
+
+        _recompute_approach_traj = true; // resetting flag so that a new approaching traj can be computed
+
+    }
+
+    res.success = true;
+
+    return true; 
 }
 
 void MatReplayerRt::load_opt_data()
@@ -158,6 +192,8 @@ void MatReplayerRt::compute_approach_traj()
 {
 
     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
+
+    _recompute_approach_traj = false;
 
 }
 
@@ -215,6 +251,11 @@ void MatReplayerRt::send_trajectory()
     }
 
     // If publishing the approach traj -> call the associated method
+    if (_recompute_approach_traj)
+    {
+        compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
+    }
+
     if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
 
@@ -278,7 +319,8 @@ bool MatReplayerRt::on_initialize()
 
 void MatReplayerRt::starting()
 {
-    load_opt_data(); // load trajectory from file (to be èut in starting because otherwise a seg fault will arise)
+    load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
+    // a seg fault will arise)
 
     init_dump_logger();
 
@@ -287,13 +329,15 @@ void MatReplayerRt::starting()
     init_clocks(); // initialize clocks timers
 
     // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + 
+            ControlMode::Damping());
     _robot->setStiffness(_replay_stiffness);
     _robot->setDamping(_replay_damping);
 
     update_state(); // read current jnt positions and velocities
 
-    compute_approach_traj(); // based on the current state, compute a smooth transition to the first trajectory position sample
+    compute_approach_traj(); // based on the current state, compute a smooth transition to the\\
+    first trajectory position sample
 
     // Move on to run()
     start_completed();
@@ -302,14 +346,18 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    
-    send_trajectory();
+    _queue.run();
 
+    if (_jump) // only jump if a positive jump signal was received
+    {
+        send_trajectory();
+    }
+    
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    if (_first_run == true)
+    if (_first_run == true & _jump)
     { // this is the end of the first control loop
         _first_run = false;
     }

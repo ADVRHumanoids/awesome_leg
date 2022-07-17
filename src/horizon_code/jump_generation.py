@@ -117,7 +117,7 @@ jnt_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/
 # cost weights
 
 weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
-weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
+# weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
 weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_hip_jump") # maximizing the jump height (measured at the hip)
 weight_tip_clearance=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") # maximizing the jump height (measured at the tip)
 weight_min_input_diff=rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
@@ -422,7 +422,6 @@ useful_solutions_res={"q_p":p_res,"q_p_dot":v_res, "q_p_ddot":a_res,
 ms_res.store(useful_solutions_res) # saving solution data to file
 
 # copying stuff for future debugging
-shutil.copyfile(opt_res_path + "/jump_test/horizon_offline_solver.mat", target + sol_mat_name + current_time + ".mat")
 shutil.copyfile(opt_res_path + "/jump_test/horizon_offline_solver_res.mat", target + res_sol_mat_name + current_time + ".mat")
 
 if save_sol_as_init: # save the solution as the initialization for the next sim

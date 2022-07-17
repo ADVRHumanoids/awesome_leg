@@ -1,0 +1,7 @@
+bool jump_now
+
+---
+
+string message
+
+bool success
