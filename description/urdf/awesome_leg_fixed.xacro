@@ -11,7 +11,7 @@
 
   <!--%%%%%%%%%%%%%%%% IMPORTING ALL GAZEBO CUSTOMIZATION ELEMENTS %%%%%%%%%%%%%%%%-->
 
-  <xacro:include filename="$(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf" />
+  <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf" />
 
   <!--%%%%%%%%%%%%%%%% LOCALLY DEFINED LINKS (not included through URDFs) %%%%%%%%%%%%%%%%-->
 

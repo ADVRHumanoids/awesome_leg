@@ -74,14 +74,14 @@
         <visual>
         <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/hip-yaw.stl" scale="0.001 0.001 0.001"/>
+            <mesh filename="package://awesome_leg/description/meshes/visual/hip-yaw.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         <material name="grey"/>
         </visual>
         <collision>
         <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/hip-yaw.stl" scale="0.001 0.001 0.001"/>
+            <mesh filename="package://awesome_leg/description/meshes/collision/hip-yaw.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </collision>
     </link>
@@ -96,13 +96,13 @@
         <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
         <material name="sky_blue"/>
         <geometry>
-            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/hip-pitch.stl" scale="0.001 0.001 0.001"/>
+            <mesh filename="package://awesome_leg/description/meshes/visual/hip-pitch.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </visual>
         <collision>
         <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
         <geometry>
-            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/hip-pitch.stl" scale="0.001 0.001 0.001"/>
+            <mesh filename="package://awesome_leg/description/meshes/collision/hip-pitch.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </collision>
     </link>
@@ -117,13 +117,13 @@
         <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
         <material name="grey"/>
         <geometry name="1_stick_visual">
-            <mesh filename="package://awesome_leg_pholus/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
+            <mesh filename="package://awesome_leg/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </visual>
         <collision>
         <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
         <geometry name="1_stick_collision">
-            <mesh filename="package://awesome_leg_pholus/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
+            <mesh filename="package://awesome_leg/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
         </geometry>
         </collision>
     </link>

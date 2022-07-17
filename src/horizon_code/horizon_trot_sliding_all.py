@@ -42,7 +42,7 @@ tanh_coeff = rospy.get_param("horizon/horizon_i_q_estimator/tanh_coeff")  # coef
 rospackage=rospkg.RosPack() # Absolute path to the ROS package
 today = date.today() # current date; used for storing different simulations
 today_is = today.strftime("%d-%m-%Y") # time to string 
-config_path=rospackage.get_path("awesome_leg_pholus")+"/config/" # configuration files path
+config_path=rospackage.get_path("awesome_leg")+"/config/" # configuration files path
 horizon_config_path = config_path + "horizon/"
 
 ## Creating folders for saving plots and other data (if not already existing). This folders are also used by horizon_plot.py (plots graphs)
@@ -56,7 +56,7 @@ ms = mat_storer.matStorer(opt_res_target)# initializing storer object for opt re
 
 shutil.copyfile(config_path+"actuators.yaml", media_target+"/actuators.yaml") # saving a copy of the used actuator config file for future reference and debugging
 shutil.copyfile(horizon_config_path+"horizon_trot_sliding_all.yaml", media_target+"/horizon.yaml") # saving a copy of the used horizon config file for future reference and debugging
-shutil.copyfile(rospackage.get_path("awesome_leg_pholus")+"/src"+"/"+scibidibi.path.basename(__file__), media_target+"/"+scibidibi.path.basename(__file__)) # saving a copy of this script for future reference and debugging
+shutil.copyfile(rospackage.get_path("awesome_leg")+"/src"+"/"+scibidibi.path.basename(__file__), media_target+"/"+scibidibi.path.basename(__file__)) # saving a copy of this script for future reference and debugging
 
 if save_sol_as_init: # save the solution as the initialization for the next sim
     ms_opt_init = mat_storer.matStorer(opt_res_path+"/horizon_offline_solver_init.mat")

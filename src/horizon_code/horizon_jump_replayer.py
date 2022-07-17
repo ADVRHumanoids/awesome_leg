@@ -20,16 +20,16 @@ import subprocess
 ########################## INITIALIZATIONS & Co ##########################
 
 # Loading some paramters directly from YAML
-abs_horizon_config_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/config/horizon/"
-abs_launch_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/launch/"
-urdf_base_path = rospkg.RosPack().get_path("awesome_leg_pholus")+"/description/urdf/"
+abs_horizon_config_path = rospkg.RosPack().get_path("awesome_leg")+"/config/horizon/"
+abs_launch_path = rospkg.RosPack().get_path("awesome_leg")+"/launch/"
+urdf_base_path = rospkg.RosPack().get_path("awesome_leg")+"/description/urdf/"
 
 config_file_name = "horizon_replayer.yaml"
 config_path = abs_horizon_config_path + config_file_name
 with open(config_path, 'r') as stream:
     horizon_yaml = yaml.safe_load(stream)
 
-opt_results = rospkg.RosPack().get_path("awesome_leg_pholus") + "/" + horizon_yaml["horizon"]["horizon_replayer"]["opt_results_rel_path"]  # optimal results absolute pathù
+opt_results = rospkg.RosPack().get_path("awesome_leg") + "/" + horizon_yaml["horizon"]["horizon_replayer"]["opt_results_rel_path"]  # optimal results absolute pathù
 
 urdf_path = urdf_base_path + horizon_yaml["horizon"]["horizon_replayer"]["urdf_name"]  # URDF absolute path
 urdf_file = open(urdf_path, "r").read()

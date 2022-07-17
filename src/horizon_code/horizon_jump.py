@@ -43,7 +43,7 @@ now = datetime.now()
 current_time = now.strftime("_%H_%M_%S")
 
 rospackage=rospkg.RosPack() # Only for taking the path to the leg package
-config_path=rospackage.get_path("awesome_leg_pholus")+"/config/" # configuration files path
+config_path=rospackage.get_path("awesome_leg")+"/config/" # configuration files path
 horizon_config_path = config_path + "horizon/"
 ## Creating folders for saving plots and other data (if not already existing). This folders are also used by horizon_plot.py
 

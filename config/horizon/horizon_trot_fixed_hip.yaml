@@ -2,12 +2,12 @@
 
 horizon:
 
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
+  urdf_path: $(find awesome_leg)/description/urdf/awesome_leg_complete_fixed.urdf # urdf relative path (wrt to the package)
  
-  media_path: $(find awesome_leg_pholus)/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
+  media_path: $(find awesome_leg)/media/horizon_trot/fixed_hip # relative path where graphs, etc.. are saved
   simulation_name: "default" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
 
-  opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/fixed_hip
+  opt_results_path: $(find awesome_leg)/opt_results/horizon_trot/fixed_hip
 
   horizon_solver: # horizon optimization problem-specific parameters
 

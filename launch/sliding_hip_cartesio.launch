@@ -4,19 +4,19 @@
     <arg name="gui" default="true"/>
 
     <param name="model_description/robot_description"
-        textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_complete.urdf"/>
+        textfile="$(find awesome_leg)/description/urdf/awesome_leg_complete.urdf"/>
 
     <param name="model_description/robot_description_semantic"
-        textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg_complete.srdf"/>
+        textfile="$(find awesome_leg)/description/srdf/awesome_leg_complete.srdf"/>
 
     <param name="robot_description"
-        textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf"/>
+        textfile="$(find awesome_leg)/description/urdf/awesome_leg.urdf"/>
 
     <param name="robot_description_semantic"
-        textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg.srdf"/>
+        textfile="$(find awesome_leg)/description/srdf/awesome_leg.srdf"/>
 
     <param name="cartesian/problem_description"
-        textfile="$(find awesome_leg_pholus)/config/cartesio/sliding_hip_cartesio.yaml"/>
+        textfile="$(find awesome_leg)/config/cartesio/sliding_hip_cartesio.yaml"/>
 
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <!-- Control frequency (Hz) -->
@@ -32,7 +32,7 @@
             type="rviz"
             name="rviz"
             pkg="rviz"
-            args="-d $(find awesome_leg_pholus)/rviz/sliding_hip_cartesio.rviz"/>
+            args="-d $(find awesome_leg)/rviz/sliding_hip_cartesio.rviz"/>
             output="screen"/>
 
 </launch>

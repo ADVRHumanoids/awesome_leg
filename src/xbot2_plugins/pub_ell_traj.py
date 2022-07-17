@@ -4,7 +4,7 @@
 
 import rospy
 
-from awesome_leg_pholus.srv import EllTrajRt, EllTrajRtRequest
+from awesome_leg.srv import EllTrajRt, EllTrajRtRequest
 
 rospy.init_node("ell_traj_setter")
 

@@ -2,24 +2,24 @@
 
 inertial_identification_static:
 
-  actuators_config_path: $(find awesome_leg_pholus)/config/actuators.yaml
+  actuators_config_path: $(find awesome_leg)/config/actuators.yaml
   
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_reduced.urdf
+  urdf_path: $(find awesome_leg)/description/urdf/awesome_leg_reduced.urdf
 
   # Used calibration poses
-  matfile_paths: [$(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose1/robot_state_log__0_2022_02_02__17_14_40.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose2/robot_state_log__0_2022_02_02__17_17_21.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose3/robot_state_log__0_2022_02_02__17_18_49.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose4/robot_state_log__0_2022_02_02__17_20_31.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose5/robot_state_log__0_2022_02_02__17_22_27.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose6/robot_state_log__0_2022_02_02__17_24_16.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose7/robot_state_log__0_2022_02_02__17_25_30.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose8/robot_state_log__0_2022_02_02__17_26_50.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose9/robot_state_log__0_2022_02_02__17_28_10.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose10/robot_state_log__0_2022_02_02__17_29_32.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose11/robot_state_log__0_2022_02_02__17_30_35.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose12/robot_state_log__0_2022_02_02__17_32_30.mat,
-                  $(find awesome_leg_pholus)/test_results/fixed_hip_setup/static_poses/pose13/robot_state_log__0_2022_02_02__17_33_17.mat]
+  matfile_paths: [$(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose1/robot_state_log__0_2022_02_02__17_14_40.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose2/robot_state_log__0_2022_02_02__17_17_21.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose3/robot_state_log__0_2022_02_02__17_18_49.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose4/robot_state_log__0_2022_02_02__17_20_31.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose5/robot_state_log__0_2022_02_02__17_22_27.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose6/robot_state_log__0_2022_02_02__17_24_16.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose7/robot_state_log__0_2022_02_02__17_25_30.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose8/robot_state_log__0_2022_02_02__17_26_50.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose9/robot_state_log__0_2022_02_02__17_28_10.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose10/robot_state_log__0_2022_02_02__17_29_32.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose11/robot_state_log__0_2022_02_02__17_30_35.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose12/robot_state_log__0_2022_02_02__17_32_30.mat,
+                  $(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose13/robot_state_log__0_2022_02_02__17_33_17.mat]
 
 
 

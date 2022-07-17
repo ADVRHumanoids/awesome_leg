@@ -2,7 +2,7 @@
 
 import rospy
 
-from awesome_leg_pholus.srv import BypassDspRt, BypassDspRtRequest
+from awesome_leg.srv import BypassDspRt, BypassDspRtRequest
 
 rospy.init_node("bypass_dsp_impedance_setter")
 

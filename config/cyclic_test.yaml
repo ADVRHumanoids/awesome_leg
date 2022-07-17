@@ -2,7 +2,7 @@
 
 cyclic_test: 
 
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg.urdf
+  urdf_path: $(find awesome_leg)/description/urdf/awesome_leg.urdf
 
   approaching_traj: # configurations for the node used to move the leg to its initial position
 

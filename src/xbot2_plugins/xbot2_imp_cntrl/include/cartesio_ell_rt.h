@@ -1,8 +1,7 @@
 #ifndef CARTESIO_ELL_RT
 #define CARTESIO_ELL_RT
 
-#include "/home/andreap/matlogger_ws/install/include/matlogger2/matlogger2.h"
-// #include <matlogger2/matlogger2.h>
+#include <matlogger2/matlogger2.h>
 
 #include <xbot2/xbot2.h>
 
@@ -16,7 +15,7 @@
 
 #include <math.h> 
 
-#include <awesome_leg_pholus/EllTrajRt.h>
+#include <awesome_leg/EllTrajRt.h>
 
 #include <thread>
 
@@ -136,12 +135,12 @@ private:
     void peisekah_transition();
 
     // ROS service callback
-    bool on_ell_traj_recv_srv(const awesome_leg_pholus::EllTrajRtRequest& req,
-                          awesome_leg_pholus::EllTrajRtResponse& res);
+    bool on_ell_traj_recv_srv(const awesome_leg::EllTrajRtRequest& req,
+                          awesome_leg::EllTrajRtResponse& res);
 
     // XBot2.0 server wrapping the ones from ROS
-    ServiceServerPtr<awesome_leg_pholus::EllTrajRtRequest,
-                     awesome_leg_pholus::EllTrajRtResponse> _ell_traj_srv;
+    ServiceServerPtr<awesome_leg::EllTrajRtRequest,
+                     awesome_leg::EllTrajRtResponse> _ell_traj_srv;
                      
 };
 

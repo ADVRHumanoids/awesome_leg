@@ -5,18 +5,18 @@
   <arg name="trot_type" default="fixed_hip" /> <!-- trot type to be solved. Allowed values: "sliding_hip", "sliding_all" -->
 
   <group if="$(eval arg('task_type')=='jump')">
-    <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_jump.py" />
+    <node name="horizon_leg_solver" pkg="awesome_leg" type="horizon_jump.py" />
   </group>
   <group if="$(eval arg('task_type')=='trot')">
     <!-- loading some horizon solver parameters-->
     <group if="$(eval arg('trot_type')=='fixed_hip')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_trot_fixed_hip.py" output="screen"/>
+      <node name="horizon_leg_solver" pkg="awesome_leg" type="horizon_trot_fixed_hip.py" output="screen"/>
     </group>
     <group if="$(eval arg('trot_type')=='sliding_hip')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_trot_sliding_hip.py" output="screen"/>
+      <node name="horizon_leg_solver" pkg="awesome_leg" type="horizon_trot_sliding_hip.py" output="screen"/>
     </group>
     <group if="$(eval arg('trot_type')=='sliding_all')">
-      <node name="horizon_leg_solver" pkg="awesome_leg_pholus" type="horizon_trot_sliding_all.py" output="screen"/>
+      <node name="horizon_leg_solver" pkg="awesome_leg" type="horizon_trot_sliding_all.py" output="screen"/>
     </group>
   </group>
 

@@ -197,8 +197,8 @@ void CartesioEllRt::compute_ref_traj(double time)
 
 }
 
-bool CartesioEllRt::on_ell_traj_recv_srv(const awesome_leg_pholus::EllTrajRtRequest& req,
-                          awesome_leg_pholus::EllTrajRtResponse& res)
+bool CartesioEllRt::on_ell_traj_recv_srv(const awesome_leg::EllTrajRtRequest& req,
+                          awesome_leg::EllTrajRtResponse& res)
 {
 
     _traj_par_callback_trigger = true; // to signal to other methods that a callback was received

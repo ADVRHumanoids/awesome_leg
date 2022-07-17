@@ -2,13 +2,13 @@
 
 horizon:
 
-  urdf_path: $(find awesome_leg_pholus)/description/urdf/awesome_leg_complete_sliding_all.urdf # urdf relative path (wrt to the ROS package)"
+  urdf_path: $(find awesome_leg)/description/urdf/awesome_leg_complete_sliding_all.urdf # urdf relative path (wrt to the ROS package)"
  
-  media_path: $(find awesome_leg_pholus)/media/horizon_trot/sliding_all # relative path where graphs, a copy of the opt results etc.. are saved
+  media_path: $(find awesome_leg)/media/horizon_trot/sliding_all # relative path where graphs, a copy of the opt results etc.. are saved
   simulation_name: "trot" # (opt results and graphs are automatically saved inside package_abs_path/media/task_name/sub_task_name/today_date/simulation_name) 
   # To differentiate between simulations of the same task_type and/or of the same sub_task_type (if carried out on the same day), modify the simulation_name before each simulation.
 
-  opt_results_path: $(find awesome_leg_pholus)/opt_results/horizon_trot/sliding_all # auxiliary folder used for storing the LAST solution 
+  opt_results_path: $(find awesome_leg)/opt_results/horizon_trot/sliding_all # auxiliary folder used for storing the LAST solution 
   
   xbot_command_pub: # some horizon-xbot configuration parameters
 

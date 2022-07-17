@@ -9,9 +9,9 @@
     <param name="/horizon/horizon_plotter/save_fig" type="bool" value="$(arg save_fig) "/>
     
     <!-- Simply load all the necessary parameters into the parameter server -->
-    <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>
+    <include file="$(find awesome_leg)/launch/load_params.launch" pass_all_args="true"/>
     
     <!-- Launch the plotter node -->
-    <node name="horizon_plotter" pkg="awesome_leg_pholus" type="horizon_plotter.py" output="screen"/> 
+    <node name="horizon_plotter" pkg="awesome_leg" type="horizon_plotter.py" output="screen"/> 
 
 </launch>

@@ -9,6 +9,8 @@
 
 #include "plugin_utils.hpp"
 
+#include "matlogger2/matlogger2.h"
+
 using namespace plugin_utils;
 
 
@@ -351,26 +353,8 @@ TrajLoader::TrajLoader(std::string data_path, bool column_major, double resample
 :_data_path{data_path}, _column_major_order{column_major}, _resample_err_tol{resample_err_tol}
 {
 
-    std::string extension = get_file_extension(data_path);
-
-    if (extension == "")
-    { // no extension --> this class will assume the user wants to read from csv files
-        
-        load_data_from_csv(data_path);
-
-    }
-    else if(extension == "mat")
-    { // load from .mat database
-
-        load_data_from_mat(data_path);
-
-    }
-    else
-    { // unsupported extension 
-
-        throw std::runtime_error(std::string("TrajLoader: Unsupported extension ") + extension + std::string(" provided.\n"));
-
-    }
+    // load_data_from_mat(data_path);
+    load_data_from_csv(data_path);
 
     check_loaded_data_dims();
     
@@ -572,7 +556,7 @@ void TrajLoader::load_data_from_csv(std::string data_path)
 void TrajLoader::load_data_from_mat(std::string math_path)
 {
     
-    throw std::invalid_argument(std::string("load_data_from_mat: Reading from mat databases is not supported yet!! \n")); // to be removed upon new MatLogger2 merge
+    // throw std::invalid_argument(std::string("load_data_from_mat: Reading from mat databases is not supported yet!! \n")); // to be removed upon new MatLogger2 merge
 
     // XBot::MatLogger2::Options opts;
     // opts.load_file_from_path = true; // enable reading
@@ -582,7 +566,7 @@ void TrajLoader::load_data_from_mat(std::string math_path)
     // bool q_p_read_ok = _load_logger->readvar(_q_p_name, _q_p, slices);
     // bool q_p_dot_read_ok = _load_logger->readvar(_q_p_dot_name, _q_p_dot, slices);
     // bool tau_read_ok = _load_logger->readvar(_efforts_name, _tau, slices);
-    // bool dt_read_ok = _load_logger->readvar(_dt_name, _dt_opt, slices);
+    // bool dt_read_ok = _load_logger->readvar(_dt_name, _dt_opt, slices); // here fix _dt_opt (should change to MatrixXd)
 
     // if (!q_p_read_ok)
     // { // reading failed    
