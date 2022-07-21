@@ -56,6 +56,7 @@ void MatReplayerRt::get_params_from_config()
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
+    _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
@@ -161,12 +162,14 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 void MatReplayerRt::load_opt_data()
 {   
 
-    _traj = plugin_utils::TrajLoader(_mat_path);
+    _traj = plugin_utils::TrajLoader(_mat_path + _mat_name);
+
     int n_traj_jnts = _traj.get_n_jnts();
 
     if(n_traj_jnts != _n_jnts_model) 
     {
-        jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
+        jwarn("The loaded trajectory has {} joints, while the robot has {} .\n Make sure to somehow select the right components!!",
+        n_traj_jnts, _n_jnts_model);
     }
 
     _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
@@ -212,7 +215,16 @@ void MatReplayerRt::send_approach_trajectory()
     {
         _q_p_cmd = _approach_traj.eval_at(_sample_index);
 
-        _robot->setPositionReference(_q_p_cmd);
+        if (_is_first_jnt_passive)
+        { // send the last _n_jnts_model components
+            _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
+        }
+        else{
+            
+            _robot->setPositionReference(_q_p_cmd);
+
+        }
+        
 
         _robot->move(); // Send commands to the robot
     }
@@ -282,12 +294,28 @@ void MatReplayerRt::send_trajectory()
 
             _tau_cmd = _tau_ref.col(_sample_index);
 
-            _robot->setPositionReference(_q_p_cmd);
+            if (_is_first_jnt_passive)
+            { // send the last _n_jnts_model components
+                _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
 
-            if(_send_eff_ref)
-            {
-                _robot->setEffortReference(_tau_cmd);
+                if(_send_eff_ref)
+                {
+                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
+                }
+
             }
+            else{
+            
+                _robot->setPositionReference(_q_p_cmd);
+
+                if(_send_eff_ref)
+                {
+                    _robot->setEffortReference(_tau_cmd);
+                }
+
+            }
+
+            
             
             _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
             _robot->setDamping(_replay_damping);
@@ -304,7 +332,6 @@ void MatReplayerRt::send_trajectory()
 
 bool MatReplayerRt::on_initialize()
 {   
-    get_params_from_config(); // load params from yaml file
     
     _plugin_dt = getPeriodSec();
 
@@ -319,6 +346,8 @@ bool MatReplayerRt::on_initialize()
 
 void MatReplayerRt::starting()
 {
+    get_params_from_config(); // load params from yaml file
+    
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 
@@ -341,7 +370,7 @@ void MatReplayerRt::starting()
 
     // Move on to run()
     start_completed();
-
+    
 }
 
 void MatReplayerRt::run()

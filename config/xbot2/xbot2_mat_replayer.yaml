@@ -43,6 +43,7 @@ xbotcore_plugins:
         params:
             mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/, type: string}
             mat_name: {value: horizon_offline_solver_res.mat, type: string}
+            is_first_jnt_passive : {value: true, type: bool}
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double} 
@@ -59,7 +60,7 @@ xbotcore_plugins:
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}
     /jm/tx_filter_cutoff: {value: 2.0, type: double}
-    /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+    /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 
     
     

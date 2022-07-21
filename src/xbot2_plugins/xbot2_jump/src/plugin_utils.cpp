@@ -13,7 +13,6 @@
 
 using namespace plugin_utils;
 
-
 ///////////////////////////// PeisekahTrans /////////////////////////////
 
 PeisekahTrans::PeisekahTrans(){};
@@ -365,21 +364,19 @@ TrajLoader::TrajLoader(std::string data_path, bool column_major, double resample
 :_data_path{data_path}, _column_major_order{column_major}, _resample_err_tol{resample_err_tol}
 {
 
-    // load_data_from_mat(data_path);
-    load_data_from_csv(data_path);
+    load_data_from_mat(data_path);
 
     check_loaded_data_dims();
-    
+
     _n_nodes = get_n_samples(_q_p);
     _n_jnts = get_n_jnts(_q_p);
 
     _sample_times = Eigen::VectorXd::Zero(_n_nodes);
     for (int i = 0; i < (_n_nodes - 1); i++)
     {
-        _sample_times(i + 1) = _sample_times(i) + _dt_opt(i, 0);
+        _sample_times(i + 1) = _sample_times(i) + _dt_opt(i);
     }
     _exec_time = _sample_times(_n_nodes - 1) - _sample_times(0);
-
 
     int interp_dir = (_column_major_order) ? 1 : 0;
     opt_traj.emplace(_q_p_name, TrajLinInterp(_sample_times, _q_p, interp_dir));

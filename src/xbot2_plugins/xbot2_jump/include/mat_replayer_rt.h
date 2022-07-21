@@ -82,7 +82,8 @@ private:
         _pause_started = false, _pause_finished = false, 
         _send_eff_ref = false,
         _jump = false,
-        _recompute_approach_traj = true;
+        _recompute_approach_traj = true,
+        _is_first_jnt_passive = false;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
