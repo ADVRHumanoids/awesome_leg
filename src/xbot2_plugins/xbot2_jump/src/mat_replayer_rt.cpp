@@ -57,6 +57,7 @@ void MatReplayerRt::get_params_from_config()
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
+    _resample = getParamOrThrow<bool>("~resample"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
@@ -172,7 +173,24 @@ void MatReplayerRt::load_opt_data()
         n_traj_jnts, _n_jnts_model);
     }
 
-    _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
+    if (_resample)
+    { // resample input data at the plugin frequency (for now it sucks)
+
+        _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
+
+    }
+    else
+    { // load raw data without changes
+
+        Eigen::MatrixXd dt_opt;
+
+        _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt);
+
+        jwarn("The loaded trajectory was generated with a dt of {} s, while the rt plugin runs at {} .\n ",
+        dt_opt(0), _plugin_dt);
+
+    }
+
 
 }
 
@@ -195,6 +213,8 @@ void MatReplayerRt::compute_approach_traj()
 {
 
     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
+
+    _dump_logger->add("approach_traj", _approach_traj.get_traj());
 
     _recompute_approach_traj = false;
 
@@ -263,10 +283,10 @@ void MatReplayerRt::send_trajectory()
     }
 
     // If publishing the approach traj -> call the associated method
-    if (_recompute_approach_traj)
-    {
-        compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
-    }
+    // if (_recompute_approach_traj)
+    // {
+    //     compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
+    // }
 
     if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
