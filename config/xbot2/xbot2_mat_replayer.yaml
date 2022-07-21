@@ -44,7 +44,7 @@ xbotcore_plugins:
             mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/, type: string}
             mat_name: {value: horizon_offline_solver_res.mat, type: string}
             is_first_jnt_passive : {value: true, type: bool}
-            resample: {value: true, type: bool}
+            resample: {value: false, type: bool}
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double} 
@@ -53,7 +53,7 @@ xbotcore_plugins:
             # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
             replay_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
             replay_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
-            send_eff_ref: {value: true, type: bool}
+            send_eff_ref: {value: false, type: bool}
             looped_traj: {value: true, type: bool}
             traj_pause_time: {value: 5, type: double}
 

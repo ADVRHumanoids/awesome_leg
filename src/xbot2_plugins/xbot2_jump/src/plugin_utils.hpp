@@ -3,8 +3,9 @@
 
 #include <math.h> 
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
+// #include <Eigen/Dense>
+// #include <Eigen/Core>
+#include <Eigen/Eigen>
 
 #include <vector>
 #include <map>

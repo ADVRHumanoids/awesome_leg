@@ -94,11 +94,13 @@ void MatReplayerRt::init_dump_logger()
 
     _dump_logger->create("q_p_meas", _n_jnts_model);
     _dump_logger->create("q_p_dot_meas", _n_jnts_model);
-
-    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
-    dscrptn_files_cell[0] = _robot->getUrdfPath();
-    dscrptn_files_cell[1] = _robot->getSrdfPath();
-    _dump_logger->save("description_files", dscrptn_files_cell);
+    _dump_logger->add("q_ref", _q_p_ref); 
+    _dump_logger->add("q_dot_ref", _q_p_dot_ref);
+    _dump_logger->add("tau_ref", _tau_ref);
+    // auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
+    // dscrptn_files_cell[0] = _robot->getUrdfPath();
+    // dscrptn_files_cell[1] = _robot->getSrdfPath();
+    // _dump_logger->save("description_files", dscrptn_files_cell);
 
 }
 
@@ -256,7 +258,8 @@ void MatReplayerRt::send_trajectory()
     // first, set the control mode and stiffness when entering the first control loop (to be used during the approach traj)
     if (_first_run)
     { // first time entering the control loop
-
+        
+        _sample_index = 0;
         _approach_traj_started = true; // flag signaling the start of the approach trajectory
        
     }
@@ -301,8 +304,10 @@ void MatReplayerRt::send_trajectory()
         if (_sample_index > (_traj.get_n_nodes() - 1))
         { // reached the end of the trajectory
 
+            
             _traj_finished = true;
             _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+            
 
         }
         else
@@ -311,7 +316,7 @@ void MatReplayerRt::send_trajectory()
             _q_p_cmd = _q_p_ref.col(_sample_index);
 
             // _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
-
+            
             _tau_cmd = _tau_ref.col(_sample_index);
 
             if (_is_first_jnt_passive)
@@ -334,8 +339,6 @@ void MatReplayerRt::send_trajectory()
                 }
 
             }
-
-            
             
             _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
             _robot->setDamping(_replay_damping);
@@ -395,6 +398,9 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
+    // jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+    //                "_sample_index: {}\n", _sample_index);
+
     _queue.run();
 
     if (_jump) // only jump if a positive jump signal was received

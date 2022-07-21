@@ -378,10 +378,12 @@ TrajLoader::TrajLoader(std::string data_path, bool column_major, double resample
     }
     _exec_time = _sample_times(_n_nodes - 1) - _sample_times(0);
 
-    int interp_dir = (_column_major_order) ? 1 : 0;
-    opt_traj.emplace(_q_p_name, TrajLinInterp(_sample_times, _q_p, interp_dir));
-    opt_traj.emplace(_q_p_dot_name, TrajLinInterp(_sample_times, _q_p_dot, interp_dir));
-    opt_traj.emplace(_efforts_name, TrajLinInterp(_sample_times.head(_n_nodes - 1), _tau, interp_dir));          
+    // int interp_dir = (_column_major_order) ? 1 : 0;
+    // opt_traj.emplace(_q_p_name, TrajLinInterp(_sample_times, _q_p, interp_dir));
+    // opt_traj.emplace(_q_p_dot_name, TrajLinInterp(_sample_times, _q_p_dot, interp_dir));
+    // opt_traj.emplace(_efforts_name,
+    //                 TrajLinInterp(_sample_times.head(_n_nodes - 1),
+    //                     _tau((Eigen::indexing::all, Eigen::indexing::last - 1) ), interp_dir));          
     
 }
 
@@ -507,7 +509,9 @@ double TrajLoader::get_exec_time()
 }
 
 void TrajLoader::check_loaded_data_dims()
-{
+{   
+    // By convention, the tau value at the last node is zero.
+    // This way the q_p, q_p_dot and tau all have the same number of samples
     if ( !( ( get_n_jnts(_q_p) == get_n_jnts(_q_p_dot) ) && (get_n_jnts(_q_p_dot) == get_n_jnts(_tau)) ) )
     { // check number of joints consistency between data
 
@@ -516,7 +520,7 @@ void TrajLoader::check_loaded_data_dims()
 
     }
 
-    if ( !( (get_n_samples(_q_p) == get_n_samples(_q_p_dot)) && (get_n_samples(_q_p_dot) == (get_n_samples(_tau) + 1 )) ) )
+    if ( !( (get_n_samples(_q_p) == get_n_samples(_q_p_dot)) && (get_n_samples(_q_p_dot) == (get_n_samples(_tau))) ) )
     { // check cols (torque matri)
 
         throw std::invalid_argument(std::string("check_loaded_data_dims: ") +
@@ -524,11 +528,10 @@ void TrajLoader::check_loaded_data_dims()
 
     }
 
-    if (get_n_samples(_tau) != _dt_opt.size()) // note that size() returns the product 
+    if ((get_n_samples(_tau) - 1) != _dt_opt.size()) // note that size() returns the product 
     // cols * rows (ok for _dt_opt because it is a 1-D matrix)
     {
         int a = get_n_samples(_tau);
-        throw std::invalid_argument(std::to_string(a) + std::string(" ") );
 
         throw std::invalid_argument(std::string("check_loaded_data_dims:") +
                                     std::string("The size of the loaded dt vector does not match the other data!.\n"));
@@ -585,6 +588,9 @@ void TrajLoader::load_data_from_mat(std::string math_path)
     bool q_p_read_ok = _load_logger->readvar(_q_p_name, _q_p, slices);
     bool q_p_dot_read_ok = _load_logger->readvar(_q_p_dot_name, _q_p_dot, slices);
     bool tau_read_ok = _load_logger->readvar(_efforts_name, _tau, slices);
+    _tau.conservativeResize(_tau.rows(), _tau.cols()+1); // appending a vector of zero torques for the last sample
+    // (input always null at the last trajectory node)
+    _tau.col(_tau.cols() - 1) = Eigen::VectorXd::Zero(_tau.rows());
     bool dt_read_ok = _load_logger->readvar(_dt_name, _dt_opt, slices); // here fix _dt_opt (should change to MatrixXd)
 
     if (!q_p_read_ok)
