@@ -83,7 +83,7 @@ namespace plugin_utils{
             int get_n_jnts();
             int get_n_nodes();
             double get_exec_time();
-            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::VectorXd& dt_opt);
+            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::MatrixXd& dt_opt);
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res);
 
             
@@ -101,7 +101,8 @@ namespace plugin_utils{
             Eigen::MatrixXd _q_p;
             Eigen::MatrixXd _q_p_dot;
             Eigen::MatrixXd _tau;
-            Eigen::VectorXd _dt_opt, _sample_times;
+            Eigen::MatrixXd _dt_opt;
+            Eigen::VectorXd _sample_times;
 
             double _exec_time;
 

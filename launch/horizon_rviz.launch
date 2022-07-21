@@ -5,6 +5,7 @@
     <arg name="gui" default="true"/>
 
     <arg name="sliding_guide" default="true" />
+    <arg name="calibrated_urdf" default="false" />
 
     <node if="$(arg gui)"
             type="rviz"
@@ -16,7 +17,8 @@
     <!-- Simply load all the necessary parameters into the parameter server -->
     <include file="$(find awesome_leg)/launch/load_params.launch" pass_all_args="true"/>
 
-    <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' sliding_guide:=$(arg sliding_guide)" />
+    <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro'
+        sliding_guide:=$(arg sliding_guide) calibrated_urdf:=$(arg calibrated_urdf) " />
     
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen">
     <param name="publish_default_efforts" value="True"/>

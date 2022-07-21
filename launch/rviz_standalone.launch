@@ -6,8 +6,10 @@
     <arg name="use_joint_publisher_gui" default="true"/>
 
     <arg name="sliding_guide" default="true" />
+    <arg name="calibrated_urdf" default="false" />
 
-    <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' sliding_guide:=$(arg sliding_guide)" />
+    <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' 
+        sliding_guide:=$(arg sliding_guide) calibrated_urdf:=$(arg calibrated_urdf) " />
     
     <node if="$(arg gui)"
             type="rviz"

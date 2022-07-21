@@ -9,12 +9,25 @@
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
     
     <xacro:arg name="sliding_guide" default="true" />
+    <xacro:arg name="calibrated_urdf" default="true" />
     
-    <xacro:property name="test_righ_base_ext" value="0.1" />
-    <xacro:property name="test_righ_height" value="1.0" />
+    <xacro:property name="test_rig_base_ext" value="0.1" />
+    <xacro:property name="test_rig_height" value="1.0" />
     <xacro:property name="hip_mounting_offset" value="0.08" />
-    <xacro:property name="pelvis_mounting_height" value="0.3691" />
-    <xacro:property name="payload_mass" value="4.0" />
+
+    <xacro:if value = "$(arg calibrated_urdf)">
+
+        <xacro:property name="pelvis_mounting_height" value="0.25" />
+
+    </xacro:if>
+
+    <xacro:unless value = "$(arg calibrated_urdf)">
+
+        <xacro:property name="pelvis_mounting_height" value="0.3691" />
+
+    </xacro:unless>
+
+    <xacro:property name="payload_mass" value="10.0" />
 
     <link name="world" />
 
@@ -22,21 +35,21 @@
     <joint name="world_test_rig" type="fixed">
         <parent link="world" />
         <child link="test_rig" />
-        <origin xyz="0 0 ${test_righ_height / 2}" />
+        <origin xyz="0 0 ${test_rig_height / 2}" />
     </joint>
     
     <link name="test_rig"> 
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="${test_righ_base_ext} ${test_righ_base_ext} ${test_righ_height}" />
+                <box size="${test_rig_base_ext} ${test_rig_base_ext} ${test_rig_height}" />
             </geometry>
             <material name="brown"/>
         </visual>
         <collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
-                <box size="${test_righ_base_ext} ${test_righ_base_ext} ${test_righ_height}" />
+                <box size="${test_rig_base_ext} ${test_rig_base_ext} ${test_rig_height}" />
             </geometry>
         </collision>
         
@@ -53,7 +66,7 @@
         <joint name="test_rig2payload" type="prismatic">
             <parent link="test_rig" />
             <child link="payload_link" />
-            <origin xyz="${test_righ_base_ext + hip_mounting_offset} 0 ${pelvis_mounting_height}" />
+            <origin xyz="${test_rig_base_ext + hip_mounting_offset} 0 ${pelvis_mounting_height}" />
             <axis xyz="0 0 1" />
             <dynamics damping="0.0" friction="0.0" />
             <limit lower="-10" upper="10.0" effort="500" velocity="50.0" />
@@ -67,7 +80,7 @@
         <joint name="test_rig2payload" type="fixed">
             <parent link="test_rig" />
             <child link="payload_link" />
-            <origin xyz="${test_righ_base_ext + hip_mounting_offset} 0 ${pelvis_mounting_height}" />
+            <origin xyz="${test_rig_base_ext + hip_mounting_offset} 0 ${pelvis_mounting_height}" />
         </joint>
 
     </xacro:unless>
@@ -81,12 +94,23 @@
 
     </link>    
 
-    <joint name="test_rig2pelvis" type="fixed">
-        <parent link="payload_link" />
-        <child link="pelvis" />
-        <origin xyz="0 0 0" />
-    </joint>
+    <joint name="test_rig2shank" type="fixed">
+            <parent link="payload_link" />
+            <child link="pelvis" />
+            <origin xyz="0 0 0" />
+        </joint>
 
-    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf" />
+    <xacro:if value = "$(arg calibrated_urdf)">
+
+        <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg_reduced_calibrated.urdf" />
+        
+    </xacro:if>
+    
+    <xacro:unless value="$(arg calibrated_urdf)">
+
+        <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf" />
+
+    </xacro:unless>
+
 
 </robot>

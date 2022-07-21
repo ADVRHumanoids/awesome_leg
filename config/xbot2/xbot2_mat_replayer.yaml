@@ -41,9 +41,7 @@ xbotcore_plugins:
         thread: rt_mat_replayer
         type: mat_replayer_rt
         params:
-            # mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/horizon_offline_solver_res.mat, type: string}
             mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/, type: string}
-
             mat_name: {value: horizon_offline_solver_res.mat, type: string}
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}

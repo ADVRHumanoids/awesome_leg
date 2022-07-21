@@ -33,9 +33,10 @@ employ_opt_init = rospy.get_param("horizon/horizon_solver/employ_opt_init")  # i
 
 opt_init_name = rospy.get_param("horizon/horizon_solver/opt_init_name") # name of the initialization file to be loaded
 
-xacro_path = rospy.get_param("/horizon/xacro_path")  # urdf relative path (wrt to the package)
-urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf relative path (wrt to the package)
-urdf_name = rospy.get_param("/horizon/urdf_name")  # urdf relative path (wrt to the package)
+xacro_path = rospy.get_param("/horizon/xacro_path")
+urdf_path = rospy.get_param("/horizon/urdf_path")  
+urdf_name = rospy.get_param("/horizon/urdf_name")  
+is_calibrated = rospy.get_param("/horizon/is_calibrated")  
 
 media_path = rospy.get_param("/horizon/media_path")  # urdf relative path (wrt to the package)
 opt_res_path = rospy.get_param("/horizon/opt_results_path")  # urdf relative path (wrt to the package)
@@ -44,15 +45,21 @@ tanh_coeff = rospy.get_param("horizon/horizon_i_q_estimator/tanh_coeff")  # coef
 
 ##################### Generate urdf #########################
 
+
 try:
 
-    xacro_gen = subprocess.check_call(["xacro", "-o",\
-                                    urdf_path + "/" + urdf_name + ".urdf",\
-                                    xacro_path + "/" + urdf_name + ".urdf.xacro"])
+    is_calibrated_command  = "calibrated_urdf:=" + str(is_calibrated).lower()
+
+    xacro_gen = subprocess.check_call(["xacro",\
+                                xacro_path + "/" + urdf_name + ".urdf.xacro", \
+                                is_calibrated_command, \
+                                "-o", 
+                                urdf_path + "/" + urdf_name + ".urdf"])
             
 except:
 
     print('Failed to generate URDF.')
+
 
 ##################### Initializing objects for .mat storage #########################
 
@@ -259,14 +266,21 @@ trscptr = transcriptor.Transcriptor.make_method(transcriptor_name, prb, trans_op
 ## Obtaining some relevant quantities
 tau = kin_dyn.InverseDynamics(urdf_awesome_leg, contact_map.keys(),casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(q_p, q_p_dot, q_p_ddot, contact_map) # obtaining the joint efforts
 
+if is_calibrated:
+
+    shank_name = "shank"
+
+else:
+
+    shank_name = "hip1_1"
 # hip
-fk_hip = cs.Function.deserialize(urdf_awesome_leg.fk("hip1_1"))  # deserializing
+fk_hip = cs.Function.deserialize(urdf_awesome_leg.fk(shank_name))  # deserializing
 hip_position_initial = fk_hip(q = q_p_init)["ee_pos"]  # initial hip position (numerical)
 hip_position = fk_hip(q = q_p)["ee_pos"]  # hip position (symbolic)
 
 # hip vel
 dfk_hip = cs.Function.deserialize(
-    urdf_awesome_leg.frameVelocity("hip1_1", casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED))
+    urdf_awesome_leg.frameVelocity(shank_name, casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED))
 v_hip = dfk_hip(q = q_p, qdot = q_p_dot)["ee_vel_linear"]  # foot velocity
 
 # foot tip pos

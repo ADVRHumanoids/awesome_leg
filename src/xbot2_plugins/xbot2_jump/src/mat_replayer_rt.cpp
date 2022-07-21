@@ -19,7 +19,7 @@ void MatReplayerRt::reset_flags()
     _pause_started = false;
     _pause_finished = false;
     _send_eff_ref = false;
-    _jump_now = false;
+    _jump = false;
     _recompute_approach_traj = true;
 
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
@@ -55,7 +55,7 @@ void MatReplayerRt::get_params_from_config()
     // Reading some parameters from XBot2 config. YAML file
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
-    _math_name = getParamOrThrow<std::string>("~mat_name"); 
+    _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");

@@ -62,7 +62,7 @@ public:
 
 private:
     
-    std::string _mat_path, _math_name;
+    std::string _mat_path, _mat_name;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 

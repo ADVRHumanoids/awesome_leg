@@ -8,6 +8,8 @@ horizon:
 
   urdf_name: awesome_leg_test_rig
 
+  is_calibrated: true
+
   media_path: $(find awesome_leg)/media/horizon_jump # relative path where graphs, etc.. are saved
   
   opt_results_path: $(find awesome_leg)/opt_results/horizon_jump # where optimization .mat files are saved
@@ -61,7 +63,7 @@ horizon:
       cost_weights:
         contact_force: 0.001
         # small_q_p_ddot: 0.001
-        big_hip_jump: 10
+        big_hip_jump: 60
         big_foot_tip_clearance: 0.1
         weight_min_input_diff: 0.001 # cost for penalizing differences between successive inputs
   
