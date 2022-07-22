@@ -591,6 +591,10 @@ void TrajLoader::load_data_from_mat(std::string math_path)
     _tau.conservativeResize(_tau.rows(), _tau.cols()+1); // appending a vector of zero torques for the last sample
     // (input always null at the last trajectory node)
     _tau.col(_tau.cols() - 1) = Eigen::VectorXd::Zero(_tau.rows());
+    bool f_contact_read_ok = _load_logger->readvar(_f_contact_name, _f_contact, slices);
+    _f_contact.conservativeResize(_f_contact.rows(), _f_contact.cols()+1);
+    _f_contact.col(_f_contact.cols() - 1) = Eigen::VectorXd::Zero(_f_contact.rows());
+
     bool dt_read_ok = _load_logger->readvar(_dt_name, _dt_opt, slices); // here fix _dt_opt (should change to MatrixXd)
 
     if (!q_p_read_ok)
@@ -604,6 +608,10 @@ void TrajLoader::load_data_from_mat(std::string math_path)
     if (!tau_read_ok)
     { // reading failed    
         throw std::runtime_error(std::string("Failed to find tau from mat database at ") + math_path);
+    }
+    if (!f_contact_read_ok)
+    { // reading failed    
+        throw std::runtime_error(std::string("Failed to find f_contact from mat database at ") + math_path);
     }
     if (!dt_read_ok)
     { // reading failed    

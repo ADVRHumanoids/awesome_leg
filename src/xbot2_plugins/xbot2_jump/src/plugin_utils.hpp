@@ -97,11 +97,13 @@ namespace plugin_utils{
             std::string _q_p_name = "q_p"; // these names have to match the ones of the loaded data
             std::string _q_p_dot_name = "q_p_dot";
             std::string _efforts_name = "tau";
+            std::string _f_contact_name = "f_contact";
             std::string _dt_name = "dt_opt";
 
             Eigen::MatrixXd _q_p;
             Eigen::MatrixXd _q_p_dot;
             Eigen::MatrixXd _tau;
+            Eigen::MatrixXd _f_contact;
             Eigen::MatrixXd _dt_opt;
             Eigen::VectorXd _sample_times;
 
