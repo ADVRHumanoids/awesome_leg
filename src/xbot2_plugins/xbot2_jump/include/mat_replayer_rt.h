@@ -80,7 +80,7 @@ private:
         _traj_started = false, _traj_finished = false, 
         _first_run = true,  
         _pause_started = false, _pause_finished = false, 
-        _send_eff_ref = false,
+        _send_pos_ref = true,_send_eff_ref = false,
         _jump = false,
         _recompute_approach_traj = true,
         _is_first_jnt_passive = false, 
@@ -90,7 +90,8 @@ private:
         _nominal_traj_dt, _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 30.0,
         _approach_traj_exec_time = 4.0, 
-        _pause_time, _traj_pause_time = 2.0;
+        _pause_time, _traj_pause_time = 2.0,
+        _epsi_stiffness = 10, _epsi_damping = 0.1;
 
     int _n_jnts_model, 
         _sample_index = 0;

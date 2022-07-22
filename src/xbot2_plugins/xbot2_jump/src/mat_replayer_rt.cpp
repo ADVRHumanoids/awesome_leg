@@ -12,15 +12,18 @@ void MatReplayerRt::reset_flags()
 {
 
     _first_run = true; // reset flag in case the plugin is run multiple times
+
     _approach_traj_started = false;
     _approach_traj_finished = false;
+    _recompute_approach_traj = true;
+
     _traj_started = false;
     _traj_finished = false;
+
     _pause_started = false;
     _pause_finished = false;
-    _send_eff_ref = false;
+
     _jump = false;
-    _recompute_approach_traj = true;
 
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
 
@@ -68,6 +71,7 @@ void MatReplayerRt::get_params_from_config()
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
+    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
 }
@@ -324,17 +328,42 @@ void MatReplayerRt::send_trajectory()
 
             if (_is_first_jnt_passive)
             { // send the last _n_jnts_model components
-                _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
 
-                if(_send_eff_ref)
-                {
+                _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
+                
+                if (!_send_pos_ref && _send_eff_ref)
+                { //
+                    Eigen::VectorXd epsi_stiff(_n_jnts_model);
+                    Eigen::VectorXd epsi_damp(_n_jnts_model);
+
+                    for(int i = 0; i < _n_jnts_model; i++)
+                    {
+                        epsi_stiff(i) = _epsi_stiffness;
+                        epsi_damp(i) = _epsi_damping;
+                    }
+
+                    _robot->setStiffness(Eigen::VectorXd::Zero(_n_jnts_model) + epsi_stiff); // necessary at each loop (for some reason)
+                    _robot->setDamping(Eigen::VectorXd::Zero(_n_jnts_model) + epsi_damp);
+
                     _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
                 }
 
+                if(_send_pos_ref && _send_eff_ref)
+                {  
+
+                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
+                }
+
+
+
             }
             else{
-            
-                _robot->setPositionReference(_q_p_cmd);
+                
+                if(_send_pos_ref)
+                {
+                    _robot->setPositionReference(_q_p_cmd);
+                }
+                
 
                 if(_send_eff_ref)
                 {
