@@ -155,6 +155,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 
         _recompute_approach_traj = true; // resetting flag so that a new approaching traj can be computed
 
+        reset_flags();
     }
 
     res.success = true;
@@ -285,11 +286,13 @@ void MatReplayerRt::send_trajectory()
         
     }
 
-    // If publishing the approach traj -> call the associated method
-    // if (_recompute_approach_traj)
-    // {
-    //     compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
-    // }
+    // When the plugin is stopped from service, recompute a transition trajectory
+    // from the current state
+    if (_recompute_approach_traj)
+    {
+        
+        compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
+    }
 
     if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
@@ -387,7 +390,6 @@ void MatReplayerRt::starting()
     _robot->setDamping(_replay_damping);
 
     update_state(); // read current jnt positions and velocities
-
     compute_approach_traj(); // based on the current state, compute a smooth transition to the\\
     first trajectory position sample
 
@@ -398,8 +400,8 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    // jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-    //                "_sample_index: {}\n", _sample_index);
+
+    update_state(); // read current jnt positions and velocities
 
     _queue.run();
 
