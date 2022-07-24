@@ -2,7 +2,7 @@
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:include filename="$(find awesome_leg)/urdf/utils.urdf.xacro" />
+    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro" />
       
     <link name="pelvis">
         <inertial>

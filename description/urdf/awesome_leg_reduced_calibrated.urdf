@@ -21,7 +21,8 @@
         <color rgba="0.59 0.29 0.0 1"/>
     </material>
     
-    <link name="pelvis"/>
+    <link name="pelvis">
+    </link>
 
     <joint name="hip_pitch_1" type="revolute">
         <parent link="pelvis"/>

@@ -15,6 +15,6 @@
         <child link="pelvis"/>
     </joint>
 
-    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf" />
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro" />
 
   </robot>
