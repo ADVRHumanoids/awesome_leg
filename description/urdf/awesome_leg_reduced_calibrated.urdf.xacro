@@ -1,40 +1,29 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
 <!-- 
-    Leg base URDF (no external links). Variant of the URDF adapted for use with Pinocchio and for performing inertial parameter identification 
+    Leg modified base URDF (basically a simple double pendulum), with calibrated inertial parameters.
+    It is the awesome_leg_reduced.urdf file with modified inertial parameters obtained via an
+    identification procedure.
 -->
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <!-- ################### MATERIAL DEFINITIONS ################### -->
+    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro" />
 
-    <material name="sky_blue">
-        <color rgba="0.13 0.44 0.70 1"/>
-    </material>
-    <material name="grey">
-        <color rgba=" 0.6 0.6 0.6 1"/>
-    </material>
-    <material name="black">
-        <color rgba="0.4 0.4 0.4 1"/>
-    </material>
-    <material name="brown">
-        <color rgba="0.59 0.29 0.0 1"/>
-    </material>
-    
-    <!-- ################### LINKS ################### -->
-    <link name="pelvis"/>
-    
+    <link name="pelvis">
+    </link>
+
     <joint name="hip_pitch_1" type="revolute">
         <parent link="pelvis"/>
         <child link="shank"/>
-        <origin rpy="-1.57079632679 0 0" xyz="0.0 0.0 0.0"/>
+        <origin rpy="-1.57079632679 0 -1.57079632679" xyz="0.0 0.0 0.0"/>
         <axis xyz="0 0 1"/>
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>
-
+    
     <link name="shank">
         <inertial>
-        <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
+        <origin xyz="2.02539722e-03 2.36232975e-01 8.56697560e-02"/>
         <mass value="2.7264471"/>
         <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
         </inertial>
@@ -53,18 +42,18 @@
         </collision>
     </link>
 
-     <joint name="knee_pitch_1" type="revolute">
+    <joint name="knee_pitch_1" type="revolute">
         <parent link="shank"/>
         <child link="shin"/>
         <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
         <axis xyz="0 0 1"/>grey
         <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
     </joint>
-
+    
     <link name="shin">
         <inertial>
-        <mass value="1.1927236"/>
-        <origin xyz="0.19572282 -0.014549221 -0.020785942"/>
+        <mass value="1.23787877e+00"/>
+        <origin xyz="1.52366156e-01 -3.92736885e-04 -2.00277153e-02"/>
         <inertia ixx="0.0013302597" ixy="0.00060307457" ixz="0.0" iyy="0.035313402" iyz="-1.1029574e-07" izz="0.035530025"/>
         </inertial>
         <visual>

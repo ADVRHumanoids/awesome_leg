@@ -102,13 +102,13 @@
 
     <xacro:if value = "$(arg calibrated_urdf)">
 
-        <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg_reduced_calibrated.urdf" />
+        <xacro:include filename="$(find awesome_leg)/description/urdf/generated/awesome_leg_reduced_calibrated.urdf" />
         
     </xacro:if>
     
     <xacro:unless value="$(arg calibrated_urdf)">
 
-        <xacro:include filename="$(find awesome_leg)/description/urdf/generated/awesome_leg.urdf.xacro" />
+        <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro" />
 
     </xacro:unless>
 
