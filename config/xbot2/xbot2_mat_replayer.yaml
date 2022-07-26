@@ -20,7 +20,7 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    # rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    rt_mat_replayer: {sched: fifo , prio: 60, period: 0.01, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -38,11 +38,11 @@ xbotcore_plugins:
     ec_ros: {thread: nrt_main, type: ec_ros}
 
     mat_replayer_rt:
-        thread: rt_main
+        thread: rt_mat_replayer
         type: mat_replayer_rt
         params:
             mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/, type: string}
-            mat_name: {value: horizon_offline_solver_res.mat, type: string}
+            mat_name: {value: horizon_offline_solver.mat, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
             stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
@@ -51,8 +51,8 @@ xbotcore_plugins:
             approach_traj_exec_time: {value: 5.0, type: double} 
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
             # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
-            replay_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
-            replay_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
+            replay_stiffness: {value: [1000.0, 1000.0], type: Eigen::VectorXd}
+            replay_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
             send_pos_ref: {value: true, type: bool}
             send_eff_ref: {value: false, type: bool}
             looped_traj: {value: true, type: bool}
