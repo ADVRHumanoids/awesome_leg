@@ -81,6 +81,7 @@ q_p_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_cond
 q_p_dot_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
 
 jnt_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/jnt_limit_margin")) # margin to be added to joint limits 
+jnt_vel_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/jnt_vel_limit_margin")) # margin to be added to joint velocity limits 
 
 # cost weights
 
@@ -208,7 +209,6 @@ for i in range(n_actuators):
     omega_max_nl_af44[i] = parameters["omega_max_nl_af44"]
     omega_max_nl_af112[i] = parameters["omega_max_nl_af112"]
 
-v_bounds = np.array(omega_max_nl_af44)
 
 ##################### SETTING THE OPT PROBLEM #########################
 
@@ -219,6 +219,9 @@ n_q = urdf_awesome_leg.nq()  # number of joints
 n_v = urdf_awesome_leg.nv()  # number of dofs
 
 jnt_lim_margin_array = np.tile(jnt_limit_margin, (n_q))
+v_bounds = np.array(omega_max_nl_af44)
+v_bounds = v_bounds - v_bounds * jnt_vel_limit_margin
+
 lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
 ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
 
@@ -253,7 +256,7 @@ q_p_dot = prb.createStateVariable("q_p_dot",
 if employ_opt_init:
     q_p_dot.setInitialGuess(loaded_sol["q_p_dot_res"])
 
-q_p.setBounds(lbs, ubs) # test rig excursion limits
+q_p.setBounds(lbs, ubs) 
 q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
 q_p.setBounds(q_p_init, q_p_init, 0)  # imposing the initial conditions (q_p) on the first node ("0")
