@@ -13,6 +13,13 @@
     <parent link="world"/>
     <child link="pelvis"/>
   </joint>
+  <!-- color -->
+  <material name="darkblue">
+    <color rgba="0.0 0.3 0.9 1"/>
+  </material>
+  <material name="dark">
+    <color rgba="0.6 0.6 0.6 1"/>
+  </material>
   <material name="sky_blue">
     <color rgba="0.13 0.44 0.70 1"/>
   </material>
@@ -28,7 +35,7 @@
   <link name="pelvis">
     <inertial>
       <mass value="1.0"/>
-      <!-- here an additional mass contribution to mimic a weight can be added (standard link mass = 1 Kg) -->
+      <!-- here an additional mass contribution can be added to mimic a weight can be added (standard link mass = 1 Kg) -->
       <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
     </inertial>
     <visual>
@@ -72,7 +79,7 @@
     <child link="hip2_1"/>
     <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
     <axis xyz="0 0 1"/>
-    <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
+    <limit effort="112" lower="-2.4" upper="2.4" velocity="20.0"/>
   </joint>
   <link name="hip2_1">
     <!-- #### -->
@@ -103,7 +110,7 @@
     <axis xyz="0 0 1"/>
     grey
         
-    <limit effort="112" lower="-2.0226" upper="2.02748" velocity="20.0"/>
+    <limit effort="112" lower="-2.4" upper="2.4" velocity="20.0"/>
   </joint>
   <link name="knee_1">
     <!-- #### -->
