@@ -37,8 +37,8 @@ horizon:
       # dt_lb: 0.005
       # dt_ub: 0.1
 
-      dt_lb: 0.01
-      dt_ub: 0.01
+      dt_lb: 0.001
+      dt_ub: 0.001
 
       hip_jump_trgt: 1.0
   
@@ -47,7 +47,7 @@ horizon:
       solver:
         name: "ipopt"
         tolerance: 0.000001
-        max_iter: 1000
+        max_iter: 500
         cnstrnt_tolerance: 0.0000001
         linear_solver_name: "ma57" 
   
@@ -72,7 +72,7 @@ horizon:
         weight_min_f_contact_diff: 1
   
   horizon_resampler:
-    dt: 0.01
+    dt: 0.001
     mat_path: $(find awesome_leg)/opt_results/horizon_jump/jump_test
     dump_path: /home/andreap/Desktop
     

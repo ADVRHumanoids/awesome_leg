@@ -208,6 +208,8 @@ for i in range(n_actuators):
     omega_max_nl_af44[i] = parameters["omega_max_nl_af44"]
     omega_max_nl_af112[i] = parameters["omega_max_nl_af112"]
 
+v_bounds = np.array(omega_max_nl_af44)
+
 ##################### SETTING THE OPT PROBLEM #########################
 
 urdf = open(urdf_path + "/" + urdf_name + ".urdf", "r").read()
@@ -252,6 +254,7 @@ if employ_opt_init:
     q_p_dot.setInitialGuess(loaded_sol["q_p_dot_res"])
 
 q_p.setBounds(lbs, ubs) # test rig excursion limits
+q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
 q_p.setBounds(q_p_init, q_p_init, 0)  # imposing the initial conditions (q_p) on the first node ("0")
 q_p_dot.setBounds(q_p_dot_init, q_p_dot_init, 0)  # zero initial "velocity"
