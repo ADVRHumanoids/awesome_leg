@@ -54,6 +54,7 @@ xbotcore_plugins:
             replay_stiffness: {value: [800.0, 800.0], type: Eigen::VectorXd}
             replay_damping: {value: [12.0, 12.0], type: Eigen::VectorXd}
             send_pos_ref: {value: true, type: bool}
+            send_vel_ref: {value: false, type: bool}
             send_eff_ref: {value: false, type: bool}
             looped_traj: {value: true, type: bool}
             traj_pause_time: {value: 6, type: double}
