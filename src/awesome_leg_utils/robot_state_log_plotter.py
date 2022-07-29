@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from awesome_leg_utils.logger_utilities import LogLoader, LogPlotter
+from logger_utilities import LogLoader, LogPlotter
 
 from xbot_interface import xbot_interface as xbot
 
@@ -12,7 +12,7 @@ from scipy import signal, linalg
 
 import yaml
 
-from awesome_leg_utils.param_identification_utilities import *
+from param_identification_utilities import *
 
 import rospy
 
