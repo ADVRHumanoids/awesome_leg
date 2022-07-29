@@ -72,6 +72,7 @@ void MatReplayerRt::get_params_from_config()
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
+    _send_vel_ref = getParamOrThrow<bool>("~_send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
 }
@@ -83,7 +84,7 @@ void MatReplayerRt::update_state()
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);  
-    _robot->getJointEffort(_tau_meas)  
+    _robot->getJointEffort(_tau_meas);
     
 }
 
@@ -113,7 +114,7 @@ void MatReplayerRt::init_dump_logger()
 
     auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
     dscrptn_files_cell[0] = _mat_path;
-    dscrptn_files_cell[1] = _math_name;
+    dscrptn_files_cell[1] = _mat_name;
     dscrptn_files_cell[2] = _robot->getUrdfPath();
     dscrptn_files_cell[3] = _robot->getSrdfPath();
     _dump_logger->save("description_files", dscrptn_files_cell);

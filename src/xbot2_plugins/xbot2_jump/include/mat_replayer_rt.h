@@ -80,7 +80,7 @@ private:
         _traj_started = false, _traj_finished = false, 
         _first_run = true,  
         _pause_started = false, _pause_finished = false, 
-        _send_pos_ref = true,_send_eff_ref = false,
+        _send_pos_ref = true, _send_vel_ref = false,  _send_eff_ref = false,
         _jump = false,
         _recompute_approach_traj = true,
         _is_first_jnt_passive = false, 
