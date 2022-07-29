@@ -72,7 +72,7 @@ void MatReplayerRt::get_params_from_config()
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
-    _send_vel_ref = getParamOrThrow<bool>("~_send_vel_ref");
+    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
 }
@@ -112,7 +112,7 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->create("q_p_dot_cmd", _n_jnts_model);
     _dump_logger->create("tau_cmd", _n_jnts_model);
 
-    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
+    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
     dscrptn_files_cell[0] = _mat_path;
     dscrptn_files_cell[1] = _mat_name;
     dscrptn_files_cell[2] = _robot->getUrdfPath();
@@ -124,16 +124,39 @@ void MatReplayerRt::init_dump_logger()
 void MatReplayerRt::add_data2dump_logger()
 {
     
-    _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("replay_stiffness", _replay_stiffness);
     _dump_logger->add("replay_damping", _replay_damping);
     _dump_logger->add("q_p_meas", _q_p_meas);
     _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
     _dump_logger->add("tau_meas", _tau_meas);
-    _dump_logger->add("q_p_cmd", _q_p_cmd);
-    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
-    _dump_logger->add("tau_cmd", _tau_cmd);
     _dump_logger->add("plugin_time", _loop_time);
+
+    if (_traj_started && !_traj_finished)
+    { // trajectory is being published
+        
+        if (_sample_index <= (_traj.get_n_nodes() - 1))
+        { // commands have been computed
+
+            if (_is_first_jnt_passive)
+            { // remove first joint from logged commands
+
+                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_model));
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_model));
+                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_model));
+
+            }
+            else
+            {
+                
+                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_model));
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_model));
+                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_model));
+
+            }
+
+        }
+
+    }
 
 }
 
@@ -424,8 +447,8 @@ void MatReplayerRt::starting()
 
     init_clocks(); // initialize clocks timers
 
-    // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + 
+    // setting the control mode to effort + velocity + stiffness + damping
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + 
             ControlMode::Damping());
     _robot->setStiffness(_replay_stiffness);
     _robot->setDamping(_replay_damping);
