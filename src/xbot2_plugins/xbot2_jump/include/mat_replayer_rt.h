@@ -67,7 +67,7 @@ private:
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
-                    _q_p_meas, _q_p_dot_meas, 
+                    _q_p_meas, _q_p_dot_meas, _tau_meas,
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
                     _traj_time_vector, 
                     _effort_lims,
@@ -120,7 +120,7 @@ private:
 
     void send_approach_trajectory();
     void send_trajectory();
-    void saturate_input();
+    void saturate_effort();
     void update_state();
     void init_dump_logger();
     void add_data2dump_logger();

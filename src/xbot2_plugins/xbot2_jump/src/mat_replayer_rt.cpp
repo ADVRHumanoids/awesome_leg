@@ -82,7 +82,8 @@ void MatReplayerRt::update_state()
     _robot->sense();
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
-    _robot->getMotorVelocity(_q_p_dot_meas);    
+    _robot->getMotorVelocity(_q_p_dot_meas);  
+    _robot->getJointEffort(_tau_meas)  
     
 }
 
@@ -96,15 +97,26 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger = MatLogger2::MakeLogger("/tmp/MatReplayerRt", opt); // date-time automatically appended
     _dump_logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
+    _dump_logger->add("plugin_dt", _plugin_dt);
+    _dump_logger->add("stop_stiffness", _stop_stiffness);
+    _dump_logger->add("stop_damping", _stop_damping);
+
+    _dump_logger->create("plugin_time", 1);
+    _dump_logger->create("replay_stiffness", _n_jnts_model);
+    _dump_logger->create("replay_damping", _n_jnts_model);
     _dump_logger->create("q_p_meas", _n_jnts_model);
     _dump_logger->create("q_p_dot_meas", _n_jnts_model);
-    _dump_logger->add("q_ref", _q_p_ref); 
-    _dump_logger->add("q_dot_ref", _q_p_dot_ref);
-    _dump_logger->add("tau_ref", _tau_ref);
-    // auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
-    // dscrptn_files_cell[0] = _robot->getUrdfPath();
-    // dscrptn_files_cell[1] = _robot->getSrdfPath();
-    // _dump_logger->save("description_files", dscrptn_files_cell);
+    _dump_logger->create("tau_meas", _n_jnts_model);
+    _dump_logger->create("q_p_cmd", _n_jnts_model);
+    _dump_logger->create("q_p_dot_cmd", _n_jnts_model);
+    _dump_logger->create("tau_cmd", _n_jnts_model);
+
+    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
+    dscrptn_files_cell[0] = _mat_path;
+    dscrptn_files_cell[1] = _math_name;
+    dscrptn_files_cell[2] = _robot->getUrdfPath();
+    dscrptn_files_cell[3] = _robot->getSrdfPath();
+    _dump_logger->save("description_files", dscrptn_files_cell);
 
 }
 
@@ -112,10 +124,14 @@ void MatReplayerRt::add_data2dump_logger()
 {
     
     _dump_logger->add("plugin_dt", _plugin_dt);
-    _dump_logger->add("stop_stiffness", _stop_stiffness);
-    _dump_logger->add("stop_damping", _stop_damping);
+    _dump_logger->add("replay_stiffness", _replay_stiffness);
+    _dump_logger->add("replay_damping", _replay_damping);
     _dump_logger->add("q_p_meas", _q_p_meas);
-    _dump_logger->add("q_p_dot_meas", _q_p_meas);
+    _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+    _dump_logger->add("tau_meas", _tau_meas);
+    _dump_logger->add("q_p_cmd", _q_p_cmd);
+    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
+    _dump_logger->add("tau_cmd", _tau_cmd);
     _dump_logger->add("plugin_time", _loop_time);
 
 }
@@ -201,7 +217,7 @@ void MatReplayerRt::load_opt_data()
 
 }
 
-void MatReplayerRt::saturate_input()
+void MatReplayerRt::saturate_effort()
 {
     int input_sign = 1; // defaults to positive sign 
 
@@ -319,55 +335,50 @@ void MatReplayerRt::send_trajectory()
         }
         else
         { // send command
-
-            _q_p_cmd = _q_p_ref.col(_sample_index);
-
-            // _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
             
+            // by default assign all commands anyway
+            _q_p_cmd = _q_p_ref.col(_sample_index);
+            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
             _tau_cmd = _tau_ref.col(_sample_index);
 
             if (_is_first_jnt_passive)
             { // send the last _n_jnts_model components
-
-                _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
                 
-                if (!_send_pos_ref && _send_eff_ref)
-                { //
-                    Eigen::VectorXd epsi_stiff(_n_jnts_model);
-                    Eigen::VectorXd epsi_damp(_n_jnts_model);
-
-                    for(int i = 0; i < _n_jnts_model; i++)
-                    {
-                        epsi_stiff(i) = _epsi_stiffness;
-                        epsi_damp(i) = _epsi_damping;
-                    }
-
-                    _robot->setStiffness(Eigen::VectorXd::Zero(_n_jnts_model) + epsi_stiff); // necessary at each loop (for some reason)
-                    _robot->setDamping(Eigen::VectorXd::Zero(_n_jnts_model) + epsi_damp);
-
+                if (_send_eff_ref)
+                {
                     _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
                 }
 
-                if(_send_pos_ref && _send_eff_ref)
+                if(_send_pos_ref)
                 {  
 
-                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
+                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
                 }
 
+                if(_send_vel_ref)
+                {  
 
+                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_model));
+                }
 
             }
             else{
                 
-                if(_send_pos_ref)
-                {
-                    _robot->setPositionReference(_q_p_cmd);
-                }
-                
-
-                if(_send_eff_ref)
+                if (_send_eff_ref)
                 {
                     _robot->setEffortReference(_tau_cmd);
+                }
+
+                if(_send_pos_ref)
+                {  
+
+                    _robot->setPositionReference(_q_p_cmd);
+                }
+
+                if(_send_vel_ref)
+                {  
+
+                    _robot->setVelocityReference(_q_p_dot_cmd);
                 }
 
             }
@@ -375,7 +386,7 @@ void MatReplayerRt::send_trajectory()
             _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
             _robot->setDamping(_replay_damping);
 
-            saturate_input();  
+            saturate_effort(); // perform input torque saturation
 
             _robot->move(); // Send commands to the robot
         
