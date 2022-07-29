@@ -431,17 +431,18 @@ bool MatReplayerRt::on_initialize()
 
     init_nrt_ros_bridge();
 
-    return true;
-}
-
-void MatReplayerRt::starting()
-{
     get_params_from_config(); // load params from yaml file
     
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 
     init_dump_logger();
+
+    return true;
+}
+
+void MatReplayerRt::starting()
+{
 
     reset_flags();
 
@@ -454,6 +455,7 @@ void MatReplayerRt::starting()
     _robot->setDamping(_replay_damping);
 
     update_state(); // read current jnt positions and velocities
+    
     compute_approach_traj(); // based on the current state, compute a smooth transition to the\\
     first trajectory position sample
 
