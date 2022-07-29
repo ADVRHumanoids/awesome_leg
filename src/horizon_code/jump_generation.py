@@ -91,6 +91,7 @@ weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_setting
 weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") # maximizing the jump height (measured at the tip)
 weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
 weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_f_contact_diff") 
+weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_com_height") 
 # solver options
 
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"),
@@ -317,6 +318,9 @@ dfk_foot = cs.Function.deserialize(
     urdf_awesome_leg.frameVelocity("tip", casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED))
 v_foot_tip = dfk_foot(q=q_p, qdot=q_p_dot)["ee_vel_linear"]  # foot velocity
 
+# center of mass
+com_f = cs.Function.deserialize(urdf_awesome_leg.centerOfMass())
+com = com_f(q = q_p, v = q_p_dot, a = q_p_ddot)["com"]
 ##############################################
 
 ## Constraints
@@ -328,6 +332,8 @@ prb.createConstraint("foot_vel_bf_touchdown", v_foot_tip,
                      nodes=range(0, n_takeoff))  # no velocity of the foot before takeoff
 prb.createConstraint("foot_vel_aftr_touchdown", v_foot_tip,
                      nodes=range(n_touchdown, n_int + 1))  # no velocity of the foot after touchdown
+# prb.createConstraint("keep_foot_on_line", v_foot_tip[1])
+
 
 prb.createConstraint("GRF_zero", f_contact,
                      nodes=range(n_takeoff, n_touchdown))  # 0 GRF during flight
@@ -336,13 +342,7 @@ prb.createFinalConstraint("leg_pose_restoration", q_p - q_p_init)
 
 prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still at the end of the optimization horizon
 
-# prb.createConstraint("peak_trgt", hip_position[2] - hip_jump_trgt,
-#                      nodes= n_takeoff + round((n_takeoff - n_touchdown)/ 2))  # 0 GRF during flight
-
-# hip_over_foot_tip = prb.createConstraint("hip_over_foot_tip", hip_position[2] -  foot_tip_position[2]) # always keep the hip above the tip 
-# hip_over_foot_tip.setBounds(0, cs.inf)
-
-## Keep the ESTIMATED quadrature currents within bounds
+# Keep the ESTIMATED(with the calibrated model) quadrature currents within bounds
 # compensated_tau = []
 # i_q_cnstr = []
 # for i in range(n_q -1):
@@ -357,18 +357,18 @@ epsi = 1
 
 ## Costs
 weight_contact_cost = weight_contact_cost / n_int
-prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact))
+prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact[0:2]))
 
 # prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
 #     q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
-weight_hip_height_jump = weight_hip_height_jump / n_int
-prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2])),
-                           nodes=range(n_takeoff, n_touchdown))
+# weight_hip_height_jump = weight_hip_height_jump / n_int
+# prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
+#                            nodes=range(n_takeoff, n_touchdown))
 
-weight_tip_clearance = weight_tip_clearance / n_int
-prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
-                           nodes=range(n_takeoff, n_touchdown))
+# weight_tip_clearance = weight_tip_clearance / n_int
+# prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
+#                            nodes=range(n_takeoff, n_touchdown))
 
 weight_min_input_diff = weight_min_input_diff / n_int
 prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot[1:] - q_p_ddot[1:].getVarOffset(-1)), 
@@ -377,6 +377,10 @@ prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q
 weight_min_f_contact_diff = weight_min_f_contact_diff / n_int
 prb.createIntermediateCost("min_f_contact_diff", weight_min_input_diff * cs.sumsqr(f_contact - f_contact.getVarOffset(-1)), 
                             nodes = range(1, n_int)) 
+
+weight_com_height = weight_com_height / n_int
+prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
+                            nodes=range(n_takeoff, n_touchdown)) 
 
 ##############################################
 
@@ -418,7 +422,7 @@ if resample_traj:
 ## Original solution
 # Hip and knee quadrature current estimation
 i_q_n_samples = len(solution["q_p_ddot"][0, :])
-i_q = np.zeros((n_q, i_q_n_samples))
+i_q = np.zeros((n_q - 1, i_q_n_samples))
 for i in range(n_q - 1):
     compensated_tau = tau_sol[i + 1, :] + K_d0[i] * np.tanh( tanh_coeff * solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]) + K_d1[i] * solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]
     i_q[i, :] = (rotor_axial_MoI[i] * solution["q_p_ddot"][i + 1, :] / red_ratio[i] + compensated_tau * red_ratio[i] / efficiency[i]) / K_t[i]
@@ -433,11 +437,12 @@ solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_
 solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
 other_stuff={"tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
-                 "foot_tip_height":np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
-                 "hip_height":np.transpose(solution_hip_position-init_solution_foot_tip_position_aux[2,:]), 
-                 "tip_velocity":np.transpose(np.transpose(solution_v_foot_tip)),
-                 "hip_velocity":np.transpose(np.transpose(solution_v_foot_hip)),
-                 "sol_time":solution_time}
+                 "foot_tip_height": np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
+                 "hip_height": np.transpose(solution_hip_position-init_solution_foot_tip_position_aux[2,:]), 
+                 "tip_velocity": np.transpose(np.transpose(solution_v_foot_tip)),
+                 "hip_velocity": np.transpose(np.transpose(solution_v_foot_hip)),
+                 "sol_time": solution_time,
+                 "is_calibrated": is_calibrated}
 
 sol_dict_full = {}
 
@@ -446,7 +451,7 @@ if resample_traj:
     # Resampled solution
     # Hip and knee quadrature current estimation
     n_res_samples = len(p_res[0, :])
-    i_q_res = np.zeros((n_q, n_res_samples - 1))
+    i_q_res = np.zeros((n_q - 1, n_res_samples - 1))
 
     for i in range(n_q - 1):
         compensated_tau = tau_res[i + 1, :] + K_d0[i] * np.tanh( tanh_coeff * v_res[i + 1, 1:(n_res_samples)]) + K_d1[i] * v_res[i + 1, 1:(n_res_samples)]

@@ -27,7 +27,7 @@
 
     </xacro:unless>
 
-    <xacro:property name="payload_mass" value="10.0" />
+    <xacro:property name="payload_mass" value="7.38" />
 
     <link name="world" />
 

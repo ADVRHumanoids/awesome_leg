@@ -8,7 +8,7 @@ horizon:
 
   urdf_name: awesome_leg_test_rig
 
-  is_calibrated: false
+  is_calibrated: true
 
   media_path: $(find awesome_leg)/media/horizon_jump # relative path where graphs, etc.. are saved
   
@@ -43,12 +43,12 @@ horizon:
       hip_jump_trgt: 1.0
   
       jnt_limit_margin: 0.02 # [rad] --> this value will shorten the limits of the joint (uniformly) for safety reasons
-      jnt_vel_limit_margin : 0.1 # percentage, from 0.0 to 1.0; joint vel limits are restricted by jnt_vel_limit_margin * q_dot_lim
+      jnt_vel_limit_margin : 0.05 # percentage, from 0.0 to 1.0; joint vel limits are restricted by jnt_vel_limit_margin * q_dot_lim
 
       solver:
         name: "ipopt"
         tolerance: 0.000001
-        max_iter: 500
+        max_iter: 1000
         cnstrnt_tolerance: 0.0000001
         linear_solver_name: "ma57" 
   
@@ -65,12 +65,13 @@ horizon:
         q_p_dot: [0.0, 0.0, 0.0]
       
       cost_weights:
-        contact_force: 0.001
+        contact_force: 0.1 # # cost for penalizing contact forces
         # small_q_p_ddot: 0.001
-        big_hip_jump: 5000
-        big_foot_tip_clearance: 300
+        weight_com_height: 1000
+        big_hip_jump: 0.0000001
+        big_foot_tip_clearance: 50
         weight_min_input_diff: 0.1 # cost for penalizing differences between successive inputs
-        weight_min_f_contact_diff: 1
+        weight_min_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
   
   horizon_resampler:
     dt: 0.001
