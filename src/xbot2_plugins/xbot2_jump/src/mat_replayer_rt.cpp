@@ -436,13 +436,13 @@ bool MatReplayerRt::on_initialize()
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 
-    init_dump_logger();
-
     return true;
 }
 
 void MatReplayerRt::starting()
 {
+
+    init_dump_logger(); // needs to be here
 
     reset_flags();
 
@@ -531,6 +531,9 @@ void MatReplayerRt::on_abort()
 
     // Sending references
     _robot->move();
+
+    // Destroy logger and dump .mat file
+    _dump_logger.reset();
 }
 
 void MatReplayerRt::on_close()
