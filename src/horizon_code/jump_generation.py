@@ -75,8 +75,6 @@ hip_jump_trgt = rospy.get_param("horizon/horizon_solver/problem_settings/hip_jum
 
 dt_lb=rospy.get_param("horizon/horizon_solver/problem_settings/dt_lb")   # dt lower bound 
 dt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/dt_ub")   # dt upper bound
-test_rig_lb= rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/lb") # lower bound of the test rig excursion
-test_rig_ub=rospy.get_param("horizon/horizon_solver/problem_settings/test_rig/ub") # upper bound of the test rig excursion
 q_p_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
 q_p_dot_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p_dot") # initial joint config (ideally it would be given from measurements)
 
@@ -92,6 +90,11 @@ weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/
 weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
 weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_f_contact_diff") 
 weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_com_height") 
+
+if employ_opt_init:
+
+    weight_init_sol_tracking = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_init_sol_tracking") 
+
 # solver options
 
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"),
@@ -158,7 +161,6 @@ if employ_opt_init: # initialize variables with the previously saved solution
  
     n_int = int(np.round(t_exec/dt_res))
     
-    
 ################# Getting the properties of the actuator from the ROS parameter server #########################
 
 ## Actuator properties (see actuators.yaml for a brief description of most of the parameters):
@@ -210,7 +212,7 @@ for i in range(n_actuators):
     omega_max_nl_af44[i] = parameters["omega_max_nl_af44"]
     omega_max_nl_af112[i] = parameters["omega_max_nl_af112"]
 
-
+I_lim = I_peak
 ##################### SETTING THE OPT PROBLEM #########################
 
 urdf = open(urdf_path + "/" + urdf_name + ".urdf", "r").read()
@@ -260,8 +262,15 @@ if employ_opt_init:
 q_p.setBounds(lbs, ubs) 
 q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
-q_p.setBounds(q_p_init, q_p_init, 0)  # imposing the initial conditions (q_p) on the first node ("0")
-q_p_dot.setBounds(q_p_dot_init, q_p_dot_init, 0)  # zero initial "velocity"
+if employ_opt_init:
+
+    q_p.setBounds(loaded_sol["q_p"][:, 0], loaded_sol["q_p"][:, 0], 0)  
+    q_p_dot.setBounds(loaded_sol["q_p_dot"][:, 0], loaded_sol["q_p_dot"][:, 0], 0) 
+
+else:
+        
+    q_p.setBounds(q_p_init, q_p_init, 0)  # imposing the initial conditions (q_p) on the first node ("0")
+    q_p_dot.setBounds(q_p_dot_init, q_p_dot_init, 0)  # zero initial "velocity"
 
 # Defining the input/s (joint accelerations)
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
@@ -343,13 +352,13 @@ prb.createFinalConstraint("leg_pose_restoration", q_p - q_p_init)
 prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still at the end of the optimization horizon
 
 # Keep the ESTIMATED(with the calibrated model) quadrature currents within bounds
-# compensated_tau = []
-# i_q_cnstr = []
-# for i in range(n_q -1):
-#     compensated_tau.append(tau[i + 1] + K_d0[i] * np.tanh( tanh_coeff * q_p_dot[i + 1]) + K_d1[i] * q_p_dot[i + 1])
-#     i_q = (rotor_axial_MoI[i] * q_p_ddot[i + 1] / red_ratio[i] + compensated_tau[i] * red_ratio[i] / efficiency[i]) / K_t[i]
-#     i_q_cnstr.append( prb.createIntermediateConstraint("quadrature_current" + actuator_names[i], i_q) )
-#     i_q_cnstr[i].setBounds(-I_peak[i], I_peak[i])  # setting input limits
+compensated_tau = []
+i_q_cnstr = []
+for i in range(n_q -1):
+    compensated_tau.append(tau[i + 1] + K_d0[i] * np.tanh( tanh_coeff * q_p_dot[i + 1]) + K_d1[i] * q_p_dot[i + 1])
+    i_q = (rotor_axial_MoI[i] * q_p_ddot[i + 1] / red_ratio[i] + compensated_tau[i] * red_ratio[i] / efficiency[i]) / K_t[i]
+    i_q_cnstr.append( prb.createIntermediateConstraint("quadrature_current" + actuator_names[i], i_q) )
+    i_q_cnstr[i].setBounds(-I_peak[i], I_peak[i])  # setting input limits
 
 ##############################################
 
@@ -366,9 +375,9 @@ prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_co
 # prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
 #                            nodes=range(n_takeoff, n_touchdown))
 
-# weight_tip_clearance = weight_tip_clearance / n_int
-# prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
-#                            nodes=range(n_takeoff, n_touchdown))
+weight_tip_clearance = weight_tip_clearance / n_int
+prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
+                           nodes=range(n_takeoff, n_touchdown))
 
 weight_min_input_diff = weight_min_input_diff / n_int
 prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot[1:] - q_p_ddot[1:].getVarOffset(-1)), 
@@ -381,6 +390,15 @@ prb.createIntermediateCost("min_f_contact_diff", weight_min_input_diff * cs.sums
 weight_com_height = weight_com_height / n_int
 prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
                             nodes=range(n_takeoff, n_touchdown)) 
+
+if employ_opt_init:
+
+    weight_init_sol_tracking = weight_init_sol_tracking / n_int
+
+    for i in range(n_int):
+
+        prb.createIntermediateCost("init_sol_tracking_cost_n" + str(i + 1), weight_init_sol_tracking * cs.sumsqr(q_p - loaded_sol["q_p_res"][:, i + 1]), 
+                                    nodes= i + 1) 
 
 ##############################################
 
