@@ -8,7 +8,7 @@ horizon:
 
   urdf_name: awesome_leg_test_rig
 
-  is_calibrated: true
+  is_calibrated: false
 
   media_path: $(find awesome_leg)/media/horizon_jump # relative path where graphs, etc.. are saved
   
@@ -56,10 +56,6 @@ horizon:
         name: "multiple_shooting" # options: "multiple_shooting", "direct_collocation"
         integrator: "RK4"
   
-      test_rig:
-        lb: -1.0
-        ub:  1.0 
-  
       initial_conditions: 
         q_p:     [0.0, 0.0, 0.0]
         q_p_dot: [0.0, 0.0, 0.0]
@@ -67,11 +63,13 @@ horizon:
       cost_weights:
         contact_force: 0.1 # # cost for penalizing contact forces
         # small_q_p_ddot: 0.001
-        weight_com_height: 1000
+        weight_com_height: 8000
         big_hip_jump: 0.0000001
-        big_foot_tip_clearance: 50
+        big_foot_tip_clearance: 0.0000000001
         weight_min_input_diff: 0.1 # cost for penalizing differences between successive inputs
         weight_min_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
+
+        weight_init_sol_tracking: 20000
   
   horizon_resampler:
     dt: 0.001

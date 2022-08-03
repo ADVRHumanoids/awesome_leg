@@ -4,4 +4,4 @@ horizon:
   horizon_replayer:
     urdf_name: /generated/awesome_leg_test_rig.urdf # urdf relative path (wrt to the package)
     # opt_results_rel_path: media/horizon_jump/29-05-2022/jump_test/jump_height_L1/horizon_offline_solver_res_12_30_48.mat # where optimization .mat
-    opt_results_rel_path: opt_results/horizon_jump/jump_test/horizon_offline_solver_res.mat 
+    opt_results_rel_path: opt_results/horizon_jump/jump_test/horizon_offline_solver.mat 
