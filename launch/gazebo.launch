@@ -22,7 +22,7 @@
 
   <!-- Load the right URDF into the ROS Parameter Server, depending on the chosen model type -->
 
-  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' 
+  <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' 
     sliding_guide:=$(arg sliding_guide) calibrated_urdf:=$(arg calibrated_urdf) " />
   
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->

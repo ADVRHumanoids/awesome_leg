@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+<gazebo reference="knee_1">
+    <collision>
+        <surface>
+            <friction>
+                <ode>
+                    <mu>1.0</mu>
+                    <mu2>1.0</mu2>
+                </ode>
+                <bullet>
+                    <friction>1.0</friction>
+                    <friction2>1.0</friction2>
+                </bullet>
+            </friction>
+            <contact>
+                <ode>
+                    <kp>2100000</kp>
+                    <kd>1</kd>
+                    <max_vel>100</max_vel>
+                </ode>
+                <bullet>
+                    <soft_cfm>0.007</soft_cfm>
+                    <soft_erp>0.25</soft_erp>
+                    <kp>1000000</kp>
+                    <kd>5</kd>
+                </bullet>
+            </contact>
+        </surface>
+    </collision>
+</gazebo>
+
+</robot>

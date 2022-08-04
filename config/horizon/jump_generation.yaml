@@ -2,31 +2,31 @@
 
 horizon:
  
-  xacro_path: $(find awesome_leg)/description/urdf # urdf relative path (wrt to the package)
+  xacro_path: $(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro # urdf relative path (wrt to the package)
   
-  urdf_path: $(find awesome_leg)/description/urdf/generated
+  urdf_path: $(find awesome_leg)/description/urdf/generated/awesome_leg_test_rig.urdf
 
   urdf_name: awesome_leg_test_rig
 
   is_calibrated: false
+  
+  opt_results_path: $(find awesome_leg)/opt_results/horizon_jump/results # where optimization .mat files are saved
 
-  media_path: $(find awesome_leg)/media/horizon_jump # relative path where graphs, etc.. are saved
-  
-  opt_results_path: $(find awesome_leg)/opt_results/horizon_jump # where optimization .mat files are saved
-  
+  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/04_08_2022-17_50_16
+
   replay_trajectory: true # whether to replay the optimized trajectory on RViz or not
 
   resample_traj: true
   
   horizon_solver:
   
-    sol_mat_name: "horizon_offline_solver" # name of custom mat file where results will be saved
-    
-    save_sol_as_init: true # if true, the solution is also saved as a candidate for future optimization initializations
+    sol_mat_name: "awesome_jump" # name of custom mat file where results will be saved
+
+    ref_sol_mat_name: "awesome_jump_ref"
+      
+    is_refine_phase: true # whether to use the initial guess or not
   
-    employ_opt_init: false # whether to use the initial guess or not
-  
-    opt_init_name: "horizon_offline_solver_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
+    opt_init_name: "awesome_jump_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
   
     problem_settings:  
 
@@ -34,11 +34,12 @@ horizon:
       n_takeoff: 34 # 0-based indexing
       n_touchdown: 79
 
-      dt_lb: 0.001
+      dt_lb: 0.005
       dt_ub: 0.1
+      
+      traj_refiner: 
 
-      #      dt_lb: 0.001
-      #      dt_ub: 0.001
+        dt_ref: 0.001
 
       mu_friction_cone : 0.5 # friction cone coefficient
 
@@ -67,16 +68,21 @@ horizon:
         scale_factor_costs_base: 10000000 # scale factor for costs (other scalings are applied internally)
 
         contact_force: 0.0000000000000000000001 # cost for penalizing contact forces
-        small_q_p_ddot: 0.0000000000000000000001
-        weight_com_height: 600
+        small_q_p_ddot: 0.0000000000000000000001 # cost for penalizing joint accelerations (which are the input)
+        weight_min_f_contact_diff: 0.0000000000000000000001 # cost for penalizing differences between successive f_contacts
+        weight_min_input_diff: 0.001  # cost for penalizing differences between successive inputs
+        weight_com_height: 100
         big_hip_jump: 0.0000000000000000000001
         big_foot_tip_clearance: 0.0000000000000000000001
-        weight_min_input_diff: 0.001 # cost for penalizing differences between successive inputs
-        weight_min_f_contact_diff: 0.0000000000000000000001 # cost for penalizing differences between successive f_contacts
+      
+        traj_refiner: 
 
-        weight_init_sol_tracking: 0.0000000000000000000001
+          weight_min_input_diff: 0.004  # cost for penalizing differences between successive inputs
+          weight_min_f_contact_diff: 0.0000000000000000000001
+          weight_init_sol_tracking: 100
   
   horizon_resampler:
+
     dt: 0.001
     mat_path: $(find awesome_leg)/opt_results/horizon_jump/jump_test
     dump_path: /home/andreap/Desktop

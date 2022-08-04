@@ -7,6 +7,7 @@ import time
 from datetime import date
 
 import casadi as cs
+from sympy import N
 import casadi_kin_dyn
 import numpy as np
 import rospkg
@@ -24,11 +25,17 @@ import subprocess
 file_name = scibidibi.path.splitext(scibidibi.path.basename(__file__))[0]
 file_name.replace(".py", "")
 
+## Getting/setting some useful variables
+today = date.today()
+today_is = today.strftime("%d_%m_%Y")
+now = datetime.now()
+current_time = now.strftime("%H_%M_%S")
+unique_id = today_is + "-" + current_time
+
 ## Reading the solution modes from config YAML config file
 
-save_sol_as_init = rospy.get_param("horizon/horizon_solver/save_sol_as_init")  
 # if true, the solution is also saved as a candidate for future optimization initializations
-employ_opt_init = rospy.get_param("horizon/horizon_solver/employ_opt_init")  
+is_refine_phase = rospy.get_param("horizon/horizon_solver/is_refine_phase")  
 # if true, the solution is also saved as a candidate for future optimization initializations
 
 opt_init_name = rospy.get_param("horizon/horizon_solver/opt_init_name") # name of the initialization file to be loaded
@@ -38,8 +45,8 @@ urdf_path = rospy.get_param("/horizon/urdf_path")
 urdf_name = rospy.get_param("/horizon/urdf_name")  
 is_calibrated = rospy.get_param("/horizon/is_calibrated")  
 
-media_path = rospy.get_param("/horizon/media_path")  # urdf relative path (wrt to the package)
 opt_res_path = rospy.get_param("/horizon/opt_results_path")  # urdf relative path (wrt to the package)
+refine_path = rospy.get_param("/horizon/refine_path")  # urdf relative path (wrt to the package)
 
 tanh_coeff = rospy.get_param("horizon/horizon_i_q_estimator/tanh_coeff")  
 # coefficient used by the approximated sign function ( sign = atanh(tanh_coeff * x) )
@@ -53,10 +60,10 @@ try:
     is_calibrated_command  = "calibrated_urdf:=" + str(is_calibrated).lower()
 
     xacro_gen = subprocess.check_call(["xacro",\
-                                xacro_path + "/" + urdf_name + ".urdf.xacro", \
+                                xacro_path, \
                                 is_calibrated_command, \
                                 "-o", 
-                                urdf_path + "/" + urdf_name + ".urdf"])
+                                urdf_path])
             
 except:
 
@@ -83,39 +90,22 @@ jnt_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/
 jnt_vel_limit_margin = abs(rospy.get_param("horizon/horizon_solver/problem_settings/jnt_vel_limit_margin")) 
 # margin to be added to joint velocity limits 
 
-## cost weights
-scale_factor_base = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/scale_factor_costs_base") 
-weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
-weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
-weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_hip_jump") 
-# maximizing the jump height (measured at the hip)
-
-weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") 
-# maximizing the jump height (measured at the tip)
-weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
-weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_f_contact_diff") 
-weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_com_height") 
-
-weight_init_sol_tracking = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_init_sol_tracking") 
-
 ## solver options
 linear_solver_name= rospy.get_param("horizon/horizon_solver/problem_settings/solver/linear_solver_name")
 
+# slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"),
+#     "ipopt.max_iter": rospy.get_param("horizon/horizon_solver/problem_settings/solver/max_iter"),
+#     "ipopt.constr_viol_tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/cnstrnt_tolerance"), 
+#     "ipopt.linear_solver": linear_solver_name} 
+
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"),
     "ipopt.max_iter": rospy.get_param("horizon/horizon_solver/problem_settings/solver/max_iter"),
-    "ipopt.constr_viol_tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/cnstrnt_tolerance"), 
-    "ipopt.linear_solver": linear_solver_name} 
+    "ipopt.constr_viol_tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/cnstrnt_tolerance")}
 
 slvr_name=rospy.get_param("horizon/horizon_solver/problem_settings/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
 
 trans_name = rospy.get_param("horizon/horizon_solver/problem_settings/transcription/name")
 trans_integrator = rospy.get_param("horizon/horizon_solver/problem_settings/transcription/integrator")
-
-## Getting/setting some useful variables
-today = date.today()
-today_is = today.strftime("%d-%m-%Y")
-now = datetime.now()
-current_time = now.strftime("_%H_%M_%S")
 
 rospackage=rospkg.RosPack() # Only for taking the path to the leg package
 config_path=rospackage.get_path("awesome_leg")+"/config/" # configuration files path
@@ -123,32 +113,15 @@ horizon_config_path = config_path + "horizon/"
 
 ## Creating folders for saving plots and other data (if not already existing). This folders are also used by horizon_plot.py
 
-if  (not scibidibi.path.isdir(media_path+"/"+today_is)):
-    scibidibi.makedirs(media_path+"/"+today_is)
-
-if  (not scibidibi.path.isdir(media_path+"/"+today_is+"/jump_test/")):
-    scibidibi.mkdir(media_path+"/"+today_is+"/jump_test")
-
-## Various operations based on the selected options
+solution_mat_name = ""
+results_dir_path = ""
+loaded_sol = None
 sol_mat_name = rospy.get_param("/horizon/horizon_solver/sol_mat_name")
-
-ms = mat_storer.matStorer(opt_res_path + "/jump_test/horizon_offline_solver.mat")  # original opt. sol
-
-target_path = media_path + "/" + today_is + "/jump_test/"
-
-# saving config files for reference and future debugging
-shutil.copyfile(config_path + "actuators.yaml", target_path + "actuators" + current_time + ".yaml") 
-shutil.copyfile(horizon_config_path + file_name + ".yaml", target_path + "horizon" + current_time + ".yaml")
-shutil.copyfile(urdf_path + "/" + urdf_name + ".urdf", target_path + "awesome_leg" + current_time + ".urdf")
-
-if save_sol_as_init: # save the solution as the initialization for the next sim
-    ms_opt_init = mat_storer.matStorer(opt_res_path + "/jump_test/" + opt_init_name + ".mat")
-
-if employ_opt_init: # initialize variables with the previously saved solution
-    ms_load_path = opt_res_path + "/jump_test/" + opt_init_name + ".mat"
+if is_refine_phase: # initialize variables with the previously saved solution
+    
+    ms_load_path = refine_path + "/" + sol_mat_name + ".mat"
     ms_load = mat_storer.matStorer(ms_load_path)
 
-    shutil.copyfile(ms_load_path, target_path + "horizon_offline_solver_init" + current_time + ".mat") 
     loaded_sol=ms_load.load() # loading the solution dictionary
 
     takeoff_node = np.max(np.where(loaded_sol["dt_opt"] == loaded_sol["dt1"])) + 1 # takeoff node index (0-based)
@@ -165,7 +138,33 @@ if employ_opt_init: # initialize variables with the previously saved solution
     n_touchdown = int(np.round(t_touchdown / dt_res))
  
     n_int = int(np.round(t_exec/dt_res))
-    
+
+    unique_id = str(loaded_sol["unique_id"][0]) # overrriding unique id so that the refined trajectory has the same name of its initialization
+
+    sol_mat_name = rospy.get_param("/horizon/horizon_solver/ref_sol_mat_name")
+
+    results_dir_path = opt_res_path + "/" + unique_id
+
+else:
+
+    results_dir_path = opt_res_path + "/" + unique_id
+
+    if  (not scibidibi.path.isdir(opt_res_path)):
+
+        scibidibi.makedirs(opt_res_path)
+        
+    if (not scibidibi.path.isdir(results_dir_path)):
+
+        scibidibi.makedirs(results_dir_path)
+
+        # saving config files for reference and future debugging
+
+    shutil.copyfile(config_path + "actuators.yaml", results_dir_path + "/actuators_" + current_time + ".yaml") 
+    shutil.copyfile(horizon_config_path + file_name + ".yaml", results_dir_path + "/" + file_name + "_" + current_time + ".yaml")
+    shutil.copyfile(urdf_path, results_dir_path + "/" + urdf_name + "_" + current_time + ".urdf")
+
+
+ms = mat_storer.matStorer(results_dir_path + "/" + sol_mat_name + ".mat")  # original opt. sol
 
 ## Actuator properties (see actuators.yaml for a brief description of most of the parameters)
 
@@ -221,7 +220,7 @@ I_lim = I_peak # limits set to the peak current
 
 ## setting up problem 
 
-urdf = open(urdf_path + "/" + urdf_name + ".urdf", "r").read()
+urdf = open(urdf_path, "r").read()
 urdf_awesome_leg = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
 
 n_q = urdf_awesome_leg.nq()  # number of joints
@@ -242,33 +241,41 @@ prb = Problem(n_int)  # initialization of a problem object
 transcriptor_name = trans_name  
 trans_opt = dict(integrator = trans_integrator)  # dictionary with the chosen integrator name
 
-# Dt
-dt1 = prb.createSingleVariable("dt1", 1)  # dt before the takeoff
-dt2 = prb.createSingleVariable("dt2", 1)  # dt during flight
-dt3 = prb.createSingleVariable("dt3", 1)  # dt after touchdown
-dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
-dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
-dt3.setBounds(dt_lb, dt_ub)  # bounds on dt3
+# Probelm's dt
+if is_refine_phase:
 
-Dt=[dt1]* (n_takeoff) + [dt2] * (n_touchdown - n_takeoff) +\
-    [dt3] * (n_int - n_touchdown) # holds the complete time list
+    dt = abs(rospy.get_param("horizon/horizon_solver/problem_settings/traj_refiner/dt_ref"))
 
-prb.setDt(Dt)
+    prb.setDt(dt)
+
+else:
+
+    dt1 = prb.createSingleVariable("dt1", 1)  # dt before the takeoff
+    dt2 = prb.createSingleVariable("dt2", 1)  # dt during flight
+    dt3 = prb.createSingleVariable("dt3", 1)  # dt after touchdown
+    dt1.setBounds(dt_lb, dt_ub)  # bounds on dt1
+    dt2.setBounds(dt_lb, dt_ub)  # bounds on dt2
+    dt3.setBounds(dt_lb, dt_ub)  # bounds on dt3
+
+    dt=[dt1]* (n_takeoff) + [dt2] * (n_touchdown - n_takeoff) +\
+        [dt3] * (n_int - n_touchdown) # holds the complete time list
+
+    prb.setDt(dt)
 
 # Creating the state variables
 q_p = prb.createStateVariable("q_p", n_q)
-if employ_opt_init:
+if is_refine_phase:
     q_p.setInitialGuess(loaded_sol["q_p_res"])
 
 q_p_dot = prb.createStateVariable("q_p_dot",
                                   n_v)  # here q_p_dot is actually not the derivative of the lagrangian state vector
-if employ_opt_init:
+if is_refine_phase:
     q_p_dot.setInitialGuess(loaded_sol["q_p_dot_res"])
 
 q_p.setBounds(lbs, ubs) 
 q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
-if employ_opt_init:
+if is_refine_phase:
 
     q_p.setBounds(loaded_sol["q_p"][:, 0], loaded_sol["q_p"][:, 0], 0)  
     q_p_dot.setBounds(loaded_sol["q_p_dot"][:, 0], loaded_sol["q_p_dot"][:, 0], 0) 
@@ -280,14 +287,14 @@ else:
 
 # Defining the input/s (joint accelerations)
 q_p_ddot = prb.createInputVariable("q_p_ddot", n_v)  # using joint accelerations as an input variable
-if employ_opt_init:
+if is_refine_phase:
     q_p_ddot.setInitialGuess(loaded_sol["q_p_ddot_res"])
 
 x, xdot = utils.double_integrator(q_p, q_p_dot, q_p_ddot)  # building the full state
 
 # Creating an additional input variable for the contact forces on the foot tip
 f_contact = prb.createInputVariable("f_contact", 3)  # dimension 3
-if employ_opt_init:
+if is_refine_phase:
     f_contact.setInitialGuess(loaded_sol["f_contact_res"])
 else:
     f_contact[2].setInitialGuess(100.0)
@@ -356,7 +363,8 @@ prb.createFinalConstraint("final_joint_zero_vel", q_p_dot)  # joints are still a
 # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 is_iq_cnstrnt = rospy.get_param("horizon/horizon_solver/problem_settings/is_iq_cnstrnt")
 
-if is_iq_cnstrnt: # highly non linear constraint due to approximate sign function--> makes optimization much worse
+if is_iq_cnstrnt and is_refine_phase: # highly non linear constraint due to approximate sign function--> makes optimization much worse
+    # use it only in the refinement phase, since it is expensive
     compensated_tau = []
     i_q_cnstr = []
     for i in range(n_q -1):
@@ -410,39 +418,24 @@ friction_cone_aftr_touchdown2 = prb.createConstraint("friction_cone_aftr_touchdo
 friction_cone_aftr_touchdown2.setBounds(0, cs.inf)
 
 ## costs
-
 epsi = 1
+
+scale_factor_base = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/scale_factor_costs_base") 
+weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
+weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
+weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_hip_jump") 
+weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") 
+weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_com_height")  
 
 cost_scaling_factor = dt_lb * n_int * scale_factor_base
 
-weight_contact_cost = weight_contact_cost / cost_scaling_factor
-prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact[0:2]))
+weight_init_sol_tracking = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_init_sol_tracking")
 
-weight_q_ddot = weight_q_ddot / cost_scaling_factor
-prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
-    q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+if is_refine_phase: # cost functions for the refinement phase
+ 
 
-weight_hip_height_jump = weight_hip_height_jump / cost_scaling_factor
-prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
-                           nodes=range(n_takeoff, n_touchdown))
-
-weight_tip_clearance = weight_tip_clearance / cost_scaling_factor
-prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
-                           nodes=range(n_takeoff, n_touchdown))
-
-weight_min_input_diff = weight_min_input_diff / cost_scaling_factor
-prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot[1:] - q_p_ddot[1:].getVarOffset(-1)), 
-                            nodes = range(1, n_int))  
-
-weight_min_f_contact_diff = weight_min_f_contact_diff / cost_scaling_factor
-prb.createIntermediateCost("min_f_contact_diff", weight_min_input_diff * cs.sumsqr(f_contact - f_contact.getVarOffset(-1)), 
-                            nodes = range(1, n_int)) 
-
-weight_com_height = weight_com_height / cost_scaling_factor
-prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
-                            nodes=range(n_takeoff, n_touchdown)) 
-
-if employ_opt_init:
+    weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_min_input_diff") 
+    weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_min_f_contact_diff")
 
     weight_init_sol_tracking = weight_init_sol_tracking / cost_scaling_factor
 
@@ -450,6 +443,40 @@ if employ_opt_init:
 
         prb.createIntermediateCost("init_sol_tracking_cost_n" + str(i + 1), weight_init_sol_tracking * cs.sumsqr(q_p - loaded_sol["q_p_res"][:, i + 1]), 
                                     nodes= i + 1) 
+
+else: # cost functions for the original problem
+
+    weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
+    weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_f_contact_diff") 
+
+    weight_contact_cost = weight_contact_cost / cost_scaling_factor
+    prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact[0:2]))
+
+    weight_q_ddot = weight_q_ddot / cost_scaling_factor
+    prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
+        q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+
+    weight_hip_height_jump = weight_hip_height_jump / cost_scaling_factor
+    prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
+                            nodes=range(n_takeoff, n_touchdown))
+
+    weight_tip_clearance = weight_tip_clearance / cost_scaling_factor
+    prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
+                            nodes=range(n_takeoff, n_touchdown))
+
+    weight_com_height = weight_com_height / cost_scaling_factor
+    prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
+                            nodes=range(n_takeoff, n_touchdown)) 
+
+# common costs
+weight_min_input_diff = weight_min_input_diff / cost_scaling_factor
+prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot[1:] - q_p_ddot[1:].getVarOffset(-1)), 
+                            nodes = range(1, n_int))  
+
+weight_min_f_contact_diff = weight_min_f_contact_diff / cost_scaling_factor
+prb.createIntermediateCost("min_f_contact_diff", weight_min_input_diff * cs.sumsqr(f_contact - f_contact.getVarOffset(-1)), 
+                            nodes = range(1, n_int)) # doesn't seem to affect the results --> not useful
+
 
 ## solving
 
@@ -462,7 +489,7 @@ solution = slvr.getSolutionDict() # extracting solution
 cnstr_opt = slvr.getConstraintSolutionDict()
 tau_sol = cnstr_opt["tau_limits"]
 
-if resample_traj:
+if resample_traj and not is_refine_phase:
 
     q_sym = cs.SX.sym('q', n_q)
     q_dot_sym = cs.SX.sym('q_dot', n_v)
@@ -503,7 +530,25 @@ init_solution_hip_position_aux = np.tile(hip_position_initial,(1, n_int + 1))
 solution_v_foot_tip = dfk_foot(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 solution_v_foot_hip = dfk_hip(q=solution["q_p"], qdot=solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
 
-other_stuff={"tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
+other_stuff = None
+if not is_refine_phase:
+
+    other_stuff = {"tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
+                 "foot_tip_height": np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
+                 "hip_height": np.transpose(solution_hip_position-init_solution_foot_tip_position_aux[2,:]), 
+                 "tip_velocity": np.transpose(np.transpose(solution_v_foot_tip)),
+                 "hip_velocity": np.transpose(np.transpose(solution_v_foot_hip)),
+                 "sol_time": solution_time,
+                 "is_calibrated": is_calibrated, 
+                 "weight_min_input_diff": weight_min_input_diff, 
+                 "weight_min_f_contact_diff": weight_min_f_contact_diff, 
+                 "weight_init_sol_tracking": weight_init_sol_tracking, 
+                 "is_refine_phase": is_refine_phase, 
+                 "unique_id": unique_id}
+
+else:
+    
+    other_stuff = {"tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
                  "foot_tip_height": np.transpose(solution_foot_tip_position-init_solution_foot_tip_position_aux[2,:]), 
                  "hip_height": np.transpose(solution_hip_position-init_solution_foot_tip_position_aux[2,:]), 
                  "tip_velocity": np.transpose(np.transpose(solution_v_foot_tip)),
@@ -516,13 +561,13 @@ other_stuff={"tau":cnstr_opt["tau_limits"], "i_q":i_q, "dt_opt":slvr.getDt(),
                  "weight_min_input_diff": weight_min_input_diff, 
                  "weight_min_f_contact_diff": weight_min_f_contact_diff, 
                  "weight_com_height": weight_com_height, 
-                 "weight_init_sol_tracking": weight_init_sol_tracking, 
-                 "employ_opt_init": employ_opt_init, 
-                 }
+                 "is_refine_phase": is_refine_phase, 
+                 "unique_id": unique_id}
+
 
 sol_dict_full = {}
 
-if resample_traj:
+if resample_traj and not is_refine_phase:
 
     ## post-processing original solution
 
@@ -568,13 +613,6 @@ else:
 
     ms.store(sol_dict_full) # saving solution data to file
 
-# copying stuff for future debugging
-shutil.copyfile(opt_res_path + "/jump_test/" + sol_mat_name + ".mat", target_path + sol_mat_name + current_time + ".mat")
-
-if save_sol_as_init: # save the solution as the initialization for the next sim
-
-    ms_opt_init.store(sol_dict_full) # saving initialization data to file    
-
 ## replaying traj on rviz
 replay_traj = rospy.get_param("/horizon/replay_trajectory")
 
@@ -582,7 +620,7 @@ if replay_traj:
     joint_names = urdf_awesome_leg.joint_names()
     joint_names.remove("universe")  # removing the "universe joint"
 
-    if resample_traj:
+    if resample_traj and not is_refine_phase:
 
         rpl_traj = replay_trajectory(dt_res, joint_names, p_res, sol_contact_map_res, \
                     cas_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED, urdf_awesome_leg)  # replaying the (resampled) trajectory
