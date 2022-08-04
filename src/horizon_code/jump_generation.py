@@ -420,22 +420,21 @@ friction_cone_aftr_touchdown2.setBounds(0, cs.inf)
 ## costs
 epsi = 1
 
-scale_factor_base = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/scale_factor_costs_base") 
-weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
-weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
-weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_hip_jump") 
-weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") 
-weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_com_height")  
+scale_factor_base = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/scale_factor_costs_base")   
 
 cost_scaling_factor = dt_lb * n_int * scale_factor_base
 
 weight_init_sol_tracking = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_init_sol_tracking")
 
 if is_refine_phase: # cost functions for the refinement phase
- 
-
+    
     weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_min_input_diff") 
     weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_min_f_contact_diff")
+    weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/contact_force")  # minimizing the contact force
+    weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/small_q_p_ddot")# minimizing joint accelerations
+    weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/big_hip_jump") 
+    weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/big_foot_tip_clearance") 
+    weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/traj_refiner/weight_com_height")
 
     weight_init_sol_tracking = weight_init_sol_tracking / cost_scaling_factor
 
@@ -445,30 +444,36 @@ if is_refine_phase: # cost functions for the refinement phase
                                     nodes= i + 1) 
 
 else: # cost functions for the original problem
-
+    
     weight_min_input_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_input_diff") 
     weight_min_f_contact_diff = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_min_f_contact_diff") 
-
-    weight_contact_cost = weight_contact_cost / cost_scaling_factor
-    prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact[0:2]))
-
-    weight_q_ddot = weight_q_ddot / cost_scaling_factor
-    prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
-        q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
-
-    weight_hip_height_jump = weight_hip_height_jump / cost_scaling_factor
-    prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
-                            nodes=range(n_takeoff, n_touchdown))
-
-    weight_tip_clearance = weight_tip_clearance / cost_scaling_factor
-    prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
-                            nodes=range(n_takeoff, n_touchdown))
-
-    weight_com_height = weight_com_height / cost_scaling_factor
-    prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
-                            nodes=range(n_takeoff, n_touchdown)) 
+    weight_contact_cost = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/contact_force")  # minimizing the contact force
+    weight_q_ddot = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/small_q_p_ddot")# minimizing joint accelerations
+    weight_hip_height_jump = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_hip_jump") 
+    weight_tip_clearance = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/big_foot_tip_clearance") 
+    weight_com_height = rospy.get_param("horizon/horizon_solver/problem_settings/cost_weights/weight_com_height") 
 
 # common costs
+
+weight_contact_cost = weight_contact_cost / cost_scaling_factor
+prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_contact[0:2]))
+
+weight_q_ddot = weight_q_ddot / cost_scaling_factor
+prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
+    q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
+
+weight_hip_height_jump = weight_hip_height_jump / cost_scaling_factor
+prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
+                        nodes=range(n_takeoff, n_touchdown))
+
+weight_tip_clearance = weight_tip_clearance / cost_scaling_factor
+prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
+                        nodes=range(n_takeoff, n_touchdown))
+
+weight_com_height = weight_com_height / cost_scaling_factor
+prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
+                        nodes=range(n_takeoff, n_touchdown))
+
 weight_min_input_diff = weight_min_input_diff / cost_scaling_factor
 prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot[1:] - q_p_ddot[1:].getVarOffset(-1)), 
                             nodes = range(1, n_int))  
@@ -476,7 +481,6 @@ prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q
 weight_min_f_contact_diff = weight_min_f_contact_diff / cost_scaling_factor
 prb.createIntermediateCost("min_f_contact_diff", weight_min_input_diff * cs.sumsqr(f_contact - f_contact.getVarOffset(-1)), 
                             nodes = range(1, n_int)) # doesn't seem to affect the results --> not useful
-
 
 ## solving
 

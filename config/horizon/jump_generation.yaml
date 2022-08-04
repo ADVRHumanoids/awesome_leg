@@ -12,7 +12,7 @@ horizon:
   
   opt_results_path: $(find awesome_leg)/opt_results/horizon_jump/results # where optimization .mat files are saved
 
-  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/04_08_2022-17_50_16
+  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/04_08_2022-19_04_57
 
   replay_trajectory: true # whether to replay the optimized trajectory on RViz or not
 
@@ -77,9 +77,15 @@ horizon:
       
         traj_refiner: 
 
-          weight_min_input_diff: 0.004  # cost for penalizing differences between successive inputs
-          weight_min_f_contact_diff: 0.0000000000000000000001
-          weight_init_sol_tracking: 100
+          contact_force: 0.0000000000000000000001 # cost for penalizing contact forces
+          small_q_p_ddot: 0.001 # cost for penalizing joint accelerations (which are the input)
+          weight_min_f_contact_diff: 0.0000000000000000000001 # cost for penalizing differences between successive f_contacts
+          weight_min_input_diff: 0.0000000000000000000001 # cost for penalizing differences between successive inputs
+          weight_com_height: 100
+          big_hip_jump: 0.0000000000000000000001
+          big_foot_tip_clearance: 0.0000000000000000000001
+
+          weight_init_sol_tracking: 0.0001
   
   horizon_resampler:
 
@@ -92,7 +98,6 @@ horizon:
     show_plots: true # whether or not to show the plots when the plotter node is run
     save_fig: false # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
     save_path: $(find awesome_leg)/media/horizon_jump/jump_test
-    plt_resample: false # whether to plot the resampled solution or the original one
   
   horizon_i_q_estimator: 
   
