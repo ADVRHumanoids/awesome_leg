@@ -45,8 +45,8 @@ xbotcore_plugins:
             mat_name: {value: horizon_offline_solver.mat, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
-            stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
+            stop_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
             delta_effort_lim: {value: 1e-6, type: double} 
             approach_traj_exec_time: {value: 6.0, type: double} 
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}

@@ -71,8 +71,6 @@ n_int = rospy.get_param("horizon/horizon_solver/problem_settings/n_int")  # opti
 n_takeoff =rospy.get_param("horizon/horizon_solver/problem_settings/n_takeoff")   # instant of takeoff
 n_touchdown =rospy.get_param("horizon/horizon_solver/problem_settings/n_touchdown")   # instant of touchdown
 
-hip_jump_trgt = rospy.get_param("horizon/horizon_solver/problem_settings/hip_jump_trgt")
-
 dt_lb=rospy.get_param("horizon/horizon_solver/problem_settings/dt_lb")   # dt lower bound 
 dt_ub=rospy.get_param("horizon/horizon_solver/problem_settings/dt_ub")   # dt upper bound
 q_p_init = rospy.get_param("horizon/horizon_solver/problem_settings/initial_conditions/q_p") # initial joint config (ideally it would be given from measurements)
@@ -371,9 +369,9 @@ prb.createIntermediateCost("min_f_contact", weight_contact_cost * cs.sumsqr(f_co
 # prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
 #     q_p_ddot[1:]))  # minimizing the joint accelerations ("responsiveness" of the trajectory)
 
-# weight_hip_height_jump = weight_hip_height_jump / n_int
-# prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
-#                            nodes=range(n_takeoff, n_touchdown))
+weight_hip_height_jump = weight_hip_height_jump / n_int
+prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
+                           nodes=range(n_takeoff, n_touchdown))
 
 weight_tip_clearance = weight_tip_clearance / n_int
 prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
