@@ -11,7 +11,7 @@
 
     <group if="$(eval arg('task_type')=='jump')">
       <!-- loading some horizon solver parameters-->
-      <rosparam command="load" file="$(find awesome_leg)/config/horizon/jump_generation.yaml" subst_value="true"/> 
+      <rosparam command="load" file="$(find awesome_leg)/config/horizon/jump_generationv2.yaml" subst_value="true"/> 
       <param name="horizon/task_type" type="string" value="jump" />
     </group>
 

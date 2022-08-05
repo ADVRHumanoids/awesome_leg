@@ -28,7 +28,7 @@ today = date.today()
 today_is = today.strftime("%d-%m-%Y")
 
 urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf absolute path 
-media_path = rospy.get_param("/horizon/media_path")  # media absolute path
+# media_path = rospy.get_param("/horizon/media_path")  # media absolute path
 
 opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results absolute path
 
