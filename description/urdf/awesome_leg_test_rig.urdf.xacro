@@ -12,7 +12,7 @@
     <xacro:property name="test_rig_height" value="1.0" />
     <xacro:property name="hip_mounting_offset" value="0.08" />
 
-    <xacro:property name="pelvis_mounting_height" value="0.0" />
+    <xacro:property name="pelvis_mounting_height" value="0.25" />
 
     <link name="world" />
 
