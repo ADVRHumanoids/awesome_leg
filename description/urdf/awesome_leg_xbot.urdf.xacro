@@ -9,8 +9,17 @@
     <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro"/>
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.xbot.xacro"/>
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
 
     <link name="world"> </link>
 
-    <xacro:awesome_leg id="1" base_link="none"/> 
+    <joint name="world2base_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <parent link="world"/>
+        <child link="base_link"/>
+    </joint>
+    
+    <link name="base_link"> </link>
+
+    <xacro:awesome_leg id="1" base_link="base_link"/> 
   </robot>

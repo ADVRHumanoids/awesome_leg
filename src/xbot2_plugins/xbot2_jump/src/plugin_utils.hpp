@@ -49,7 +49,8 @@ namespace plugin_utils{
 
             TrajLinInterp(); // default constructor
 
-            TrajLinInterp(Eigen::VectorXd sample_time, Eigen::MatrixXd input_traj, int interp_dir = 1, double time_check_tol = 0.000000001);
+            TrajLinInterp(Eigen::VectorXd sample_time, Eigen::MatrixXd input_traj, int interp_dir = 1,
+                        double time_check_tol = 0.01);
 
             Eigen::MatrixXd eval_at(Eigen::VectorXd interp_times);
 
@@ -78,11 +79,13 @@ namespace plugin_utils{
 
             TrajLoader(); // default constructor
 
-            TrajLoader(std::string data_path, bool column_major = true, double resample_err_tol = 0.0001);
+            TrajLoader(std::string data_path, bool column_major = true, double resample_err_tol = 0.0001, bool load_from_csv = false);
 
             Eigen::MatrixXd read_data_from_csv(std::string data_path);
             int get_n_jnts();
             int get_n_nodes();
+            Eigen::VectorXd get_sample_times();
+            Eigen::VectorXd compute_res_times(double dt_res);
             double get_exec_time();
             void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::MatrixXd& dt_opt);
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res);
@@ -93,17 +96,16 @@ namespace plugin_utils{
             std::string _data_path; // path to directory where data is stored. If a file name and mat extension is provided, data il loaded from a .mat database, otherwise from CSV file
             bool _column_major_order; // if true, the n. joints is given by the rows of the data and the number of samples by the columns, viceversa otherwise
             double _resample_err_tol; // acceptable resample execution time tolerance below which the resampled trajectory is considered valid
+            bool _load_from_csv;
 
             std::string _q_p_name = "q_p"; // these names have to match the ones of the loaded data
             std::string _q_p_dot_name = "q_p_dot";
             std::string _efforts_name = "tau";
-            std::string _f_contact_name = "f_contact";
             std::string _dt_name = "dt_opt";
 
             Eigen::MatrixXd _q_p;
             Eigen::MatrixXd _q_p_dot;
             Eigen::MatrixXd _tau;
-            Eigen::MatrixXd _f_contact;
             Eigen::MatrixXd _dt_opt;
             Eigen::VectorXd _sample_times;
 
@@ -124,8 +126,6 @@ namespace plugin_utils{
             void load_data_from_csv(std::string data_path);
 
             void load_data_from_mat(std::string math_path);
-
-            Eigen::VectorXd compute_res_times(double dt_res);
     };
 }
 

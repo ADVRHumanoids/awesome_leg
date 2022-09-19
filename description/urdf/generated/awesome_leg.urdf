@@ -41,6 +41,13 @@
   <gazebo>
     <plugin filename="libxbot2_gz_ft_server.so" name="xbot2_ft_driver"/>
   </gazebo>
+  <!--Gazebo-specific tags-->
+  <gazebo reference="test_rig">
+    <material>Gazebo/DarkGrey   </material>
+  </gazebo>
+  <gazebo reference="base_link">
+    <material>Gazebo/Grey  </material>
+  </gazebo>
   <link name="world"/>
   <joint name="world_test_rig" type="fixed">
     <parent link="world"/>
@@ -93,6 +100,42 @@
       <inertia ixx="0.044624842" ixy="-1.4644877999999999e-05" ixz="3.0225947e-05" iyy="0.02697759" iyz="0.009663635799999999" izz="0.027956754"/>
     </inertial>
   </link>
+  <!--Gazebo-specific tags-->
+  <gazebo reference="femur1">
+    <material>Gazebo/SkyBlue  </material>
+  </gazebo>
+  <gazebo reference="shin1">
+    <material>Gazebo/Grey  </material>
+  </gazebo>
+  <!-- <gazebo reference="knee_1">
+            <collision>
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>1.0</mu>
+                            <mu2>1.0</mu2>
+                        </ode>
+                        <bullet>
+                            <friction>1.0</friction>
+                            <friction2>1.0</friction2>
+                        </bullet>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>2100000</kp>
+                            <kd>1</kd>
+                            <max_vel>100</max_vel>
+                        </ode>
+                        <bullet>
+                            <soft_cfm>0.007</soft_cfm>
+                            <soft_erp>0.25</soft_erp>
+                            <kp>1000000</kp>
+                            <kd>5</kd>
+                        </bullet>
+                    </contact>
+                </surface>
+            </collision>
+        </gazebo> -->
   <!-- only add joint to base if argument is non-empty -->
   <joint name="hip_pitch1" type="revolute">
     <parent link="base_link"/>

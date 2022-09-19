@@ -5,6 +5,7 @@
     <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro"/>
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.xbot.xacro"/>
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
 
     <xacro:arg name="sliding_guide" default="true" />
     

@@ -4,7 +4,7 @@
     <arg name="gui" default="true"/>
 
     <param name="robot_description"
-        textfile="$(find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf"/>
+        textfile="$(find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf"/>
 
     <param name="robot_description_semantic"
         textfile="$(find awesome_leg)/description/srdf/awesome_leg_test_rig_fixed.srdf"/>

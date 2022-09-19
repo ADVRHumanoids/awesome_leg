@@ -2,8 +2,8 @@
 
 # description
 XBotInterface:
-  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf
-  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg_cartesio.srdf
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf
+  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg.srdf
 
 # model interface
 ModelInterface:
@@ -41,7 +41,7 @@ xbotcore_plugins:
         thread: rt_main
         type: mat_replayer_rt
         params:
-            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/, type: string}
+            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/jump0/, type: string}
             mat_name: {value: awesome_jump_ref.mat, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
@@ -61,7 +61,7 @@ xbotcore_plugins:
 
 # global parameters
 xbotcore_param:
-    /jm/tx_filter_autostart: {value: false, type: bool}
+    /jm/tx_filter_autostart: {value: true, type: bool}
     /jm/tx_filter_cutoff: {value: 2.0, type: double}
     /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 

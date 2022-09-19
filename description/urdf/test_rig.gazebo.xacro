@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    
+    <!--Gazebo-specific tags-->
+
+    <gazebo reference="test_rig">
+        <material>Gazebo/DarkGrey   </material>
+    </gazebo>
+    <gazebo reference="base_link">
+        <material>Gazebo/Grey  </material>
+    </gazebo>
+
+</robot>

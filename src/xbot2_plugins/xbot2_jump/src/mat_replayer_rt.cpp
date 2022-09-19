@@ -210,7 +210,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 void MatReplayerRt::load_opt_data()
 {   
 
-    _traj = plugin_utils::TrajLoader(_mat_path + _mat_name);
+    _traj = plugin_utils::TrajLoader(_mat_path + _mat_name, true, 0.0001, false);
 
     int n_traj_jnts = _traj.get_n_jnts();
 
@@ -542,3 +542,4 @@ void MatReplayerRt::on_close()
 }
 
 XBOT2_REGISTER_PLUGIN(MatReplayerRt, mat_replayer_rt)
+

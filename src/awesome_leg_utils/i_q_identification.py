@@ -26,8 +26,8 @@ with open(acts_config_path, 'r') as stream:
     acts_yaml = yaml.safe_load(stream)
 
 # Model description
-urdf_path = rospkg.RosPack().get_path("awesome_leg")+"/description/urdf/generated/awesome_leg_cartesio.urdf"   # urdf absolute path (remember RBDL might have some problems parsing the first link, if it has not a d.o.f.)
-srdf_path = rospkg.RosPack().get_path("awesome_leg")+"/description/srdf/awesome_leg_cartesio.srdf"   # srdf absolute path
+urdf_path = rospkg.RosPack().get_path("awesome_leg")+"/description/urdf/generated/awesome_leg_xbot.urdf"   # urdf absolute path (remember RBDL might have some problems parsing the first link, if it has not a d.o.f.)
+srdf_path = rospkg.RosPack().get_path("awesome_leg")+"/description/srdf/awesome_leg.srdf"   # srdf absolute path
 urdf = open(urdf_path, "r").read() # read the URDF
 srdf = open(srdf_path, "r").read() # read the URDF
 
