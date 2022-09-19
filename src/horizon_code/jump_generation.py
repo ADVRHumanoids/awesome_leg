@@ -300,7 +300,7 @@ else:
     f_contact[2].setInitialGuess(100.0)
 
 f_contact[2].setLowerBounds(0)  # the vertical component of f_contact needs to be always positive
-contact_map = dict(tip = f_contact)  # creating a contact map for applying the input to the foot
+contact_map = dict(tip1 = f_contact)  # creating a contact map for applying the input to the foot
 
 
 prb.setDynamics(xdot)  # setting the dynamics we are interested of in the problem object (xdot)
@@ -310,33 +310,25 @@ trscptr = transcriptor.Transcriptor.make_method(transcriptor_name, prb, trans_op
 tau = kin_dyn.InverseDynamics(urdf_awesome_leg, contact_map.keys(), \
         casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(q_p, q_p_dot, q_p_ddot, contact_map) 
 
-if is_calibrated:
-
-    shank_name = "shank"
-
-else:
-
-    shank_name = "hip1_1"
-
 # hip
-fk_hip = cs.Function.deserialize(urdf_awesome_leg.fk(shank_name))  # deserializing
+fk_hip = cs.Function.deserialize(urdf_awesome_leg.fk("base_link"))  # deserializing
 hip_position_initial = fk_hip(q = q_p_init)["ee_pos"]  # initial hip position (numerical)
 hip_position = fk_hip(q = q_p)["ee_pos"]  # hip position (symbolic)
 
 # hip vel
 dfk_hip = cs.Function.deserialize(
-    urdf_awesome_leg.frameVelocity(shank_name,\
+    urdf_awesome_leg.frameVelocity("base_link",\
             casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED))
 v_hip = dfk_hip(q = q_p, qdot = q_p_dot)["ee_vel_linear"]  # foot velocity
 
 # foot tip pos
-fk_foot = cs.Function.deserialize(urdf_awesome_leg.fk("tip"))
+fk_foot = cs.Function.deserialize(urdf_awesome_leg.fk("tip1"))
 foot_tip_position_init = fk_foot(q = q_p_init)["ee_pos"]  # foot initial position
 foot_tip_position = fk_foot(q = q_p)["ee_pos"]  # foot position
 
 # foot tip vel
 dfk_foot = cs.Function.deserialize(
-    urdf_awesome_leg.frameVelocity("tip",\
+    urdf_awesome_leg.frameVelocity("tip1",\
         casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED))
 v_foot_tip = dfk_foot(q=q_p, qdot=q_p_dot)["ee_vel_linear"]  # foot velocity
 
@@ -390,7 +382,7 @@ mu_friction_cone = abs(rospy.get_param("horizon/horizon_solver/problem_settings/
 # friction_cone_bf_takeoff = prb.createConstraint("friction_cone_bf_takeoff",\
 #                                     f_contact[1] - (mu_friction_cone * f_contact[2]),
 #                      nodes=range(0, n_takeoff))
-# friction_cone_bf_takeoff.setBounds(-cs.inf, 0)
+# friction_cone_bf_takeoff.setBo2unds(-cs.inf, 0)
 
 # friction_cone_aftr_touchdown = prb.createConstraint("friction_cone_aftr_touchdown",\
 #                                     (f_contact[1])**2 - (mu_friction_cone * f_contact[2])**2,

@@ -24,7 +24,7 @@ horizon:
 
     ref_sol_mat_name: "awesome_jump_ref"
       
-    is_refine_phase: true # whether to use the initial guess or not
+    is_refine_phase: false # whether to use the initial guess or not
   
     opt_init_name: "awesome_jump_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
   
