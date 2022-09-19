@@ -3,13 +3,18 @@
 
 <!-- scale -->
 <xacro:property name="mmTom" value="0.001" />
+<xacro:property name="dmTom" value="0.1" />
 <xacro:property name="mm2Tom2" value="${0.001*0.001}" />
 <xacro:property name="tonsToKg" value="1000.0" />
-    
+<xacro:property name="kgmm2_2_kgm2" value="${1e-06}" />
+
 <xacro:property name="PI" value="3.14159265359" />
 <xacro:property name="PI_2" value="1.57079632679" />
 <xacro:property name="PI_4" value="0.7853981633974483" />
 <xacro:property name="DEG2RAD" value="${PI/180.0}" />
+
+<xacro:property name="payload_mass" value="0.0" />
+<!-- <xacro:property name="payload_mass" value="7.38" /> -->
 
 <!-- color -->
 <material name="darkblue">

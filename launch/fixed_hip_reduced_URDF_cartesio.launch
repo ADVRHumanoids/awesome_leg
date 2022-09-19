@@ -4,10 +4,10 @@
     <arg name="gui" default="true"/>
 
     <param name="robot_description"
-        textfile="$(find awesome_leg)/description/urdf/generated/awesome_leg_reduced.urdf"/>
+        textfile="$(find awesome_leg)/description/urdf/generated/awesome_leg_standalone.urdf"/>
 
     <param name="robot_description_semantic"
-        textfile="$(find awesome_leg)/description/srdf/awesome_leg_reduced.srdf"/>
+        textfile="$(find awesome_leg)/description/srdf/awesome_leg_standalone.srdf"/>
 
     <param name="cartesian/problem_description"
         textfile="$(find awesome_leg)/config/cartesio/cartesio_acc_cntrl_rt.yaml"/>

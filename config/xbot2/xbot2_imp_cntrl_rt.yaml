@@ -45,8 +45,8 @@ xbotcore_plugins:
         params:
         
             # For testing on the real prototype:
-            # urdf_path: {value: $PWD/../../description/urdf/genereted/awesome_leg_reduced_calibrated.urdf, type: file} 
-            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # urdf_path: {value: $PWD/../../description/urdf/genereted/awesome_leg_standalone_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_standalone.srdf, type: file} # cartesian impedance control
             # For simulation:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_cartesio.urdf, type: file} 
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg_cartesio.srdf, type: file} # cartesian impedance control
@@ -67,8 +67,8 @@ xbotcore_plugins:
         params:
 
             # For testing on the real prototype:
-            # urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_reduced_calibrated.urdf, type: file} 
-            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_standalone_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_standalone.srdf, type: file} # cartesian impedance control
             # For simulation:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_cartesio.urdf, type: file} 
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg_cartesio.srdf, type: file} # cartesian impedance control

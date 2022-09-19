@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    
+    <!-- xbot2 joint device driver-->
+    <gazebo>  
+        <plugin name='xbot2_gz_joint_server' filename='libxbot2_gz_joint_server.so'> 
+            <pid>
+
+                <gain name="null_mode"  p="0"  d="0"/>
+                <gain name="small_mot"  p="250"  d="5"/>
+                <gain name="medium_mot" p="1000" d="10"/>
+                <gain name="big_mot"    p="3000" d="10"/>
+
+                <gain name="test_rig2HIP" profile="null_mode"/>
+                <gain name="hip_actuation" profile="medium_mot"/>
+                <gain name="knee_actuation" profile="medium_mot"/>
+            </pid>
+        </plugin>
+    </gazebo>
+
+    <gazebo> 
+        <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
+    </gazebo>
+
+</robot>
