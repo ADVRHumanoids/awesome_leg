@@ -12,7 +12,7 @@ horizon:
   
   opt_results_path: $(find awesome_leg)/opt_results/horizon_jump/results # where optimization .mat files are saved
 
-  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/04_08_2022-19_04_57
+  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/05_08_2022-15_14_19
 
   replay_trajectory: true # whether to replay the optimized trajectory on RViz or not
 
@@ -24,7 +24,7 @@ horizon:
 
     ref_sol_mat_name: "awesome_jump_ref"
       
-    is_refine_phase: false # whether to use the initial guess or not
+    is_refine_phase: true # whether to use the initial guess or not
   
     opt_init_name: "awesome_jump_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
   
@@ -78,14 +78,14 @@ horizon:
         traj_refiner: 
 
           contact_force: 0.0000000000000000000001 # cost for penalizing contact forces
-          small_q_p_ddot: 0.001 # cost for penalizing joint accelerations (which are the input)
+          small_q_p_ddot: 0.0000000000000000000001 # cost for penalizing joint accelerations (which are the input)
           weight_min_f_contact_diff: 0.0000000000000000000001 # cost for penalizing differences between successive f_contacts
-          weight_min_input_diff: 0.0000000000000000000001 # cost for penalizing differences between successive inputs
+          weight_min_input_diff: 0.001 # cost for penalizing differences between successive inputs
           weight_com_height: 100
           big_hip_jump: 0.0000000000000000000001
           big_foot_tip_clearance: 0.0000000000000000000001
 
-          weight_init_sol_tracking: 0.0001
+          weight_init_sol_tracking: 0.0000000000000000000001
   
   horizon_resampler:
 

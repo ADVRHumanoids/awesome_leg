@@ -12,7 +12,7 @@ horizon:
   
   opt_results_path: $(find awesome_leg)/opt_results/horizon_jump/results # where optimization .mat files are saved
 
-  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/05_08_2022-13_39_07
+  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/05_08_2022-14_21_43
 
   replay_trajectory: true # whether to replay the optimized trajectory on RViz or not
 
@@ -24,7 +24,7 @@ horizon:
 
     ref_sol_mat_name: "awesome_jump_ref"
       
-    is_refine_phase: true # whether to use the initial guess or not
+    is_refine_phase: false # whether to use the initial guess or not
   
     opt_init_name: "awesome_jump_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
   
@@ -43,7 +43,7 @@ horizon:
 
       mu_friction_cone : 0.5 # friction cone coefficient
 
-      is_iq_cnstrnt : false
+      is_iq_cnstrnt : true
 
       jnt_limit_margin: 0.02 # [rad] --> this value will shorten the limits of the joint (uniformly) for safety reasons
       jnt_vel_limit_margin : 0.05 # percentage, from 0.0 to 1.0; joint vel limits are restricted by jnt_vel_limit_margin * q_dot_lim
@@ -68,24 +68,24 @@ horizon:
         scale_factor_costs_base: 10000000 # scale factor for costs (other scalings are applied internally)
 
         contact_force: 0.0000000000000000000001 # cost for penalizing contact forces
-        weight_tau: 0.0000000000000000000001 # cost for penalizing joint accelerations (which are the input)
-        weight_min_f_contact_diff: 0.0000000000000000000001 # cost for penalizing differences between successive f_contacts
-        weight_min_input_diff: 0.001  # cost for penalizing differences between successive inputs
-        weight_com_height: 100
+        weight_tau: 0.01 # cost for penalizing joint accelerations (which are the input)
+        weight_min_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
+        weight_min_input_diff: 0.01  # cost for penalizing differences between successive inputs
+        weight_com_height: 1
         big_hip_jump: 0.0000000000000000000001
         big_foot_tip_clearance: 0.0000000000000000000001
       
         traj_refiner: 
 
           contact_force: 0.0000000000000000000001 # cost for penalizing contact forces
-          weight_tau: 0.001 # cost for penalizing joint accelerations (which are the input)
+          weight_tau: 0.01 # cost for penalizing joint accelerations (which are the input)
           weight_min_f_contact_diff: 0.0000000000000000000001 # cost for penalizing differences between successive f_contacts
           weight_min_input_diff: 0.0000000000000000000001 # cost for penalizing differences between successive inputs
-          weight_com_height: 100
+          weight_com_height: 300
           big_hip_jump: 0.0000000000000000000001
           big_foot_tip_clearance: 0.0000000000000000000001
 
-          weight_init_sol_tracking: 0.0001
+          weight_init_sol_tracking: 0.0000000000000000000001
   
   horizon_resampler:
 

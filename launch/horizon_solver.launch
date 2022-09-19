@@ -5,7 +5,7 @@
   <arg name="trot_type" default="fixed_hip" /> <!-- trot type to be solved. Allowed values: "sliding_hip", "sliding_all" -->
 
   <group if="$(eval arg('task_type')=='jump')">
-    <node name="horizon_leg_solver" pkg="awesome_leg" type="jump_generationv2.py" />
+    <node name="horizon_leg_solver" pkg="awesome_leg" type="jump_generation.py" />
   </group>
   <group if="$(eval arg('task_type')=='trot')">
     <!-- loading some horizon solver parameters-->
