@@ -118,7 +118,7 @@ material wood_clear
         // Relative to the location of the material script
         texture ../textures/wood_clear.jpg
         // Repeat the texture over the surface (4 per face)
-        scale 0.008 0.008
+        scale 0.3 0.3
       }
     }
   }

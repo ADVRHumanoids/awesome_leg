@@ -39,7 +39,7 @@
         
         <inertial>
             <mass value="1000.0" />
-            <inertia ixx="0.01" iyy="0.0001" izz="0.0001" ixy="0.0" ixz="0.0" iyz="0.0" />
+            <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
 
     </link>  

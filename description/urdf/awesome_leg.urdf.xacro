@@ -6,6 +6,8 @@
 
     <xacro:macro name="awesome_leg" params="id base_link" >
 
+        <xacro:awesome_leg_gazebo id="${id}"/> 
+
         <xacro:unless value="${ base_link=='None' or base_link=='none'}">
             <!-- only add joint to base if argument is non-empty -->
             <joint name="hip_pitch${id}" type="revolute">
