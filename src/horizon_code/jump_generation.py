@@ -57,11 +57,8 @@ resample_traj = rospy.get_param("/horizon/resample_traj")
 
 try:
 
-    is_calibrated_command  = "calibrated_urdf:=" + str(is_calibrated).lower()
-
     xacro_gen = subprocess.check_call(["xacro",\
                                 xacro_path, \
-                                is_calibrated_command, \
                                 "-o", 
                                 urdf_path])
             
@@ -233,8 +230,8 @@ v_bounds = v_bounds - v_bounds * jnt_vel_limit_margin
 lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
 ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
 
-tau_lim = np.array([0, tau_peak_ar[0], tau_peak_ar[1]])  # effort limits (0 on the passive d.o.f.)
-# tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (0 on the passive d.o.f.)
+# tau_lim = np.array([0, tau_peak_ar[0], tau_peak_ar[1]])  # effort limits (0 on the passive d.o.f.)
+tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (0 on the passive d.o.f.)
 
 prb = Problem(n_int)  # initialization of a problem object
 
@@ -302,7 +299,6 @@ else:
 f_contact[2].setLowerBounds(0)  # the vertical component of f_contact needs to be always positive
 contact_map = dict(tip1 = f_contact)  # creating a contact map for applying the input to the foot
 
-
 prb.setDynamics(xdot)  # setting the dynamics we are interested of in the problem object (xdot)
 
 trscptr = transcriptor.Transcriptor.make_method(transcriptor_name, prb, trans_opt)  # setting the transcriptor
@@ -341,12 +337,12 @@ tau_limits = prb.createIntermediateConstraint("tau_limits", tau)  # torque limit
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 
 prb.createConstraint("foot_vel_bf_touchdown", v_foot_tip,
-                     nodes=range(0, n_takeoff))  # no velocity of the foot before takeoff
+                     nodes=range(0, n_takeoff + 1))  # no velocity of the foot before takeoff
 prb.createConstraint("foot_vel_aftr_touchdown", v_foot_tip,
                      nodes=range(n_touchdown, n_int + 1))  # no velocity of the foot after touchdown
 
 prb.createConstraint("GRF_zero", f_contact,
-                     nodes=range(n_takeoff, n_touchdown))  # 0 GRF during flight
+                     nodes=range(n_takeoff + 1, n_touchdown))  # 0 GRF during flight
 
 prb.createFinalConstraint("leg_pose_restoration", q_p - q_p_init)
 
@@ -391,23 +387,23 @@ mu_friction_cone = abs(rospy.get_param("horizon/horizon_solver/problem_settings/
 
 # linearized friction cone (constraint need to be split in two because setBounds only takes numerical vals)
 
-friction_cone_bf_takeoff1 = prb.createConstraint("friction_cone_bf_takeoff1",\
-                                    f_contact[1] - (mu_friction_cone * f_contact[2]),
-                     nodes=range(0, n_takeoff))
-friction_cone_bf_takeoff1.setBounds(-cs.inf, 0)
-friction_cone_bf_takeoff2 = prb.createConstraint("friction_cone_bf_takeoff2",\
-                                    f_contact[1] + (mu_friction_cone * f_contact[2]),
-                     nodes=range(0, n_takeoff))
-friction_cone_bf_takeoff2.setBounds(0, cs.inf)
+# friction_cone_bf_takeoff1 = prb.createConstraint("friction_cone_bf_takeoff1",\
+#                                     f_contact[1] - (mu_friction_cone * f_contact[2]),
+#                      nodes=range(0, n_takeoff))
+# friction_cone_bf_takeoff1.setBounds(-cs.inf, 0)
+# friction_cone_bf_takeoff2 = prb.createConstraint("friction_cone_bf_takeoff2",\
+#                                     f_contact[1] + (mu_friction_cone * f_contact[2]),
+#                      nodes=range(0, n_takeoff))
+# friction_cone_bf_takeoff2.setBounds(0, cs.inf)
 
-friction_cone_aftr_touchdown1 = prb.createConstraint("friction_cone_aftr_touchdown1",\
-                                    f_contact[1] - mu_friction_cone * f_contact[2],
-                     nodes=range(n_touchdown, n_int)) # f_contact not active on last node
-friction_cone_aftr_touchdown1.setBounds(-cs.inf, 0)
-friction_cone_aftr_touchdown2 = prb.createConstraint("friction_cone_aftr_touchdown2",\
-                                    f_contact[1] + mu_friction_cone * f_contact[2],
-                     nodes=range(n_touchdown, n_int)) # f_contact not active on last node
-friction_cone_aftr_touchdown2.setBounds(0, cs.inf)
+# friction_cone_aftr_touchdown1 = prb.createConstraint("friction_cone_aftr_touchdown1",\
+#                                     f_contact[1] - mu_friction_cone * f_contact[2],
+#                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
+# friction_cone_aftr_touchdown1.setBounds(-cs.inf, 0)
+# friction_cone_aftr_touchdown2 = prb.createConstraint("friction_cone_aftr_touchdown2",\
+#                                     f_contact[1] + mu_friction_cone * f_contact[2],
+#                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
+# friction_cone_aftr_touchdown2.setBounds(0, cs.inf)
 
 ## costs
 epsi = 1
@@ -495,7 +491,7 @@ if resample_traj and not is_refine_phase:
     dae = {'x': x, 'p': q_ddot_sym, 'ode': x_dot, 'quad': 1}
 
     dt_res = rospy.get_param("horizon/horizon_resampler/dt")
-    sol_contact_map = dict(tip = solution["f_contact"])  # creating a contact map for applying the input to the foot
+    sol_contact_map = dict(tip1 = solution["f_contact"])  # creating a contact map for applying the input to the foot
 
     p_res, v_res, a_res, sol_contact_map_res, tau_res = resampler_trajectory.resample_torques(solution["q_p"],
                                                             solution["q_p_dot"],
@@ -506,7 +502,7 @@ if resample_traj and not is_refine_phase:
                                                             urdf_awesome_leg,
                                                             casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED)
 
-## post-processing original solution
+# post-processing original solution
 
 # Hip and knee quadrature current estimation
 i_q_n_samples = len(solution["q_p_ddot"][0, :])
@@ -577,7 +573,7 @@ if resample_traj and not is_refine_phase:
         i_q_res[i, :] = (rotor_axial_MoI[i] * a_res[i + 1, 0:(n_res_samples)] / red_ratio[i] + \
                         compensated_tau * red_ratio[i] / efficiency[i]) / K_t[i]
 
-    res_GRF = sol_contact_map_res["tip"]
+    res_GRF = sol_contact_map_res["tip1"]
     res_q_p = p_res
     res_foot_tip_position = fk_foot(q = p_res)["ee_pos"][2,:].toarray()  # foot position
     res_hip_position = fk_hip(q=p_res)["ee_pos"][2,:].toarray()   # hip position
