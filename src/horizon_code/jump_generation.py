@@ -291,10 +291,10 @@ x, xdot = utils.double_integrator(q_p, q_p_dot, q_p_ddot)  # building the full s
 
 # Creating an additional input variable for the contact forces on the foot tip
 f_contact = prb.createInputVariable("f_contact", 3)  # dimension 3
-if is_refine_phase:
-    f_contact.setInitialGuess(loaded_sol["f_contact_res"])
-else:
-    f_contact[2].setInitialGuess(100.0)
+# if is_refine_phase:
+#     f_contact.setInitialGuess(loaded_sol["f_contact_res"])
+# else:
+f_contact[2].setInitialGuess(100.0)
 
 f_contact[2].setLowerBounds(0)  # the vertical component of f_contact needs to be always positive
 contact_map = dict(tip1 = f_contact)  # creating a contact map for applying the input to the foot
