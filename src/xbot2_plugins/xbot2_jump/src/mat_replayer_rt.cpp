@@ -59,6 +59,8 @@ void MatReplayerRt::get_params_from_config()
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
+    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
+    
     _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
     _resample = getParamOrThrow<bool>("~resample"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
@@ -95,7 +97,15 @@ void MatReplayerRt::init_dump_logger()
     MatLogger2::Options opt;
     opt.default_buffer_size = 1e6; // set default buffer size
     opt.enable_compression = true; // enable ZLIB compression
-    _dump_logger = MatLogger2::MakeLogger("/tmp/MatReplayerRt", opt); // date-time automatically appended
+    if (_dump_mat_suffix == std::string(""))
+    { // if empty, then dump to tmp with plugin name
+        _dump_logger = MatLogger2::MakeLogger("/tmp/MatReplayerRt", opt); // date-time automatically appended
+    }
+    else
+    {
+        _dump_logger = MatLogger2::MakeLogger(_mat_path + _dump_mat_suffix, opt); // date-time automatically appended
+    }
+
     _dump_logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
     _dump_logger->add("plugin_dt", _plugin_dt);

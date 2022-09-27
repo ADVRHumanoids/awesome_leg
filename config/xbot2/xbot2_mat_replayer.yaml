@@ -41,8 +41,9 @@ xbotcore_plugins:
         thread: rt_main
         type: mat_replayer_rt
         params:
-            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/jump0/, type: string}
+            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/results/27_09_2022-12_36_49/, type: string}
             mat_name: {value: awesome_jump_ref.mat, type: string}
+            dump_mat_suffix: {value: traj_replaty, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
             stop_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}
@@ -51,8 +52,8 @@ xbotcore_plugins:
             approach_traj_exec_time: {value: 6.0, type: double} 
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
             # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
-            replay_stiffness: {value: [1000.0, 1000.0], type: Eigen::VectorXd}
-            replay_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
+            replay_stiffness: {value: [1500.0, 1500.0], type: Eigen::VectorXd}
+            replay_damping: {value: [25.0, 25.0], type: Eigen::VectorXd}
             send_pos_ref: {value: true, type: bool}
             send_vel_ref: {value: false, type: bool}
             send_eff_ref: {value: false, type: bool}

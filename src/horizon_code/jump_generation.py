@@ -230,8 +230,8 @@ v_bounds = v_bounds - v_bounds * jnt_vel_limit_margin
 lbs = urdf_awesome_leg.q_min() + jnt_lim_margin_array
 ubs = urdf_awesome_leg.q_max() - jnt_lim_margin_array
 
-# tau_lim = np.array([0, tau_peak_ar[0], tau_peak_ar[1]])  # effort limits (0 on the passive d.o.f.)
-tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (0 on the passive d.o.f.)
+tau_lim = np.array([0, tau_peak_ar[0], tau_peak_ar[1]])  # effort limits (0 on the passive d.o.f.)
+# tau_lim = np.array([0, cs.inf, cs.inf])  # effort limits (0 on the passive d.o.f.)
 
 prb = Problem(n_int)  # initialization of a problem object
 
@@ -336,13 +336,19 @@ com = com_f(q = q_p, v = q_p_dot, a = q_p_ddot)["com"]
 tau_limits = prb.createIntermediateConstraint("tau_limits", tau)  # torque limits
 tau_limits.setBounds(-tau_lim, tau_lim)  # setting input limits
 
+pre_takeoff_nodes = range(0, n_takeoff + 1)
+post_touchdown_nodes = range(n_touchdown, n_int + 1)
+flight_nodes = range(n_takeoff + 1, n_touchdown)
 prb.createConstraint("foot_vel_bf_touchdown", v_foot_tip,
-                     nodes=range(0, n_takeoff + 1))  # no velocity of the foot before takeoff
+                     nodes=pre_takeoff_nodes)  # no velocity of the foot before takeoff
 prb.createConstraint("foot_vel_aftr_touchdown", v_foot_tip,
-                     nodes=range(n_touchdown, n_int + 1))  # no velocity of the foot after touchdown
+                     nodes=post_touchdown_nodes)  # no velocity of the foot after touchdown
+
+tip_above_ground = prb.createConstraint("tip_above_ground", foot_tip_position[2], nodes=flight_nodes)  # no ground penetration on all the horizoin
+tip_above_ground.setBounds(0.0, cs.inf)
 
 prb.createConstraint("GRF_zero", f_contact,
-                     nodes=range(n_takeoff + 1, n_touchdown))  # 0 GRF during flight
+                     nodes=flight_nodes)  # 0 GRF during flight
 
 prb.createFinalConstraint("leg_pose_restoration", q_p - q_p_init)
 
@@ -362,48 +368,41 @@ if is_iq_cnstrnt and is_refine_phase: # highly non linear constraint due to appr
         i_q_cnstr[i].setBounds(-I_peak[i], I_peak[i])  # setting input limits
 
 # friction constraints
+is_friction_cone = rospy.get_param("horizon/horizon_solver/problem_settings/is_friction_cone")
+
 mu_friction_cone = abs(rospy.get_param("horizon/horizon_solver/problem_settings/mu_friction_cone"))
 
-# friction_cone_bf_takeoff = prb.createConstraint("friction_cone_bf_takeoff",\
-#                                     (f_contact[0]**2 + f_contact[1]**2) - (mu_friction_cone * f_contact[2])**2,
-#                      nodes=range(0, n_takeoff))
-# friction_cone_bf_takeoff.setBounds(-cs.inf, 0)
+if is_friction_cone:
 
-# friction_cone_aftr_touchdown = prb.createConstraint("friction_cone_aftr_touchdown",\
-#                                     (f_contact[0]**2 + f_contact[1]**2) - (mu_friction_cone * f_contact[2])**2,
-#                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
-# friction_cone_aftr_touchdown.setBounds(-cs.inf, 0)
+        # exact friction cone (heavier to evaluate)
+        # friction_cone_bf_takeoff = prb.createConstraint("friction_cone_bf_takeoff",\
+        #                                     (f_contact[0]**2 + f_contact[1]**2) - (mu_friction_cone * f_contact[2])**2,
+        #                      nodes=range(0, n_takeoff))
+        # friction_cone_bf_takeoff.setBounds(-cs.inf, 0)
 
-# quadratization of the linearized friction cone (easier to write, but quadratic)
-# friction_cone_bf_takeoff = prb.createConstraint("friction_cone_bf_takeoff",\
-#                                     f_contact[1] - (mu_friction_cone * f_contact[2]),
-#                      nodes=range(0, n_takeoff))
-# friction_cone_bf_takeoff.setBo2unds(-cs.inf, 0)
+        # friction_cone_aftr_touchdown = prb.createConstraint("friction_cone_aftr_touchdown",\
+        #                                     (f_contact[0]**2 + f_contact[1]**2) - (mu_friction_cone * f_contact[2])**2,
+        #                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
+        # friction_cone_aftr_touchdown.setBounds(-cs.inf, 0)
 
-# friction_cone_aftr_touchdown = prb.createConstraint("friction_cone_aftr_touchdown",\
-#                                     (f_contact[1])**2 - (mu_friction_cone * f_contact[2])**2,
-#                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
-# friction_cone_aftr_touchdown.setBounds(-cs.inf, 0)
+        # linearized friction cone (constraint need to be split in two because setBounds only takes numerical vals)
+        friction_cone_bf_takeoff1 = prb.createConstraint("friction_cone_bf_takeoff1",\
+                                            f_contact[1] - (mu_friction_cone * f_contact[2]),
+                            nodes=pre_takeoff_nodes)
+        friction_cone_bf_takeoff1.setBounds(-cs.inf, 0)
+        friction_cone_bf_takeoff2 = prb.createConstraint("friction_cone_bf_takeoff2",\
+                                            f_contact[1] + (mu_friction_cone * f_contact[2]),
+                            nodes=pre_takeoff_nodes)
+        friction_cone_bf_takeoff2.setBounds(0, cs.inf)
 
-# linearized friction cone (constraint need to be split in two because setBounds only takes numerical vals)
-
-# friction_cone_bf_takeoff1 = prb.createConstraint("friction_cone_bf_takeoff1",\
-#                                     f_contact[1] - (mu_friction_cone * f_contact[2]),
-#                      nodes=range(0, n_takeoff))
-# friction_cone_bf_takeoff1.setBounds(-cs.inf, 0)
-# friction_cone_bf_takeoff2 = prb.createConstraint("friction_cone_bf_takeoff2",\
-#                                     f_contact[1] + (mu_friction_cone * f_contact[2]),
-#                      nodes=range(0, n_takeoff))
-# friction_cone_bf_takeoff2.setBounds(0, cs.inf)
-
-# friction_cone_aftr_touchdown1 = prb.createConstraint("friction_cone_aftr_touchdown1",\
-#                                     f_contact[1] - mu_friction_cone * f_contact[2],
-#                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
-# friction_cone_aftr_touchdown1.setBounds(-cs.inf, 0)
-# friction_cone_aftr_touchdown2 = prb.createConstraint("friction_cone_aftr_touchdown2",\
-#                                     f_contact[1] + mu_friction_cone * f_contact[2],
-#                      nodes=range(n_touchdown, n_int)) # f_contact not active on last node
-# friction_cone_aftr_touchdown2.setBounds(0, cs.inf)
+        friction_cone_aftr_touchdown1 = prb.createConstraint("friction_cone_aftr_touchdown1",\
+                                            f_contact[1] - mu_friction_cone * f_contact[2],
+                            nodes=post_touchdown_nodes[:-1]) # f_contact not active on last node
+        friction_cone_aftr_touchdown1.setBounds(-cs.inf, 0)
+        friction_cone_aftr_touchdown2 = prb.createConstraint("friction_cone_aftr_touchdown2",\
+                                            f_contact[1] + mu_friction_cone * f_contact[2],
+                            nodes=post_touchdown_nodes[:-1]) # f_contact not active on last node
+        friction_cone_aftr_touchdown2.setBounds(0, cs.inf)
 
 ## costs
 epsi = 1
@@ -452,15 +451,15 @@ prb.createIntermediateCost("min_q_ddot", weight_q_ddot * cs.sumsqr(
 
 weight_hip_height_jump = weight_hip_height_jump / cost_scaling_factor
 prb.createIntermediateCost("max_hip_height_jump", weight_hip_height_jump * cs.sumsqr(1 / (hip_position[2] + epsi)),
-                        nodes=range(n_takeoff, n_touchdown))
+                        nodes=flight_nodes)
 
 weight_tip_clearance = weight_tip_clearance / cost_scaling_factor
 prb.createIntermediateCost("max_foot_tip_clearance", weight_tip_clearance * cs.sumsqr(1 / (foot_tip_position[2] + epsi)),
-                        nodes=range(n_takeoff, n_touchdown))
+                        nodes=flight_nodes)
 
 weight_com_height = weight_com_height / cost_scaling_factor
 prb.createIntermediateCost("max_com_height", weight_com_height * cs.sumsqr(1/ ( com[2] + epsi)), 
-                        nodes=range(n_takeoff, n_touchdown))
+                        nodes=flight_nodes)
 
 weight_min_input_diff = weight_min_input_diff / cost_scaling_factor
 prb.createIntermediateCost("min_input_diff", weight_min_input_diff * cs.sumsqr(q_p_ddot[1:] - q_p_ddot[1:].getVarOffset(-1)), 
@@ -623,4 +622,3 @@ if replay_traj:
 
     rpl_traj.sleep(1.)
     rpl_traj.replay(is_floating_base = False)
-
