@@ -41,9 +41,9 @@ xbotcore_plugins:
         thread: rt_main
         type: mat_replayer_rt
         params:
-            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/results/27_09_2022-12_36_49/, type: string}
+            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/results/27_09_2022-18_47_24/, type: string}
             mat_name: {value: awesome_jump_ref.mat, type: string}
-            dump_mat_suffix: {value: traj_replaty, type: string}
+            dump_mat_suffix: {value: traj_replay, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
             stop_stiffness: {value: [500.0, 500.0], type: Eigen::VectorXd}

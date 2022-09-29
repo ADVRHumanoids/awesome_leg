@@ -22,6 +22,8 @@ horizon:
   
     sol_mat_name: "awesome_jump" # name of custom mat file where results will be saved
 
+    res_sol_mat_name: "awesome_jump_res"
+
     ref_sol_mat_name: "awesome_jump_ref"
       
     is_refine_phase: true # whether to use the initial guess or not
@@ -43,9 +45,9 @@ horizon:
 
       mu_friction_cone : 0.8 # friction cone coefficient
 
-      is_iq_cnstrnt : true
+      is_iq_cnstrnt : false
 
-      is_friction_cone: true
+      is_friction_cone: false
 
       jnt_limit_margin: 0.02 # [rad] --> this value will shorten the limits of the joint (uniformly) for safety reasons
       jnt_vel_limit_margin : 0.05 # percentage, from 0.0 to 1.0; joint vel limits are restricted by jnt_vel_limit_margin * q_dot_lim
@@ -87,7 +89,7 @@ horizon:
           big_hip_jump: 0.0000000000000000000001
           big_foot_tip_clearance: 0.0000000000000000000001
 
-          weight_init_sol_tracking: 0.0000000000000000000001
+          weight_init_sol_tracking: 0.00001
   
   horizon_resampler:
 

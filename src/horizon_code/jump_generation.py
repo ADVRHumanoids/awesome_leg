@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from fileinput import filename
 import os as scibidibi
 import shutil
 import time
@@ -97,7 +96,8 @@ linear_solver_name= rospy.get_param("horizon/horizon_solver/problem_settings/sol
 
 slvr_opt = {"ipopt.tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/tolerance"),
     "ipopt.max_iter": rospy.get_param("horizon/horizon_solver/problem_settings/solver/max_iter"),
-    "ipopt.constr_viol_tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/cnstrnt_tolerance")}
+    "ipopt.constr_viol_tol": rospy.get_param("horizon/horizon_solver/problem_settings/solver/cnstrnt_tolerance"),
+    "ipopt.linear_solver": linear_solver_name}
 
 slvr_name=rospy.get_param("horizon/horizon_solver/problem_settings/solver/name") # options: "blocksqp", "ipopt", "ilqr", "gnsqp", 
 
@@ -114,6 +114,7 @@ solution_mat_name = ""
 results_dir_path = ""
 loaded_sol = None
 sol_mat_name = rospy.get_param("/horizon/horizon_solver/sol_mat_name")
+res_sol_mat_name = rospy.get_param("/horizon/horizon_solver/res_sol_mat_name")
 if is_refine_phase: # initialize variables with the previously saved solution
     
     ms_load_path = refine_path + "/" + sol_mat_name + ".mat"
@@ -161,7 +162,8 @@ else:
     shutil.copyfile(urdf_path, results_dir_path + "/" + urdf_name + "_" + current_time + ".urdf")
 
 
-ms = mat_storer.matStorer(results_dir_path + "/" + sol_mat_name + ".mat")  # original opt. sol
+ms_orig = mat_storer.matStorer(results_dir_path + "/" + sol_mat_name + ".mat")  # original opt. sol
+ms_resampl = mat_storer.matStorer(results_dir_path + "/" + res_sol_mat_name + ".mat")  # original opt. sol
 
 ## Actuator properties (see actuators.yaml for a brief description of most of the parameters)
 
@@ -582,19 +584,22 @@ if resample_traj and not is_refine_phase:
     res_v_foot_hip = dfk_hip(q=p_res, qdot=v_res)["ee_vel_linear"]  # foot velocity
     dt_res_vector = np.tile(dt_res, n_res_samples - 1)
 
-    useful_solutions_res={"q_p_res":p_res,"q_p_dot_res":v_res, "q_p_ddot_res":a_res,
-                    "tau_res":tau_res, "f_contact_res":res_GRF, "i_q_res":i_q_res, "dt_opt_res":dt_res_vector,
-                    "foot_tip_height_res":np.transpose(res_foot_tip_position-init_res_foot_tip_position_aux[2,:]), 
-                    "hip_height_res":np.transpose(res_hip_position-init_res_foot_tip_position_aux[2,:]), 
-                    "tip_velocity_res":np.transpose(np.transpose(res_v_foot_tip)),
-                    "hip_velocity_res":np.transpose(np.transpose(res_v_foot_hip))}
+    useful_solutions_res={"q_p":p_res,"q_p_dot":v_res, "q_p_ddot":a_res,
+                    "tau":tau_res, "f_contact":res_GRF, "i_q":i_q_res, "dt_opt":dt_res_vector,
+                    "foot_tip_height":np.transpose(res_foot_tip_position-init_res_foot_tip_position_aux[2,:]), 
+                    "hip_height":np.transpose(res_hip_position-init_res_foot_tip_position_aux[2,:]), 
+                    "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),
+                    "hip_velocity":np.transpose(np.transpose(res_v_foot_hip))}
 
-    sol_dict_full = {**solution,
-            **useful_solutions_res, 
+    sol_dict_full_resampl= {**useful_solutions_res}
+
+    sol_dict_full_orig = {**solution,
             **cnstr_opt,
             **other_stuff}
 
-    ms.store(sol_dict_full) # saving solution data to file
+    ms_orig.store(sol_dict_full_orig) # saving solution data to file
+
+    ms_resampl.store(sol_dict_full_resampl) # saving solution data to file
 
 else:
 
@@ -602,7 +607,7 @@ else:
             **cnstr_opt,
             **other_stuff}
 
-    ms.store(sol_dict_full) # saving solution data to file
+    ms_orig.store(sol_dict_full) # saving solution data to file
 
 ## replaying traj on rviz
 replay_traj = rospy.get_param("/horizon/replay_trajectory")

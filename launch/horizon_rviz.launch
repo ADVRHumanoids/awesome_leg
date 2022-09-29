@@ -5,7 +5,6 @@
     <arg name="gui" default="true"/>
 
     <arg name="sliding_guide" default="true" />
-    <arg name="calibrated_urdf" default="false" />
 
     <node if="$(arg gui)"
             type="rviz"
@@ -14,17 +13,11 @@
             args="-d $(find awesome_leg)/rviz/rviz_standalone.rviz"/>
             output="screen"/>
     
-    <!-- Simply load all the necessary parameters into the parameter server -->
-    <include file="$(find awesome_leg)/launch/load_params.launch" pass_all_args="true"/>
-
     <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro'
         sliding_guide:=$(arg sliding_guide)" />
     
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen">
     <param name="publish_default_efforts" value="True"/>
     </node>
-
-    <!-- Launching the horizon solver node; this is used to compute the optimized trajectory/inputs -->
-    <include file="$(find awesome_leg)/launch/horizon_solver.launch"  pass_all_args="true"/>
 
 </launch>
