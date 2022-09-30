@@ -1,37 +1,19 @@
 #!/usr/bin/env python3
 
-import yaml
-
 import argparse
 
-import time
-
-import casadi as cs
-from sympy import N
-import casadi_kin_dyn
-import numpy as np
-import rospkg
-from horizon.problem import Problem
-from horizon.ros.replay_trajectory import *
-from horizon.solvers import solver
-from horizon.transcriptions import transcriptor
-from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
-
-from jump_utils.miscell_utils import str2bool
-from jump_utils.horizon_utils import inv_dyn_from_sol
-
 import rospkg
 
-from jump_utils.jump_tasks import ResJumpGen
+from jump_utils.jump_tasks import JumpGen
 
 def main(args):
 
-    jump_generator_resampled = ResJumpGen(args.yaml_path, 
+    jump_generator_resampled = JumpGen(args.yaml_path, 
                     args.actuators_yaml_path, 
                     args.urdf_path,
-                    args.sol_mat_name, 
-                    args.sol_mat_name_res, 
-                    args.results_dir)
+                    args.results_dir, 
+                    sol_mat_name = args.sol_mat_name, 
+                    sol_mat_name_res = args.sol_mat_name_res)
 
     jump_generator_resampled.init_prb()
     jump_generator_resampled.setup_prb()

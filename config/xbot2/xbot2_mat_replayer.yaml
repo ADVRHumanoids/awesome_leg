@@ -41,8 +41,8 @@ xbotcore_plugins:
         thread: rt_main
         type: mat_replayer_rt
         params:
-            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/results/27_09_2022-18_47_24/, type: string}
-            mat_name: {value: awesome_jump_ref.mat, type: string}
+            mat_path: {value: /tmp/awesome_jump_pipeline_30-09-2022-17_59_42/, type: string}
+            mat_name: {value: awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}

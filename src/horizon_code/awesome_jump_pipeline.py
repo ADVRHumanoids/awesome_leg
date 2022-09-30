@@ -77,17 +77,6 @@ if __name__ == '__main__':
 
         print(colored('FAILED TO GENERATE URDF.', "red"))
 
-    # try:
-
-    #     rviz_window = subprocess.Popen(["roslaunch",\
-    #                                     "awesome_leg",\
-    #                                     "horizon_rviz.launch", \
-    #                                     sliding_guide_command])
-
-    # except:
-
-    #     print('Failed to launch RViz.')
-
     os.chdir(exec_path) # change current path, so that executable can be run with check_call
 
     # try:
@@ -112,36 +101,17 @@ if __name__ == '__main__':
 
     # try:
 
-    # print(colored("\n--> STARTING SECOND LEVEL OPTIMIZATION....\n", "blue"))
+    print(colored("\n--> STARTING GENERATION OF REFINED JUMP TRAJ. ....\n", "blue"))
 
-    # #run first level (blocking --> we have to wait for data to be dumped to file)
-    # second_level_proc = subprocess.check_call(["./run_2nd_3rd_step_opt_on_workstation.py", \
-    #                             "-d", \
-    #                             res_dir_full_name, \
-    #                             "-dfn", \
-    #                             l2_dump_folder_name,
-    #                             "-rdbs", \
-    #                             res_dir_basename, \
-    #                             "-ldn", \
-    #                             l1_dump_folder_name, \
-    #                             "-ipopt_v", \
-    #                             str(args.ipopt_verb_lev), \
-    #                             "-nc",\
-    #                             str(args.n_clust_l2), 
-    #                             "-ma57", \
-    #                             str(args.use_ma57), 
-    #                             "-igs", \
-    #                             str(args.ig_seed_l2),
-    #                             "-mtf", \
-    #                             str(args.max_trials_factor_l2), \
-    #                             "-mst",
-    #                             str(args.multistart_n_l2), \
-    #                             "-urdf", \
-    #                             urdf_full_path, \
-    #                             "-coll", \
-    #                             coll_yaml_path])
+    subprocess.check_call(["./awesome_jump_ref_gen.py", 
+                            "-urdf", urdf_full_path, 
+                            "-yaml", horizon_config_fullpath, 
+                            "-ayaml", actuators_config_fullpath,
+                            "-matn", args.sol_mat_name, 
+                            "-matn_res", args.sol_mat_name_res, 
+                            "-rdir", args.results_dir])
 
-    #     print(colored("\n--> SECOND LEVEL OPTIMIZATION FINISHED SUCCESSFULLY. \n", "blue"))
+    print(colored("\n--> GENERATION OF REFINED JUMP TRAJ. FINISHED SUCCESSFULLY. \n", "blue"))
 
     # except:
 

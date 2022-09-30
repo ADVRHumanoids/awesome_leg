@@ -1,31 +1,31 @@
 import yaml
 
-import argparse
-
 import time
 
 import casadi as cs
 from sympy import N
 import casadi_kin_dyn
 import numpy as np
-import rospkg
+
 from horizon.problem import Problem
 from horizon.ros.replay_trajectory import *
 from horizon.solvers import solver
 from horizon.transcriptions import transcriptor
 from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
 
-from jump_utils.miscell_utils import str2bool
 from jump_utils.horizon_utils import inv_dyn_from_sol
 
-class ResJumpGen:
+class JumpGen:
 
     def __init__(self, yaml_path: str, actuators_yaml_path: str, 
                 urdf_path: str,
-                sol_mat_name: str, sol_mat_name_res: str, 
                 results_path: str,
-                cost_epsi = 1.0):
+                sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
+                cost_epsi = 1.0, 
+                is_ref_prb = False):
         
+        self.is_ref_prb = is_ref_prb
+
         self.yaml_path = yaml_path
         self.actuators_yaml_path = actuators_yaml_path
         self.urdf_path = urdf_path
@@ -35,6 +35,7 @@ class ResJumpGen:
 
         self.sol_mat_name = sol_mat_name
         self.res_sol_mat_name = sol_mat_name_res
+        self.ref_sol_mat_name = sol_mat_name_ref
 
         self.__init_sol_dumpers()
 
@@ -62,13 +63,6 @@ class ResJumpGen:
 
         self.tanh_coeff = self.yaml_file["i_q_estimation"]["tanh_coeff"]
 
-        self.n_int = self.yaml_file["problem"]["n_int"]
-        self.n_takeoff = self.yaml_file["problem"]["n_takeoff"]
-        self.n_touchdown = self.yaml_file["problem"]["n_touchdown"]
-
-        self.dt_lb = self.yaml_file["problem"]["dt_lb"]
-        self.dt_ub = self.yaml_file["problem"]["dt_ub"]
-
         self.jnt_limit_margin = self.yaml_file["problem"]["jnt_limit_margin"]
         self.jnt_vel_limit_margin = self.yaml_file["problem"]["jnt_vel_limit_margin"]
 
@@ -93,31 +87,96 @@ class ResJumpGen:
 
         self.scale_factor_base = self.yaml_file["problem"]["weights"]["scale_factor_costs_base"]  
 
-        self.weight_f_contact_diff = self.yaml_file["problem"]["weights"]["weight_f_contact_diff"]  
-        self.weight_f_contact_cost = self.yaml_file["problem"]["weights"]["weight_f_contact"] 
-        self.weight_q_dot = self.yaml_file["problem"]["weights"]["weight_q_p_dot"] 
-        self.weight_q_ddot = self.yaml_file["problem"]["weights"]["weight_q_p_ddot"] 
-        self.weight_q_p_ddot_diff = self.yaml_file["problem"]["weights"]["weight_q_p_ddot_diff"] 
+        if not self.is_ref_prb:
 
-        self.weight_com_height = self.yaml_file["problem"]["weights"]["weight_com_height"] 
-        self.weight_hip_height = self.yaml_file["problem"]["weights"]["weight_hip_height"] 
-        self.weight_tip_clearance = self.yaml_file["problem"]["weights"]["weight_tip_clearance"] 
-        self.weight_tip_under_hip = self.yaml_file["problem"]["weights"]["weight_tip_under_hip"] 
+            self.n_int = self.yaml_file["problem"]["n_int"]
+            self.n_takeoff = self.yaml_file["problem"]["n_takeoff"]
+            self.n_touchdown = self.yaml_file["problem"]["n_touchdown"]
 
+            self.dt_lb = self.yaml_file["problem"]["dt_lb"]
+            self.dt_ub = self.yaml_file["problem"]["dt_ub"]
+
+            self.weight_f_contact_diff = self.yaml_file["problem"]["weights"]["weight_f_contact_diff"]  
+            self.weight_f_contact_cost = self.yaml_file["problem"]["weights"]["weight_f_contact"] 
+            self.weight_q_dot = self.yaml_file["problem"]["weights"]["weight_q_p_dot"] 
+            self.weight_q_ddot = self.yaml_file["problem"]["weights"]["weight_q_p_ddot"] 
+            self.weight_q_p_ddot_diff = self.yaml_file["problem"]["weights"]["weight_q_p_ddot_diff"] 
+
+            self.weight_com_height = self.yaml_file["problem"]["weights"]["weight_com_height"] 
+            self.weight_hip_height = self.yaml_file["problem"]["weights"]["weight_hip_height"] 
+            self.weight_tip_clearance = self.yaml_file["problem"]["weights"]["weight_tip_clearance"] 
+            self.weight_tip_under_hip = self.yaml_file["problem"]["weights"]["weight_tip_under_hip"] 
+        
+        else:
+            
+            self.dt_ref = self.yaml_file["resampling"]["dt"]
+
+            self.weight_f_contact_diff = self.yaml_file["problem"]["ref_weights"]["weight_f_contact_diff"]  
+            self.weight_f_contact_cost = self.yaml_file["problem"]["ref_weights"]["weight_f_contact"] 
+            self.weight_q_dot = self.yaml_file["problem"]["ref_weights"]["weight_q_p_dot"] 
+            self.weight_q_ddot = self.yaml_file["problem"]["ref_weights"]["weight_q_p_ddot"] 
+            self.weight_q_p_ddot_diff = self.yaml_file["problem"]["ref_weights"]["weight_q_p_ddot_diff"] 
+
+            self.weight_com_height = self.yaml_file["problem"]["ref_weights"]["weight_com_height"] 
+            self.weight_hip_height = self.yaml_file["problem"]["ref_weights"]["weight_hip_height"] 
+            self.weight_tip_clearance = self.yaml_file["problem"]["ref_weights"]["weight_tip_clearance"] 
+            self.weight_tip_under_hip = self.yaml_file["problem"]["ref_weights"]["weight_tip_under_hip"] 
+
+            self.weight_res_sol_tracking = self.yaml_file["problem"]["ref_weights"]["weight_res_sol_tracking"] 
+            
         self.dt_res = self.yaml_file["resampling"]["dt"]
 
     def __init_sol_dumpers(self):
 
-        self.ms_orig = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
-        self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.res_sol_mat_name + ".mat")  # original opt. sol
+        if not self.is_ref_prb:
+
+            self.ms_orig = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
+            self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.res_sol_mat_name + ".mat")  # original opt. sol
+
+        else:
+
+            self.ms_refined = mat_storer.matStorer(self.results_path + "/" + self.ref_sol_mat_name + ".mat")  # original opt. sol
+
+    def __load_ig(self):
+
+        ms_ig_path = self.results_path + "/" + self.res_sol_mat_name + ".mat"
+        ms_loaded_ig = mat_storer.matStorer(ms_ig_path)
+        self.loaded_sol=ms_loaded_ig.load() # loading the solution dictionary
+        
+        takeoff_node = np.max(np.where(self.loaded_sol["dt_opt_raw"][0] == self.loaded_sol["dt1"][0][0])) + 1 # takeoff node index (0-based)
+        touchdown_node = np.max(np.where(self.loaded_sol["dt_opt_raw"][0] == self.loaded_sol["dt2"][0][0])) + 1 # takeoff node index (0-based)
+
+        dt_res = self.loaded_sol["dt_opt"].flatten()[0]
+
+        t_jump = np.sum(self.loaded_sol["dt_opt_raw"].flatten()[0:takeoff_node])
+        t_touchdown = np.sum(self.loaded_sol["dt_opt_raw"].flatten()[0:touchdown_node])
+
+        t_exec = sum(self.loaded_sol["dt_opt_raw"].flatten())
+
+        self.n_takeoff = int(np.round(t_jump / dt_res))
+        self.n_touchdown = int(np.round(t_touchdown / dt_res))
+    
+        self.n_int = int(np.round(t_exec/dt_res))
+
+        self.cost_scaling_factor = self.loaded_sol["cost_scaling_factor"]
 
     def __set_igs(self):
         
-        self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-        self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-        self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+        if not self.is_ref_prb:
 
-        self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
+            self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+            self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+            self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
+
+        else:
+
+            self.q_p.setInitialGuess(self.loaded_sol["q_p"])
+            self.q_p_dot.setInitialGuess(self.loaded_sol["q_p_dot"])
+            self.q_p_ddot.setInitialGuess(self.loaded_sol["q_p_ddot"])
+
+            self.f_contact.setInitialGuess(self.loaded_sol["f_contact"])
 
     def __get_quantities_from_urdf(self):
         
@@ -215,25 +274,31 @@ class ResJumpGen:
 
     def __scale_weights(self):
 
-        cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
+        if not self.is_ref_prb:
 
-        self.weight_f_contact_cost = self.weight_f_contact_cost / cost_scaling_factor
+            self.cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
 
-        self.weight_q_dot = self.weight_q_dot / cost_scaling_factor
+        self.weight_f_contact_cost = self.weight_f_contact_cost / self.cost_scaling_factor
 
-        self.weight_q_ddot = self.weight_q_ddot / cost_scaling_factor
+        self.weight_q_dot = self.weight_q_dot / self.cost_scaling_factor
 
-        self.weight_hip_height = self.weight_hip_height / cost_scaling_factor
+        self.weight_q_ddot = self.weight_q_ddot / self.cost_scaling_factor
 
-        self.weight_tip_clearance = self.weight_tip_clearance / cost_scaling_factor
+        self.weight_hip_height = self.weight_hip_height / self.cost_scaling_factor
 
-        self.weight_com_height = self.weight_com_height / cost_scaling_factor
+        self.weight_tip_clearance = self.weight_tip_clearance / self.cost_scaling_factor
 
-        self.weight_q_p_ddot_diff = self.weight_q_p_ddot_diff / cost_scaling_factor
+        self.weight_com_height = self.weight_com_height / self.cost_scaling_factor
 
-        self.weight_f_contact_diff = self.weight_f_contact_diff / cost_scaling_factor
+        self.weight_q_p_ddot_diff = self.weight_q_p_ddot_diff / self.cost_scaling_factor
 
-        self.weight_tip_under_hip = self.weight_tip_under_hip / cost_scaling_factor
+        self.weight_f_contact_diff = self.weight_f_contact_diff / self.cost_scaling_factor
+
+        self.weight_tip_under_hip = self.weight_tip_under_hip / self.cost_scaling_factor
+
+        if self.is_ref_prb:
+
+            self.weight_res_sol_tracking = self.weight_res_sol_tracking / self.cost_scaling_factor
 
     def __set_costs(self):
         
@@ -272,6 +337,13 @@ class ResJumpGen:
                                     self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), 
                                     nodes = ((self.n_int + 1) - 1))
 
+        if self.is_ref_prb:
+
+            for i in range(self.n_int + 1):
+
+                self.prb.createIntermediateCost("res_sol_tracking_cost_node" + str(i), self.weight_res_sol_tracking * cs.sumsqr(self.q_p - self.loaded_sol["q_p"][:, i]), 
+                                    nodes= i)
+
     def __get_solution(self):
 
         self.solution = self.slvr.getSolutionDict() # extracting solution
@@ -288,7 +360,7 @@ class ResJumpGen:
         x = cs.vertcat(q_sym, q_dot_sym)
         x_dot = utils.double_integrator(q_sym, q_dot_sym, q_ddot_sym)
 
-        sol_contact_map = dict(tip1 = self.solution["f_contact"])  # creating a contact map for applying the input to the foot
+        # sol_contact_map = dict(tip1 = self.solution["f_contact"])  # creating a contact map for applying the input to the foot
 
         x_res = resampler_trajectory.resampler(self.solution["x_opt"], self.solution["u_opt"], \
                                                 self.slvr.getDt().flatten(), self.dt_res, None, \
@@ -335,7 +407,7 @@ class ResJumpGen:
                     "sol_time": self.solution_time,
                     "weight_min_input_diff": self.weight_q_p_ddot_diff, 
                     "weight_min_f_contact_diff": self.weight_f_contact_diff, 
-                    "is_refine_phase": False}
+                    "is_refine_phase": self.is_ref_prb}
 
     def __postproc_res_sol(self):
 
@@ -360,28 +432,80 @@ class ResJumpGen:
                         "foot_tip_height":np.transpose(res_foot_tip_position), 
                         "hip_height":np.transpose(res_hip_position), 
                         "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),
-                        "hip_velocity":np.transpose(np.transpose(res_v_foot_hip))}
+                        "hip_velocity":np.transpose(np.transpose(res_v_foot_hip)), 
+                        "dt1": self.solution["dt1"],
+                        "dt2": self.solution["dt2"],
+                        "dt3": self.solution["dt3"], 
+                        "dt_opt_raw": self.slvr.getDt(), 
+                        "cost_scaling_factor": self.cost_scaling_factor}
 
     def __postproc_sol(self):
 
         self.__postproc_raw_sol()
 
-        self.__postproc_res_sol()
+        if not self.is_ref_prb:
+            self.__postproc_res_sol()
 
-        self.sol_dict_full_resampl= {**self.useful_solutions_res}
+            self.sol_dict_full_res_sol= {**self.useful_solutions_res}
 
-        self.sol_dict_full_orig = {**self.solution,
+        self.sol_dict_full_raw_sol = {**self.solution,
                 **self.cnstr_opt,
                 **self.lambda_cnstrnt,
                 **self.other_stuff}
 
     def __dump_sol2file(self):
 
-        self.ms_orig.store(self.sol_dict_full_orig) # saving solution data to file
+        self.ms_orig.store(self.sol_dict_full_raw_sol) # saving solution data to file
 
-        self.ms_resampl.store(self.sol_dict_full_resampl) # saving solution data to file
+        if not self.is_ref_prb:
 
-    def init_prb(self, n_passive_joints = 1):
+            self.ms_resampl.store(self.sol_dict_full_res_sol) # saving solution data to file
+    
+    def __init_ref_prb(self, n_passive_joints = 1):
+        
+        self.__load_ig()
+
+        self.urdf = open(self.urdf_path, "r").read()
+        self.urdf_kin_dyn = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(self.urdf)
+
+        self.n_q = self.urdf_kin_dyn.nq()  # number of joints
+        if not (self.n_q - n_passive_joints) == self.n_actuators:
+            raise Exception("The number of actuators in " + self.actuators_yaml_path + " does not math the ones in the loaded URDF!!") 
+        self.n_v = self.urdf_kin_dyn.nv()  # number of dofs
+
+        self.I_lim = self.act_yaml_file["I_peak"] # i_q current limits
+
+        jnt_lim_margin_array = np.tile(self.jnt_limit_margin, (self.n_q))
+        v_bounds = np.array(self.act_yaml_file["omega_max_nl_af44"])
+        v_bounds = v_bounds - v_bounds * self.jnt_vel_limit_margin
+
+        self.lbs = self.urdf_kin_dyn.q_min() + jnt_lim_margin_array
+        self.ubs = self.urdf_kin_dyn.q_max() - jnt_lim_margin_array
+
+        self.tau_lim = np.array([0] + self.act_yaml_file["tau_peak_ar"])  # effort limits (0 on the passive d.o.f.)
+
+        self.prb = Problem(self.n_int)  # initialization of a problem object
+
+        self.prb.setDt(self.dt_ref)
+
+        # Creating the state variables
+        self.q_p = self.prb.createStateVariable("q_p", self.n_q)
+        self.q_p_dot = self.prb.createStateVariable("q_p_dot",
+                                        self.n_v)  # here q_p_dot is actually not the derivative of the lagrangian state vector
+        self.q_p.setBounds(self.lbs, self.ubs) 
+        self.q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
+
+        # Defining the input/s (joint accelerations)
+        self.q_p_ddot = self.prb.createInputVariable("q_p_ddot", self.n_v)  # using joint accelerations as an input variable
+
+        self.xdot = utils.double_integrator(self.q_p, self.q_p_dot, self.q_p_ddot)  # building the full state
+
+        # Creating an additional input variable for the contact forces on the foot tip
+        self.f_contact = self.prb.createInputVariable("f_contact", 3)  # dimension 3
+        
+        return self.prb
+
+    def __init_res_prb(self, n_passive_joints = 1):
 
         self.urdf = open(self.urdf_path, "r").read()
         self.urdf_kin_dyn = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(self.urdf)
@@ -433,6 +557,16 @@ class ResJumpGen:
         
         return self.prb
 
+    def init_prb(self):
+
+        if not self.is_ref_prb:
+
+            self.__init_res_prb()
+        
+        else:
+
+            self.__init_ref_prb()
+
     def setup_prb(self):
         
         self.__set_igs()
@@ -473,7 +607,9 @@ class ResJumpGen:
 
         self.__get_solution()
         
-        self.__resample_sol()
+        if not self.is_ref_prb:
+            
+            self.__resample_sol()
 
         self.__postproc_sol()
 
