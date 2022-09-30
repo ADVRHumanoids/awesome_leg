@@ -48,23 +48,23 @@ def main(args):
 
     ms_loader = mat_storer.matStorer(args.replay_path + "/" + args.replay_filename + ".mat")
     loaded_sol = ms_loader.load()
-    q = loaded_sol["q_p"]
-    q_dot = loaded_sol["q_p_dot"]
-    q_ddot = loaded_sol["q_p_ddot"]
+    q_p = loaded_sol["q_p"]
+    # q_dot = loaded_sol["q_p_dot"]
+    # q_ddot = loaded_sol["q_p_ddot"]
     f_contact = loaded_sol["f_contact"]
 
     sol_contact_map = dict()
     sol_contact_map["tip1"] = f_contact
 
-    dt_opt = loaded_sol["dt_opt"]
+    dt_opt = loaded_sol["dt_opt"][0][0]
     
     urdf = open(urdf_full_path, "r").read()
     kin_dyn_model = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
 
     joint_names = kin_dyn_model.joint_names()
-    joint_names.remove("universe")  # removing the "universe joint"
+    # joint_names.remove("universe")  # removing the "universe joint"
 
-    rpl_traj = replay_trajectory(dt_opt, joint_names, q, sol_contact_map, \
+    rpl_traj = replay_trajectory(dt_opt, joint_names, q_p, sol_contact_map, \
                 cas_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED, kin_dyn_model)  # replaying the (resampled) trajectory
 
     rpl_traj.sleep(1.)
@@ -78,9 +78,9 @@ if __name__ == '__main__':
     # adding script arguments
     parser = argparse.ArgumentParser(
         description='just a simple test file for RePAIR co-design')
-    parser.add_argument('--replay path', '-path', type=str, default = rospackage.get_path("awesome_leg") + \
+    parser.add_argument('--replay_path', '-path', type=str, default = rospackage.get_path("awesome_leg") + \
                         "/opt_results/horizon_jump/replay_directory")
-    parser.add_argument('--replay_filename', 'awesome_jump', type=str)
+    parser.add_argument('--replay_filename', '-fname', default ='awesome_jump_res', type=str)
     args = parser.parse_args()
 
     exec_path = rospackage.get_path("awesome_leg") + "/src/horizon_code"
@@ -88,10 +88,5 @@ if __name__ == '__main__':
     urdf_name = "awesome_leg_test_rig"
     urdf_full_path = urdfs_path + "/" + urdf_name + ".urdf"
     xacro_full_path = urdfs_path + "/" + urdf_name + ".urdf.xacro"
-
-    config_path=rospackage.get_path("awesome_leg")+"/config/" # configuration files path
-    horizon_config_path = config_path + "horizon/"
-    horizon_config_fullpath = horizon_config_path + args.hor_confname + ".yaml"
-    actuators_config_fullpath = config_path + "actuators.yaml"
 
     main(args)

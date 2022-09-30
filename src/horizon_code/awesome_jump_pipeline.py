@@ -55,7 +55,7 @@ if __name__ == '__main__':
     actuators_config_fullpath = config_path + "actuators.yaml"
 
     os.mkdir(args.results_dir)
-    shutil.copyfile(actuators_config_fullpath, args.results_dir + "/actuators_" + unique_id + ".yaml") 
+    shutil.copyfile(actuators_config_fullpath, args.results_dir + "/actuators" + unique_id + ".yaml") 
     shutil.copyfile(horizon_config_fullpath, args.results_dir + "/" + "horizon_config.yaml" )
     shutil.copyfile(xacro_full_path, args.results_dir + "/" + urdf_name + ".urdf.xacro" )
     shutil.copyfile(urdf_full_path, args.results_dir + "/" + urdf_name + ".urdf" )
@@ -77,16 +77,16 @@ if __name__ == '__main__':
 
         print(colored('FAILED TO GENERATE URDF.', "red"))
 
-    try:
+    # try:
 
-        rviz_window = subprocess.Popen(["roslaunch",\
-                                        "awesome_leg",\
-                                        "horizon_rviz.launch", \
-                                        sliding_guide_command])
+    #     rviz_window = subprocess.Popen(["roslaunch",\
+    #                                     "awesome_leg",\
+    #                                     "horizon_rviz.launch", \
+    #                                     sliding_guide_command])
 
-    except:
+    # except:
 
-        print('Failed to launch RViz.')
+    #     print('Failed to launch RViz.')
 
     os.chdir(exec_path) # change current path, so that executable can be run with check_call
 
@@ -97,7 +97,6 @@ if __name__ == '__main__':
 
     subprocess.check_call(["./awesome_jump_res_gen.py", 
                             "-urdf", urdf_full_path, 
-                            "-id", unique_id, 
                             "-yaml", horizon_config_fullpath, 
                             "-ayaml", actuators_config_fullpath,
                             "-matn", args.sol_mat_name, 
