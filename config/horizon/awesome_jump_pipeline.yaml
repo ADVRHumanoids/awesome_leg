@@ -21,6 +21,8 @@ problem:
   friction_cnstrnt: 
     mu_friction_cone: 0.5
 
+  use_same_weights: true
+
   weights: 
 
     scale_factor_costs_base: 100000 # scale factor for costs (other scalings are applied internally)
@@ -51,13 +53,13 @@ problem:
     weight_tip_clearance: 0.0000000000000000000001
     weight_tip_under_hip: 100
 
-    weight_res_sol_tracking: 0.00001
+    weight_res_sol_tracking: 100
 
 solver:
   ipopt_tol: 0.000001
   ipopt_maxiter: 1000
   ipopt_cnstr_viol_tol: 0.0000001
-  ipopt_lin_solver: "ma57" 
+  ipopt_lin_solver: "mumps" 
   name: "ipopt"
 
 transcription:
@@ -65,5 +67,5 @@ transcription:
   integrator_name: "RK4"
 
 resampling:
-  dt: 0.001
+  dt: 0.004
 

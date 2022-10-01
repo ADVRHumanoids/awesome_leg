@@ -87,7 +87,11 @@ class JumpGen:
 
         self.scale_factor_base = self.yaml_file["problem"]["weights"]["scale_factor_costs_base"]  
 
+        weight_field = ""
+
         if not self.is_ref_prb:
+            
+            weight_field = "weights"
 
             self.n_int = self.yaml_file["problem"]["n_int"]
             self.n_takeoff = self.yaml_file["problem"]["n_takeoff"]
@@ -96,35 +100,26 @@ class JumpGen:
             self.dt_lb = self.yaml_file["problem"]["dt_lb"]
             self.dt_ub = self.yaml_file["problem"]["dt_ub"]
 
-            self.weight_f_contact_diff = self.yaml_file["problem"]["weights"]["weight_f_contact_diff"]  
-            self.weight_f_contact_cost = self.yaml_file["problem"]["weights"]["weight_f_contact"] 
-            self.weight_q_dot = self.yaml_file["problem"]["weights"]["weight_q_p_dot"] 
-            self.weight_q_ddot = self.yaml_file["problem"]["weights"]["weight_q_p_ddot"] 
-            self.weight_q_p_ddot_diff = self.yaml_file["problem"]["weights"]["weight_q_p_ddot_diff"] 
-
-            self.weight_com_height = self.yaml_file["problem"]["weights"]["weight_com_height"] 
-            self.weight_hip_height = self.yaml_file["problem"]["weights"]["weight_hip_height"] 
-            self.weight_tip_clearance = self.yaml_file["problem"]["weights"]["weight_tip_clearance"] 
-            self.weight_tip_under_hip = self.yaml_file["problem"]["weights"]["weight_tip_under_hip"] 
-        
         else:
             
-            self.dt_ref = self.yaml_file["resampling"]["dt"]
+            use_same_weights = self.yaml_file["problem"]["use_same_weights"]
 
-            self.weight_f_contact_diff = self.yaml_file["problem"]["ref_weights"]["weight_f_contact_diff"]  
-            self.weight_f_contact_cost = self.yaml_file["problem"]["ref_weights"]["weight_f_contact"] 
-            self.weight_q_dot = self.yaml_file["problem"]["ref_weights"]["weight_q_p_dot"] 
-            self.weight_q_ddot = self.yaml_file["problem"]["ref_weights"]["weight_q_p_ddot"] 
-            self.weight_q_p_ddot_diff = self.yaml_file["problem"]["ref_weights"]["weight_q_p_ddot_diff"] 
-
-            self.weight_com_height = self.yaml_file["problem"]["ref_weights"]["weight_com_height"] 
-            self.weight_hip_height = self.yaml_file["problem"]["ref_weights"]["weight_hip_height"] 
-            self.weight_tip_clearance = self.yaml_file["problem"]["ref_weights"]["weight_tip_clearance"] 
-            self.weight_tip_under_hip = self.yaml_file["problem"]["ref_weights"]["weight_tip_under_hip"] 
+            weight_field = "weights" if use_same_weights else "ref_weights" 
 
             self.weight_res_sol_tracking = self.yaml_file["problem"]["ref_weights"]["weight_res_sol_tracking"] 
-            
-        self.dt_res = self.yaml_file["resampling"]["dt"]
+        
+        self.dt_ref = self.yaml_file["resampling"]["dt"]
+
+        self.weight_f_contact_diff = self.yaml_file["problem"][weight_field]["weight_f_contact_diff"]  
+        self.weight_f_contact_cost = self.yaml_file["problem"][weight_field]["weight_f_contact"] 
+        self.weight_q_dot = self.yaml_file["problem"][weight_field]["weight_q_p_dot"] 
+        self.weight_q_ddot = self.yaml_file["problem"][weight_field]["weight_q_p_ddot"] 
+        self.weight_q_p_ddot_diff = self.yaml_file["problem"][weight_field]["weight_q_p_ddot_diff"] 
+
+        self.weight_com_height = self.yaml_file["problem"][weight_field]["weight_com_height"] 
+        self.weight_hip_height = self.yaml_file["problem"][weight_field]["weight_hip_height"] 
+        self.weight_tip_clearance = self.yaml_file["problem"][weight_field]["weight_tip_clearance"] 
+        self.weight_tip_under_hip = self.yaml_file["problem"][weight_field]["weight_tip_under_hip"] 
 
     def __init_sol_dumpers(self):
 
@@ -363,16 +358,16 @@ class JumpGen:
         # sol_contact_map = dict(tip1 = self.solution["f_contact"])  # creating a contact map for applying the input to the foot
 
         x_res = resampler_trajectory.resampler(self.solution["x_opt"], self.solution["u_opt"], \
-                                                self.slvr.getDt().flatten(), self.dt_res, None, \
+                                                self.slvr.getDt().flatten(), self.dt_ref, None, \
                                                 self.prb.getIntegrator())
                                                                                             
         self.p_res = x_res[:self.n_q]
         self.v_res = x_res[self.n_q:]
         self.a_res = resampler_trajectory.resample_input(self.solution["q_p_ddot"],\
-                                        self.slvr.getDt().flatten(), self.dt_res)
+                                        self.slvr.getDt().flatten(), self.dt_ref)
 
         self.res_f_contact = resampler_trajectory.resample_input(self.solution["f_contact"],\
-                                                self.slvr.getDt().flatten(), self.dt_res)
+                                                self.slvr.getDt().flatten(), self.dt_ref)
         self.res_f_contact_map = dict(tip1 = self.res_f_contact)
 
         self.tau_res = inv_dyn_from_sol(self.urdf_kin_dyn, 
@@ -425,7 +420,7 @@ class JumpGen:
         res_hip_position = self.fk_hip(q=self.p_res)["ee_pos"][2,:].toarray()   # hip position
         res_v_foot_tip = self.dfk_foot(q=self.p_res, qdot=self.v_res)["ee_vel_linear"]  # foot velocity
         res_v_foot_hip = self.dfk_hip(q=self.p_res, qdot=self.v_res)["ee_vel_linear"]  # foot velocity
-        dt_res_vector = np.tile(self.dt_res, n_res_samples - 1)
+        dt_res_vector = np.tile(self.dt_ref, n_res_samples - 1)
 
         self.useful_solutions_res={"q_p":self.p_res,"q_p_dot":self.v_res, "q_p_ddot":self.a_res,
                         "tau":self.tau_res, "f_contact":self.res_f_contact, "i_q":i_q_res, "dt_opt":dt_res_vector,
@@ -455,12 +450,15 @@ class JumpGen:
 
     def __dump_sol2file(self):
 
-        self.ms_orig.store(self.sol_dict_full_raw_sol) # saving solution data to file
-
         if not self.is_ref_prb:
 
+            self.ms_orig.store(self.sol_dict_full_raw_sol) # saving solution data to file
             self.ms_resampl.store(self.sol_dict_full_res_sol) # saving solution data to file
-    
+        
+        else:
+
+            self.ms_refined.store(self.sol_dict_full_raw_sol)
+
     def __init_ref_prb(self, n_passive_joints = 1):
         
         self.__load_ig()
