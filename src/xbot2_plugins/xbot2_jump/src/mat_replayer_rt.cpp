@@ -67,7 +67,6 @@ void MatReplayerRt::get_params_from_config()
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
     _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
-    _approach_traj_target = getParamOrThrow<Eigen::VectorXd>("~approach_traj_target");
     // _cntrl_mode =  getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
     _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
@@ -269,7 +268,7 @@ void MatReplayerRt::saturate_effort()
 void MatReplayerRt::compute_approach_traj()
 {
 
-    _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
+    _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _q_p_ref.block(1, 0, _n_jnts_model, 1), _approach_traj_exec_time, _plugin_dt); 
 
     _dump_logger->add("approach_traj", _approach_traj.get_traj());
 
