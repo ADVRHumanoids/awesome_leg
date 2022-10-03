@@ -31,8 +31,8 @@
 
           <friction>
             <ode>
-              <mu>1</mu>
-              <mu2>1</mu2>
+              <mu>10</mu>
+              <mu2>10</mu2>
             </ode>
             <bullet>
               <friction>1</friction>

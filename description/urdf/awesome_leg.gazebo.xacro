@@ -12,20 +12,23 @@
             <material>Gazebo/Grey  </material>
         </gazebo>
 
-        <!-- <gazebo reference="knee_1">
+        <gazebo reference="shin${id}">
             <collision>
+
+                <max_contacts> 1 </max_contacts>
+
                 <surface>
                     <friction>
                         <ode>
-                            <mu>1.0</mu>
-                            <mu2>1.0</mu2>
+                            <mu>10</mu>
+                            <mu2>10</mu2>
                         </ode>
                         <bullet>
                             <friction>1.0</friction>
                             <friction2>1.0</friction2>
                         </bullet>
                     </friction>
-                    <contact>
+                    <!-- <contact>
                         <ode>
                             <kp>2100000</kp>
                             <kd>1</kd>
@@ -37,10 +40,10 @@
                             <kp>1000000</kp>
                             <kd>5</kd>
                         </bullet>
-                    </contact>
+                    </contact> -->
                 </surface>
             </collision>
-        </gazebo> -->
+        </gazebo>
 
     </xacro:macro>
 

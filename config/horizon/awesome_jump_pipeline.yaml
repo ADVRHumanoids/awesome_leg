@@ -33,7 +33,7 @@ problem:
     weight_q_p_ddot: 0.0001 # cost for penalizing joint accelerations (which are the input)
     weight_q_p_ddot_diff: 0.001 # cost for penalizing differences between successive inputs
 
-    weight_com_height: 10
+    weight_com_height: 30
     weight_hip_height: 0.0000000000000000000001
     weight_tip_clearance: 0.0000000000000000000001
     weight_tip_under_hip: 200
@@ -48,12 +48,12 @@ problem:
     weight_q_p_ddot: 0.0001 # cost for penalizing joint accelerations (which are the input)
     weight_q_p_ddot_diff: 0.001 # cost for penalizing differences between successive inputs
 
-    weight_com_height: 50
+    weight_com_height: 30
     weight_hip_height: 0.0000000000000000000001
     weight_tip_clearance: 0.0000000000000000000001
     weight_tip_under_hip: 100
 
-    weight_res_sol_tracking: 100
+    weight_res_sol_tracking: 10
 
 solver:
   ipopt_tol: 0.000001

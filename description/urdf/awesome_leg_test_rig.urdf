@@ -107,20 +107,21 @@
   <gazebo reference="shin1">
     <material>Gazebo/Grey  </material>
   </gazebo>
-  <!-- <gazebo reference="knee_1">
-            <collision>
-                <surface>
-                    <friction>
-                        <ode>
-                            <mu>1.0</mu>
-                            <mu2>1.0</mu2>
-                        </ode>
-                        <bullet>
-                            <friction>1.0</friction>
-                            <friction2>1.0</friction2>
-                        </bullet>
-                    </friction>
-                    <contact>
+  <gazebo reference="shin1">
+    <collision>
+      <max_contacts> 1 </max_contacts>
+      <surface>
+        <friction>
+          <ode>
+            <mu>10</mu>
+            <mu2>10</mu2>
+          </ode>
+          <bullet>
+            <friction>1.0</friction>
+            <friction2>1.0</friction2>
+          </bullet>
+        </friction>
+        <!-- <contact>
                         <ode>
                             <kp>2100000</kp>
                             <kd>1</kd>
@@ -132,10 +133,10 @@
                             <kp>1000000</kp>
                             <kd>5</kd>
                         </bullet>
-                    </contact>
-                </surface>
-            </collision>
-        </gazebo> -->
+                    </contact> -->
+      </surface>
+    </collision>
+  </gazebo>
   <!-- only add joint to base if argument is non-empty -->
   <joint name="hip_pitch1" type="revolute">
     <parent link="base_link"/>
