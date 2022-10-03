@@ -22,6 +22,9 @@ namespace plugin_utils{
             
             Eigen::VectorXd eval_at(int node);
 
+            double compute_peisekah_val(double phase, double start_point, double end_point);
+            Eigen::VectorXd compute_peisekah_vect_val(double phase, Eigen::MatrixXd start_point,  Eigen::MatrixXd end_point);
+
             double get_exec_time();
             double get_traj_dt();
             double get_n_nodes();
@@ -38,7 +41,6 @@ namespace plugin_utils{
 
             void check_input_dim();
             void rate_adapter();
-            double compute_peisekah_val(int node, int n_nodes, double start_point, double end_point);
             void compute_traj();
 
     };

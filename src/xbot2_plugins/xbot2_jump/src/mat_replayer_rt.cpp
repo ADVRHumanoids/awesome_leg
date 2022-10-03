@@ -6,16 +6,14 @@ void MatReplayerRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
     _pause_time = 0.0;
+    _approach_traj_time = 0.0;
 }
 
 void MatReplayerRt::reset_flags()
 {
 
-    _first_run = true; // reset flag in case the plugin is run multiple times
-
     _approach_traj_started = false;
     _approach_traj_finished = false;
-    _recompute_approach_traj = true;
 
     _traj_started = false;
     _traj_finished = false;
@@ -26,6 +24,8 @@ void MatReplayerRt::reset_flags()
     _jump = false;
 
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
+
+    _approach_traj_time = 0;
 
 }
 
@@ -39,6 +39,11 @@ void MatReplayerRt::update_clocks()
         _pause_time += _plugin_dt;
     }
 
+    if(_approach_traj_started && !_approach_traj_finished)
+    {
+        _approach_traj_time += _plugin_dt;
+    }
+
     // Reset timers, if necessary
     if (_loop_time >= _loop_timer_reset_time)
     {
@@ -49,6 +54,11 @@ void MatReplayerRt::update_clocks()
     {
         _pause_finished = true;
         _pause_time = _pause_time - _traj_pause_time;
+    }
+
+    if(_approach_traj_time >= _approach_traj_exec_time)
+    {
+        _approach_traj_time = _approach_traj_exec_time;
     }
     
 }
@@ -196,19 +206,12 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                    "\n Received jump signal! Hopefully the robot won't break...\n");
 
         res.message = "Starting replaying of jump trajectory!";
+
+        _q_p_init_appr_traj = _q_p_meas; // initial position for the approach traj.
+        _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_model, 1); // target pos. for the approach traj
+
+        _approach_traj_started = true;
         
-    }
-
-    if (!req.jump_now)
-    {
-        jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Stopping trajectory replay ...\n");
-
-        res.message = "Stopping trajectory replay!";
-
-        _recompute_approach_traj = true; // resetting flag so that a new approaching traj can be computed
-
-        reset_flags();
     }
 
     res.success = true;
@@ -265,61 +268,61 @@ void MatReplayerRt::saturate_effort()
     }
 }
 
-void MatReplayerRt::compute_approach_traj()
-{
+// void MatReplayerRt::compute_approach_traj_offline()
+// {
 
-    _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _q_p_ref.block(1, 0, _n_jnts_model, 1), _approach_traj_exec_time, _plugin_dt); 
+//     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _q_p_ref.block(1, 0, _n_jnts_model, 1), _approach_traj_exec_time, _plugin_dt); 
 
-    _dump_logger->add("approach_traj", _approach_traj.get_traj());
+//     // _dump_logger->add("approach_traj", _approach_traj.get_traj());
 
-    _recompute_approach_traj = false;
-
-}
+// }
 
 void MatReplayerRt::send_approach_trajectory()
 {
 
-    if (_sample_index > (_approach_traj.get_n_nodes() - 1))
-    { // reached the end of the trajectory
+    double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
-        _approach_traj_finished = true;
-        _traj_started = true; // start to publish the loaded trajectory starting from the next control loop
-        _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+    if (_is_first_jnt_passive)
+    { // send the last _n_jnts_model components
 
-    }
-    else
-    {
-        _q_p_cmd = _approach_traj.eval_at(_sample_index);
-
-        if (_is_first_jnt_passive)
-        { // send the last _n_jnts_model components
-            _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
-        }
-        else{
-            
-            _robot->setPositionReference(_q_p_cmd);
-
-        }
+        _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj.tail(_n_jnts_model));
         
-
-        _robot->move(); // Send commands to the robot
     }
+    else{
+        
+        _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
+
+    }
+
+    _robot->setPositionReference(_q_p_cmd);
+    
+    _robot->move(); // Send commands to the robot
     
 }
 
 void MatReplayerRt::send_trajectory()
 {
-    // first, set the control mode and stiffness when entering the first control loop (to be used during the approach traj)
-    if (_first_run)
-    { // first time entering the control loop
+
+    if (_approach_traj_started )
+    { // still publishing the approach trajectory
+
+        if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
+        {
+            _approach_traj_finished = true; // finished approach traj
+            _traj_started = true; // send actual trajectory
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                   "\n Approach trajectory finished...\n");
+        }
+        else
+        {
+            send_approach_trajectory();
+
+        }
         
-        _sample_index = 0;
-        _approach_traj_started = true; // flag signaling the start of the approach trajectory
-       
     }
 
     // Loop again thorugh the trajectory, if it is finished and the associated flag is active
-    if (_traj_finished && _looped_traj)
+    if (_traj_finished)
     { // finished publishing trajectory
 
         _pause_started = true;
@@ -330,27 +333,11 @@ void MatReplayerRt::send_trajectory()
         }
         else 
         {
-            _sample_index = 0; // reset publishing index
-            _traj_finished = false; // reset flag
-            
-            _pause_started = false;
-            _pause_finished = false;
+
+            reset_flags(); // reset flags
+
         }
         
-    }
-
-    // When the plugin is stopped from service, recompute a transition trajectory
-    // from the current state
-    if (_recompute_approach_traj)
-    {
-        
-        compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
-    }
-
-    if (_approach_traj_started && !_approach_traj_finished)
-    { // still publishing the approach trajectory
-
-        send_approach_trajectory();
     }
 
     // Publishing loaded traj samples
@@ -359,12 +346,10 @@ void MatReplayerRt::send_trajectory()
         
         if (_sample_index > (_traj.get_n_nodes() - 1))
         { // reached the end of the trajectory
-
             
             _traj_finished = true;
             _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
             
-
         }
         else
         { // send command
@@ -431,7 +416,7 @@ void MatReplayerRt::send_trajectory()
 
 bool MatReplayerRt::on_initialize()
 {   
-    
+
     _plugin_dt = getPeriodSec();
 
     _n_jnts_model = _robot->getJointNum();
@@ -445,7 +430,10 @@ bool MatReplayerRt::on_initialize()
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 
+    _peisekah_utils = plugin_utils::PeisekahTrans();
+
     return true;
+    
 }
 
 void MatReplayerRt::starting()
@@ -453,7 +441,7 @@ void MatReplayerRt::starting()
 
     init_dump_logger(); // needs to be here
 
-    reset_flags();
+    reset_flags(); // reset flags, just in case
 
     init_clocks(); // initialize clocks timers
 
@@ -465,8 +453,8 @@ void MatReplayerRt::starting()
 
     update_state(); // read current jnt positions and velocities
     
-    compute_approach_traj(); // based on the current state, compute a smooth transition to the\\
-    first trajectory position sample
+    // compute_approach_traj_offline(); // based on the current state, compute a smooth transition to the\\
+    // first trajectory position sample
 
     // Move on to run()
     start_completed();
@@ -488,11 +476,6 @@ void MatReplayerRt::run()
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
-
-    if (_first_run == true & _jump)
-    { // this is the end of the first control loop
-        _first_run = false;
-    }
 
     _sample_index++; // incrementing loop counter
 
@@ -520,7 +503,6 @@ void MatReplayerRt::on_stop()
 
 void MatReplayerRt::stopping()
 {
-    _first_run = true; 
 
     stop_completed();
 }

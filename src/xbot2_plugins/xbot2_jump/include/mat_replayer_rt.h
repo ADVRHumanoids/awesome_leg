@@ -71,7 +71,8 @@ private:
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
                     _traj_time_vector, 
                     _effort_lims,
-                    _approach_traj_target;
+                    _approach_traj_target, 
+                    _q_p_init_appr_traj, _q_p_trgt_appr_traj;
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
 
@@ -82,7 +83,7 @@ private:
         _pause_started = false, _pause_finished = false, 
         _send_pos_ref = true, _send_vel_ref = false,  _send_eff_ref = false,
         _jump = false,
-        _recompute_approach_traj = true,
+        _compute_approach_traj = true,
         _is_first_jnt_passive = false, 
         _resample = false;
 
@@ -90,13 +91,14 @@ private:
         _nominal_traj_dt, _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 30.0,
         _approach_traj_exec_time = 4.0, 
+        _approach_traj_time = 0.0,
         _pause_time, _traj_pause_time = 2.0,
         _epsi_stiffness = 10, _epsi_damping = 0.1;
 
     int _n_jnts_model, 
         _sample_index = 0;
 
-    plugin_utils::PeisekahTrans _approach_traj;
+    plugin_utils::PeisekahTrans _peisekah_utils;
     plugin_utils::TrajLoader _traj;
 
     // XBot::ModelInterface::Ptr _model;
@@ -116,7 +118,7 @@ private:
     void update_clocks();
     void load_opt_data();
     void resample_trajectory();
-    void compute_approach_traj();
+    // void compute_approach_traj_offline();
 
     void send_approach_trajectory();
     void send_trajectory();

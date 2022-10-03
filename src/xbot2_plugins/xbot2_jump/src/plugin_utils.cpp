@@ -96,10 +96,8 @@ void PeisekahTrans::rate_adapter()
 
 }
 
-double PeisekahTrans::compute_peisekah_val(int node, int n_nodes, double start_point, double end_point)
+double PeisekahTrans::compute_peisekah_val(double phase, double start_point, double end_point)
 {   
-
-    double phase = (double) node/(n_nodes - 1);
 
     double common_part_traj = (126.0 * pow(phase, 5) - 420.0 * pow(phase, 6) + 
                             540.0 * pow(phase, 7) - 315.0 * pow(phase, 8) + 
@@ -109,6 +107,49 @@ double PeisekahTrans::compute_peisekah_val(int node, int n_nodes, double start_p
 
     return value;
 
+}
+Eigen::VectorXd PeisekahTrans::compute_peisekah_vect_val(double phase, Eigen::MatrixXd start_point,  Eigen::MatrixXd end_point)
+{   
+    int n_dim_start =  start_point.rows() >= start_point.cols() ? start_point.rows(): start_point.cols();
+    bool column_wise_strt =  start_point.rows() >= start_point.cols() ? true: false;
+
+    int n_dim_trgt =  end_point.rows() >= end_point.cols() ? end_point.rows(): end_point.cols();
+    bool column_wise_trgt =  end_point.rows() >= end_point.cols() ? true: false;
+
+    if (n_dim_start != n_dim_trgt)
+    {
+        std::string exception = std::string("compute_peisekah_vect_val: dimension mismatch in the provided points: ") + 
+                                std::string("start point dim: ") + std::to_string(n_dim_start) + std::string(", ") +
+                                std::string("final point dim: ") + std::to_string(n_dim_trgt) + std::string(".") ;
+
+        throw std::invalid_argument(exception);
+    }
+
+    if (!(column_wise_strt && column_wise_trgt))
+    {
+        std::string exception = std::string("compute_peisekah_vect_val: input points have to be both column-major or row-major!");
+
+        throw std::invalid_argument(exception);
+    }
+
+
+
+    Eigen::VectorXd peisekah_sample(n_dim_start);
+
+    for (int k = 0; k < n_dim_start; k++)
+    { 
+        if (column_wise_strt)
+        {
+            peisekah_sample(k) = compute_peisekah_val(phase, start_point(k, 0), end_point(k, 0));
+        }
+        else
+        {
+            peisekah_sample(k) = compute_peisekah_val(phase, start_point(0, k), end_point(0, k));
+        }
+        
+    }
+
+    return peisekah_sample;
 }
 
 void PeisekahTrans::compute_traj()
@@ -123,7 +164,9 @@ void PeisekahTrans::compute_traj()
         for (int i = 0; i < _n_nodes; i++)
         { // loop through samples (columns)
 
-            _traj(k, i) = compute_peisekah_val(i, _n_nodes, _start_point(k), _end_point(k)); 
+            double phase = (double) i/(_n_nodes - 1);
+            
+            _traj(k, i) = compute_peisekah_val(phase, _start_point(k), _end_point(k)); 
 
         }
 
