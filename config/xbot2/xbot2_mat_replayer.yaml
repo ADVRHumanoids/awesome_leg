@@ -42,7 +42,7 @@ xbotcore_plugins:
         type: mat_replayer_rt
         params:
             mat_path: {value: /tmp/awesome_jump_pipeline_01-10-2022-18_51_09/, type: string}
-            mat_name: {value: awesome_jump_ref.mat, type: string}
+            mat_name: {value: awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
@@ -58,7 +58,7 @@ xbotcore_plugins:
             send_vel_ref: {value: false, type: bool}
             send_eff_ref: {value: false, type: bool}
             looped_traj: {value: true, type: bool}
-            traj_pause_time: {value: 6, type: double}
+            traj_pause_time: {value: 4, type: double}
 
 # global parameters
 xbotcore_param:
