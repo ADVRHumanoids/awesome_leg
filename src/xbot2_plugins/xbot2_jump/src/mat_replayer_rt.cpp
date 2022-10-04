@@ -29,6 +29,7 @@ void MatReplayerRt::reset_flags()
 
 }
 
+
 void MatReplayerRt::update_clocks()
 {
     // Update time(s)
@@ -303,13 +304,14 @@ void MatReplayerRt::send_approach_trajectory()
 void MatReplayerRt::send_trajectory()
 {
 
-    if (_approach_traj_started )
+    if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
 
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
         {
             _approach_traj_finished = true; // finished approach traj
             _traj_started = true; // send actual trajectory
+            _sample_index = 0; // resetting samples index
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Approach trajectory finished...\n");
         }
