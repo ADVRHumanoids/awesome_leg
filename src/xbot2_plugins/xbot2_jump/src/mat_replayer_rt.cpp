@@ -292,9 +292,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 void RosFromRt::on_flag_recv(const geometry_msgs::PoseStamped msg)
 {
     _base_link_abs =  
-    msg.pose.orientation
-    msg.pose.translation;
-                   
+    msg.pose                   
 }
 
 void MatReplayerRt::load_opt_data()
