@@ -22,4 +22,12 @@
         <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
     </gazebo>
 
+    <gazebo>
+        <plugin name="xbot2_link_state_sensor" filename="libxbot2_gz_link_state_sensor.so">
+            <links>
+                <link name="base_link"/>
+            </links>
+        </plugin>
+    </gazebo>
+
 </robot>

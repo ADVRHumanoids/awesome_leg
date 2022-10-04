@@ -12,10 +12,17 @@
 #include "plugin_utils.hpp"
 
 #include <xbot2/ros/ros_support.h>
+
 #include <std_msgs/Bool.h>
+
 #include <awesome_leg/JumpNow.h>
 
+#include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
+
+#include <geometry_msgs/Pose.h>
+
+#include <Eigen/Geometry>
 
 using namespace XBot;
 using namespace XBot::Cartesian;
@@ -62,7 +69,8 @@ public:
 
 private:
     
-    std::string _mat_path, _mat_name, _dump_mat_suffix;
+    std::string _mat_path, _mat_name, _dump_mat_suffix, 
+                _urdf_path, _srdf_path;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
@@ -76,6 +84,8 @@ private:
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
 
+    Eigen::Affine3d _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs;
+
     bool _looped_traj = false, 
         _approach_traj_started = false, _approach_traj_finished = false, 
         _traj_started = false, _traj_finished = false, 
@@ -85,7 +95,8 @@ private:
         _jump = false,
         _compute_approach_traj = true,
         _is_first_jnt_passive = false, 
-        _resample = false;
+        _resample = false, 
+        _rt_active, _nrt_exit_nrt_thread;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
@@ -95,7 +106,8 @@ private:
         _pause_time, _traj_pause_time = 2.0,
         _epsi_stiffness = 10, _epsi_damping = 0.1;
 
-    int _n_jnts_model, 
+    int _n_jnts_model,
+        _n_jnts_robot, 
         _sample_index = 0;
 
     plugin_utils::PeisekahTrans _peisekah_utils;
@@ -108,17 +120,25 @@ private:
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
 
+    XBot::Cartesian::RosServerClass::Ptr _ros_srv;
+    std::unique_ptr<thread> _nrt_thread;
+
+    SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
+
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
+    XBot::ModelInterface::Ptr _model; 
+
     void get_params_from_config();
-    // void init_model_interface();
+    void init_model_interface();
+    void init_cartesio_solver();
     void init_clocks();
     void reset_flags();
     void update_clocks();
     void load_opt_data();
     void resample_trajectory();
-    // void compute_approach_traj_offline();
+    void create_ros_api();
 
     void send_approach_trajectory();
     void send_trajectory();
@@ -130,6 +150,7 @@ private:
 
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);
+    void on_flag_recv(const geometry_msgs::PoseStamped& msg)
 
     ServiceServerPtr<awesome_leg::JumpNowRequest,
                      awesome_leg::JumpNowResponse> _jump_now_srv;

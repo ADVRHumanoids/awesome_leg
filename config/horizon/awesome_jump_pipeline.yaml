@@ -16,10 +16,10 @@ problem:
   jnt_vel_limit_margin: 0.05
 
   is_iq_cnstrnt: false
-  is_friction_cone: true
+  is_friction_cone: false
 
   friction_cnstrnt: 
-    mu_friction_cone: 0.2
+    mu_friction_cone: 0.4
 
   use_same_weights: true
 
@@ -33,10 +33,10 @@ problem:
     weight_q_p_ddot: 0.0001 # cost for penalizing joint accelerations (which are the input)
     weight_q_p_ddot_diff: 0.001 # cost for penalizing differences between successive inputs
 
-    weight_com_height: 30
-    weight_hip_height: 0.0000000000000000000001
-    weight_tip_clearance: 0.0000000000000000000001
-    weight_tip_under_hip: 200
+    weight_com_height: 40
+    weight_hip_height: -1
+    weight_tip_clearance: -1
+    weight_tip_under_hip: 100
 
   ref_weights:
 
@@ -49,11 +49,13 @@ problem:
     weight_q_p_ddot_diff: 0.001 # cost for penalizing differences between successive inputs
 
     weight_com_height: 30
-    weight_hip_height: 0.0000000000000000000001
-    weight_tip_clearance: 0.0000000000000000000001
+    weight_hip_height: -1
+    weight_tip_clearance: -1
     weight_tip_under_hip: 100
 
-    weight_res_sol_tracking: 10
+    res_sol_tracking: 
+      weight_q_tracking: 100
+      weight_tip_tracking: 10000
 
 solver:
   ipopt_tol: 0.000001

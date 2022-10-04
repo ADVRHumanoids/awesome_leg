@@ -2,8 +2,9 @@
 
 from jump_utils.horizon_utils import JumpSolPlotter
 
-plotter = JumpSolPlotter("/tmp/awesome_jump_pipeline_01-10-2022-18_51_09/awesome_jump_ref.mat")
+plotter = JumpSolPlotter("/tmp/awesome_jump_pipeline_04-10-2022-16_10_24")
 
-plotter.make_plots()
+make_plot_selector = [False, False, False, True]
+plotter.make_plots(make_plot_selector)
 
 plotter.show_plots()

@@ -29,7 +29,6 @@ void MatReplayerRt::reset_flags()
 
 }
 
-
 void MatReplayerRt::update_clocks()
 {
     // Update time(s)
@@ -68,6 +67,10 @@ void MatReplayerRt::get_params_from_config()
 {
     // Reading some parameters from XBot2 config. YAML file
 
+    _urdf_path = getParamOrThrow<std::string>("~urdf_path"); 
+    _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
+    _cartesio_path = getParamOrThrow<std::string>("~cartesio_yaml_path"); 
+
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
@@ -89,6 +92,58 @@ void MatReplayerRt::get_params_from_config()
 
 }
 
+void MatReplayerRt::init_model_interface()
+{
+    
+    XBot::ConfigOptions xbot_cfg;
+    xbot_cfg.set_urdf_path(_urdf_path);
+    xbot_cfg.set_srdf_path(_srdf_path);
+    xbot_cfg.generate_jidmap();
+    xbot_cfg.set_parameter("is_model_floating_base", false);
+    xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+
+    // Initializing XBot2 ModelInterface for the rt thread
+    _model = XBot::ModelInterface::getModel(xbot_cfg); 
+    _n_jnts_model = _model->getJointNum();
+}
+
+void MatReplayerRt::create_ros_api()
+{
+    /*  Create ros api server */
+    RosServerClass::Options opt;
+    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesio_ell_rt");
+    _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
+}
+
+void CartesioEllRt::spawn_rnt_thread()
+{
+
+    /* Initialization */
+    _rt_active = false;
+
+    _nrt_exit = false;
+    
+    /* Spawn thread */
+    _nrt_thread = std::make_unique<thread>(
+        [this]()
+        {
+            this_thread::set_name("mat_repl_nrt");
+
+            while(!this->_nrt_exit)
+            {
+                this_thread::sleep_for(10ms);
+
+                if(!this->_rt_active) continue;
+
+                this->_nrt_solver->updateState();
+                this->_ros_srv->run();
+
+            }
+
+        });
+}
+
 void MatReplayerRt::update_state()
 {
     // "sensing" the robot
@@ -98,6 +153,12 @@ void MatReplayerRt::update_state()
     _robot->getMotorVelocity(_q_p_dot_meas);  
     _robot->getJointEffort(_tau_meas);
     
+    // Updating the model with the measurements
+    _model->setJointPosition(_q_p_meas);
+    _model->setJointVelocity(_q_p_dot_meas);
+    _model->update();
+
+    _model->getPose("tip", _tip_pose_rel_base_link);
 }
 
 void MatReplayerRt::init_dump_logger()
@@ -123,14 +184,14 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->add("stop_damping", _stop_damping);
 
     _dump_logger->create("plugin_time", 1);
-    _dump_logger->create("replay_stiffness", _n_jnts_model);
-    _dump_logger->create("replay_damping", _n_jnts_model);
-    _dump_logger->create("q_p_meas", _n_jnts_model);
-    _dump_logger->create("q_p_dot_meas", _n_jnts_model);
-    _dump_logger->create("tau_meas", _n_jnts_model);
-    _dump_logger->create("q_p_cmd", _n_jnts_model);
-    _dump_logger->create("q_p_dot_cmd", _n_jnts_model);
-    _dump_logger->create("tau_cmd", _n_jnts_model);
+    _dump_logger->create("replay_stiffness", _n_jnts_robot);
+    _dump_logger->create("replay_damping", _n_jnts_robot);
+    _dump_logger->create("q_p_meas", _n_jnts_robot);
+    _dump_logger->create("q_p_dot_meas", _n_jnts_robot);
+    _dump_logger->create("tau_meas", _n_jnts_robot);
+    _dump_logger->create("q_p_cmd", _n_jnts_robot);
+    _dump_logger->create("q_p_dot_cmd", _n_jnts_robot);
+    _dump_logger->create("tau_cmd", _n_jnts_robot);
 
     auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
     dscrptn_files_cell[0] = _mat_path;
@@ -160,20 +221,21 @@ void MatReplayerRt::add_data2dump_logger()
             if (_is_first_jnt_passive)
             { // remove first joint from logged commands
 
-                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_model));
-                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_model));
-                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_model));
+                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
+                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
 
             }
             else
             {
                 
-                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_model));
-                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_model));
-                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_model));
+                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
+                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
 
             }
 
+            _logger->add("tip_pos_meas", _tip_pose.translation())
         }
 
     }
@@ -193,6 +255,13 @@ void MatReplayerRt::init_nrt_ros_bridge()
         this,
         &_queue);
 
+    /* Subscriber */
+    _base_link_pose_sub = _ros->subscribe("my_flag",
+                                &RosFromRt::on_base_link_pose_received,
+                                this,
+                                1,  // queue size
+                                &_queue);
+
 }
 
 bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
@@ -209,7 +278,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
         res.message = "Starting replaying of jump trajectory!";
 
         _q_p_init_appr_traj = _q_p_meas; // initial position for the approach traj.
-        _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_model, 1); // target pos. for the approach traj
+        _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
         _approach_traj_started = true;
         
@@ -220,6 +289,14 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
     return true; 
 }
 
+void RosFromRt::on_flag_recv(const geometry_msgs::PoseStamped msg)
+{
+    _base_link_abs =  
+    msg.pose.orientation
+    msg.pose.translation;
+                   
+}
+
 void MatReplayerRt::load_opt_data()
 {   
 
@@ -227,10 +304,10 @@ void MatReplayerRt::load_opt_data()
 
     int n_traj_jnts = _traj.get_n_jnts();
 
-    if(n_traj_jnts != _n_jnts_model) 
+    if(n_traj_jnts != _n_jnts_robot) 
     {
         jwarn("The loaded trajectory has {} joints, while the robot has {} .\n Make sure to somehow select the right components!!",
-        n_traj_jnts, _n_jnts_model);
+        n_traj_jnts, _n_jnts_robot);
     }
 
     if (_resample)
@@ -258,7 +335,7 @@ void MatReplayerRt::saturate_effort()
 {
     int input_sign = 1; // defaults to positive sign 
 
-    for(int i = 0; i < _n_jnts_model; i++)
+    for(int i = 0; i < _n_jnts_robot; i++)
     {
         if (abs(_tau_cmd[i]) >= abs(_effort_lims[i]))
         {
@@ -272,7 +349,7 @@ void MatReplayerRt::saturate_effort()
 // void MatReplayerRt::compute_approach_traj_offline()
 // {
 
-//     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _q_p_ref.block(1, 0, _n_jnts_model, 1), _approach_traj_exec_time, _plugin_dt); 
+//     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _q_p_ref.block(1, 0, _n_jnts_robot, 1), _approach_traj_exec_time, _plugin_dt); 
 
 //     // _dump_logger->add("approach_traj", _approach_traj.get_traj());
 
@@ -284,9 +361,9 @@ void MatReplayerRt::send_approach_trajectory()
     double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
     if (_is_first_jnt_passive)
-    { // send the last _n_jnts_model components
+    { // send the last _n_jnts_robot components
 
-        _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj.tail(_n_jnts_model));
+        _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj.tail(_n_jnts_robot));
         
     }
     else{
@@ -362,23 +439,23 @@ void MatReplayerRt::send_trajectory()
             _tau_cmd = _tau_ref.col(_sample_index);
 
             if (_is_first_jnt_passive)
-            { // send the last _n_jnts_model components
+            { // send the last _n_jnts_robot components
                 
                 if (_send_eff_ref)
                 {
-                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
+                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_robot));
                 }
 
                 if(_send_pos_ref)
                 {  
 
-                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
+                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_robot));
                 }
 
                 if(_send_vel_ref)
                 {  
 
-                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_model));
+                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_robot));
                 }
 
             }
@@ -417,11 +494,11 @@ void MatReplayerRt::send_trajectory()
 }
 
 bool MatReplayerRt::on_initialize()
-{   
-
+{ 
+    
     _plugin_dt = getPeriodSec();
 
-    _n_jnts_model = _robot->getJointNum();
+    _n_jnts_robot = _robot->getJointNum();
 
     _robot->getEffortLimits(_effort_lims);
 
@@ -429,6 +506,14 @@ bool MatReplayerRt::on_initialize()
 
     get_params_from_config(); // load params from yaml file
     
+    // Initializing XBot2 model interface using the read parameters 
+    init_model_interface();
+
+    // Initializing CartesIO solver, ros server and spawning the non rt thread
+    // init_cartesio_solver();
+    create_ros_api();
+    spawn_rnt_thread();
+
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 

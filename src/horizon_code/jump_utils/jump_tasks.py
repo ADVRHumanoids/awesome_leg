@@ -106,7 +106,8 @@ class JumpGen:
 
             weight_field = "weights" if use_same_weights else "ref_weights" 
 
-            self.weight_res_sol_tracking = self.yaml_file["problem"]["ref_weights"]["weight_res_sol_tracking"] 
+            self.weight_q_tracking = self.yaml_file["problem"]["ref_weights"]["res_sol_tracking"]["weight_q_tracking"] 
+            self.weight_tip_tracking = self.yaml_file["problem"]["ref_weights"]["res_sol_tracking"]["weight_tip_tracking"] 
         
         self.dt_ref = self.yaml_file["resampling"]["dt"]
 
@@ -293,51 +294,62 @@ class JumpGen:
 
         if self.is_ref_prb:
 
-            self.weight_res_sol_tracking = self.weight_res_sol_tracking / self.cost_scaling_factor
+            self.weight_q_tracking = self.weight_q_tracking / self.cost_scaling_factor
+
+            self.weight_tip_tracking = self.weight_tip_tracking / self.cost_scaling_factor
 
     def __set_costs(self):
         
         self.__scale_weights()
 
-        self.prb.createIntermediateCost("min_f_contact", \
-            self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]))
+        if self.weight_f_contact_cost > 0:
+            self.prb.createIntermediateCost("min_f_contact", \
+                self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]))
 
-        self.prb.createIntermediateCost("min_q_dot", self.weight_q_dot * cs.sumsqr(
-            self.q_p_dot[1:])) 
+        if self.weight_q_dot > 0:
+            self.prb.createIntermediateCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot[1:])) 
 
-        self.prb.createIntermediateCost("min_q_ddot", self.weight_q_ddot * cs.sumsqr(
-            self.q_p_ddot[1:])) 
+        if self.weight_q_ddot > 0:
+            self.prb.createIntermediateCost("min_q_ddot", self.weight_q_ddot * cs.sumsqr(self.q_p_ddot[1:])) 
+        
+        if self.weight_hip_height > 0:
+            self.prb.createIntermediateCost("max_hip_height_jump",\
+                self.weight_hip_height * cs.sumsqr(1 / (self.hip_position + self.cost_epsi)),\
+                nodes=self.flight_nodes)
 
-        self.prb.createIntermediateCost("max_hip_height_jump", \
-                                self.weight_hip_height * cs.sumsqr(1 / (self.hip_position + self.cost_epsi)),
-                                nodes=self.flight_nodes)
+        if self.weight_tip_clearance > 0:
+            self.prb.createIntermediateCost("max_foot_tip_clearance",\
+                self.weight_tip_clearance * cs.sumsqr(1 / (self.foot_tip_position[2] + self.cost_epsi)),\
+                nodes=self.flight_nodes)
 
-        self.prb.createIntermediateCost("max_foot_tip_clearance", \
-                                self.weight_tip_clearance * cs.sumsqr(1 / (self.foot_tip_position[2] + self.cost_epsi)),
-                                nodes=self.flight_nodes)
+        if self.weight_com_height > 0:
+            self.prb.createIntermediateCost("max_com_height", self.weight_com_height * cs.sumsqr(1/ ( self.com[2] + self.cost_epsi)), nodes=self.flight_nodes)
 
-        self.prb.createIntermediateCost("max_com_height", self.weight_com_height * cs.sumsqr(1/ ( self.com[2] + self.cost_epsi)), 
-                                nodes=self.flight_nodes)
+        if self.weight_q_p_ddot_diff > 0:
+            self.prb.createIntermediateCost("min_input_diff", \
+                self.weight_q_p_ddot_diff * cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1)), nodes = range(1, self.n_int))  
 
-        self.prb.createIntermediateCost("min_input_diff", self.weight_q_p_ddot_diff * cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1)), 
-                                    nodes = range(1, self.n_int))  
+        if self.weight_f_contact_diff > 0:
+            self.prb.createIntermediateCost("min_f_contact_diff",\
+                self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = range(1, self.n_int))
 
-        self.prb.createIntermediateCost("min_f_contact_diff", self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), 
-                                    nodes = range(1, self.n_int))
+        if self.weight_tip_under_hip > 0:
+            self.prb.createIntermediateCost("max_tip_under_hip_first_node", self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = 0)
 
-        self.prb.createIntermediateCost("max_tip_under_hip_first_node", 
-                                    self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), 
-                                    nodes = 0)
-        self.prb.createIntermediateCost("max_tip_under_hip_last_node", 
-                                    self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), 
-                                    nodes = ((self.n_int + 1) - 1))
+            self.prb.createIntermediateCost("max_tip_under_hip_last_node", self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = ((self.n_int + 1) - 1))
 
         if self.is_ref_prb:
 
             for i in range(self.n_int + 1):
+                
+                if self.weight_q_tracking > 0:
+                    self.prb.createIntermediateCost("q_tracking_tracking_cost_node" + str(i),\
+                        self.weight_q_tracking * cs.sumsqr(self.q_p - self.loaded_sol["q_p"][:, i]),\
+                        nodes= i)
 
-                self.prb.createIntermediateCost("res_sol_tracking_cost_node" + str(i), self.weight_res_sol_tracking * cs.sumsqr(self.q_p - self.loaded_sol["q_p"][:, i]), 
-                                    nodes= i)
+                if self.weight_tip_tracking > 0:
+                    self.prb.createIntermediateCost("tip_tracking_tracking_cost_node" + str(i),\
+                        self.weight_tip_tracking * cs.sumsqr(self.foot_tip_position[2] - self.fk_foot(q = self.loaded_sol["q_p"][:, i])["ee_pos"][2]), nodes= i)
 
     def __get_solution(self):
 
