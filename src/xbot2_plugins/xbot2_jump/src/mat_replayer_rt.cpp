@@ -26,6 +26,10 @@ void MatReplayerRt::reset_flags()
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
 
     _approach_traj_time = 0;
+    
+    _jump_now = false;
+    
+    _is_first_trigger = false;
 
 }
 
@@ -84,6 +88,7 @@ void MatReplayerRt::get_params_from_config()
     _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
+    _approach_traj_pause_time = getParamOrThrow<double>("~traj_pause_time"); 
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
     _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
@@ -251,15 +256,34 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 
     if (req.jump_now)
     {
-        jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Received jump signal! Hopefully the robot won't break...\n");
+        _is_first_trigger = !_is_first_trigger;
 
-        res.message = "Starting replaying of jump trajectory!";
+        if (!_approach_traj_started && !_traj_started && _is_first_trigger)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.");
 
-        _q_p_init_appr_traj = _q_p_meas; // initial position for the approach traj.
-        _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
+            res.message = "Starting replaying of approach trajectory!";
 
-        _approach_traj_started = true;
+            _q_p_init_appr_traj = _q_p_meas; // initial position for the approach traj.
+            _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
+
+            _approach_traj_started = true;
+        }
+        
+        if (_approach_traj_finished && !_traj_started && !_is_first_trigger)
+        {
+            
+            _traj_started = true; // send actual trajectory
+
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n Starting jump sequence! Please clear the jumping area!\n");
+
+            res.message = "Starting replaying of jump trajectory!";
+
+            _sample_index = 0; // will start sending the loaded trajectory
+        }
+
         
     }
 
@@ -356,15 +380,13 @@ void MatReplayerRt::send_trajectory()
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
         {
             _approach_traj_finished = true; // finished approach traj
-            _traj_started = true; // send actual trajectory
-            _sample_index = 0; // resetting samples index
+            
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\n Approach trajectory finished...\n");
+                   "\n Approach trajectory finished... ready to jump \n");
         }
         else
         {
             send_approach_trajectory();
-
         }
         
     }

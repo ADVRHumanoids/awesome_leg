@@ -98,14 +98,15 @@ private:
         _compute_approach_traj = true,
         _is_first_jnt_passive = false, 
         _resample = false, 
-        _rt_active, _nrt_exit;
+        _rt_active, _nrt_exit, 
+        _jump_now = false, _is_first_trigger = true;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 30.0,
         _approach_traj_exec_time = 4.0, 
         _approach_traj_time = 0.0,
-        _pause_time, _traj_pause_time = 2.0,
+        _pause_time, _traj_pause_time = 2.0, _approach_traj_pause_time = 5.0,
         _epsi_stiffness = 10, _epsi_damping = 0.1;
 
     int _n_jnts_model,
