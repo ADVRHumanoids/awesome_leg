@@ -21,7 +21,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <geometry_msgs/Pose.h>
-
+ #include <Eigen/Core>
 #include <Eigen/Geometry>
 
 using namespace XBot;
@@ -70,7 +70,8 @@ public:
 private:
     
     std::string _mat_path, _mat_name, _dump_mat_suffix, 
-                _urdf_path, _srdf_path;
+                _urdf_path, _srdf_path, 
+                _tip_link_name, _base_link_name;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
@@ -80,7 +81,8 @@ private:
                     _traj_time_vector, 
                     _effort_lims,
                     _approach_traj_target, 
-                    _q_p_init_appr_traj, _q_p_trgt_appr_traj;
+                    _q_p_init_appr_traj, _q_p_trgt_appr_traj, 
+                    _tip_abs_position;
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
 
@@ -96,7 +98,7 @@ private:
         _compute_approach_traj = true,
         _is_first_jnt_passive = false, 
         _resample = false, 
-        _rt_active, _nrt_exit_nrt_thread;
+        _rt_active, _nrt_exit;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
@@ -113,22 +115,20 @@ private:
     plugin_utils::PeisekahTrans _peisekah_utils;
     plugin_utils::TrajLoader _traj;
 
-    // XBot::ModelInterface::Ptr _model;
-
     MatLogger2::Ptr _dump_logger;
 
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
 
-    XBot::Cartesian::RosServerClass::Ptr _ros_srv;
-    std::unique_ptr<thread> _nrt_thread;
-
-    SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
-
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
     XBot::ModelInterface::Ptr _model; 
+
+    SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
+    
+    ServiceServerPtr<awesome_leg::JumpNowRequest,
+                     awesome_leg::JumpNowResponse> _jump_now_srv;
 
     void get_params_from_config();
     void init_model_interface();
@@ -147,13 +147,13 @@ private:
     void init_dump_logger();
     void add_data2dump_logger();
     void init_nrt_ros_bridge();
+    void spawn_nrt_thread();
+
+    void get_abs_tip_position();
 
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);
-    void on_flag_recv(const geometry_msgs::PoseStamped& msg)
-
-    ServiceServerPtr<awesome_leg::JumpNowRequest,
-                     awesome_leg::JumpNowResponse> _jump_now_srv;
+    void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
                  
 };
 

@@ -69,7 +69,6 @@ void MatReplayerRt::get_params_from_config()
 
     _urdf_path = getParamOrThrow<std::string>("~urdf_path"); 
     _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
-    _cartesio_path = getParamOrThrow<std::string>("~cartesio_yaml_path"); 
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
@@ -90,6 +89,8 @@ void MatReplayerRt::get_params_from_config()
     _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
+    _tip_link_name = getParamOrThrow<std::string>("~tip_link_name"); 
+    _base_link_name = getParamOrThrow<std::string>("~base_link_name");
 }
 
 void MatReplayerRt::init_model_interface()
@@ -113,35 +114,6 @@ void MatReplayerRt::create_ros_api()
     RosServerClass::Options opt;
     opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
     opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesio_ell_rt");
-    _ros_srv = std::make_shared<RosServerClass>(_nrt_solver, opt);
-}
-
-void CartesioEllRt::spawn_rnt_thread()
-{
-
-    /* Initialization */
-    _rt_active = false;
-
-    _nrt_exit = false;
-    
-    /* Spawn thread */
-    _nrt_thread = std::make_unique<thread>(
-        [this]()
-        {
-            this_thread::set_name("mat_repl_nrt");
-
-            while(!this->_nrt_exit)
-            {
-                this_thread::sleep_for(10ms);
-
-                if(!this->_rt_active) continue;
-
-                this->_nrt_solver->updateState();
-                this->_ros_srv->run();
-
-            }
-
-        });
 }
 
 void MatReplayerRt::update_state()
@@ -158,7 +130,12 @@ void MatReplayerRt::update_state()
     _model->setJointVelocity(_q_p_dot_meas);
     _model->update();
 
-    _model->getPose("tip", _tip_pose_rel_base_link);
+    _model->getPose(_tip_link_name, _base_link_name, _tip_pose_rel_base_link);
+}
+
+void MatReplayerRt::get_abs_tip_position()
+{
+    _tip_abs_position = _base_link_abs * _tip_pose_rel_base_link.translation();
 }
 
 void MatReplayerRt::init_dump_logger()
@@ -235,7 +212,9 @@ void MatReplayerRt::add_data2dump_logger()
 
             }
 
-            _logger->add("tip_pos_meas", _tip_pose.translation())
+            _dump_logger->add("tip_pos_meas", _tip_abs_position);
+            _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
+            _dump_logger->add("base_link_abs", _base_link_abs.translation());
         }
 
     }
@@ -256,8 +235,8 @@ void MatReplayerRt::init_nrt_ros_bridge()
         &_queue);
 
     /* Subscriber */
-    _base_link_pose_sub = _ros->subscribe("my_flag",
-                                &RosFromRt::on_base_link_pose_received,
+    _base_link_pose_sub = _ros->subscribe("/xbotcore/link_state/base_link/pose",
+                                &MatReplayerRt::on_base_link_pose_received,
                                 this,
                                 1,  // queue size
                                 &_queue);
@@ -289,10 +268,11 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
     return true; 
 }
 
-void RosFromRt::on_flag_recv(const geometry_msgs::PoseStamped msg)
-{
-    _base_link_abs =  
-    msg.pose                   
+void MatReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
+{   
+    tf::poseMsgToEigen(msg.pose, _base_link_abs);
+
+    get_abs_tip_position();
 }
 
 void MatReplayerRt::load_opt_data()
@@ -343,15 +323,6 @@ void MatReplayerRt::saturate_effort()
         }
     }
 }
-
-// void MatReplayerRt::compute_approach_traj_offline()
-// {
-
-//     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _q_p_ref.block(1, 0, _n_jnts_robot, 1), _approach_traj_exec_time, _plugin_dt); 
-
-//     // _dump_logger->add("approach_traj", _approach_traj.get_traj());
-
-// }
 
 void MatReplayerRt::send_approach_trajectory()
 {
@@ -510,7 +481,6 @@ bool MatReplayerRt::on_initialize()
     // Initializing CartesIO solver, ros server and spawning the non rt thread
     // init_cartesio_solver();
     create_ros_api();
-    spawn_rnt_thread();
 
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)

@@ -43,9 +43,8 @@ xbotcore_plugins:
         params:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
-            cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} 
-            
-            mat_path: {value: /tmp/awesome_jump_pipeline_04-10-2022-16_23_01/, type: string}
+
+            mat_path: {value: /tmp/awesome_jump_pipeline_05-10-2022-12_27_07/, type: string}
             mat_name: {value: awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             is_first_jnt_passive : {value: true, type: bool}
@@ -63,6 +62,8 @@ xbotcore_plugins:
             send_eff_ref: {value: false, type: bool}
             looped_traj: {value: true, type: bool}
             traj_pause_time: {value: 4, type: double}
+            tip_link_name: {value: tip1, type: string}
+            base_link_name: {value: base_link, type: string}
 
 # global parameters
 xbotcore_param:
