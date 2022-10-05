@@ -69,7 +69,7 @@ xbotcore_plugins:
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}
     /jm/tx_filter_cutoff: {value: 2.0, type: double}
-    /jm/enable_safety: {value: false, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+    /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 
     
     
