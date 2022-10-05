@@ -41,6 +41,13 @@
   <gazebo>
     <plugin filename="libxbot2_gz_ft_server.so" name="xbot2_ft_driver"/>
   </gazebo>
+  <gazebo>
+    <plugin filename="libxbot2_gz_link_state_sensor.so" name="xbot2_link_state_sensor">
+      <links>
+        <link name="base_link"/>
+      </links>
+    </plugin>
+  </gazebo>
   <!--Gazebo-specific tags-->
   <gazebo reference="test_rig">
     <material>Gazebo/DarkGrey   </material>

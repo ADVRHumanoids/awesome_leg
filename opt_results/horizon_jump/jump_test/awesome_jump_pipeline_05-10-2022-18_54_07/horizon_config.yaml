@@ -12,7 +12,7 @@ problem:
   n_touchdown: 79
   dt_lb: 0.005
   dt_ub: 0.1
-  jnt_limit_margin: 0.02
+  jnt_limit_margin: 0.04
   jnt_vel_limit_margin: 0.05
 
   is_iq_cnstrnt: false

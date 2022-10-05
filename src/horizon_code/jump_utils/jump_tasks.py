@@ -63,8 +63,8 @@ class JumpGen:
 
         self.tanh_coeff = self.yaml_file["i_q_estimation"]["tanh_coeff"]
 
-        self.jnt_limit_margin = self.yaml_file["problem"]["jnt_limit_margin"]
-        self.jnt_vel_limit_margin = self.yaml_file["problem"]["jnt_vel_limit_margin"]
+        self.jnt_limit_margin = abs(self.yaml_file["problem"]["jnt_limit_margin"])
+        self.jnt_vel_limit_margin = abs(self.yaml_file["problem"]["jnt_vel_limit_margin"])
 
         self.slvr_opt = {"ipopt.tol": self.yaml_file["solver"]["ipopt_tol"],
             "ipopt.max_iter": self.yaml_file["solver"]["ipopt_maxiter"],
