@@ -44,7 +44,7 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
 
-            mat_path: {value: /tmp/awesome_jump_pipeline_05-10-2022-12_27_07/, type: string}
+            mat_path: {value: /home/embedded/awesome_leg_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/awesome_jump_pipeline_05-10-2022-18_54_07/, type: string}
             mat_name: {value: awesome_jump_ref.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             is_first_jnt_passive : {value: true, type: bool}
