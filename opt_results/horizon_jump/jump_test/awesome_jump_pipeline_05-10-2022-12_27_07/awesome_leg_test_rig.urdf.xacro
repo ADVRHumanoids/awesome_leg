@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+
+<robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    
+    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.xbot.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
+
+    <xacro:arg name="sliding_guide" default="true" />
+    
+    <xacro:property name="test_rig_base_ext" value="0.1" />
+    <xacro:property name="test_rig_height" value="1.0" />
+    <xacro:property name="hip_mounting_offset" value="0.08" />
+
+    <xacro:property name="pelvis_mounting_height" value="0.25" />
+
+    <link name="world" />
+
+    <joint name="world_test_rig" type="fixed">
+        <parent link="world" />
+        <child link="test_rig" />
+        <origin xyz="0 0 ${test_rig_height / 2}" />
+    </joint>
+    
+    <link name="test_rig"> 
+        <visual>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+                <box size="${test_rig_base_ext} ${test_rig_base_ext} ${test_rig_height}" />
+            </geometry>
+            <material name="brown"/>
+        </visual>
+        <collision>
+            <origin rpy="0 0 0" xyz="0 0 0" />
+            <geometry>
+                <box size="${test_rig_base_ext} ${test_rig_base_ext} ${test_rig_height}" />
+            </geometry>
+        </collision>
+        
+        <inertial>
+            <mass value="1000.0" />
+            <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
+        </inertial>
+
+    </link>  
+
+    <xacro:if value="$(arg sliding_guide)">
+
+        <joint name="test_rig2base" type="prismatic">
+            <parent link="test_rig" />
+            <child link="base_link" />
+            <origin xyz="${test_rig_base_ext + hip_mounting_offset} 0 ${pelvis_mounting_height}" rpy="0.0 0.0 ${-PI_2}"/>
+            <axis xyz="0 0 1" />
+            <dynamics damping="0.0" friction="0.0" />
+            <limit lower="-10" upper="10.0" effort="500" velocity="50.0" />
+        </joint>
+
+    </xacro:if>
+
+    <xacro:unless value="$(arg sliding_guide)">
+
+        <joint name="test_rig2base" type="fixed">
+            <parent link="test_rig" />
+            <child link="base_link" />
+            <origin xyz="${test_rig_base_ext + hip_mounting_offset} 0 ${pelvis_mounting_height}" rpy="0.0 0.0 ${-PI_2}"/>
+        </joint>
+
+    </xacro:unless>
+    
+    <link name="base_link"> 
+        <visual name="base_link_visual">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://awesome_leg/description/new_meshes/visual/base.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+            </geometry>  
+            <material name="black"/> 
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://awesome_leg/description/new_meshes/collision/base.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="${4.5477704 + payload_mass}" />
+            <inertia ixx="${4.4624842e+04 * kgmm2_2_kgm2}" iyy="${2.6977590e+04 * kgmm2_2_kgm2}" izz="${2.7956754e+04 * kgmm2_2_kgm2}"
+                    ixy="${-1.4644878e+01 * kgmm2_2_kgm2}" ixz="${3.0225947e+01 * kgmm2_2_kgm2}" iyz="${9.6636358e+03 * kgmm2_2_kgm2}" />
+        </inertial>
+    </link>    
+
+    <xacro:awesome_leg id="1" base_link="base_link"/> 
+
+</robot>
