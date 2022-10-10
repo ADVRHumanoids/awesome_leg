@@ -99,7 +99,8 @@ private:
         _is_first_jnt_passive = false, 
         _resample = false, 
         _rt_active, _nrt_exit, 
-        _jump_now = false, _is_first_trigger = true;
+        _jump_now = false, _is_first_trigger = true, 
+        _is_test_phase = false;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
@@ -111,7 +112,8 @@ private:
 
     int _n_jnts_model,
         _n_jnts_robot, 
-        _sample_index = 0;
+        _sample_index = 0, 
+        _jump_times_vect_size = 1;
 
     plugin_utils::PeisekahTrans _peisekah_utils;
     plugin_utils::TrajLoader _traj;

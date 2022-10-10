@@ -96,6 +96,8 @@ void MatReplayerRt::get_params_from_config()
 
     _tip_link_name = getParamOrThrow<std::string>("~tip_link_name"); 
     _base_link_name = getParamOrThrow<std::string>("~base_link_name");
+
+    _is_test_phase = getParamOrThrow<bool>("~is_test_phase"); 
 }
 
 void MatReplayerRt::init_model_interface()
@@ -156,7 +158,15 @@ void MatReplayerRt::init_dump_logger()
     }
     else
     {
-        _dump_logger = MatLogger2::MakeLogger(_mat_path + _dump_mat_suffix, opt); // date-time automatically appended
+        if (_is_test_phase)
+        {
+            _dump_logger = MatLogger2::MakeLogger(_mat_path + std::string("test_") + _dump_mat_suffix, opt); // date-time automatically appended
+        }
+        else
+        {
+            _dump_logger = MatLogger2::MakeLogger(_mat_path + std::string("sim_") + _dump_mat_suffix, opt); // date-time automatically appended
+        }
+        
     }
 
     _dump_logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
@@ -164,8 +174,11 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("stop_stiffness", _stop_stiffness);
     _dump_logger->add("stop_damping", _stop_damping);
+    _dump_logger->add("is_test_phase", int(_is_test_phase));
+    
 
-    _dump_logger->create("plugin_time", 1);
+    // _dump_logger->create("plugin_time", 1);
+    _dump_logger->create("jump_replay_times", 1);
     _dump_logger->create("replay_stiffness", _n_jnts_robot);
     _dump_logger->create("replay_damping", _n_jnts_robot);
     _dump_logger->create("q_p_meas", _n_jnts_robot);
@@ -175,27 +188,23 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->create("q_p_dot_cmd", _n_jnts_robot);
     _dump_logger->create("tau_cmd", _n_jnts_robot);
 
-    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
-    dscrptn_files_cell[0] = _mat_path;
-    dscrptn_files_cell[1] = _mat_name;
-    dscrptn_files_cell[2] = _robot->getUrdfPath();
-    dscrptn_files_cell[3] = _robot->getSrdfPath();
-    _dump_logger->save("description_files", dscrptn_files_cell);
+    // auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
+    // dscrptn_files_cell[0] = _mat_path;
+    // dscrptn_files_cell[1] = _mat_name;
+    // dscrptn_files_cell[2] = _robot->getUrdfPath();
+    // dscrptn_files_cell[3] = _robot->getSrdfPath();
+    // _dump_logger->save("description_files", dscrptn_files_cell);
 
 }
 
 void MatReplayerRt::add_data2dump_logger()
 {
     
-    _dump_logger->add("replay_stiffness", _replay_stiffness);
-    _dump_logger->add("replay_damping", _replay_damping);
-    _dump_logger->add("q_p_meas", _q_p_meas);
-    _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
-    _dump_logger->add("tau_meas", _tau_meas);
-    _dump_logger->add("plugin_time", _loop_time);
+    // _dump_logger->add("plugin_time", _loop_time);
 
     if (_traj_started && !_traj_finished)
     { // trajectory is being published
+      // only adding data when replaying trajectory to save memory
         
         if (_sample_index <= (_traj.get_n_nodes() - 1))
         { // commands have been computed
@@ -217,9 +226,19 @@ void MatReplayerRt::add_data2dump_logger()
 
             }
 
+            
+            _dump_logger->add("replay_stiffness", _replay_stiffness);
+            _dump_logger->add("replay_damping", _replay_damping);
+            _dump_logger->add("q_p_meas", _q_p_meas);
+            _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+            _dump_logger->add("tau_meas", _tau_meas);
+
+            _dump_logger->add("replay_time", _loop_time);
+
             _dump_logger->add("tip_pos_meas", _tip_abs_position);
             _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
             _dump_logger->add("base_link_abs", _base_link_abs.translation());
+
         }
 
     }
@@ -282,6 +301,9 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             res.message = "Starting replaying of jump trajectory!";
 
             _sample_index = 0; // will start sending the loaded trajectory
+            
+            _dump_logger->add("jump_replay_times", _loop_time);
+            
         }
 
         
