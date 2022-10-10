@@ -71,7 +71,8 @@ private:
     
     std::string _mat_path, _mat_name, _dump_mat_suffix, 
                 _urdf_path, _srdf_path, 
-                _tip_link_name, _base_link_name;
+                _tip_link_name, _base_link_name,
+                _hw_type;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
@@ -100,7 +101,7 @@ private:
         _resample = false, 
         _rt_active, _nrt_exit, 
         _jump_now = false, _is_first_trigger = true, 
-        _is_test_phase = false;
+        _is_sim = true;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
@@ -153,6 +154,8 @@ private:
     void spawn_nrt_thread();
 
     void get_abs_tip_position();
+
+    void is_sim(std::string sim_string);
 
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);

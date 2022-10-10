@@ -96,8 +96,23 @@ void MatReplayerRt::get_params_from_config()
 
     _tip_link_name = getParamOrThrow<std::string>("~tip_link_name"); 
     _base_link_name = getParamOrThrow<std::string>("~base_link_name");
+}
 
-    _is_test_phase = getParamOrThrow<bool>("~is_test_phase"); 
+void MatReplayerRt::is_sim(std::string sim_string = "sim")
+{
+    XBot::Context ctx;
+    auto& pm = ctx.paramManager();
+    std::string _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+
+    if (_hw_type.find(sim_string)) { // we are running the plugin in simulation
+
+        _is_sim = true;
+    }
+    else // we are running on the real robot
+    {
+        _is_sim = false;
+    }
+
 }
 
 void MatReplayerRt::init_model_interface()
@@ -158,7 +173,7 @@ void MatReplayerRt::init_dump_logger()
     }
     else
     {
-        if (_is_test_phase)
+        if (!_is_sim)
         {
             _dump_logger = MatLogger2::MakeLogger(_mat_path + std::string("test_") + _dump_mat_suffix, opt); // date-time automatically appended
         }
@@ -174,8 +189,11 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("stop_stiffness", _stop_stiffness);
     _dump_logger->add("stop_damping", _stop_damping);
-    _dump_logger->add("is_test_phase", int(_is_test_phase));
+    _dump_logger->add("is_sim", int(_is_sim));
     
+    _dump_logger->add("send_pos_ref", int(_send_pos_ref));
+    _dump_logger->add("send_vel_ref", int(_send_vel_ref));
+    _dump_logger->add("send_eff_ref", int(_send_eff_ref));
 
     // _dump_logger->create("plugin_time", 1);
     _dump_logger->create("jump_replay_times", 1);
@@ -272,7 +290,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 {
 
     _jump = req.jump_now;
-
+  
     if (req.jump_now)
     {
         _is_first_trigger = !_is_first_trigger;
@@ -280,7 +298,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
         if (!_approach_traj_started && !_traj_started && _is_first_trigger)
         {
             jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.");
+                   "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.\n");
 
             res.message = "Starting replaying of approach trajectory!";
 
