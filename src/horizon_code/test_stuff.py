@@ -2,7 +2,7 @@
 
 from jump_utils.horizon_utils import JumpSolPlotter
 
-plotter = JumpSolPlotter("/home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/awesome_jump_pipeline_10-10-2022-19_04_28", 
+plotter = JumpSolPlotter("/tmp/awesome_jump_pipeline_10-10-2022-21_44_30", 
                     sim_postproc_filename = "sim_traj_replay__0_2022_10_10__18_25_29.mat", 
                     test_postproc_filename="sim_traj_replay__0_2022_10_10__18_25_29.mat")
 

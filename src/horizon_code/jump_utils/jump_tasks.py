@@ -225,6 +225,9 @@ class JumpGen:
         knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizoin
         knee_above_ground.setBounds(0.0, cs.inf)
         
+        hip_towards_vert = self.prb.createConstraint("hip_towards_vertical", self.v_hip[2], nodes = self.pre_takeoff_nodes)  # no ground penetration on all the horizoin
+        hip_towards_vert.setBounds(0.0, cs.inf)
+
         self.prb.createConstraint("GRF_zero", self.f_contact,
                             nodes=self.flight_nodes)  # 0 GRF during flight
 
