@@ -77,15 +77,15 @@ private:
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
-                    _q_p_meas, _q_p_dot_meas, _tau_meas,
-                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, 
+                    _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
+                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_cont_cmd,
                     _traj_time_vector, 
                     _effort_lims,
                     _approach_traj_target, 
                     _q_p_init_appr_traj, _q_p_trgt_appr_traj, 
                     _tip_abs_position;
 
-    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref;
+    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref;
 
     Eigen::Affine3d _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs;
 

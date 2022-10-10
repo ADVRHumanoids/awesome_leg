@@ -89,10 +89,10 @@ namespace plugin_utils{
             Eigen::VectorXd get_sample_times();
             Eigen::VectorXd compute_res_times(double dt_res);
             double get_exec_time();
-            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::MatrixXd& dt_opt);
-            void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res);
+            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::MatrixXd& dt_opt, Eigen::MatrixXd& f_cont_res);
+            void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res,
+                        Eigen::MatrixXd& tau_res, Eigen::MatrixXd& f_cont_res);
 
-            
         private:
 
             std::string _data_path; // path to directory where data is stored. If a file name and mat extension is provided, data il loaded from a .mat database, otherwise from CSV file
@@ -103,11 +103,14 @@ namespace plugin_utils{
             std::string _q_p_name = "q_p"; // these names have to match the ones of the loaded data
             std::string _q_p_dot_name = "q_p_dot";
             std::string _efforts_name = "tau";
+            std::string _f_cont_name = "f_contact";
             std::string _dt_name = "dt_opt";
 
             Eigen::MatrixXd _q_p;
             Eigen::MatrixXd _q_p_dot;
             Eigen::MatrixXd _tau;
+            Eigen::MatrixXd _f_cont;
+
             Eigen::MatrixXd _dt_opt;
             Eigen::VectorXd _sample_times;
 

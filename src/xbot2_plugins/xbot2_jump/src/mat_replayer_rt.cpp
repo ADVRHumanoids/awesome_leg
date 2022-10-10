@@ -204,6 +204,8 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->create("tau_meas", _n_jnts_robot);
     _dump_logger->create("q_p_cmd", _n_jnts_robot);
     _dump_logger->create("q_p_dot_cmd", _n_jnts_robot);
+    _dump_logger->create("f_contact_cmd", 3);
+    _dump_logger->create("f_contact_meas", 3);
     _dump_logger->create("tau_cmd", _n_jnts_robot);
 
     // auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
@@ -250,6 +252,9 @@ void MatReplayerRt::add_data2dump_logger()
             _dump_logger->add("q_p_meas", _q_p_meas);
             _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
             _dump_logger->add("tau_meas", _tau_meas);
+
+            _dump_logger->add("f_contact_cmd", _f_cont_cmd);
+            // _dump_logger->add("f_contact_meas", _f_contact_cmd);
 
             _dump_logger->add("replay_time", _loop_time);
 
@@ -355,7 +360,7 @@ void MatReplayerRt::load_opt_data()
     if (_resample)
     { // resample input data at the plugin frequency (for now it sucks)
 
-        _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
+        _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
 
     }
     else
@@ -363,7 +368,7 @@ void MatReplayerRt::load_opt_data()
 
         Eigen::MatrixXd dt_opt;
 
-        _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt);
+        _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt, _f_cont_ref);
 
         jwarn("The loaded trajectory was generated with a dt of {} s, while the rt plugin runs at {} .\n ",
         dt_opt(0), _plugin_dt);
@@ -468,6 +473,7 @@ void MatReplayerRt::send_trajectory()
             _q_p_cmd = _q_p_ref.col(_sample_index);
             _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
             _tau_cmd = _tau_ref.col(_sample_index);
+            _f_cont_cmd = _f_cont_ref.col(_sample_index);
 
             if (_is_first_jnt_passive)
             { // send the last _n_jnts_robot components
