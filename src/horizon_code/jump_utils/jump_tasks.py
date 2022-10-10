@@ -121,6 +121,7 @@ class JumpGen:
         self.weight_hip_height = self.yaml_file["problem"][weight_field]["weight_hip_height"] 
         self.weight_tip_clearance = self.yaml_file["problem"][weight_field]["weight_tip_clearance"] 
         self.weight_tip_under_hip = self.yaml_file["problem"][weight_field]["weight_tip_under_hip"] 
+        self.weight_sat_i_q = self.yaml_file["problem"][weight_field]["weight_sat_i_q"] 
 
     def __init_sol_dumpers(self):
 
@@ -233,16 +234,18 @@ class JumpGen:
 
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
-        if self.is_iq_cnstrnt: # highly non linear constraint due to approximate sign function--> makes optimization much worse
-            # use it only in the refinement phase, since it is expensive
-            self.compensated_tau = []
-            self.i_q_cnstr = []
+        self.compensated_tau = []
+        self.i_q_cnstr = []
+        self.i_q = []
+        for i in range(self.n_q -1):
+            self.compensated_tau.append(self.tau[i + 1] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.q_p_dot[i + 1]) + self.act_yaml_file["K_d1"][i] * self.q_p_dot[i + 1])
+            self.i_q.append((self.act_yaml_file["rotor_axial_MoI"][i] * self.q_p_ddot[i + 1] / self.act_yaml_file["red_ratio"][i] +\
+                self.compensated_tau[i] * self.act_yaml_file["red_ratio"][i] / \
+                self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i])
+
+        if self.is_iq_cnstrnt:
             for i in range(self.n_q -1):
-                self.compensated_tau.append(self.tau[i + 1] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.q_p_dot[i + 1]) + self.act_yaml_file["K_d1"][i] * self.q_p_dot[i + 1])
-                i_q = (self.act_yaml_file["rotor_axial_MoI"][i] * self.q_p_ddot[i + 1] / self.act_yaml_file["red_ratio"][i] +\
-                    self.compensated_tau[i] * self.act_yaml_file["red_ratio"][i] / \
-                    self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i]
-                self.i_q_cnstr.append( self.prb.createIntermediateConstraint("quadrature_current_joint" + str(i), i_q) )
+                self.i_q_cnstr.append( self.prb.createIntermediateConstraint("quadrature_current_j" + str(i), self.i_q[i]) )
                 self.i_q_cnstr[i].setBounds(- self.I_lim[i], self.I_lim[i])  # setting input limits
 
         # friction constraints
@@ -292,6 +295,8 @@ class JumpGen:
 
         self.weight_tip_under_hip = self.weight_tip_under_hip / self.cost_scaling_factor
 
+        self.weight_sat_i_q = self.weight_sat_i_q / self.cost_scaling_factor
+
         if self.is_ref_prb:
 
             self.weight_q_tracking = self.weight_q_tracking / self.cost_scaling_factor
@@ -337,6 +342,12 @@ class JumpGen:
             self.prb.createIntermediateCost("max_tip_under_hip_first_node", self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = 0)
 
             self.prb.createIntermediateCost("max_tip_under_hip_last_node", self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = ((self.n_int + 1) - 1))
+
+        if self.weight_sat_i_q > 0:
+            
+            for i in range(self.n_q -1):
+
+                self.prb.createIntermediateCost("saturate_i_q_j" + str(i), self.weight_sat_i_q * 1/(cs.sumsqr(self.i_q[i]) + self.cost_epsi), nodes = 0)
 
         if self.is_ref_prb:
 

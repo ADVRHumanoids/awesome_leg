@@ -246,7 +246,6 @@ void MatReplayerRt::add_data2dump_logger()
 
             }
 
-            
             _dump_logger->add("replay_stiffness", _replay_stiffness);
             _dump_logger->add("replay_damping", _replay_damping);
             _dump_logger->add("q_p_meas", _q_p_meas);
