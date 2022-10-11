@@ -15,6 +15,9 @@ void MatReplayerRt::reset_flags()
     _approach_traj_started = false;
     _approach_traj_finished = false;
 
+    _imp_traj_started = false;
+    _imp_traj_finished = false;
+
     _traj_started = false;
     _traj_finished = false;
 
@@ -23,9 +26,11 @@ void MatReplayerRt::reset_flags()
 
     _jump = false;
 
-    _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
+    _sample_index = 0.0; // resetting samples index, in case the plugin stopped and started again
 
-    _approach_traj_time = 0;
+    _approach_traj_time = 0.0;
+
+    _smooth_imp_time = 0.0;
     
     _jump_now = false;
     
@@ -41,6 +46,11 @@ void MatReplayerRt::update_clocks()
     if(_pause_started && !_pause_finished)
     {
         _pause_time += _plugin_dt;
+    }
+
+    if(_imp_traj_started && !_imp_traj_finished)
+    {
+        _smooth_imp_time += _plugin_dt;
     }
 
     if(_approach_traj_started && !_approach_traj_finished)
@@ -63,6 +73,11 @@ void MatReplayerRt::update_clocks()
     if(_approach_traj_time >= _approach_traj_exec_time)
     {
         _approach_traj_time = _approach_traj_exec_time;
+    }
+
+    if(_smooth_imp_time >= _imp_ramp_time)
+    {
+        _smooth_imp_time = _imp_ramp_time;
     }
     
 }
@@ -100,6 +115,10 @@ void MatReplayerRt::get_params_from_config()
 
     _tip_link_name = getParamOrThrow<std::string>("~tip_link_name"); 
     _base_link_name = getParamOrThrow<std::string>("~base_link_name");
+
+    _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
+
+    _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
 }
 
 void MatReplayerRt::is_sim(std::string sim_string = "sim")
@@ -203,6 +222,8 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->create("jump_replay_times", 1);
     _dump_logger->create("replay_stiffness", _n_jnts_robot);
     _dump_logger->create("replay_damping", _n_jnts_robot);
+    _dump_logger->create("meas_stiffness", _n_jnts_robot);
+    _dump_logger->create("meas_damping", _n_jnts_robot);
     _dump_logger->create("q_p_meas", _n_jnts_robot);
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot);
     _dump_logger->create("tau_meas", _n_jnts_robot);
@@ -224,11 +245,11 @@ void MatReplayerRt::init_dump_logger()
 void MatReplayerRt::add_data2dump_logger()
 {
     
-    // _dump_logger->add("plugin_time", _loop_time);
+    // _dump_logger->add("plugin_time", _loop_time)
 
     if (_traj_started && !_traj_finished)
     { // trajectory is being published
-      // only adding data when replaying trajectory to save memory
+    // only adding data when replaying trajectory to save memory
         
         if (_sample_index <= (_traj.get_n_nodes() - 1))
         { // commands have been computed
@@ -244,14 +265,17 @@ void MatReplayerRt::add_data2dump_logger()
             else
             {
                 
-                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
-                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
-                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
+                _dump_logger->add("q_p_cmd", _q_p_cmd);
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
+                _dump_logger->add("tau_cmd", _tau_cmd);
 
             }
 
             _dump_logger->add("replay_stiffness", _replay_stiffness);
             _dump_logger->add("replay_damping", _replay_damping);
+            _dump_logger->add("meas_stiffness", _meas_stiffness);
+            _dump_logger->add("meas_damping", _meas_damping);
+
             _dump_logger->add("q_p_meas", _q_p_meas);
             _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
             _dump_logger->add("tau_meas", _tau_meas);
@@ -268,6 +292,7 @@ void MatReplayerRt::add_data2dump_logger()
         }
 
     }
+    
 
 }
 
@@ -302,7 +327,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
     if (req.jump_now)
     {
         _is_first_trigger = !_is_first_trigger;
-
+        
         if (!_approach_traj_started && !_traj_started && _is_first_trigger)
         {
             jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
@@ -313,7 +338,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             _q_p_init_appr_traj = _q_p_meas; // initial position for the approach traj.
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
-            _approach_traj_started = true;
+            _imp_traj_started = true;
         }
         
         if (_approach_traj_finished && !_traj_started && !_is_first_trigger)
@@ -331,6 +356,9 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             _dump_logger->add("jump_replay_times", _loop_time);
             
         }
+
+        _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
+        _robot->getDamping(_meas_damping);
 
         
     }
@@ -397,6 +425,26 @@ void MatReplayerRt::saturate_effort()
     }
 }
 
+void MatReplayerRt::ramp_imp_smoothly()
+{
+
+    double phase = _smooth_imp_time / _imp_ramp_time;
+    
+    _robot->getStiffness(_meas_stiffness);
+    _robot->getDamping(_meas_damping);
+
+    _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _meas_stiffness, _replay_stiffness);
+    _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _meas_damping, _replay_damping);
+
+    _robot->setPositionReference(_q_p_init_appr_traj); // enforce reference to currently measured state
+
+    _robot->setStiffness(_ramp_stiffness); // necessary at each loop (for some reason)
+    _robot->setDamping(_ramp_damping);
+
+    _robot->move(); // Send commands to the robot
+
+}
+
 void MatReplayerRt::send_approach_trajectory()
 {
 
@@ -416,7 +464,7 @@ void MatReplayerRt::send_approach_trajectory()
 
     _robot->setPositionReference(_q_p_cmd);
     
-    _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
+    _robot->setStiffness(_replay_stiffness); 
     _robot->setDamping(_replay_damping);
 
     _robot->move(); // Send commands to the robot
@@ -426,13 +474,33 @@ void MatReplayerRt::send_approach_trajectory()
 void MatReplayerRt::send_trajectory()
 {
 
-    if (_approach_traj_started && !_approach_traj_finished)
+    if (_imp_traj_started && !_imp_traj_finished)
+    { // still ramping (up) impedance
+        
+        if (_smooth_imp_time > _imp_ramp_time - 0.000001)
+        {
+            _imp_traj_finished = true; // finished ramping imp.
+            _approach_traj_started = true;
+
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                   "\n Joint impedance successfully ramped to target \n");
+        }
+        else
+        {
+            ramp_imp_smoothly();
+        }
+
+    }
+
+    if (_imp_traj_finished && _approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
 
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
         {
             _approach_traj_finished = true; // finished approach traj
             
+            // start of trajectory replay is triggered by the callback in this case
+
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Approach trajectory finished... ready to jump \n");
         }
@@ -637,8 +705,8 @@ void MatReplayerRt::starting()
     // setting the control mode to effort + velocity + stiffness + damping
     _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + 
             ControlMode::Damping());
-    _robot->setStiffness(_replay_stiffness);
-    _robot->setDamping(_replay_damping);
+    // _robot->setStiffness(_replay_stiffness);
+    // _robot->setDamping(_replay_damping);
 
     update_state(); // read current jnt positions and velocities
     
@@ -652,7 +720,7 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-
+    
     update_state(); // read current jnt positions and velocities
 
     _queue.run();

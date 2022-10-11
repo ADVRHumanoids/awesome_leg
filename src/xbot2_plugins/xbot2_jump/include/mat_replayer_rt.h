@@ -77,6 +77,8 @@ private:
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
+                    _meas_stiffness, _meas_damping,
+                    _ramp_stiffness, _ramp_damping,
                     _touchdown_damping, _touchdown_stiffness,
                     _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_cont_cmd,
@@ -93,6 +95,7 @@ private:
     bool _looped_traj = false, 
         _approach_traj_started = false, _approach_traj_finished = false, 
         _traj_started = false, _traj_finished = false, 
+        _imp_traj_started = false, _imp_traj_finished = false,
         _first_run = true,  
         _pause_started = false, _pause_finished = false, 
         _send_pos_ref = true, _send_vel_ref = false,  _send_eff_ref = false,
@@ -102,7 +105,8 @@ private:
         _resample = false, 
         _rt_active, _nrt_exit, 
         _jump_now = false, _is_first_trigger = true, 
-        _is_sim = true;
+        _is_sim = true, 
+        _reduce_dumped_sol_size = false;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
@@ -110,7 +114,8 @@ private:
         _approach_traj_exec_time = 4.0, 
         _approach_traj_time = 0.0,
         _pause_time, _traj_pause_time = 2.0, _approach_traj_pause_time = 5.0,
-        _epsi_stiffness = 10, _epsi_damping = 0.1;
+        _epsi_stiffness = 10, _epsi_damping = 0.1, 
+        _imp_ramp_time = 0.5, _smooth_imp_time = 0.0;
 
     int _n_jnts_model,
         _n_jnts_robot, 
@@ -147,6 +152,7 @@ private:
     void create_ros_api();
 
     void send_approach_trajectory();
+    void ramp_imp_smoothly();
     void send_trajectory();
     void saturate_effort();
     void update_state();
