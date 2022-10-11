@@ -34,6 +34,9 @@ horizon:
 
       mu_friction_cone : 0.5 # friction cone coefficient
 
+      dt_lb: 0.005
+      dt_ub: 0.1
+
       is_iq_cnstrnt : true
 
       jnt_limit_margin: 0.02 # [rad] --> this value will shorten the limits of the joint (uniformly) for safety reasons
