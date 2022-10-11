@@ -45,7 +45,7 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
 
-            mat_path: {value: /tmp/awesome_jump_pipeline_11-10-2022-12_57_28/, type: string}
+            mat_path: {value: /tmp/awesome_jump_pipeline_11-10-2022-18_58_53/, type: string}
             mat_name: {value: awesome_jump_ref.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
 
