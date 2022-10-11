@@ -38,21 +38,27 @@ class JumpSolPlotter:
                 opt_base_sol_name = "awesome_jump",
                 res_sol_suffix = "_res", 
                 ref_sol_suffix = "_ref", 
-                sim_postproc_filename = "sim_traj_replay", 
-                test_postproc_filename = "test_traj_replay"):
+                sim_postproc_filename = None, 
+                test_postproc_filename = None):
 
         self.solution_path_ref_raw = solution_dirpath + "/" + opt_base_sol_name
         self.solution_path_ref_res = solution_dirpath + "/" + opt_base_sol_name + res_sol_suffix
         self.solution_path_ref_ref = solution_dirpath + "/" + opt_base_sol_name + ref_sol_suffix
-
-        self.sim_path_full = solution_dirpath + "/" + sim_postproc_filename
-        self.test_path_full = solution_dirpath + "/" + test_postproc_filename
-    
+        
         self.__run_opt_sol_postproc()
 
-        self.__run_sim_sol_postproc()
+        if sim_postproc_filename is not None:
 
-        self.__run_test_sol_postproc()
+            self.sim_path_full = solution_dirpath + "/" + sim_postproc_filename
+
+            self.__run_sim_sol_postproc()
+        
+        if test_postproc_filename is not None:
+            
+            self.test_path_full = solution_dirpath + "/" + test_postproc_filename
+
+            self.__run_test_sol_postproc()
+        
 
     def __run_opt_sol_postproc(self):
 

@@ -85,8 +85,12 @@ void MatReplayerRt::get_params_from_config()
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
     _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
     // _cntrl_mode =  getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
+
     _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
+    _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness"); 
+    _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping"); 
+
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _approach_traj_pause_time = getParamOrThrow<double>("~traj_pause_time"); 
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
@@ -374,6 +378,7 @@ void MatReplayerRt::load_opt_data()
 
     }
 
+    _takeoff_index = _traj.get_takeoff_index(); // takeoff index
 
 }
 
@@ -411,6 +416,9 @@ void MatReplayerRt::send_approach_trajectory()
 
     _robot->setPositionReference(_q_p_cmd);
     
+    _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
+    _robot->setDamping(_replay_damping);
+
     _robot->move(); // Send commands to the robot
     
 }
@@ -465,8 +473,67 @@ void MatReplayerRt::send_trajectory()
             _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
             
         }
-        else
-        { // send command
+        if (_sample_index <= (_traj.get_n_nodes() - 1) && _sample_index > _takeoff_index)
+        { // after the optimized takeoff phase
+            
+            // by default assign all commands anyway
+            _q_p_cmd = _q_p_ref.col(_takeoff_index);
+            _q_p_dot_cmd = _q_p_dot_ref.col(_takeoff_index);
+            _tau_cmd = _tau_ref.col(_takeoff_index);
+            _f_cont_cmd = _f_cont_ref.col(_takeoff_index);
+
+            if (_is_first_jnt_passive)
+            { // send the last _n_jnts_robot components
+                
+                if (_send_eff_ref)
+                {
+                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_robot));
+                }
+
+                if(_send_pos_ref)
+                {  
+
+                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_robot));
+                }
+
+                if(_send_vel_ref)
+                {  
+
+                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_robot));
+                }
+
+            }
+            else{
+                
+                if (_send_eff_ref)
+                {
+                    _robot->setEffortReference(_tau_cmd);
+                }
+
+                if(_send_pos_ref)
+                {  
+
+                    _robot->setPositionReference(_q_p_cmd);
+                }
+
+                if(_send_vel_ref)
+                {  
+
+                    _robot->setVelocityReference(_q_p_dot_cmd);
+                }
+
+            }
+
+            _robot->setStiffness(_touchdown_stiffness); // necessary at each loop (for some reason)
+            _robot->setDamping(_touchdown_damping);
+
+            saturate_effort(); // perform input torque saturation
+
+            _robot->move(); // Send commands to the robot
+            
+        }
+        if (_sample_index <= _takeoff_index)
+        { // before takeoff
             
             // by default assign all commands anyway
             _q_p_cmd = _q_p_ref.col(_sample_index);

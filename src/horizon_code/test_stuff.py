@@ -7,7 +7,6 @@ plotter = JumpSolPlotter("/tmp/awesome_jump_pipeline_10-10-2022-21_44_30",
                     test_postproc_filename="sim_traj_replay__0_2022_10_10__18_25_29.mat")
 
 make_plot_selector = [False, False, False, True]
-plotter.make_opt_plots(make_plot_selector)
 
 # plotter.make_sim_plots()
 

@@ -45,7 +45,7 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
 
-            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/awesome_jump_pipeline_05-10-2022-18_54_07/, type: string}
+            mat_path: {value: /tmp/awesome_jump_pipeline_11-10-2022-12_57_28/, type: string}
             mat_name: {value: awesome_jump_ref.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
 
@@ -57,8 +57,10 @@ xbotcore_plugins:
             approach_traj_exec_time: {value: 6.0, type: double} 
             approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
             # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
-            replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
+            replay_stiffness: {value: [2500.0, 2500.0], type: Eigen::VectorXd}
             replay_damping: {value: [25.0, 25.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [3.0, 3.0], type: Eigen::VectorXd}
             send_pos_ref: {value: true, type: bool}
             send_vel_ref: {value: false, type: bool}
             send_eff_ref: {value: false, type: bool}
@@ -71,7 +73,7 @@ xbotcore_plugins:
 # global parameters
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}
-    /jm/tx_filter_cutoff: {value: 2.0, type: double}
+    /jm/tx_filter_cutoff: {value: 500.0, type: double}
     /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 
     

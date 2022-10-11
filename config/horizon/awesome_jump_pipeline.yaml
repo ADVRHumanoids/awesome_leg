@@ -15,7 +15,7 @@ problem:
   jnt_limit_margin: 0.04
   jnt_vel_limit_margin: 0.05
 
-  is_iq_cnstrnt: false
+  is_iq_cnstrnt: true
   is_friction_cone: false
 
   friction_cnstrnt: 
@@ -38,7 +38,7 @@ problem:
     weight_tip_clearance: -1
     weight_tip_under_hip: 100
 
-    weight_sat_i_q: 10 # try to saturate the joint current, while keeping it within bounds
+    weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
   ref_weights:
 
@@ -55,7 +55,7 @@ problem:
     weight_tip_clearance: -1
     weight_tip_under_hip: 100
 
-    weight_sat_i_q: 10 # try to saturate the joint current, while keeping it within bounds
+    weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
     res_sol_tracking: 
       weight_q_tracking: 100

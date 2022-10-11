@@ -77,6 +77,7 @@ private:
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
+                    _touchdown_damping, _touchdown_stiffness,
                     _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_cont_cmd,
                     _traj_time_vector, 
@@ -114,7 +115,8 @@ private:
     int _n_jnts_model,
         _n_jnts_robot, 
         _sample_index = 0, 
-        _jump_times_vect_size = 1;
+        _jump_times_vect_size = 1, 
+        _takeoff_index = -1;
 
     plugin_utils::PeisekahTrans _peisekah_utils;
     plugin_utils::TrajLoader _traj;

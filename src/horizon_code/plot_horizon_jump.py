@@ -15,8 +15,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    plotter = JumpSolPlotter(args.sol_path + "/" + args.base_sol_name + args.sol_type + ".mat")
+    plotter = JumpSolPlotter(args.sol_path)
+    make_plot_selector = [False, False, False, True]
 
-    plotter.make_plots()
+    plotter.make_opt_plots(make_plot_selector)
 
     plotter.show_plots()

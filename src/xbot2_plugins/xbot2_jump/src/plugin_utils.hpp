@@ -84,12 +84,17 @@ namespace plugin_utils{
             TrajLoader(std::string data_path, bool column_major = true, double resample_err_tol = 0.0001, bool load_from_csv = false);
 
             Eigen::MatrixXd read_data_from_csv(std::string data_path);
+
             int get_n_jnts();
             int get_n_nodes();
+            int get_takeoff_index(double epsi = 1e-15);
+
             Eigen::VectorXd get_sample_times();
             Eigen::VectorXd compute_res_times(double dt_res);
             double get_exec_time();
+
             void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::MatrixXd& dt_opt, Eigen::MatrixXd& f_cont_res);
+            
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res,
                         Eigen::MatrixXd& tau_res, Eigen::MatrixXd& f_cont_res);
 

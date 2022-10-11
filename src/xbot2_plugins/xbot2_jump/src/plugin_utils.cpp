@@ -558,6 +558,22 @@ int TrajLoader::get_n_samples(Eigen::MatrixXd& mat)
     }
 }
 
+int TrajLoader::get_takeoff_index(double epsi)
+{
+    int takeoff_index = -1;
+
+    for (int n = 0; n < (_f_cont.cols()); n++)
+    {
+        if (_f_cont(2, n) < epsi)
+        {
+            takeoff_index = n;
+            break;
+        }
+    }
+
+    return takeoff_index;
+}
+
 double TrajLoader::get_exec_time()
 {
     return _exec_time;

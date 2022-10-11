@@ -4,11 +4,11 @@ import argparse
 
 import rospkg
 
-from jump_utils.jump_tasks import JumpGen
+from jump_utils.jump_tasks import FullJumpGen
 
 def main(args):
 
-    jump_generator_resampled = JumpGen(args.yaml_path, 
+    jump_generator_resampled = FullJumpGen(args.yaml_path, 
                     args.actuators_yaml_path, 
                     args.urdf_path,
                     args.results_dir, 
