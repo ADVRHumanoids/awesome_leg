@@ -643,7 +643,7 @@ void MatReplayerRt::set_trajectory()
 
     if (!_jump)
     {
-        _q_p_cmd = _q_p_safe_cmd;
+        // _q_p_cmd = _q_p_safe_cmd;
         _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
         _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     }
