@@ -75,13 +75,16 @@ private:
                 _hw_type;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
-                    _cntrl_mode, 
                     _replay_stiffness, _replay_damping, 
                     _meas_stiffness, _meas_damping,
                     _ramp_stiffness, _ramp_damping,
+                    _ramp_strt_stiffness, _ramp_strt_damping,
                     _touchdown_damping, _touchdown_stiffness,
+                    _stiffness_setpoint, _damping_setpoint,
+                    _cntrl_mode, 
                     _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_cont_cmd,
+                    _q_p_safe_cmd, 
                     _traj_time_vector, 
                     _effort_lims,
                     _approach_traj_target, 
@@ -96,9 +99,10 @@ private:
         _approach_traj_started = false, _approach_traj_finished = false, 
         _traj_started = false, _traj_finished = false, 
         _imp_traj_started = false, _imp_traj_finished = false,
-        _first_run = true,  
+        _is_first_run = true,  
         _pause_started = false, _pause_finished = false, 
         _send_pos_ref = true, _send_vel_ref = false,  _send_eff_ref = false,
+        _send_pos_ref_backup = true, _send_vel_ref_backup = false,  _send_eff_ref_backup = false,
         _jump = false,
         _compute_approach_traj = true,
         _is_first_jnt_passive = false, 
@@ -143,6 +147,7 @@ private:
 
     void get_params_from_config();
     void init_model_interface();
+    void init_vars();
     void init_cartesio_solver();
     void init_clocks();
     void reset_flags();
@@ -151,11 +156,14 @@ private:
     void resample_trajectory();
     void create_ros_api();
 
-    void send_approach_trajectory();
+    void set_approach_trajectory();
     void ramp_imp_smoothly();
-    void send_trajectory();
+    void set_trajectory();
     void saturate_effort();
+    
     void update_state();
+    void send_cmds();
+
     void init_dump_logger();
     void add_data2dump_logger();
     void init_nrt_ros_bridge();

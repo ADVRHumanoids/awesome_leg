@@ -1263,4 +1263,14 @@ class preTakeoffTO:
 
         self.__dump_sol2file()
 
-    
+class up2ApexTO:
+
+    def __init__(self, yaml_path: str, actuators_yaml_path: str, 
+                urdf_path: str,
+                results_path: str,
+                sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
+                cost_epsi = 1.0, 
+                is_ref_prb = False):
+
+
+        self.prova = True

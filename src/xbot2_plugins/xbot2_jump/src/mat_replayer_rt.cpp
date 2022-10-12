@@ -9,6 +9,13 @@ void MatReplayerRt::init_clocks()
     _approach_traj_time = 0.0;
 }
 
+void MatReplayerRt::init_vars()
+{
+    _q_p_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+}
+
 void MatReplayerRt::reset_flags()
 {
 
@@ -107,7 +114,6 @@ void MatReplayerRt::get_params_from_config()
     _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping"); 
 
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
-    _approach_traj_pause_time = getParamOrThrow<double>("~traj_pause_time"); 
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
     _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
@@ -162,20 +168,76 @@ void MatReplayerRt::create_ros_api()
 }
 
 void MatReplayerRt::update_state()
-{
+{    
+
     // "sensing" the robot
     _robot->sense();
+
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);  
     _robot->getJointEffort(_tau_meas);
-    
+
+    _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
+    _robot->getDamping(_meas_damping);
+
     // Updating the model with the measurements
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas);
     _model->update();
 
     _model->getPose(_tip_link_name, _base_link_name, _tip_pose_rel_base_link);
+}
+
+void MatReplayerRt::send_cmds()
+{
+    // always set impedance to the last setpoint to avoid issues
+    _robot->setStiffness(_stiffness_setpoint); 
+    _robot->setDamping(_damping_setpoint);
+
+    if (_is_first_jnt_passive)
+    { // send the last _n_jnts_robot components
+        
+        if (_send_eff_ref)
+        {
+            _robot->setEffortReference(_tau_cmd.tail(_n_jnts_robot));
+        }
+
+        if(_send_pos_ref)
+        {  
+
+            _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_robot));
+        }
+
+        if(_send_vel_ref)
+        {  
+
+            _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_robot));
+        }
+
+    }
+    else{
+        
+        if (_send_eff_ref)
+        {
+            _robot->setEffortReference(_tau_cmd);
+        }
+
+        if(_send_pos_ref)
+        {  
+
+            _robot->setPositionReference(_q_p_cmd);
+        }
+
+        if(_send_vel_ref)
+        {  
+
+            _robot->setVelocityReference(_q_p_dot_cmd);
+        }
+
+    }
+    
+    _robot->move();
 }
 
 void MatReplayerRt::get_abs_tip_position()
@@ -339,6 +401,9 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
             _imp_traj_started = true;
+
+            _ramp_strt_stiffness = _meas_stiffness;
+            _ramp_strt_damping = _meas_damping;
         }
         
         if (_approach_traj_finished && !_traj_started && !_is_first_trigger)
@@ -357,10 +422,6 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             
         }
 
-        _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
-        _robot->getDamping(_meas_damping);
-
-        
     }
 
     res.success = true;
@@ -429,52 +490,37 @@ void MatReplayerRt::ramp_imp_smoothly()
 {
 
     double phase = _smooth_imp_time / _imp_ramp_time;
-    
-    _robot->getStiffness(_meas_stiffness);
-    _robot->getDamping(_meas_damping);
 
-    _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _meas_stiffness, _replay_stiffness);
-    _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _meas_damping, _replay_damping);
+    _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_stiffness, _replay_stiffness);
+    _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping);
 
-    _robot->setPositionReference(_q_p_init_appr_traj); // enforce reference to currently measured state
+    _q_p_cmd = _q_p_init_appr_traj; // enforce reference to currently measured state
 
-    _robot->setStiffness(_ramp_stiffness); // necessary at each loop (for some reason)
-    _robot->setDamping(_ramp_damping);
-
-    _robot->move(); // Send commands to the robot
+    _stiffness_setpoint = _ramp_stiffness; 
+    _damping_setpoint = _ramp_damping;
 
 }
 
-void MatReplayerRt::send_approach_trajectory()
+void MatReplayerRt::set_approach_trajectory()
 {
 
     double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
-    if (_is_first_jnt_passive)
-    { // send the last _n_jnts_robot components
+    _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
 
-        _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj.tail(_n_jnts_robot));
-        
-    }
-    else{
-        
-        _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
-
-    }
-
-    _robot->setPositionReference(_q_p_cmd);
-    
-    _robot->setStiffness(_replay_stiffness); 
-    _robot->setDamping(_replay_damping);
-
-    _robot->move(); // Send commands to the robot
+    _stiffness_setpoint = _replay_stiffness; 
+    _damping_setpoint = _replay_damping;
     
 }
 
-void MatReplayerRt::send_trajectory()
+void MatReplayerRt::set_trajectory()
 {
+    if (_is_first_run)
+    {
+        _q_p_safe_cmd = _q_p_meas;
+    }
 
-    if (_imp_traj_started && !_imp_traj_finished)
+    if (_imp_traj_started && !_imp_traj_finished && _jump)
     { // still ramping (up) impedance
         
         if (_smooth_imp_time > _imp_ramp_time - 0.000001)
@@ -492,7 +538,7 @@ void MatReplayerRt::send_trajectory()
 
     }
 
-    if (_imp_traj_finished && _approach_traj_started && !_approach_traj_finished)
+    if (_imp_traj_finished && _approach_traj_started && !_approach_traj_finished && _jump)
     { // still publishing the approach trajectory
 
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
@@ -506,13 +552,13 @@ void MatReplayerRt::send_trajectory()
         }
         else
         {
-            send_approach_trajectory();
+            set_approach_trajectory();
         }
         
     }
 
     // Loop again thorugh the trajectory, if it is finished and the associated flag is active
-    if (_traj_finished)
+    if (_traj_finished && _jump)
     { // finished publishing trajectory
 
         _pause_started = true;
@@ -520,18 +566,23 @@ void MatReplayerRt::send_trajectory()
         if (!_pause_finished)
         { // do nothing in this control loop
 
+
         }
         else 
         {
 
             reset_flags(); // reset flags
 
+            _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
         }
+
+        _stiffness_setpoint = _touchdown_stiffness; 
+        _damping_setpoint = _touchdown_damping;
         
     }
 
     // Publishing loaded traj samples
-    if (_traj_started && !_traj_finished)
+    if (_traj_started && !_traj_finished && _jump)
     { // publish current trajectory sample
         
         if (_sample_index > (_traj.get_n_nodes() - 1))
@@ -545,123 +596,41 @@ void MatReplayerRt::send_trajectory()
         { // after the optimized takeoff phase
             
             // by default assign all commands anyway
-            _q_p_cmd = _q_p_ref.col(_takeoff_index);
-            _q_p_dot_cmd = _q_p_dot_ref.col(_takeoff_index);
-            _tau_cmd = _tau_ref.col(_takeoff_index);
+            _q_p_cmd = _q_p_ref.col(_takeoff_index).tail(_n_jnts_robot);
+            _q_p_dot_cmd = _q_p_dot_ref.col(_takeoff_index).tail(_n_jnts_robot);
+            _tau_cmd = _tau_ref.col(_takeoff_index).tail(_n_jnts_robot);
             _f_cont_cmd = _f_cont_ref.col(_takeoff_index);
 
-            if (_is_first_jnt_passive)
-            { // send the last _n_jnts_robot components
-                
-                if (_send_eff_ref)
-                {
-                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_robot));
-                }
-
-                if(_send_pos_ref)
-                {  
-
-                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_robot));
-                }
-
-                if(_send_vel_ref)
-                {  
-
-                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_robot));
-                }
-
-            }
-            else{
-                
-                if (_send_eff_ref)
-                {
-                    _robot->setEffortReference(_tau_cmd);
-                }
-
-                if(_send_pos_ref)
-                {  
-
-                    _robot->setPositionReference(_q_p_cmd);
-                }
-
-                if(_send_vel_ref)
-                {  
-
-                    _robot->setVelocityReference(_q_p_dot_cmd);
-                }
-
-            }
-
-            _robot->setStiffness(_touchdown_stiffness); // necessary at each loop (for some reason)
-            _robot->setDamping(_touchdown_damping);
+            _stiffness_setpoint = _touchdown_stiffness; 
+            _damping_setpoint = _touchdown_damping;
 
             saturate_effort(); // perform input torque saturation
-
-            _robot->move(); // Send commands to the robot
             
         }
         if (_sample_index <= _takeoff_index)
         { // before takeoff
             
             // by default assign all commands anyway
-            _q_p_cmd = _q_p_ref.col(_sample_index);
-            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
-            _tau_cmd = _tau_ref.col(_sample_index);
+            _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
+            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
+            _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
             _f_cont_cmd = _f_cont_ref.col(_sample_index);
-
-            if (_is_first_jnt_passive)
-            { // send the last _n_jnts_robot components
-                
-                if (_send_eff_ref)
-                {
-                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_robot));
-                }
-
-                if(_send_pos_ref)
-                {  
-
-                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_robot));
-                }
-
-                if(_send_vel_ref)
-                {  
-
-                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_robot));
-                }
-
-            }
-            else{
-                
-                if (_send_eff_ref)
-                {
-                    _robot->setEffortReference(_tau_cmd);
-                }
-
-                if(_send_pos_ref)
-                {  
-
-                    _robot->setPositionReference(_q_p_cmd);
-                }
-
-                if(_send_vel_ref)
-                {  
-
-                    _robot->setVelocityReference(_q_p_dot_cmd);
-                }
-
-            }
             
-            _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
-            _robot->setDamping(_replay_damping);
+            _stiffness_setpoint = _replay_stiffness; 
+            _damping_setpoint = _replay_damping;
 
             saturate_effort(); // perform input torque saturation
-
-            _robot->move(); // Send commands to the robot
         
         }
 
     }
 
+    if (!_jump)
+    {
+        _q_p_cmd = _q_p_safe_cmd;
+        _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+        _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+    }
 }
 
 bool MatReplayerRt::on_initialize()
@@ -670,6 +639,8 @@ bool MatReplayerRt::on_initialize()
     _plugin_dt = getPeriodSec();
 
     _n_jnts_robot = _robot->getJointNum();
+
+    init_vars();
 
     _robot->getEffortLimits(_effort_lims);
 
@@ -701,12 +672,13 @@ void MatReplayerRt::starting()
     reset_flags(); // reset flags, just in case
 
     init_clocks(); // initialize clocks timers
+    
+    _stiffness_setpoint = _replay_stiffness;
+    _damping_setpoint = _replay_damping;
 
     // setting the control mode to effort + velocity + stiffness + damping
     _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + 
             ControlMode::Damping());
-    // _robot->setStiffness(_replay_stiffness);
-    // _robot->setDamping(_replay_damping);
 
     update_state(); // read current jnt positions and velocities
     
@@ -720,21 +692,24 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
-    
-    update_state(); // read current jnt positions and velocities
+    update_state(); // update all necessary states
 
     _queue.run();
 
-    if (_jump) // only jump if a positive jump signal was received
-    {
-        send_trajectory();
-    }
+    set_trajectory();
     
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    _sample_index++; // incrementing loop counter
+    send_cmds(); // send commands to the robot
+
+    _sample_index++; // incrementing loop counte
+
+    if (_is_first_run)
+    { // next control loops are aware that it is not the first control loop
+        _is_first_run = !_is_first_run;
+    }
 
 }
 
@@ -745,7 +720,7 @@ void MatReplayerRt::on_stop()
 
     // Setting references before exiting
     _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
+    
     _robot->setStiffness(_stop_stiffness);
     _robot->setDamping(_stop_damping);
     _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
@@ -753,6 +728,8 @@ void MatReplayerRt::on_stop()
 
     // Sending references
     _robot->move();
+
+    _is_first_run = true;
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _dump_logger.reset();
