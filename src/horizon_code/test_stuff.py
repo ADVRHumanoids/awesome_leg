@@ -2,8 +2,8 @@
 
 from jump_utils.horizon_utils import JumpSolPlotter
 
-plotter = JumpSolPlotter("/tmp/awesome_jump_pipeline_11-10-2022-12_57_28", 
-                    sim_postproc_filename = "sim_traj_replay__2_2022_10_11__17_31_39.mat")
+plotter = JumpSolPlotter("/tmp/awesome_jump_pipeline_12-10-2022-14_09_38", 
+                    sim_postproc_filename = "sim_traj_replay__0_2022_10_12__14_30_00.mat")
 
 # make_plot_selector = [False, False, False, True]
 

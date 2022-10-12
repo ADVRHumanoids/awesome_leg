@@ -1,67 +1,54 @@
 # YAML config file associated with jump_generation.py script.
 
-horizon:
- 
-  xacro_path: $(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro # urdf relative path (wrt to the package)
-  
-  urdf_path: $(find awesome_leg)/description/urdf/generated/awesome_leg_test_rig.urdf
+i_q_estimation:
 
-  urdf_name: awesome_leg_test_rig
+  tanh_coeff: 20
 
-  is_calibrated: false
-  
-  opt_results_path: $(find awesome_leg)/opt_results/horizon_jump/results # where optimization .mat files are saved
+resampling:
+  dt: 0.004
 
-  refine_path: $(find awesome_leg)/opt_results/horizon_jump/results/05_08_2022-14_21_43
+problem:
 
-  replay_trajectory: true # whether to replay the optimized trajectory on RViz or not
+  n_int: 60
 
-  resample_traj: true
-  
-  horizon_solver:
-  
-    sol_mat_name: "awesome_jump" # name of custom mat file where results will be saved
+  takeoff_node: 50
 
-    ref_sol_mat_name: "awesome_jump_ref"
-      
-    is_refine_phase: false # whether to use the initial guess or not
-  
-    opt_init_name: "awesome_jump_init" # name of the initial guess to be loaded (will be searched in opt_results_path)
-  
-    problem_settings:  
+  dt_lb: 0.001
+  dt_ub: 0.1
 
-      n_nodes: 100 # number of nodes
+  jnt_limit_margin: 0.04
+  jnt_vel_limit_margin: 0.05
 
-      mu_friction_cone : 0.5 # friction cone coefficient
+  is_iq_cnstrnt: true
+  is_friction_cone: false
 
-      dt_lb: 0.005
-      dt_ub: 0.1
+  friction_cnstrnt: 
+    mu_friction_cone: 0.4
 
-      is_iq_cnstrnt : true
+  weights: 
 
-      jnt_limit_margin: 0.02 # [rad] --> this value will shorten the limits of the joint (uniformly) for safety reasons
-      jnt_vel_limit_margin : 0.05 # percentage, from 0.0 to 1.0; joint vel limits are restricted by jnt_vel_limit_margin * q_dot_lim
-
-      solver:
-        name: "ipopt"
-        tolerance: 0.000001
-        max_iter: 1000
-        cnstrnt_tolerance: 0.0000001
-        linear_solver_name: "ma57" 
-  
-      transcription:
-        name: "multiple_shooting" # options: "multiple_shooting", "direct_collocation"
-        integrator: "RK4"
-      
-      cost_weights:
-
-        scale_factor_costs_base: 10000000 # scale factor for costs (other scalings are applied internally)
-
-        contact_force: 0.0000000000000000000001 # cost for penalizing contact forces
-        weight_tau: 0.01 # cost for penalizing joint accelerations (which are the input)
-        weight_min_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
-        weight_min_input_diff: 0.01  # cost for penalizing differences between successive inputs
-        weight_com_height: 1
-        big_hip_jump: 0.0000000000000000000001
-        big_foot_tip_clearance: 0.0000000000000000000001
+    scale_factor_costs_base: 100000 # scale factor for costs (other scalings are applied internally)
     
+    weight_f_contact: 0.0001 # cost for penalizing contact forces
+    weight_f_contact_diff: 0.0001 # cost for penalizing differences between successive f_contacts
+    weight_q_p_dot: -1
+    weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
+    weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
+
+    weight_com_term_vel: 1000
+    weight_com_vel: -1
+    weight_tip_under_hip: -1
+
+    weight_sat_i_q: 100 # try to saturate the joint current, while keeping it within bounds
+
+solver:
+  ipopt_tol: 0.000001
+  ipopt_maxiter: 1000
+  ipopt_cnstr_viol_tol: 0.0000001
+  ipopt_lin_solver: "mumps" 
+  name: "ipopt"
+
+transcription:
+  name: "multiple_shooting"
+  integrator_name: "RK4"
+

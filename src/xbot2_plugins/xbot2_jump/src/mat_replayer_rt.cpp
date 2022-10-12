@@ -125,6 +125,8 @@ void MatReplayerRt::get_params_from_config()
     _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
 
     _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
+
+    _send_up2_apex = getParamOrThrow<bool>("~send_up2_apex");
 }
 
 void MatReplayerRt::is_sim(std::string sim_string = "sim")
@@ -595,15 +597,29 @@ void MatReplayerRt::set_trajectory()
         if (_sample_index <= (_traj.get_n_nodes() - 1) && _sample_index > _takeoff_index)
         { // after the optimized takeoff phase
             
-            // by default assign all commands anyway
-            _q_p_cmd = _q_p_ref.col(_takeoff_index).tail(_n_jnts_robot);
-            _q_p_dot_cmd = _q_p_dot_ref.col(_takeoff_index).tail(_n_jnts_robot);
-            _tau_cmd = _tau_ref.col(_takeoff_index).tail(_n_jnts_robot);
-            _f_cont_cmd = _f_cont_ref.col(_takeoff_index);
+            if (_send_up2_apex)
+            {
+                _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
+                _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
+                _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
+                _f_cont_cmd = _f_cont_ref.col(_sample_index);
+                
+                _stiffness_setpoint = _replay_stiffness; 
+                _damping_setpoint = _replay_damping;
 
-            _stiffness_setpoint = _touchdown_stiffness; 
-            _damping_setpoint = _touchdown_damping;
+            }
+            else
+            {
+                _q_p_cmd = _q_p_ref.col(_takeoff_index).tail(_n_jnts_robot);
+                _q_p_dot_cmd = _q_p_dot_ref.col(_takeoff_index).tail(_n_jnts_robot);
+                _tau_cmd = _tau_ref.col(_takeoff_index).tail(_n_jnts_robot);
+                _f_cont_cmd = _f_cont_ref.col(_takeoff_index);
 
+                _stiffness_setpoint = _touchdown_stiffness; 
+                _damping_setpoint = _touchdown_damping;
+
+            }
+            
             saturate_effort(); // perform input torque saturation
             
         }

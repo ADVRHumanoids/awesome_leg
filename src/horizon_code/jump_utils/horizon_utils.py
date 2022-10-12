@@ -89,12 +89,30 @@ class JumpSolPlotter:
         try:
 
             self.solution_raw=self.ms_loader_raw.load() # loading the solution dictionary
-            self.solution_res=self.ms_loader_res.load() # loading the solution dictionary
-            self.solution_ref=self.ms_loader_ref.load() # loading the solution dictionary
 
         except:
             
             print("\nFailed to load opt. solution data!!!\n")
+
+            pass
+
+        try:
+
+            self.solution_res=self.ms_loader_res.load() # loading the solution dictionary
+
+        except:
+            
+            print("\nFailed to load resampled opt. solution data!!!\n")
+
+            pass
+
+        try:
+            
+            self.solution_ref=self.ms_loader_ref.load() # loading the solution dictionary
+
+        except:
+            
+            print("\nFailed to load refined opt. solution data!!!\n")
 
             pass
 
@@ -617,10 +635,13 @@ class JumpSolPlotter:
 
         if make_plt_slctr[0]:
             self.__make_raw_opt_plots()
+        
         if make_plt_slctr[1]:
             self.__make_res_opt_plots()
+        
         if make_plt_slctr[2]:
             self.__make_ref_opt_plots()
+
         if make_plt_slctr[3]:
             self.__make_ref_compar_plots()
 
