@@ -406,6 +406,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
             _imp_traj_started = true;
+            _approach_traj_started = true;
 
             _ramp_strt_stiffness = _meas_stiffness;
             _ramp_strt_damping = _meas_damping;
@@ -497,6 +498,7 @@ void MatReplayerRt::ramp_imp_smoothly()
     double phase = _smooth_imp_time / _imp_ramp_time;
 
     _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_stiffness, _replay_stiffness);
+
     _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping);
 
     _q_p_cmd = _q_p_safe_cmd; // enforce reference to a "safe" state
@@ -537,10 +539,10 @@ void MatReplayerRt::set_trajectory()
         _ramp_strt_stiffness = _meas_stiffness;
         _ramp_strt_damping = _meas_damping;
 
-        _sample_index++; // incrementing loop counter
-
         _imp_traj_started = true; // ramp impedance to target values smoothly at 
         // the beginning of each plugin loop
+
+        _sample_index++; // incrementing loop counter
     }
 
     if (_imp_traj_started && !_imp_traj_finished)
@@ -549,7 +551,7 @@ void MatReplayerRt::set_trajectory()
         if (_smooth_imp_time > _imp_ramp_time - 0.000001)
         {
             _imp_traj_finished = true; // finished ramping imp.
-            _approach_traj_started = true;
+            // _approach_traj_started = true;
 
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
@@ -574,7 +576,7 @@ void MatReplayerRt::set_trajectory()
             // start of trajectory replay is triggered by the callback in this case
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\n Approach trajectory finished... ready to jump \n");
+                   std::string("\n Approach trajectory finished... ready to jump \n"));
         }
         else
         {

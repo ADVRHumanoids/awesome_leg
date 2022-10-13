@@ -35,7 +35,7 @@ problem:
     weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
     weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
 
-    weight_com_term_vel: 100
+    weight_com_term_vel: 300
     weight_com_vel: -1
     weight_tip_under_hip: -1
 
