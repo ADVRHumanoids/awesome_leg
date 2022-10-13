@@ -45,6 +45,34 @@
             </collision>
         </gazebo>
 
+        <!-- <xacro:if value="${ dump_video_frames== True}">
+
+            <gazebo reference="camera">
+                <sensor name="my_camera" type="camera">
+                    <camera>
+                        <save enabled="true">
+                            <path "$(find awesome_leg)/description/urdf/utils.urdf.xacro" >
+                        </save>
+                        <horizontal_fov>1</horizontal_fov>
+                        <image>
+                        <width>1920</width>
+                        <height>1080</height>
+                        </image>
+                        <clip>
+                        <near>0.1</near>
+                        <far>100</far>
+                        </clip>
+                        <view_controller>orbit</view_controller>
+                    </camera>
+                    <always_on>1</always_on>
+                    <visualize>false</visualize>
+                    <update_rate>30</update_rate>
+                </sensor>
+            </gazebo>
+
+        </xacro:if> -->
+
+        
     </xacro:macro>
 
 </robot>

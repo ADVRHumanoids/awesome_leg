@@ -9,11 +9,11 @@ resampling:
 
 problem:
 
-  n_int: 60
+  n_int: 100
 
-  takeoff_node: 50
+  takeoff_node: 85
 
-  dt_lb: 0.001
+  dt_lb: 0.0001
   dt_ub: 0.1
 
   jnt_limit_margin: 0.04
@@ -35,11 +35,11 @@ problem:
     weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
     weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
 
-    weight_com_term_vel: 1000
+    weight_com_term_vel: 100
     weight_com_vel: -1
     weight_tip_under_hip: -1
 
-    weight_sat_i_q: 100 # try to saturate the joint current, while keeping it within bounds
+    weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
 solver:
   ipopt_tol: 0.000001

@@ -111,7 +111,8 @@ private:
         _jump_now = false, _is_first_trigger = true, 
         _is_sim = true, 
         _reduce_dumped_sol_size = false, 
-        _send_up2_apex = false;
+        _send_up2_apex = false, 
+        _verbose = false;
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,

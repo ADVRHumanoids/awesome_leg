@@ -10,6 +10,8 @@
   <arg name="sliding_guide" default="true" />
   <arg name="calibrated_urdf" default="false" />
 
+  <arg name="dump_video_frames" default="false" />
+
   <!-- Launching awesome_leg.world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find awesome_leg)/worlds/awesome_leg.world"/>
@@ -24,7 +26,7 @@
   <!-- Load the right URDF into the ROS Parameter Server, depending on the chosen model type -->
 
   <param name="robot_description" command="$(find xacro)/xacro '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' 
-    sliding_guide:=$(arg sliding_guide) calibrated_urdf:=$(arg calibrated_urdf) " />
+    sliding_guide:=$(arg sliding_guide) calibrated_urdf:=$(arg calibrated_urdf) dump_video_frames:=$(arg dump_video_frames)" />
   
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model awesome_leg -param robot_description"/>

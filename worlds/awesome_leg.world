@@ -33,6 +33,14 @@
         <origin_visual>0</origin_visual>
     </scene>
 
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>2.54208 -0.999966 0.869941 0 0.135643 2.5122</pose>
+        <view_controller>orbit</view_controller>
+        <projection_type>perspective</projection_type>
+      </camera>
+    </gui>
+
     <!--%%%%%%%%%%%%%%%% PHYSICS SETTINGS %%%%%%%%%%%%%%%%-->
 
     <physics type="ode"> <!-- ode,bullet,simbody,dart; ode preferred -->

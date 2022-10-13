@@ -127,6 +127,9 @@ void MatReplayerRt::get_params_from_config()
     _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
 
     _send_up2_apex = getParamOrThrow<bool>("~send_up2_apex");
+
+    _verbose = getParamOrThrow<bool>("~verbose");
+
 }
 
 void MatReplayerRt::is_sim(std::string sim_string = "sim")
@@ -399,7 +402,7 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 
             res.message = "Starting replaying of approach trajectory!";
 
-            _q_p_init_appr_traj = _q_p_meas; // initial position for the approach traj.
+            _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
             _imp_traj_started = true;
@@ -496,7 +499,7 @@ void MatReplayerRt::ramp_imp_smoothly()
     _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_stiffness, _replay_stiffness);
     _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping);
 
-    _q_p_cmd = _q_p_init_appr_traj; // enforce reference to currently measured state
+    _q_p_cmd = _q_p_safe_cmd; // enforce reference to a "safe" state
 
     _stiffness_setpoint = _ramp_stiffness; 
     _damping_setpoint = _ramp_damping;
@@ -508,7 +511,7 @@ void MatReplayerRt::set_approach_trajectory()
 
     double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
-    _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
+    _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_safe_cmd, _q_p_trgt_appr_traj);
 
     _stiffness_setpoint = _replay_stiffness; 
     _damping_setpoint = _replay_damping;
@@ -516,19 +519,40 @@ void MatReplayerRt::set_approach_trajectory()
 }
 
 void MatReplayerRt::set_trajectory()
-{
+{ // always called in each plugin loop
+  // is made of a number of phases, each signaled by suitable flags
+  // remember to increase the sample index at the end of each phase, 
+  // if necessary
+
     if (_is_first_run)
-    {
+    { // set impedance vals and pos ref to safe values at first plugin loop
+
+        if (_verbose)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                       "\n (first run) \n");
+        }
         _q_p_safe_cmd = _q_p_meas;
+        
+        _ramp_strt_stiffness = _meas_stiffness;
+        _ramp_strt_damping = _meas_damping;
+
+        _sample_index++; // incrementing loop counter
+
+        _imp_traj_started = true; // ramp impedance to target values smoothly at 
+        // the beginning of each plugin loop
     }
 
-    if (_imp_traj_started && !_imp_traj_finished && _jump)
+    if (_imp_traj_started && !_imp_traj_finished)
     { // still ramping (up) impedance
         
         if (_smooth_imp_time > _imp_ramp_time - 0.000001)
         {
             _imp_traj_finished = true; // finished ramping imp.
             _approach_traj_started = true;
+
+            _stiffness_setpoint = _replay_stiffness; 
+            _damping_setpoint = _replay_damping;
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Joint impedance successfully ramped to target \n");
@@ -556,44 +580,37 @@ void MatReplayerRt::set_trajectory()
         {
             set_approach_trajectory();
         }
+
+        _sample_index++; // incrementing loop counter
         
     }
 
-    // Loop again thorugh the trajectory, if it is finished and the associated flag is active
-    if (_traj_finished && _jump)
-    { // finished publishing trajectory
-
-        _pause_started = true;
-
-        if (!_pause_finished)
-        { // do nothing in this control loop
-
-
-        }
-        else 
-        {
-
-            reset_flags(); // reset flags
-
-            _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
-        }
-
-        _stiffness_setpoint = _touchdown_stiffness; 
-        _damping_setpoint = _touchdown_damping;
-        
-    }
-
-    // Publishing loaded traj samples
     if (_traj_started && !_traj_finished && _jump)
     { // publish current trajectory sample
         
-        if (_sample_index > (_traj.get_n_nodes() - 1))
-        { // reached the end of the trajectory
+        if (_sample_index <= _takeoff_index)
+        { // before takeoff
             
-            _traj_finished = true;
-            _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+            // by default assign all commands anyway
+            _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
+            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
+            _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
+            _f_cont_cmd = _f_cont_ref.col(_sample_index);
             
+            _stiffness_setpoint = _replay_stiffness; 
+            _damping_setpoint = _replay_damping;
+
+            saturate_effort(); // perform input torque saturation
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n (before takeoff) \n");
+            }
+            
+
+        
         }
+
         if (_sample_index <= (_traj.get_n_nodes() - 1) && _sample_index > _takeoff_index)
         { // after the optimized takeoff phase
             
@@ -619,26 +636,60 @@ void MatReplayerRt::set_trajectory()
                 _damping_setpoint = _touchdown_damping;
 
             }
-            
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                    "\n (after takeoff) \n");
+            }
             saturate_effort(); // perform input torque saturation
             
         }
-        if (_sample_index <= _takeoff_index)
-        { // before takeoff
-            
-            // by default assign all commands anyway
-            _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
-            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
-            _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
-            _f_cont_cmd = _f_cont_ref.col(_sample_index);
-            
-            _stiffness_setpoint = _replay_stiffness; 
-            _damping_setpoint = _replay_damping;
 
-            saturate_effort(); // perform input torque saturation
+        if (_sample_index > (_traj.get_n_nodes() - 1))
+        { // reached the end of the trajectory
+            
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                       "\n (trajectory end)\n");
+            }
+            _traj_finished = true;
+            _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+            
+        }
+
+        _sample_index++; // incrementing loop counter
+
+    }
+
+    if (_traj_finished && _jump)
+    { // finished publishing trajectory
+
+        _pause_started = true;
+
+        if (!_pause_finished)
+        { // do nothing in this control loop
+
+
+        }
+        else 
+        {
+
+            reset_flags(); // reset flags
+
+            _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
+        }
+
+        _stiffness_setpoint = _touchdown_stiffness; 
+        _damping_setpoint = _touchdown_damping;
+
+        if (_verbose)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                       "\n Finished publishing \n");
+        }
         
-        }
-
+        _sample_index++; // incrementing loop counter
     }
 
     if (!_jump)
@@ -646,7 +697,14 @@ void MatReplayerRt::set_trajectory()
         // _q_p_cmd = _q_p_safe_cmd;
         _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
         _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+        if (_verbose)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                       "\n Waiting for commands... \n");
+        }
     }
+
 }
 
 bool MatReplayerRt::on_initialize()
@@ -719,8 +777,6 @@ void MatReplayerRt::run()
     update_clocks(); // last, update the clocks (loop + any additional one)
 
     send_cmds(); // send commands to the robot
-
-    _sample_index++; // incrementing loop counte
 
     if (_is_first_run)
     { // next control loops are aware that it is not the first control loop

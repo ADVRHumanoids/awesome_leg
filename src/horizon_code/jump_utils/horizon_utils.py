@@ -630,8 +630,124 @@ class JumpSolPlotter:
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - res VS ref", fontdict=None, loc='center')
         plt.grid()
+    
+    def __make_res_compar_plots(self):
 
-    def make_opt_plots(self, make_plt_slctr = [True] * 4):
+        f1=plt.figure()
+
+        plt.plot(self.time_vector_res[1:-1], self.GRF_res[0, :-1], label=r"F_x_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1], self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1], self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
+
+        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[0, :-1], label=r"F_x_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle='dashed', linewidth=2)
+
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel('[N]')
+        plt.title("Ground reaction forces - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+        # if save_fig:
+        #     plt.savefig(save_path+"GRF.pdf", format="pdf")
+
+        f2=plt.figure()
+        plt.plot(self.time_vector_res[:-1], self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1], self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[rad]")
+        plt.title("Joint positions - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+
+        f3=plt.figure()
+        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[rad/s]")
+        plt.title("Joint velocities - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+
+        f4=plt.figure()
+        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
+        
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
+        plt.title("Joint accelerations - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+    
+        f5=plt.figure()
+        plt.plot(self.time_vector_res[:-1], self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1], self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque raw", linestyle='dashed', linewidth=2)
+        
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[Nm]")
+        plt.title("Joint efforts (link side) - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+        
+        f6=plt.figure()
+        plt.plot(self.time_vector_res[:-1], self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1], self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1], self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current raw", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[A]")
+        plt.title("Actuators quadrature current - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+
+        f10=plt.figure()
+        plt.plot(self.time_vector_res, self.hip_height_res,label="hip height res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res, self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw, self.hip_height_raw,label="hip height raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw, self.foot_tip_height_raw,label="foot tip height raw", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[m]")
+        plt.title("Link heights during the jump - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+        
+        f11=plt.figure()
+        plt.plot(self.time_vector_res, self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res, self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res, self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle='-', linewidth=2)
+
+        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[0,:],label="tip vel. x raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[1,:],label="tip vel. y raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[2,:],label="tip vel. z raw", linestyle='dashed', linewidth=2)
+
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[m/s]")
+        plt.title("Foot tip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+        
+        f12=plt.figure()
+        plt.plot(self.time_vector_res, self.hip_vel_res[0,:],label="hip vel. x res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res, self.hip_vel_res[1,:],label="hip vel. y res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res, self.hip_vel_res[2,:],label="hip vel. z res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw, self.hip_vel_raw[0,:],label="hip vel. x raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw, self.hip_vel_raw[1,:],label="hip vel. y raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw, self.hip_vel_raw[2,:],label="hip vel. z raw", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[m/s]")
+        plt.title("Hip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
+        plt.grid()
+
+    def make_opt_plots(self, make_plt_slctr = [True] * 5):
 
         if make_plt_slctr[0]:
             self.__make_raw_opt_plots()
@@ -644,6 +760,9 @@ class JumpSolPlotter:
 
         if make_plt_slctr[3]:
             self.__make_ref_compar_plots()
+
+        if make_plt_slctr[4]:
+            self.__make_res_compar_plots()
 
         return True
 

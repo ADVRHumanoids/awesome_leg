@@ -55,6 +55,26 @@
   <gazebo reference="base_link">
     <material>Gazebo/Grey  </material>
   </gazebo>
+  <!-- <xacro:if value="$(arg dump_video_frames)">
+
+        <joint name="test_rig_2camera_link" type="fixed">
+        <parent link="test_rig" />
+        <child link="camera_link" />
+        <origin xyz="0 ${camera_depth} ${camera_height}" rpy="0 0 0" />
+        </joint>
+
+        <link name="camera_link">
+            <visual name="visual">
+            <geometry>
+            <box>
+            <size>0.1 0.1 0.1</size>
+            </box>
+            </geometry>
+            </visual>
+            
+        </link>
+
+    </xacro:if> -->
   <link name="world"/>
   <joint name="world_test_rig" type="fixed">
     <parent link="world"/>
@@ -144,6 +164,32 @@
       </surface>
     </collision>
   </gazebo>
+  <!-- <xacro:if value="${ dump_video_frames== True}">
+
+            <gazebo reference="camera">
+                <sensor name="my_camera" type="camera">
+                    <camera>
+                        <save enabled="true">
+                            <path "$(find awesome_leg)/description/urdf/utils.urdf.xacro" >
+                        </save>
+                        <horizontal_fov>1</horizontal_fov>
+                        <image>
+                        <width>1920</width>
+                        <height>1080</height>
+                        </image>
+                        <clip>
+                        <near>0.1</near>
+                        <far>100</far>
+                        </clip>
+                        <view_controller>orbit</view_controller>
+                    </camera>
+                    <always_on>1</always_on>
+                    <visualize>false</visualize>
+                    <update_rate>30</update_rate>
+                </sensor>
+            </gazebo>
+
+        </xacro:if> -->
   <!-- only add joint to base if argument is non-empty -->
   <joint name="hip_pitch1" type="revolute">
     <parent link="base_link"/>

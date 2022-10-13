@@ -8,12 +8,35 @@
     <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
 
     <xacro:arg name="sliding_guide" default="true" />
+
+    <xacro:arg name="dump_video_frames" default="false" />
     
     <xacro:property name="test_rig_base_ext" value="0.1" />
     <xacro:property name="test_rig_height" value="1.0" />
     <xacro:property name="hip_mounting_offset" value="0.08" />
 
     <xacro:property name="pelvis_mounting_height" value="0.25" />
+
+    <!-- <xacro:if value="$(arg dump_video_frames)">
+
+        <joint name="test_rig_2camera_link" type="fixed">
+        <parent link="test_rig" />
+        <child link="camera_link" />
+        <origin xyz="0 ${camera_depth} ${camera_height}" rpy="0 0 0" />
+        </joint>
+
+        <link name="camera_link">
+            <visual name="visual">
+            <geometry>
+            <box>
+            <size>0.1 0.1 0.1</size>
+            </box>
+            </geometry>
+            </visual>
+            
+        </link>
+
+    </xacro:if> -->
 
     <link name="world" />
 
