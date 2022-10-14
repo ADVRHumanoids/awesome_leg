@@ -188,7 +188,10 @@ class JumpSolPlotter:
         self.sim_tau_meas=self.sim_data["tau_meas"]
         self.sim_tau_cmd=self.sim_data["tau_cmd"]
         self.sim_base_link_abs=self.sim_data["base_link_abs"]
-        self.sim_tip_pos_meas=self.sim_data["tip_pos_meas"]
+        try:
+            self.sim_tip_pos_meas=self.sim_data["tip_pos_meas"]
+        except:
+            pass
         self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
 
     def __read_test_sol(self):
@@ -205,7 +208,10 @@ class JumpSolPlotter:
         self.sim_tau_meas=self.test_data["tau_meas"]
         self.sim_tau_cmd=self.test_data["tau_cmd"]
         self.sim_base_link_abs=self.test_data["base_link_abs"]
-        self.sim_tip_pos_meas=self.test_data["tip_pos_meas"]
+        try:
+            self.sim_tip_pos_meas=self.test_data["tip_pos_meas"]
+        except:
+            pass
         self.sim_tip_pos_rel_base_link=self.test_data["tip_pos_rel_base_link"]
         
         return True
@@ -766,80 +772,80 @@ class JumpSolPlotter:
 
         return True
 
-    def make_sim_plots(self):
-
-        _, ax_pos = plt.subplots(2)
-
-        for i in range(len(self.sim_q_p_meas[:, 0])):
-            
-            ax_pos[0].plot(self.sim_replay_time, self.sim_q_p_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
-            ax_pos[0].plot(self.sim_replay_time, self.sim_q_p_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
-
-            # errors
-            ax_pos[1].plot(self.sim_replay_time, np.subtract(self.sim_q_p_cmd[i, :], self.sim_q_p_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
-            
-        ax_pos[0].legend(loc="upper left")
-        ax_pos[0].set_xlabel(r"t [s]")
-        ax_pos[0].set_ylabel('[rad]')
-        ax_pos[0].grid()
-        ax_pos[0].set_title("Joint positions - meas. VS ref.", fontdict=None, loc='center')
-        ax_pos[1].legend(loc="upper left")
-        ax_pos[1].set_xlabel(r"t [s]")
-        ax_pos[1].set_ylabel('[rad]')
-        ax_pos[1].grid()
-        ax_pos[1].set_title("Joint pos. tracking error", fontdict=None, loc='center')
+    def make_sim_plots(self, make_plots = False):
         
-        _, ax_vel = plt.subplots(2)
+        if make_plots:
 
-        for i in range(len(self.sim_q_p_meas[:, 0])):
+            _, ax_pos = plt.subplots(2)
+
+            for i in range(len(self.sim_q_p_meas[:, 0])):
+                
+                ax_pos[0].plot(self.sim_replay_time, self.sim_q_p_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_pos[0].plot(self.sim_replay_time, self.sim_q_p_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+                # errors
+                ax_pos[1].plot(self.sim_replay_time, np.subtract(self.sim_q_p_cmd[i, :], self.sim_q_p_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+                
+            ax_pos[0].legend(loc="upper left")
+            ax_pos[0].set_xlabel(r"t [s]")
+            ax_pos[0].set_ylabel('[rad]')
+            ax_pos[0].grid()
+            ax_pos[0].set_title("Joint positions - meas. VS ref.", fontdict=None, loc='center')
+            ax_pos[1].legend(loc="upper left")
+            ax_pos[1].set_xlabel(r"t [s]")
+            ax_pos[1].set_ylabel('[rad]')
+            ax_pos[1].grid()
+            ax_pos[1].set_title("Joint pos. tracking error", fontdict=None, loc='center')
             
-            ax_vel[0].plot(self.sim_replay_time, self.sim_q_p_dot_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
-            ax_vel[0].plot(self.sim_replay_time, self.sim_q_p_dot_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+            _, ax_vel = plt.subplots(2)
 
-            # errors
-            ax_vel[1].plot(self.sim_replay_time, np.subtract(self.sim_q_p_dot_cmd[i, :], self.sim_q_p_dot_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+            for i in range(len(self.sim_q_p_meas[:, 0])):
+                
+                ax_vel[0].plot(self.sim_replay_time, self.sim_q_p_dot_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_vel[0].plot(self.sim_replay_time, self.sim_q_p_dot_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+                # errors
+                ax_vel[1].plot(self.sim_replay_time, np.subtract(self.sim_q_p_dot_cmd[i, :], self.sim_q_p_dot_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+                
+            ax_vel[0].legend(loc="upper left")
+            ax_vel[0].set_xlabel(r"t [s]")
+            ax_vel[0].set_ylabel('[rad]')
+            ax_vel[0].grid()
+            ax_vel[0].set_title("Joint velocities - meas. VS ref.", fontdict=None, loc='center')
+            ax_vel[1].legend(loc="upper left")
+            ax_vel[1].set_xlabel(r"t [s]")
+            ax_vel[1].set_ylabel('[rad/s]')
+            ax_vel[1].grid()
+            ax_vel[1].set_title("Joint vel. tracking error", fontdict=None, loc='center')
+
+            f2=plt.figure()
+
+            for i in range(len(self.sim_tau_meas[:, 0])):
+
+                plt.plot(self.sim_replay_time, self.sim_tau_meas[i, :], label=r"tau_meas_j" + str(i), linestyle='-', linewidth=2)
+
+                plt.plot(self.sim_replay_time, self.sim_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+            plt.legend(loc="upper left")
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[Nm]')
+            plt.title("Joint efforts - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
+            f3=plt.figure()
+            for i in range(len(self.sim_tau_meas[:, 0])):
+
+                plt.plot(self.sim_replay_time, self.sim_tau_meas[i, :] * self.sim_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
+
+                plt.plot(self.sim_replay_time, self.sim_tau_cmd[i, :] * self.sim_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j", linestyle='dashed', linewidth=2)
+
+            plt.legend(loc="upper left")
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[W]')
+            plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
             
-        ax_vel[0].legend(loc="upper left")
-        ax_vel[0].set_xlabel(r"t [s]")
-        ax_vel[0].set_ylabel('[rad]')
-        ax_vel[0].grid()
-        ax_vel[0].set_title("Joint velocities - meas. VS ref.", fontdict=None, loc='center')
-        ax_vel[1].legend(loc="upper left")
-        ax_vel[1].set_xlabel(r"t [s]")
-        ax_vel[1].set_ylabel('[rad/s]')
-        ax_vel[1].grid()
-        ax_vel[1].set_title("Joint vel. tracking error", fontdict=None, loc='center')
-
-        f2=plt.figure()
-
-        for i in range(len(self.sim_tau_meas[:, 0])):
-
-            plt.plot(self.sim_replay_time, self.sim_tau_meas[i, :], label=r"tau_meas_j" + str(i), linestyle='-', linewidth=2)
-
-            plt.plot(self.sim_replay_time, self.sim_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
-
-        plt.legend(loc="upper left")
-        plt.xlabel(r"t [s]")
-        plt.ylabel('[Nm]')
-        plt.title("Joint efforts - meas. VS ref.", fontdict=None, loc='center')
-        plt.grid()
-
-        f3=plt.figure()
-        for i in range(len(self.sim_tau_meas[:, 0])):
-
-            plt.plot(self.sim_replay_time, self.sim_tau_meas[i, :] * self.sim_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
-
-            plt.plot(self.sim_replay_time, self.sim_tau_cmd[i, :] * self.sim_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j", linestyle='dashed', linewidth=2)
-
-        plt.legend(loc="upper left")
-        plt.xlabel(r"t [s]")
-        plt.ylabel('[W]')
-        plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
-        plt.grid()
-
-        
-        return True
-    
     def make_link_comp_plots(self):
 
         _, ax_sol_t = plt.subplots(2)
