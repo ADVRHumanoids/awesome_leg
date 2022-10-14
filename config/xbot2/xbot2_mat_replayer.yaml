@@ -57,8 +57,8 @@ xbotcore_plugins:
 
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
-            touchdown_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [40.0, 20.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [5.0, 2.0], type: Eigen::VectorXd}
             stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
             stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
 

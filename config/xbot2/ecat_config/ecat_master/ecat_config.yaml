@@ -93,12 +93,12 @@ AinMsp432ESC_X:
 CentAcESC_11: 
   sign: 1
   pos_offset: 0
-  max_current_A: 30.0
+  max_current_A: 60.0
 
 CentAcESC_12:
   sign: 1
   pos_offset: 0
-  max_current_A: 30.0
+  max_current_A: 60.0
   
   
   
