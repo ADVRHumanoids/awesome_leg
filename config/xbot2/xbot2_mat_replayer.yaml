@@ -45,7 +45,7 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
 
-            mat_path: {value: /tmp/pretakeoff_gen_13-10-2022-18_38_34/, type: string}
+            mat_path: {value: /tmp/pretakeoff_gen_13-10-2022-16_27_54/, type: string}
             mat_name: {value: awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
 
@@ -75,7 +75,7 @@ xbotcore_plugins:
             approach_traj_exec_time: {value: 6, type: double} 
             imp_ramp_time: {value: 1, type: double}
 
-            reduce_dumped_sol_size: {value: false, type: bool}
+            reduce_dumped_sol_size: {value: true, type: bool}
 
             send_up2_apex: {value: false, type: bool}
 

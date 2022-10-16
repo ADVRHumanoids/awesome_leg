@@ -14,6 +14,7 @@ void MatReplayerRt::init_vars()
     _q_p_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _f_cont_cmd = Eigen::VectorXd::Zero(3);
 }
 
 void MatReplayerRt::reset_flags()
@@ -314,51 +315,94 @@ void MatReplayerRt::add_data2dump_logger()
     
     // _dump_logger->add("plugin_time", _loop_time)
 
-    if (_traj_started && !_traj_finished)
-    { // trajectory is being published
-    // only adding data when replaying trajectory to save memory
-        
-        if (_sample_index <= (_traj.get_n_nodes() - 1))
-        { // commands have been computed
+    if (_reduce_dumped_sol_size)
+    {
+        if (_traj_started && !_traj_finished)
+        { // trajectory is being published
+        // only adding data when replaying trajectory to save memory
+            
+            if (_sample_index <= (_traj.get_n_nodes() - 1))
+            { // commands have been computed
 
-            if (_is_first_jnt_passive)
-            { // remove first joint from logged commands
+                if (_is_first_jnt_passive)
+                { // remove first joint from logged commands
 
-                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
-                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
-                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
+                    _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
+                    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
+                    _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
+
+                }
+                else
+                {
+                    
+                    _dump_logger->add("q_p_cmd", _q_p_cmd);
+                    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
+                    _dump_logger->add("tau_cmd", _tau_cmd);
+
+                }
+
+                _dump_logger->add("replay_stiffness", _replay_stiffness);
+                _dump_logger->add("replay_damping", _replay_damping);
+                _dump_logger->add("meas_stiffness", _meas_stiffness);
+                _dump_logger->add("meas_damping", _meas_damping);
+
+                _dump_logger->add("q_p_meas", _q_p_meas);
+                _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+                _dump_logger->add("tau_meas", _tau_meas);
+
+                _dump_logger->add("f_contact_cmd", _f_cont_cmd);
+                // _dump_logger->add("f_contact_meas", _f_contact_cmd);
+
+                _dump_logger->add("replay_time", _loop_time);
+
+                _dump_logger->add("tip_pos_meas", _tip_abs_position);
+                _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
+                _dump_logger->add("base_link_abs", _base_link_abs.translation());
 
             }
-            else
-            {
-                
-                _dump_logger->add("q_p_cmd", _q_p_cmd);
-                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
-                _dump_logger->add("tau_cmd", _tau_cmd);
 
-            }
+        }
+    }
+    else
+    {
 
-            _dump_logger->add("replay_stiffness", _replay_stiffness);
-            _dump_logger->add("replay_damping", _replay_damping);
-            _dump_logger->add("meas_stiffness", _meas_stiffness);
-            _dump_logger->add("meas_damping", _meas_damping);
+        if (_is_first_jnt_passive)
+        { // remove first joint from logged commands
 
-            _dump_logger->add("q_p_meas", _q_p_meas);
-            _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
-            _dump_logger->add("tau_meas", _tau_meas);
+            _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
+            _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
+            _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
 
-            _dump_logger->add("f_contact_cmd", _f_cont_cmd);
-            // _dump_logger->add("f_contact_meas", _f_contact_cmd);
-
-            _dump_logger->add("replay_time", _loop_time);
-
-            _dump_logger->add("tip_pos_meas", _tip_abs_position);
-            _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
-            _dump_logger->add("base_link_abs", _base_link_abs.translation());
+        }
+        else
+        {
+            
+            _dump_logger->add("q_p_cmd", _q_p_cmd);
+            _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
+            _dump_logger->add("tau_cmd", _tau_cmd);
 
         }
 
+        _dump_logger->add("replay_stiffness", _replay_stiffness);
+        _dump_logger->add("replay_damping", _replay_damping);
+        _dump_logger->add("meas_stiffness", _meas_stiffness);
+        _dump_logger->add("meas_damping", _meas_damping);
+
+        _dump_logger->add("q_p_meas", _q_p_meas);
+        _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+        _dump_logger->add("tau_meas", _tau_meas);
+
+        _dump_logger->add("f_contact_cmd", _f_cont_cmd);
+        // _dump_logger->add("f_contact_meas", _f_contact_cmd);
+
+        _dump_logger->add("replay_time", _loop_time);
+
+        _dump_logger->add("tip_pos_meas", _tip_abs_position);
+        _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
+        _dump_logger->add("base_link_abs", _base_link_abs.translation());
+        
     }
+    
     
 
 }
