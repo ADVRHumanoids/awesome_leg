@@ -128,7 +128,8 @@ private:
         _n_jnts_robot, 
         _sample_index = 0, 
         _jump_times_vect_size = 1, 
-        _takeoff_index = -1;
+        _takeoff_index = -1, 
+        _jump_phase_state = -1;
 
     plugin_utils::PeisekahTrans _peisekah_utils;
     plugin_utils::TrajLoader _traj;
@@ -179,6 +180,8 @@ private:
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
+
+    int was_jump_signal_received();
                  
 };
 

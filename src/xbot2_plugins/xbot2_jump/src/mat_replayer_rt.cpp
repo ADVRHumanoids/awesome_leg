@@ -431,22 +431,20 @@ void MatReplayerRt::init_nrt_ros_bridge()
 
 }
 
-bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
-                    awesome_leg::JumpNowResponse& res)
+int MatReplayerRt::was_jump_signal_received()
 {
+    int res = -1;
 
-    _jump = req.jump_now;
-  
-    if (req.jump_now)
+    if (_jump)
     {
         _is_first_trigger = !_is_first_trigger;
         
         if (!_approach_traj_started && !_traj_started && _is_first_trigger)
         {
             jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.\n");
+                "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.\n");
 
-            res.message = "Starting replaying of approach trajectory!";
+            res = 1;
 
             _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
@@ -464,9 +462,9 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             _traj_started = true; // send actual trajectory
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n Starting jump sequence! Please clear the jumping area!\n");
+                "\n Starting jump sequence! Please clear the jumping area!\n");
 
-            res.message = "Starting replaying of jump trajectory!";
+            res = 2;
 
             _sample_index = 0; // will start sending the loaded trajectory
             
@@ -474,6 +472,36 @@ bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
             
         }
 
+    }
+
+    return res;
+}
+
+bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
+                    awesome_leg::JumpNowResponse& res)
+{
+
+    if(_is_ciclic_jump)
+    {
+        if (req.jump_now)
+        {
+            _jump_now = true;
+
+            _is_first_trigger = !_is_first_trigger;
+
+            res.message = (_jump_phase_state == 1) ? "Starting replaying of approach trajectory!" : "Starting replaying of jump trajectory!";
+        }
+  
+    }
+    else
+    {
+        _jump = req.jump_now; // setting jump flag
+
+        std::string message;
+        
+        _jump_phase_state = was_jump_signal_received();
+
+        res.message = (_jump_phase_state == 1) ? "Starting replaying of approach trajectory!" : "Starting replaying of jump trajectory!";
     }
 
     res.success = true;
@@ -725,6 +753,8 @@ void MatReplayerRt::set_trajectory()
 
             reset_flags(); // reset flags
 
+            _jump = (_is_ciclic_jump) ? true : false; // directly trigger next jump sequence
+
             _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
         }
 
@@ -814,6 +844,7 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
+
     update_state(); // update all necessary states
 
     _queue.run();

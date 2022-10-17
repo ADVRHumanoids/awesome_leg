@@ -79,7 +79,7 @@ xbotcore_plugins:
 
             send_whole_traj: {value: false, type: bool}
 
-            is_ciclic_jump: {value: false, type: bool}
+            is_ciclic_jump: {value: true, type: bool}
             
             verbose: {value: false, type: bool}
 
