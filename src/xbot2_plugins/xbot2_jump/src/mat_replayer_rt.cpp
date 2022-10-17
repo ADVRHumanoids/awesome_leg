@@ -127,9 +127,11 @@ void MatReplayerRt::get_params_from_config()
 
     _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
 
-    _send_up2_apex = getParamOrThrow<bool>("~send_up2_apex");
+    _send_whole_traj = getParamOrThrow<bool>("~send_whole_traj");
 
     _verbose = getParamOrThrow<bool>("~verbose");
+
+    _is_ciclic_jump = getParamOrThrow<bool>("~is_ciclic_jump");
 
 }
 
@@ -660,7 +662,7 @@ void MatReplayerRt::set_trajectory()
         if (_sample_index <= (_traj.get_n_nodes() - 1) && _sample_index > _takeoff_index)
         { // after the optimized takeoff phase
             
-            if (_send_up2_apex)
+            if (_send_whole_traj)
             {
                 _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
                 _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);

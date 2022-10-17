@@ -77,8 +77,10 @@ xbotcore_plugins:
 
             reduce_dumped_sol_size: {value: true, type: bool}
 
-            send_up2_apex: {value: false, type: bool}
+            send_whole_traj: {value: false, type: bool}
 
+            is_ciclic_jump: {value: false, type: bool}
+            
             verbose: {value: false, type: bool}
 
 # global parameters
