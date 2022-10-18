@@ -18,6 +18,11 @@ add_service_files(
   JumpNow.srv
 )
 
+add_message_files(
+  FILES
+  MatReplayerStatus.msg
+)
+
 generate_messages(
   DEPENDENCIES
   std_msgs

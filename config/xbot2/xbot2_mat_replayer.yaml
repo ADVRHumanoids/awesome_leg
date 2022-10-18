@@ -72,14 +72,14 @@ xbotcore_plugins:
             tip_link_name: {value: tip1, type: string}
             base_link_name: {value: base_link, type: string}
 
-            approach_traj_exec_time: {value: 6, type: double} 
-            imp_ramp_time: {value: 1, type: double}
+            approach_traj_exec_time: {value: 5, type: double} 
+            imp_ramp_time: {value: 2, type: double}
 
             reduce_dumped_sol_size: {value: true, type: bool}
 
             send_whole_traj: {value: false, type: bool}
 
-            is_ciclic_jump: {value: true, type: bool}
+            is_ciclic_jump: {value: false, type: bool}
             
             verbose: {value: false, type: bool}
 

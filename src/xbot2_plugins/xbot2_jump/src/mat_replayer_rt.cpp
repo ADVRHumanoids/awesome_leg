@@ -171,8 +171,8 @@ void MatReplayerRt::create_ros_api()
 {
     /*  Create ros api server */
     RosServerClass::Options opt;
-    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "ci");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "cartesio_ell_rt");
+    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "mr");
+    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "mat_replayer_rt");
 }
 
 void MatReplayerRt::update_state()
@@ -429,6 +429,15 @@ void MatReplayerRt::init_nrt_ros_bridge()
                                 1,  // queue size
                                 &_queue);
 
+    awesome_leg::MatReplayerStatus replay_st_prealloc;
+    replay_st_prealloc.approach_traj_finished = false;
+    replay_st_prealloc.traj_finished = false;
+
+    /* Publisher */
+    _replay_status_pub = _ros->advertise<awesome_leg::MatReplayerStatus>(
+        "replay_status_node", 1, replay_st_prealloc);
+
+
 }
 
 int MatReplayerRt::was_jump_signal_received()
@@ -477,7 +486,7 @@ int MatReplayerRt::was_jump_signal_received()
     return res;
 }
 
-bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
+bool MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                     awesome_leg::JumpNowResponse& res)
 {
 
@@ -594,6 +603,15 @@ void MatReplayerRt::set_approach_trajectory()
     
 }
 
+void MatReplayerRt::pub_replay_status()
+{
+    auto status_msg = _replay_status_pub->loanMessage();
+    status_msg->msg().approach_traj_finished = _approach_traj_finished;
+    status_msg->msg().traj_finished = _traj_finished;
+
+    _replay_status_pub->publishLoaned(std::move(status_msg));
+}
+
 void MatReplayerRt::set_trajectory()
 { // always called in each plugin loop
   // is made of a number of phases, each signaled by suitable flags
@@ -651,6 +669,7 @@ void MatReplayerRt::set_trajectory()
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    std::string("\n Approach trajectory finished... ready to jump \n"));
+
         }
         else
         {
@@ -851,6 +870,8 @@ void MatReplayerRt::run()
 
     set_trajectory();
     
+    pub_replay_status();
+
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)

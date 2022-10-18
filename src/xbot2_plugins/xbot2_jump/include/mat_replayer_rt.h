@@ -16,6 +16,7 @@
 #include <std_msgs/Bool.h>
 
 #include <awesome_leg/JumpNow.h>
+#include <awesome_leg/MatReplayerStatus.h>
 
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
@@ -149,6 +150,8 @@ private:
     ServiceServerPtr<awesome_leg::JumpNowRequest,
                      awesome_leg::JumpNowResponse> _jump_now_srv;
 
+    PublisherPtr<awesome_leg::MatReplayerStatus> _replay_status_pub;
+
     void get_params_from_config();
     void init_model_interface();
     void init_vars();
@@ -180,6 +183,8 @@ private:
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
+
+    void pub_replay_status();
 
     int was_jump_signal_received();
                  
