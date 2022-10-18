@@ -171,9 +171,11 @@ int main(int argc, char **argv)
     std::string node_name = "cyclic_jump_triggerer_client";
 
     ros::init(argc, argv, node_name);
-    ros::NodeHandle nh;
-
-    CyclicJumpTrig cyclic_jump_triggerer = CyclicJumpTrig(&nh, 10);
+    ros::NodeHandle nh; 
+    
+    double pause_time = (argc == 1) ? 3.0 : atof(argv[1]); 
+    
+    CyclicJumpTrig cyclic_jump_triggerer = CyclicJumpTrig(&nh, pause_time);
     
     cyclic_jump_triggerer.start_client();
 

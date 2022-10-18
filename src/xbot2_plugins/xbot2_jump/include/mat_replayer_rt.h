@@ -113,9 +113,8 @@ private:
         _is_sim = true, 
         _reduce_dumped_sol_size = false, 
         _send_whole_traj = false, 
-        _verbose = false, 
-        _is_ciclic_jump = false;
-
+        _verbose = false;
+        
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 30.0,

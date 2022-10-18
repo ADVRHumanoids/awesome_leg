@@ -131,8 +131,6 @@ void MatReplayerRt::get_params_from_config()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
-    _is_ciclic_jump = getParamOrThrow<bool>("~is_ciclic_jump");
-
 }
 
 void MatReplayerRt::is_sim(std::string sim_string = "sim")
@@ -490,32 +488,17 @@ bool MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                     awesome_leg::JumpNowResponse& res)
 {
 
-    if(_is_ciclic_jump)
-    {
-        if (req.jump_now)
-        {
-            _jump_now = true;
+    _jump = req.jump_now; // setting jump flag
 
-            _is_first_trigger = !_is_first_trigger;
+    std::string message;
+    
+    _jump_phase_state = was_jump_signal_received();
 
-            res.message = (_jump_phase_state == 1) ? "Starting replaying of approach trajectory!" : "Starting replaying of jump trajectory!";
-        }
-  
-    }
-    else
-    {
-        _jump = req.jump_now; // setting jump flag
-
-        std::string message;
-        
-        _jump_phase_state = was_jump_signal_received();
-
-        res.message = (_jump_phase_state == 1) ? "Starting replaying of approach trajectory!" : "Starting replaying of jump trajectory!";
-    }
+    res.message = (_jump_phase_state == 1) ? "Starting replaying of approach trajectory!" : "Starting replaying of jump trajectory!";
 
     res.success = true;
 
-    return true; 
+    return res.success; 
 }
 
 void MatReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
@@ -772,7 +755,7 @@ void MatReplayerRt::set_trajectory()
 
             reset_flags(); // reset flags
 
-            _jump = (_is_ciclic_jump) ? true : false; // directly trigger next jump sequence
+            _jump = false; // directly trigger next jump sequence
 
             _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
         }
