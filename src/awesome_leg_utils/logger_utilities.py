@@ -41,14 +41,6 @@ class LogLoader:
 
         self.mat_file_h5py.visit(self.__h5py_visit_callable) # sliding through the loaded file and processing its fields
 
-        # Aux message information
-        self.aux_seq = np.array(self.mat_file_h5py.get('aux_seq')).astype(int).flatten()
-        self.aux_abs_time = np.array(self.mat_file_h5py.get('aux_time')).flatten()
-
-        self.aux_type = np.array(self.mat_file_h5py.get('aux_type')).astype(int).transpose()
-
-        self.aux_values = np.array(self.mat_file_h5py.get('aux_value')).transpose()
-        
         # "Standard" message information
         self.seq = np.array(self.mat_file_h5py.get('seq')).astype(int).flatten().transpose()
         self.abs_time = np.array(self.mat_file_h5py.get('time')).flatten().transpose()
@@ -74,9 +66,26 @@ class LogLoader:
         
         # Relative time vectors (w.r.t. an absolute reference)
         self.abs_t0 = self.abs_time[0] 
-        self.aux_rel_time = self.aux_abs_time - self.abs_t0
-        self.js_rel_time = self.abs_time - self.abs_t0
+        
+        
+        # Aux message information
+        try:
+            self.aux_abs_time = np.array(self.mat_file_h5py.get('aux_time')).flatten()
+            
+            self.aux_seq = np.array(self.mat_file_h5py.get('aux_seq')).astype(int).flatten()
 
+            self.aux_type = np.array(self.mat_file_h5py.get('aux_type')).astype(int).transpose()
+
+            self.aux_values = np.array(self.mat_file_h5py.get('aux_value')).transpose()
+            
+            self.aux_rel_time = self.aux_abs_time - self.abs_t0
+
+        except:
+            
+            print("\n Not able to retrieve aux data from file. \n")
+            pass 
+
+        self.js_rel_time = self.abs_time - self.abs_t0
 
     ## Low-level methods for manipulating the .mat file ##
 
@@ -1052,12 +1061,16 @@ class LogPlotter():
             originline[0].set_visible(visible)
             legendline.set_alpha(1.0 if visible else 0.2)
             event.canvas.draw()
+    
+    def show_plots(self):
+
+        plt.show()
         
 def main():
 
     # EXAMPLE USAGE (Centauro log file)
 
-    matfile_path = '/home/andreap/hhcm_ws/external/useful_mat/' + 'centauro_robot_state_log.mat' # path to the .mat file
+    matfile_path = '/tmp/' + 'centauro_robot_state_log.mat' # path to the .mat file
 
     log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
     
@@ -1075,7 +1088,8 @@ def main():
     canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 12, line_label = canvas.log_loader.get_joints_names_from_id([12])[0]+" torque", title = "Some joint torques") # plotting the torque on a specified joint
     canvas.js_plot(fig_name = "prova1", input_matrix = canvas.log_loader.get_joints_efforts(), jnt_id = 15, set_grid = False, add_plot = True, line_label = canvas.log_loader.get_joints_names_from_id([15])[0]+" torque") # another torque plot
 
-    input() # necessary to keep all figures opened
+    canvas.show_plots()
+    
 
 if __name__=="__main__":
 

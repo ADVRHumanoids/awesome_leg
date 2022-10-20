@@ -841,13 +841,14 @@ class JumpSolPlotter:
 
             plt.legend(loc="upper left")
             plt.xlabel(r"t [s]")
-            plt.ylabel('[W]')
+            plt.ylabel('[m]')
             plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
             plt.grid()
-
             
-    def make_link_comp_plots(self):
-
+            self.__make_sim_link_plots()
+            
+    def __make_sim_link_plots(self):
+                
         _, ax_sol_t = plt.subplots(2)
 
         ax_sol_t[0].plot(self.sim_replay_time, self.sim_base_link_abs[2, :], label = "$z_{hip}$",\
@@ -856,7 +857,7 @@ class JumpSolPlotter:
         leg_t.set_draggable(True)
         # ax_sol_t[0].set_xlabel(r"time [s]")
         ax_sol_t[0].set_ylabel(r"hip pos [m]")
-        ax_sol_t[0].set_title(r"Hip absolute position", fontdict=None, loc='center')
+        ax_sol_t[0].set_title(r"Hip absolute vertical position", fontdict=None, loc='center')
         ax_sol_t[0].grid()
 
         ax_sol_t[1].plot(self.sim_replay_time, self.sim_tip_pos_meas[2, :], label = "$z_{tip}$",\
@@ -865,8 +866,33 @@ class JumpSolPlotter:
         leg_t.set_draggable(True)
         # ax_sol_t[1].set_xlabel(r"time [s]")
         ax_sol_t[1].set_ylabel(r"hip pos [m]")
-        ax_sol_t[1].set_title(r"Tip absolute position", fontdict=None, loc='center')
+        ax_sol_t[1].set_title(r"Tip absolute vertical position", fontdict=None, loc='center')
         ax_sol_t[1].grid()
+
+        f4=plt.figure()
+    
+        plt.plot(self.sim_replay_time, self.sim_tip_pos_meas[0, :], label=r"tip_pos_x", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time, self.sim_tip_pos_meas[1, :], label=r"tip_pos_y", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time, self.sim_tip_pos_meas[2, :], label=r"tip_pos_z", linestyle='-', linewidth=2)
+
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel('[m]')
+        plt.title("Tip absolute position", fontdict=None, loc='center')
+        plt.grid()
+
+        f5=plt.figure()
+
+        plt.plot(self.sim_replay_time, self.sim_base_link_abs[0, :], label=r"base_link_pos_x", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time, self.sim_base_link_abs[1, :], label=r"base_link_pos_y", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time, self.sim_base_link_abs[2, :], label=r"base_link_pos_z", linestyle='-', linewidth=2)
+
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel('[m]')
+        plt.title("base_link absolute position", fontdict=None, loc='center')
+        plt.grid()
+
 
     def make_test_plots():
 

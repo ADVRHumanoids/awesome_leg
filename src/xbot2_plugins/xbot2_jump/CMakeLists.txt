@@ -20,4 +20,7 @@ target_link_libraries(start_cyclic_jump_client PRIVATE ${catkin_LIBRARIES} ${car
 
 install(
     TARGETS mat_replayer_rt plugin_utils DESTINATION lib
-    )
+)
+
+install(TARGETS start_cyclic_jump_client DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+

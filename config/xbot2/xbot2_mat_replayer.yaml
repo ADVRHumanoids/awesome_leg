@@ -75,7 +75,7 @@ xbotcore_plugins:
             approach_traj_exec_time: {value: 3, type: double} 
             imp_ramp_time: {value: 1, type: double}
 
-            reduce_dumped_sol_size: {value: true, type: bool}
+            reduce_dumped_sol_size: {value: false, type: bool}
 
             send_whole_traj: {value: false, type: bool}
             

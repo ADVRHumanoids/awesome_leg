@@ -21,6 +21,7 @@ if __name__ == '__main__':
     parser.add_argument('--plot_ref', '-ref', type = str2bool, default = False)
     parser.add_argument('--plot_comp_resref', '-comp_rsrf', type = str2bool, default = False)
     parser.add_argument('--plot_comp_rawres', '-comp_rwrs', type = str2bool, default = False)
+    parser.add_argument('--plot_link_comp', '-link_comp', type = str2bool, default = False)
 
     args = parser.parse_args()
 
