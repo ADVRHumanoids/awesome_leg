@@ -4,9 +4,9 @@
 
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.gazebo.xacro" />
 
-    <xacro:macro name="awesome_leg" params="id base_link" >
+    <xacro:macro name="awesome_leg" params="id base_link add_ft_sensor" >
 
-        <xacro:awesome_leg_gazebo id="${id}"/> 
+        <xacro:awesome_leg_gazebo id="${id} ${add_ft_sensor}"/> 
 
         <xacro:unless value="${ base_link=='None' or base_link=='none'}">
             <!-- only add joint to base if argument is non-empty -->

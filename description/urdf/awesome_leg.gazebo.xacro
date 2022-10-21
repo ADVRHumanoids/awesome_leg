@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
     
-    <xacro:macro name="awesome_leg_gazebo" params="id" >
+    <xacro:macro name="awesome_leg_gazebo" params="id add_ft_sensor"  >
 
     <!--Gazebo-specific tags-->
 
@@ -72,6 +72,31 @@
 
         </xacro:if> -->
 
+        <xacro:if value="${ add_ft_sensor == True}"> 
+
+            <!-- <link name="ft_sensor${id}">
+                <inertial>
+                    <origin xyz="0.0 0.0 0.0"/>
+                    <mass value=""/>
+                    <inertia ixx="${4.6647423e+04 * kgmm2_2_kgm2}" iyy="${4.3720135e+04 * kgmm2_2_kgm2}" izz="${7.5794813e+04 * kgmm2_2_kgm2}"
+                        ixy="${-1.2697640e+01 * kgmm2_2_kgm2}" ixz="${-3.2745810e+01 * kgmm2_2_kgm2}" iyz="${-6.3299091e+04 * kgmm2_2_kgm2}" />
+                </inertial>
+                <visual>
+                    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                    <geometry>
+                        <mesh filename="package://awesome_leg/description/new_meshes/visual/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                    </geometry>
+                    <material name="darkblue"/>
+                </visual>
+                <collision>
+                    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                    <geometry>
+                        <mesh filename="package://awesome_leg/description/new_meshes/collision/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                    </geometry>
+                </collision>
+            </link> -->
+
+        </xacro:if>
         
     </xacro:macro>
 
