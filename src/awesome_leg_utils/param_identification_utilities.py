@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from logger_utilities import LogLoader
 from xbot_interface import config_options as opt
 
 import numpy as np
@@ -9,6 +10,10 @@ from scipy import interpolate
 import casadi as cas
 
 import pinocchio as pin
+
+from scipy import signal
+
+import yaml
 
 ######################### MISCELLANEOUS UTILITIES DEFINITIONS #########################
 
@@ -688,3 +693,61 @@ def compute_fitting_error(regressors, tau_meas, X):
 
     return error, mean_abs_error
 
+def get_iq_estimate(time: np.ndarray, q_p_dot: np.ndarray, tau: np.ndarray, acts_config_path: str):
+    
+    # Loading actuator paramters
+    with open(acts_config_path, 'r') as stream:
+        acts_yaml = yaml.safe_load(stream)
+
+    # Used actuators parameters
+    rotor_axial_MoI = np.array(acts_yaml["rotor_axial_MoI"])
+    red_ratio = np.array(acts_yaml["red_ratio"])
+    efficiency = np.array(acts_yaml["efficiency"])
+    K_t = np.array(acts_yaml["K_t"])
+    K_t = K_t.reshape(len(K_t), 1)
+    K_d0 = np.array(acts_yaml["K_d0"])
+    K_d0 = K_d0.reshape(len(K_d0), 1)
+    K_d1 = np.array(acts_yaml["K_d1"])
+    K_d1 = K_d1.reshape(len(K_d1), 1)
+
+    # Filtering
+    filter_order_acc = 8
+    cutoff_freq_acc = 0.08
+    b_acc, a_acc = signal.butter(filter_order_acc, cutoff_freq_acc) # lowpass Butterworth filter with a cutoff of 0.125 times the Nyquist frequency
+
+    filter_order_vel = 8
+    cutoff_freq_vel = 0.008
+    b_vel, a_vel = signal.butter(filter_order_vel, cutoff_freq_vel) # lowpass Butterworth filter with a cutoff of 0.125 times the Nyquist frequency
+
+    filter_order_tau = 8
+    cutoff_freq_tau = 0.008
+    b_tau, a_tau = signal.butter(filter_order_tau, cutoff_freq_tau) # lowpass Butterworth filter 
+    
+    filter_order_curr = 8
+    cutoff_freq_curr = 0.01
+    b_curr, a_curr = signal.butter(filter_order_curr, cutoff_freq_curr) # lowpass Butterworth filter with a cutoff of 0.125 times the Nyquist frequency
+
+    diff_jnt_acc = diff_mat(time, q_p_dot) # differentiated joint accelerations (from measurements)
+    acc_jnt_n = diff_jnt_acc.shape[0]
+    diff_jnt_acc = np.append(np.array([0]* acc_jnt_n).reshape(acc_jnt_n, 1), diff_jnt_acc, axis = 1) # adding a 0 fictitous value at first sample 
+    filtered_diff_jnt_acc = signal.filtfilt(b_acc, a_acc, diff_jnt_acc, axis = 1) # filtered joint acceleration
+
+    # i_q estimation
+    
+    smooth_coeff = 20 # how fast the smooth sign function rises 
+
+    total_tau = tau + np.multiply(K_d0, compute_smooth_sign(q_p_dot, coeff = smooth_coeff)) + np.multiply(K_d1, q_p_dot) # fictitious total torque (estimated + friction effects)
+    i_q_estimate = (rotor_axial_MoI[0] * filtered_diff_jnt_acc / red_ratio[0] + total_tau * red_ratio[0] / efficiency[0]) * 1.0 / K_t[0]
+    i_q_estimate_filt = signal.filtfilt(b_curr, a_curr, i_q_estimate, padlen = 150, axis = 1) # filtered i_q currents
+
+    return i_q_estimate, i_q_estimate_filt
+
+def get_iq_estimate_from_log(data: LogLoader, acts_config_path: str):
+
+    time = data.get_js_rel_time()
+    q_p_dot = data.get_motors_velocity()
+    tau = data.get_joints_efforts()
+
+    i_q_estimate, i_q_estimate_filt = get_iq_estimate(time, q_p_dot, tau, acts_config_path)
+
+    return i_q_estimate, i_q_estimate_filt

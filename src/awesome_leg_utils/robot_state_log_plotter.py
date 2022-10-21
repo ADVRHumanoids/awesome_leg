@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from logger_utilities import LogLoader, LogPlotter
+from param_identification_utilities import get_iq_estimate_from_log
 
 from xbot_interface import xbot_interface as xbot
 
@@ -19,6 +20,7 @@ import rospy
 matfile_path = rospy.get_param("/robot_state_log_plotter/matfile_path") 
 save_fig_path = rospy.get_param("/robot_state_log_plotter/save_fig_path") 
 save_fig = rospy.get_param("/robot_state_log_plotter/save_fig") 
+acts_config_path = rospy.get_param("/robot_state_log_plotter/actuators_config_path")
 
 # Initializing logger utilities and useful variables
 log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
@@ -82,9 +84,9 @@ for joint_id in joint_ids:
 
         if (not ("ref" in aux_name)): # not a reference signal --> filter it
 
-            # filt_val = signal.filtfilt(b_aux, a_aux, vals) 
+            filt_val = signal.filtfilt(b_aux, a_aux, vals) 
         
-            aux_val_postproc[code_index + joint_index * aux_signal_number] = vals
+            aux_val_postproc[code_index + joint_index * aux_signal_number] = filt_val
 
             if ("iq" in aux_name): # also assign iq data to separate container
                 
@@ -102,6 +104,9 @@ log_damping = log_loader.get_joints_damping()
 motor_positions = log_loader.get_links_position()
 n_log_samples = log_stiffness.shape[1]
 
+# getting iq estimates using the compensated current model
+i_q_estimate, i_q_estimate_filt = get_iq_estimate_from_log(log_loader, acts_config_path)
+
 ######################### PLOTTING STUFF #########################
 
 n_rows_subplot = n_jnts
@@ -117,7 +122,6 @@ joint_efforts_fig = plotter.init_fig(fig_name = "raw_joint_efforts")
 temperature_driver_fig = plotter.init_fig(fig_name = "temperature_driver") 
 temperature_motor_fig = plotter.init_fig(fig_name = "temperature_motor") 
 differentiated_jnt_acc_fig = plotter.init_fig(fig_name = "differentiated_jnt_acc") 
-torque_validation_fig = plotter.init_fig(fig_name = "torque_validation") 
 current_validation_fig = plotter.init_fig(fig_name = "current_validation") 
 jnt_impedance_fig = plotter.init_fig(fig_name = "jnt_impedance") 
 
@@ -182,12 +186,6 @@ for joint_id in joint_ids:
     plotter.js_plot(fig_name = "raw_joint_efforts", input_matrix = log_loader.get_joints_efforts(),\
         jnt_id = joint_id, line_label = joint_name + " effort", set_grid = False, add_plot = True, draw_style = 'steps-pre') 
 
-    # raw joint efforts vs estimated ones (via inverse dynamics)
-
-    plotter.add_subplot(fig_name = "torque_validation", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-    plotter.js_plot(fig_name = "torque_validation", input_matrix = log_loader.get_joints_efforts(),\
-        jnt_id = joint_id, line_label = joint_name + " measured effort", draw_style = 'steps-pre') 
-
     # temperature data
 
     plotter.add_subplot(fig_name = "temperature_driver", row = n_rows_subplot, column=n_cols_subplot, index = joint_id) 
@@ -196,20 +194,7 @@ for joint_id in joint_ids:
 
     plotter.add_subplot(fig_name = "temperature_motor", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
     plotter.js_plot(fig_name = "temperature_motor", input_matrix = log_loader.get_temp_motors(),\
-        jnt_id = joint_id, line_label = joint_name + " motor temperature", title = "Motor temeperature (" + joint_name +")") 
-
-    if (len(aux_signal_names) != 0):
-
-        plotter.add_subplot(fig_name = "current_validation", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
-        # unfiltered data
-        plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], \
-            input_vector = i_q_meas[joint_id - 1], title = "Measured VS estimated i_q on " + joint_name + " joint", \
-            line_label = joint_name + " measured i_q", set_grid = True, add_plot = False)
-        # filtered data
-        plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], \
-            input_vector = i_q_meas_filt[joint_id - 1], line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True)
-
-        pass
+        jnt_id = joint_id, line_label = joint_name + " motor temperature", title = "Motor temperature (" + joint_name +")") 
 
     plotter.add_subplot(fig_name = "jnt_impedance", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
     plotter.js_plot(fig_name = "jnt_impedance", x_data = js_time, input_matrix = log_stiffness, jnt_id = joint_id, \
@@ -217,17 +202,29 @@ for joint_id in joint_ids:
     plotter.js_plot(fig_name = "jnt_impedance", x_data = js_time, input_matrix = log_damping, jnt_id = joint_id,\
         line_label = joint_name + " joint damping ",  set_grid = False, add_plot = True) 
 
+    if (len(aux_signal_names) != 0):
+        plotter.add_subplot(fig_name = "current_validation", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
+        # unfiltered data
+        plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_meas[joint_id - 1], title = "Measured VS estimated i_q on " + joint_name + " joint", line_label = joint_name + " measured i_q", set_grid = True, add_plot = False)
+        plotter.js_plot(fig_name = "current_validation", x_data = js_time, input_matrix = i_q_estimate, jnt_id = joint_id, line_label = joint_name + " estimated i_q", set_grid = False, add_plot = True) 
+        # filtered data
+        plotter.vect_plot(fig_name = "current_validation", x_data = i_q_meas_time[joint_id - 1], input_vector = i_q_meas_filt[joint_id - 1], line_label = joint_name + " measured i_q (filtered)", set_grid = False, add_plot = True)
+        plotter.js_plot(fig_name = "current_validation", x_data =  js_time, input_matrix = i_q_estimate_filt, jnt_id = joint_id, line_label = joint_name + " estimated i_q (filtered)", set_grid = False, add_plot = True) 
+
+    plotter.add_subplot(fig_name = "jnt_impedance", row = n_rows_subplot, column = n_cols_subplot, index = joint_id) 
+    plotter.js_plot(fig_name = "jnt_impedance", x_data = js_time, input_matrix = log_stiffness, jnt_id = joint_id, line_label = joint_name + " joint stiffness", title = "Impedance setpoint of joint " + joint_name + " joint") 
+    plotter.js_plot(fig_name = "jnt_impedance", x_data = js_time, input_matrix = log_damping, jnt_id = joint_id, line_label = joint_name + " joint damping ",  set_grid = False, add_plot = True) 
 
 plotter.show_plots()    
 
 if save_fig: # save figures
 
-    if (len(aux_signal_names) != 0):
+    if (len(aux_signal_names) != 0): # if aux signals were logged
 
         aux_fig.set_size_inches(16, 12)
-        current_validation_fig.set_size_inches(16, 12)
         aux_fig.savefig(save_fig_path + "/" + "currents.pdf", format="pdf") 
-        current_validation_fig.savefig(save_fig_path + "/" + "current_validation.pdf", format="pdf") 
+        current_validation_fig.set_size_inches(16, 12)
+        current_validation_fig.savefig(save_fig_path + "/" + "current_valdation.pdf", format="pdf") 
 
     motor_positions_fig.set_size_inches(16, 12)
     motor_velocities_fig.set_size_inches(16, 12)
@@ -235,7 +232,6 @@ if save_fig: # save figures
     temperature_driver_fig.set_size_inches(16, 12)
     temperature_motor_fig.set_size_inches(16, 12)
     differentiated_jnt_acc_fig.set_size_inches(16, 12)
-    torque_validation_fig.set_size_inches(16, 12)
     
     motor_positions_fig.savefig(save_fig_path + "/" + "motor_positions.pdf", format="pdf") 
     motor_velocities_fig.savefig(save_fig_path + "/" + "motor_velocities.pdf", format="pdf") 
@@ -243,4 +239,4 @@ if save_fig: # save figures
     temperature_driver_fig.savefig(save_fig_path + "/" + "temperature_driver.pdf", format="pdf") 
     temperature_motor_fig.savefig(save_fig_path + "/" + "temperature_driver.pdf", format="pdf") 
     differentiated_jnt_acc_fig.savefig(save_fig_path + "/" + "differentiated_jnt_acc.pdf", format="pdf") 
-    torque_validation_fig.savefig(save_fig_path + "/" + "torque_validation.pdf", format="pdf") 
+    

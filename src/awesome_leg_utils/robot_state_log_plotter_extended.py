@@ -16,8 +16,6 @@ from param_identification_utilities import *
 
 import rospy
 
-import sympy 
-
 #######################################################################
 def ind_rows(A, threshold): # Cauchy-Schwarz inequality check for retrieving lin.independent rows a real matrix
 
