@@ -16,9 +16,9 @@ import rospy
 
 ######################### PRE-INITIALIZATIONS #########################
 
-matfile_path = "/tmp/centauro_robot_state_log.mat"
-save_fig_path = "" 
-save_fig = False
+matfile_path = rospy.get_param("/robot_state_log_plotter/matfile_path") 
+save_fig_path = rospy.get_param("/robot_state_log_plotter/save_fig_path") 
+save_fig = rospy.get_param("/robot_state_log_plotter/save_fig") 
 
 # Initializing logger utilities and useful variables
 log_loader = LogLoader(matfile_path) # initializing the LogLoader for reading and using the data inside the .mat file
@@ -81,15 +81,15 @@ for joint_id in joint_ids:
         aux_val[code_index + joint_index * aux_signal_number] = vals
 
         if (not ("ref" in aux_name)): # not a reference signal --> filter it
-            
-            filt_val = signal.filtfilt(b_aux, a_aux, vals, padlen = 150, axis = 0) 
 
-            aux_val_postproc[code_index + joint_index * aux_signal_number] = filt_val
+            # filt_val = signal.filtfilt(b_aux, a_aux, vals) 
+        
+            aux_val_postproc[code_index + joint_index * aux_signal_number] = vals
 
             if ("iq" in aux_name): # also assign iq data to separate container
                 
                 i_q_meas[joint_index] = vals
-                i_q_meas_filt[joint_index] = filt_val
+                i_q_meas_filt[joint_index] = vals
                 i_q_meas_time[joint_index] = times
 
         else: # reference signal --> append raw values

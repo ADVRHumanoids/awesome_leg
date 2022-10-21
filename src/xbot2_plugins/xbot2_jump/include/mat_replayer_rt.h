@@ -122,7 +122,8 @@ private:
         _approach_traj_time = 0.0,
         _pause_time, _traj_pause_time = 2.0, _approach_traj_pause_time = 5.0,
         _epsi_stiffness = 10, _epsi_damping = 0.1, 
-        _imp_ramp_time = 0.5, _smooth_imp_time = 0.0;
+        _imp_ramp_time = 0.5, _smooth_imp_time = 0.0, 
+        _matlogger_buffer_size = 1e4;
 
     int _n_jnts_model,
         _n_jnts_robot, 

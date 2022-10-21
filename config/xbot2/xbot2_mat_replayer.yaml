@@ -48,6 +48,7 @@ xbotcore_plugins:
             mat_path: {value: /tmp/pretakeoff_gen_13-10-2022-16_27_54/, type: string}
             mat_name: {value: awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
@@ -73,7 +74,7 @@ xbotcore_plugins:
             base_link_name: {value: base_link, type: string}
 
             approach_traj_exec_time: {value: 3, type: double} 
-            imp_ramp_time: {value: 1, type: double}
+            imp_ramp_time: {value: 0.5, type: double}
 
             reduce_dumped_sol_size: {value: false, type: bool}
 

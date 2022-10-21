@@ -100,7 +100,8 @@ void MatReplayerRt::get_params_from_config()
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
-    
+    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
+
     _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
     _resample = getParamOrThrow<bool>("~resample"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
@@ -256,7 +257,7 @@ void MatReplayerRt::init_dump_logger()
 
     // // Initializing logger for debugging
     MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.default_buffer_size = _matlogger_buffer_size; // set default buffer size
     opt.enable_compression = true; // enable ZLIB compression
     if (_dump_mat_suffix == std::string(""))
     { // if empty, then dump to tmp with plugin name
@@ -287,19 +288,23 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->add("send_eff_ref", int(_send_eff_ref));
 
     // _dump_logger->create("plugin_time", 1);
-    _dump_logger->create("jump_replay_times", 1);
-    _dump_logger->create("replay_stiffness", _n_jnts_robot);
-    _dump_logger->create("replay_damping", _n_jnts_robot);
-    _dump_logger->create("meas_stiffness", _n_jnts_robot);
-    _dump_logger->create("meas_damping", _n_jnts_robot);
-    _dump_logger->create("q_p_meas", _n_jnts_robot);
-    _dump_logger->create("q_p_dot_meas", _n_jnts_robot);
-    _dump_logger->create("tau_meas", _n_jnts_robot);
-    _dump_logger->create("q_p_cmd", _n_jnts_robot);
-    _dump_logger->create("q_p_dot_cmd", _n_jnts_robot);
-    _dump_logger->create("f_contact_cmd", 3);
-    _dump_logger->create("f_contact_meas", 3);
-    _dump_logger->create("tau_cmd", _n_jnts_robot);
+    _dump_logger->create("jump_replay_times", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("replay_time", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("replay_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("replay_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("meas_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("meas_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
+    _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_dot_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("f_contact_cmd", 3, 1, _matlogger_buffer_size);
+    _dump_logger->create("f_contact_meas", 3, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("tip_pos_meas", 3, 1, _matlogger_buffer_size);
+    _dump_logger->create("tip_pos_rel_base_link", 3, 1, _matlogger_buffer_size);
+    _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
 
     // auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
     // dscrptn_files_cell[0] = _mat_path;
