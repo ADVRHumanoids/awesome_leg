@@ -178,12 +178,16 @@ class JumpSolPlotter:
 
         self.sim_plugin_dt=self.sim_data["plugin_dt"] 
         self.sim_replay_time=self.sim_data["replay_time"]
+        self.is_sim=self.sim_data["jump_replay_times"]
         self.sim_q_p_meas=self.sim_data["q_p_meas"]
         self.sim_q_p_dot_meas=self.sim_data["q_p_dot_meas"]
         self.sim_q_p_cmd=self.sim_data["q_p_cmd"]
         self.sim_q_p_dot_cmd=self.sim_data["q_p_dot_cmd"]
         self.sim_replay_damping=self.sim_data["replay_damping"]
         self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
+        self.sim_meas_damping=self.sim_data["meas_damping"]
+        self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
+        self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
         self.sim_stop_damping=self.sim_data["stop_damping"]
         self.sim_tau_meas=self.sim_data["tau_meas"]
         self.sim_tau_cmd=self.sim_data["tau_cmd"]
@@ -193,6 +197,15 @@ class JumpSolPlotter:
         except:
             pass
         self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
+
+        # other stuff
+
+        self.is_sim=self.sim_data["is_sim"]
+        self.is_sim=self.sim_data["send_pos_ref"]
+        self.is_sim=self.sim_data["send_vel_ref"]
+        self.is_sim=self.sim_data["send_eff_ref"]
+        
+
 
     def __read_test_sol(self):
 
@@ -233,9 +246,9 @@ class JumpSolPlotter:
     def __make_raw_opt_plots(self):
 
         f1=plt.figure()
-        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[0, :-1], label=r"F_x")
-        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[1, :-1], label=r"F_y")
-        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[2, :-1], label=r"F_z")
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[0, :-1], label=r"F_x")
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y")
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
@@ -245,8 +258,8 @@ class JumpSolPlotter:
         #     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
         f2=plt.figure()
-        plt.plot(self.time_vector_raw[:-1], self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_raw[:-1], self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
@@ -254,8 +267,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f3=plt.figure()
-        plt.plot(self.time_vector_raw[:-1], self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_raw[:-1], self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
@@ -263,8 +276,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f4=plt.figure()
-        plt.plot(self.time_vector_raw[:-1], self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_raw[:-1], self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
@@ -272,8 +285,8 @@ class JumpSolPlotter:
         plt.grid()
     
         f5=plt.figure()
-        plt.plot(self.time_vector_raw[:-1], self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
-        plt.plot(self.time_vector_raw[:-1], self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
@@ -281,8 +294,8 @@ class JumpSolPlotter:
         plt.grid()
         
         f6=plt.figure()
-        plt.plot(self.time_vector_raw[:-1], self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
-        plt.plot(self.time_vector_raw[:-1], self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
@@ -290,7 +303,7 @@ class JumpSolPlotter:
         plt.grid()
     
         f8=plt.figure()
-        plt.plot(self.time_vector_raw[:-1], self.dt_raw, drawstyle='steps-post')
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.dt_raw, drawstyle='steps-post')
         plt.legend(loc="upper left")
         plt.ylabel(r"t [s]")
         plt.xlabel("node number")
@@ -298,8 +311,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f10=plt.figure()
-        plt.plot(self.time_vector_raw, self.hip_height_raw,label="hip height")
-        plt.plot(self.time_vector_raw, self.foot_tip_height_raw,label="foot tip height")
+        plt.plot(self.time_vector_raw.flatten(), self.hip_height_raw,label="hip height")
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_height_raw,label="foot tip height")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
@@ -307,9 +320,9 @@ class JumpSolPlotter:
         plt.grid()
         
         f11=plt.figure()
-        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[0,:],label="tip vel. x")
-        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[1,:],label="tip vel. y")
-        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[2,:],label="tip vel. z")
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[0,:],label="tip vel. x")
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[1,:],label="tip vel. y")
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[2,:],label="tip vel. z")
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -318,9 +331,9 @@ class JumpSolPlotter:
         plt.grid()
         
         f12=plt.figure()
-        plt.plot(self.time_vector_raw, self.hip_vel_raw[0,:],label="hip vel. x")
-        plt.plot(self.time_vector_raw, self.hip_vel_raw[1,:],label="hip vel. y")
-        plt.plot(self.time_vector_raw, self.hip_vel_raw[2,:],label="hip vel. z")
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[0,:],label="hip vel. x")
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[1,:],label="hip vel. y")
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[2,:],label="hip vel. z")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
@@ -330,9 +343,9 @@ class JumpSolPlotter:
     def __make_res_opt_plots(self):
 
         f1=plt.figure()
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[0, :-1], label=r"F_x")
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[1, :-1], label=r"F_y")
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[2, :-1], label=r"F_z")
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[0, :-1], label=r"F_x")
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y")
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
@@ -342,8 +355,8 @@ class JumpSolPlotter:
         #     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
         f2=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_res[:-1], self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
@@ -351,8 +364,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f3=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
@@ -360,8 +373,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f4=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
@@ -369,8 +382,8 @@ class JumpSolPlotter:
         plt.grid()
     
         f5=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
-        plt.plot(self.time_vector_res[:-1], self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
@@ -378,8 +391,8 @@ class JumpSolPlotter:
         plt.grid()
         
         f6=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
-        plt.plot(self.time_vector_res[:-1], self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
@@ -387,7 +400,7 @@ class JumpSolPlotter:
         plt.grid()
     
         f8=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.dt_res, drawstyle='steps-post')
+        plt.plot(self.time_vector_res[:-1].flatten(), self.dt_res, drawstyle='steps-post')
         plt.legend(loc="upper left")
         plt.ylabel(r"t [s]")
         plt.xlabel("node number")
@@ -395,8 +408,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f10=plt.figure()
-        plt.plot(self.time_vector_res, self.hip_height_res,label="hip height")
-        plt.plot(self.time_vector_res, self.foot_tip_height_res,label="foot tip height")
+        plt.plot(self.time_vector_res.flatten(), self.hip_height_res,label="hip height")
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
@@ -404,9 +417,9 @@ class JumpSolPlotter:
         plt.grid()
         
         f11=plt.figure()
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[0,:],label="tip vel. x")
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[1,:],label="tip vel. y")
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[2,:],label="tip vel. z")
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[0,:],label="tip vel. x")
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[1,:],label="tip vel. y")
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[2,:],label="tip vel. z")
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -415,9 +428,9 @@ class JumpSolPlotter:
         plt.grid()
         
         f12=plt.figure()
-        plt.plot(self.time_vector_res, self.hip_vel_res[0,:],label="hip vel. x")
-        plt.plot(self.time_vector_res, self.hip_vel_res[1,:],label="hip vel. y")
-        plt.plot(self.time_vector_res, self.hip_vel_res[2,:],label="hip vel. z")
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[0,:],label="hip vel. x")
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[1,:],label="hip vel. y")
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[2,:],label="hip vel. z")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
@@ -427,9 +440,9 @@ class JumpSolPlotter:
     def __make_ref_opt_plots(self):
 
         f1=plt.figure()
-        plt.plot(self.time_vector_ref[1:-1], self.GRF_ref[0, :-1], label=r"F_x")
-        plt.plot(self.time_vector_ref[1:-1], self.GRF_ref[1, :-1], label=r"F_y")
-        plt.plot(self.time_vector_ref[1:-1], self.GRF_ref[2, :-1], label=r"F_z")
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[0, :-1], label=r"F_x")
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y")
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
@@ -439,8 +452,8 @@ class JumpSolPlotter:
         #     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
         f2=plt.figure()
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
@@ -448,8 +461,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f3=plt.figure()
-        plt.plot(self.time_vector_ref[:-1], self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_ref[:-1], self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
@@ -457,8 +470,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f4=plt.figure()
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
@@ -466,8 +479,8 @@ class JumpSolPlotter:
         plt.grid()
     
         f5=plt.figure()
-        plt.plot(self.time_vector_ref[:-1], self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
-        plt.plot(self.time_vector_ref[:-1], self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
@@ -475,8 +488,8 @@ class JumpSolPlotter:
         plt.grid()
         
         f6=plt.figure()
-        plt.plot(self.time_vector_ref[:-1], self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
-        plt.plot(self.time_vector_ref[:-1], self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
@@ -484,7 +497,7 @@ class JumpSolPlotter:
         plt.grid()
     
         f8=plt.figure()
-        plt.plot(self.time_vector_ref[:-1], self.dt_ref, drawstyle='steps-post')
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.dt_ref, drawstyle='steps-post')
         plt.legend(loc="upper left")
         plt.ylabel(r"t [s]")
         plt.xlabel("node number")
@@ -492,8 +505,8 @@ class JumpSolPlotter:
         plt.grid()
 
         f10=plt.figure()
-        plt.plot(self.time_vector_ref, self.hip_height_ref,label="hip height")
-        plt.plot(self.time_vector_ref, self.foot_tip_height_ref,label="foot tip height")
+        plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height")
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
@@ -501,9 +514,9 @@ class JumpSolPlotter:
         plt.grid()
         
         f11=plt.figure()
-        plt.plot(self.time_vector_ref, self.foot_tip_vel_ref[0,:],label="tip vel. x")
-        plt.plot(self.time_vector_ref, self.foot_tip_vel_ref[1,:],label="tip vel. y")
-        plt.plot(self.time_vector_ref, self.foot_tip_vel_ref[2,:],label="tip vel. z")
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[0,:],label="tip vel. x")
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y")
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z")
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -512,9 +525,9 @@ class JumpSolPlotter:
         plt.grid()
         
         f12=plt.figure()
-        plt.plot(self.time_vector_ref, self.hip_vel_ref[0,:],label="hip vel. x")
-        plt.plot(self.time_vector_ref, self.hip_vel_ref[1,:],label="hip vel. y")
-        plt.plot(self.time_vector_ref, self.hip_vel_ref[2,:],label="hip vel. z")
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x")
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y")
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z")
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
@@ -525,13 +538,13 @@ class JumpSolPlotter:
 
         f1=plt.figure()
 
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[0, :-1], label=r"F_x_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[0, :-1], label=r"F_x_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
 
-        plt.plot(self.time_vector_ref[1:-1], self.GRF_ref[0, :-1], label=r"F_x_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[1:-1], self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[1:-1], self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[0, :-1], label=r"F_x_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle='dashed', linewidth=2)
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -542,10 +555,10 @@ class JumpSolPlotter:
         #     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
         f2=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
@@ -553,10 +566,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f3=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
@@ -564,10 +577,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f4=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
         
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -576,10 +589,10 @@ class JumpSolPlotter:
         plt.grid()
     
         f5=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle='dashed', linewidth=2)
         
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -588,10 +601,10 @@ class JumpSolPlotter:
         plt.grid()
         
         f6=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1], self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
@@ -599,10 +612,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f10=plt.figure()
-        plt.plot(self.time_vector_res, self.hip_height_res,label="hip height res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref, self.hip_height_ref,label="hip height ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref, self.foot_tip_height_ref,label="foot tip height ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_height_res,label="hip height res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height ref", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
@@ -610,13 +623,13 @@ class JumpSolPlotter:
         plt.grid()
         
         f11=plt.figure()
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle='-', linewidth=2)
 
-        plt.plot(self.time_vector_ref, self.foot_tip_vel_ref[0,:],label="tip vel. x ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref, self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref, self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[0,:],label="tip vel. x ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle='dashed', linewidth=2)
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -625,12 +638,12 @@ class JumpSolPlotter:
         plt.grid()
         
         f12=plt.figure()
-        plt.plot(self.time_vector_res, self.hip_vel_res[0,:],label="hip vel. x res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.hip_vel_res[1,:],label="hip vel. y res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.hip_vel_res[2,:],label="hip vel. z res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref, self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref, self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref, self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[0,:],label="hip vel. x res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[1,:],label="hip vel. y res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[2,:],label="hip vel. z res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
@@ -641,13 +654,13 @@ class JumpSolPlotter:
 
         f1=plt.figure()
 
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[0, :-1], label=r"F_x_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[1:-1], self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[0, :-1], label=r"F_x_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
 
-        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[0, :-1], label=r"F_x_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[1:-1], self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[0, :-1], label=r"F_x_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle='dashed', linewidth=2)
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -658,10 +671,10 @@ class JumpSolPlotter:
         #     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
         f2=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
@@ -669,10 +682,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f3=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
@@ -680,10 +693,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f4=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
         
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -692,10 +705,10 @@ class JumpSolPlotter:
         plt.grid()
     
         f5=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque raw", linestyle='dashed', linewidth=2)
         
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -704,10 +717,10 @@ class JumpSolPlotter:
         plt.grid()
         
         f6=plt.figure()
-        plt.plot(self.time_vector_res[:-1], self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1], self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[:-1], self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current raw", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
@@ -715,10 +728,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f10=plt.figure()
-        plt.plot(self.time_vector_res, self.hip_height_res,label="hip height res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw, self.hip_height_raw,label="hip height raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw, self.foot_tip_height_raw,label="foot tip height raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_height_res,label="hip height res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.hip_height_raw,label="hip height raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_height_raw,label="foot tip height raw", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
@@ -726,13 +739,13 @@ class JumpSolPlotter:
         plt.grid()
         
         f11=plt.figure()
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle='-', linewidth=2)
 
-        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[0,:],label="tip vel. x raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[1,:],label="tip vel. y raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw, self.foot_tip_vel_raw[2,:],label="tip vel. z raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[0,:],label="tip vel. x raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[1,:],label="tip vel. y raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[2,:],label="tip vel. z raw", linestyle='dashed', linewidth=2)
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -741,17 +754,24 @@ class JumpSolPlotter:
         plt.grid()
         
         f12=plt.figure()
-        plt.plot(self.time_vector_res, self.hip_vel_res[0,:],label="hip vel. x res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.hip_vel_res[1,:],label="hip vel. y res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res, self.hip_vel_res[2,:],label="hip vel. z res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_raw, self.hip_vel_raw[0,:],label="hip vel. x raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw, self.hip_vel_raw[1,:],label="hip vel. y raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw, self.hip_vel_raw[2,:],label="hip vel. z raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[0,:],label="hip vel. x res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[1,:],label="hip vel. y res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[2,:],label="hip vel. z res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[0,:],label="hip vel. x raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[1,:],label="hip vel. y raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[2,:],label="hip vel. z raw", linestyle='dashed', linewidth=2)
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
         plt.grid()
+
+    def __reshape(self, vector: np.ndarray):
+        
+        length = vector.size
+        vector = vector.reshape(1, length)
+        # by default reshape row-wise
+        return vector.flatten()
 
     def make_opt_plots(self, make_plt_slctr = [True] * 5):
 
@@ -780,12 +800,14 @@ class JumpSolPlotter:
 
             for i in range(len(self.sim_q_p_meas[:, 0])):
                 
-                ax_pos[0].plot(self.sim_replay_time, self.sim_q_p_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
-                ax_pos[0].plot(self.sim_replay_time, self.sim_q_p_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+                print
+                ax_pos[0].plot(self.sim_replay_time.flatten(),self.sim_q_p_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_pos[0].plot(self.sim_replay_time.flatten(), self.sim_q_p_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
 
                 # errors
-                ax_pos[1].plot(self.sim_replay_time, np.subtract(self.sim_q_p_cmd[i, :], self.sim_q_p_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
-                
+                ax_pos[1].plot(self.sim_replay_time.flatten(), np.subtract(self.sim_q_p_cmd[i, :], self.sim_q_p_meas[i, :]),\
+                    label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+            
             ax_pos[0].legend(loc="upper left")
             ax_pos[0].set_xlabel(r"t [s]")
             ax_pos[0].set_ylabel('[rad]')
@@ -801,11 +823,12 @@ class JumpSolPlotter:
 
             for i in range(len(self.sim_q_p_meas[:, 0])):
                 
-                ax_vel[0].plot(self.sim_replay_time, self.sim_q_p_dot_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
-                ax_vel[0].plot(self.sim_replay_time, self.sim_q_p_dot_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+                ax_vel[0].plot(self.sim_replay_time.flatten(), self.sim_q_p_dot_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_vel[0].plot(self.sim_replay_time.flatten(), self.sim_q_p_dot_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
 
                 # errors
-                ax_vel[1].plot(self.sim_replay_time, np.subtract(self.sim_q_p_dot_cmd[i, :], self.sim_q_p_dot_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+                ax_vel[1].plot(self.sim_replay_time.flatten(), np.subtract(self.sim_q_p_dot_cmd[i, :],\
+                    self.sim_q_p_dot_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
                 
             ax_vel[0].legend(loc="upper left")
             ax_vel[0].set_xlabel(r"t [s]")
@@ -822,9 +845,9 @@ class JumpSolPlotter:
 
             for i in range(len(self.sim_tau_meas[:, 0])):
 
-                plt.plot(self.sim_replay_time, self.sim_tau_meas[i, :], label=r"tau_meas_j" + str(i), linestyle='-', linewidth=2)
+                plt.plot(self.sim_replay_time.flatten(), self.sim_tau_meas[i, :], label=r"tau_meas_j" + str(i), linestyle='-', linewidth=2)
 
-                plt.plot(self.sim_replay_time, self.sim_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+                plt.plot(self.sim_replay_time.flatten(), self.sim_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
 
             plt.legend(loc="upper left")
             plt.xlabel(r"t [s]")
@@ -835,15 +858,34 @@ class JumpSolPlotter:
             f3=plt.figure()
             for i in range(len(self.sim_tau_meas[:, 0])):
 
-                plt.plot(self.sim_replay_time, self.sim_tau_meas[i, :] * self.sim_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
+                plt.plot(self.sim_replay_time.flatten(), self.sim_tau_meas[i, :] * self.sim_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
 
-                plt.plot(self.sim_replay_time, self.sim_tau_cmd[i, :] * self.sim_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j", linestyle='dashed', linewidth=2)
+                plt.plot(self.sim_replay_time.flatten(), self.sim_tau_cmd[i, :] * self.sim_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j" + str(i), linestyle='dashed', linewidth=2)
 
             plt.legend(loc="upper left")
             plt.xlabel(r"t [s]")
             plt.ylabel('[m]')
             plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
             plt.grid()
+
+            _, ax_vel = plt.subplots(2)
+
+            for i in range(len(self.sim_meas_stiffness[:, 0])):
+                
+                ax_vel[0].plot(self.sim_replay_time.flatten(), self.sim_meas_stiffness[i, :], label=r"read jnt stiffness" + str(i), linestyle='-', linewidth=2)
+
+                ax_vel[1].plot(self.sim_replay_time.flatten(), self.sim_meas_damping[i, :], label=r"read jnt damping" + str(i), linestyle='-', linewidth=2)
+                
+            ax_vel[0].legend(loc="upper left")
+            ax_vel[0].set_xlabel(r"t [s]")
+            ax_vel[0].set_ylabel('[Nm / rad]')
+            ax_vel[0].grid()
+            ax_vel[0].set_title("Read joint stiffnesses", fontdict=None, loc='center')
+            ax_vel[1].legend(loc="upper left")
+            ax_vel[1].set_xlabel(r"t [s]")
+            ax_vel[1].set_ylabel('[Nm s / rad]')
+            ax_vel[1].grid()
+            ax_vel[1].set_title("Read joint dampings", fontdict=None, loc='center')
             
             self.__make_sim_link_plots()
             
@@ -851,7 +893,7 @@ class JumpSolPlotter:
                 
         _, ax_sol_t = plt.subplots(2)
 
-        ax_sol_t[0].plot(self.sim_replay_time, self.sim_base_link_abs[2, :], label = "$z_{hip}$",\
+        ax_sol_t[0].plot(self.sim_replay_time.flatten(), self.sim_base_link_abs[2, :], label = "$z_{hip}$",\
             linestyle='-', linewidth=2, markersize=12)
         leg_t = ax_sol_t[0].legend(loc="upper right")
         leg_t.set_draggable(True)
@@ -860,7 +902,7 @@ class JumpSolPlotter:
         ax_sol_t[0].set_title(r"Hip absolute vertical position", fontdict=None, loc='center')
         ax_sol_t[0].grid()
 
-        ax_sol_t[1].plot(self.sim_replay_time, self.sim_tip_pos_meas[2, :], label = "$z_{tip}$",\
+        ax_sol_t[1].plot(self.sim_replay_time.flatten(), self.sim_tip_pos_meas[2, :], label = "$z_{tip}$",\
             linestyle='-', linewidth=2, markersize=12)
         leg_t = ax_sol_t[1].legend(loc="upper right")
         leg_t.set_draggable(True)
@@ -871,9 +913,9 @@ class JumpSolPlotter:
 
         f4=plt.figure()
     
-        plt.plot(self.sim_replay_time, self.sim_tip_pos_meas[0, :], label=r"tip_pos_x", linestyle='-', linewidth=2)
-        plt.plot(self.sim_replay_time, self.sim_tip_pos_meas[1, :], label=r"tip_pos_y", linestyle='-', linewidth=2)
-        plt.plot(self.sim_replay_time, self.sim_tip_pos_meas[2, :], label=r"tip_pos_z", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time.flatten(), self.sim_tip_pos_meas[0, :], label=r"tip_pos_x", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time.flatten(), self.sim_tip_pos_meas[1, :], label=r"tip_pos_y", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time.flatten(), self.sim_tip_pos_meas[2, :], label=r"tip_pos_z", linestyle='-', linewidth=2)
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -883,9 +925,9 @@ class JumpSolPlotter:
 
         f5=plt.figure()
 
-        plt.plot(self.sim_replay_time, self.sim_base_link_abs[0, :], label=r"base_link_pos_x", linestyle='-', linewidth=2)
-        plt.plot(self.sim_replay_time, self.sim_base_link_abs[1, :], label=r"base_link_pos_y", linestyle='-', linewidth=2)
-        plt.plot(self.sim_replay_time, self.sim_base_link_abs[2, :], label=r"base_link_pos_z", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time.flatten(), self.sim_base_link_abs[0, :], label=r"base_link_pos_x", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time.flatten(), self.sim_base_link_abs[1, :], label=r"base_link_pos_y", linestyle='-', linewidth=2)
+        plt.plot(self.sim_replay_time.flatten(), self.sim_base_link_abs[2, :], label=r"base_link_pos_z", linestyle='-', linewidth=2)
 
         plt.legend(loc="upper left")
         plt.xlabel(r"t [s]")
@@ -957,77 +999,95 @@ class LogLoader:
             name: field names in the .mat file
 
         """
+
+        self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+
+        # if 'plugin_dt' in name: # assigns the aux names and their associated codes to a dictionary
+
+        #     self.data[name] = np.array(self.mat_file_h5py[name])[0][0]   # add the pair key-value to the dictionary
         
-        if 'plugin_dt' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'replay_time' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name])[0][0]   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
         
-        if 'replay_time' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'q_p_meas' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
         
-        if 'q_p_meas' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'q_p_dot_meas' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
         
-        if 'q_p_dot_meas' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'q_p_cmd' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
         
-        if 'q_p_cmd' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'q_p_dot_cmd' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
         
-        if 'q_p_dot_cmd' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'replay_damping' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()  # add the pair key-value to the dictionary
+
+        # if 'replay_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
+
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()  # add the pair key-value to the dictionary
         
-        if 'replay_damping' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'stop_damping' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()  # add the pair key-value to the dictionary
-
-        if 'replay_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
-
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()  # add the pair key-value to the dictionary
-        
-        if 'stop_damping' in name: # assigns the aux names and their associated codes to a dictionary
-
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
     
-        if 'stop_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'stop_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
 
-        if 'tau_meas' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'tau_meas' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
 
-        if 'tau_cmd' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'tau_cmd' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
 
-        if 'tau_ref' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'tau_ref' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
 
-        if 'replay_damping' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'replay_damping' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionar
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionar
 
-        if 'replay_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'replay_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).flatten()   # add the pair key-value to the dictionary
 
-        if 'base_link_abs' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'base_link_abs' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
         
-        if 'tip_pos_meas' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'tip_pos_meas' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
         
-        if 'tip_pos_rel_base_link' in name: # assigns the aux names and their associated codes to a dictionary
+        # if 'tip_pos_rel_base_link' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+
+        # if 'tip_pos_rel_base_link' in name: # assigns the aux names and their associated codes to a dictionary
+
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        
+        # if 'tip_pos_rel_base_link' in name: # assigns the aux names and their associated codes to a dictionary
+
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+        
+        # if 'tip_pos_rel_base_link' in name: # assigns the aux names and their associated codes to a dictionary
+
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
+
+        # if 'tip_pos_rel_base_link' in name: # assigns the aux names and their associated codes to a dictionary
+
+        #     self.data[name] = np.array(self.mat_file_h5py[name]).T   # add the pair key-value to the dictionary
         
         return None # any other value != to None would block the execution of visit() method
