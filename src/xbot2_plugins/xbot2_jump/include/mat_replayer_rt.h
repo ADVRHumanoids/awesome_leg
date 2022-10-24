@@ -11,6 +11,8 @@
 
 #include "plugin_utils.hpp"
 
+#include "contact_est_utils.hpp"
+
 #include <xbot2/ros/ros_support.h>
 
 #include <std_msgs/Bool.h>
