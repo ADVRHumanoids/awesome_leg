@@ -20,7 +20,7 @@
 <xacro:property name="camera_depth" value="1.0" />
 
 <xacro:property name="fts_sphere_radius" value="0.045" />
-<xacro:property name="fts_delta" value="0.003" />
+<xacro:property name="fts_delta" value="0.005" />
 
 <!-- color -->
 <material name="darkblue">

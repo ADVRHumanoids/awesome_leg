@@ -107,8 +107,16 @@
 
         <xacro:if value="${ add_ft_sensor == True}"> 
 
-            <gazebo reference="tip_joint${id}">
+            <gazebo>
+                <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+                    <updateRate>200.0</updateRate>
+                    <topicName>awesome_leg/ft_sensor_tip</topicName>
+                    <jointName>tip_joint${id}</jointName>
+                </plugin>
+            </gazebo>
 
+            <gazebo reference="tip_joint${id}">
+                <provideFeedback>true</provideFeedback>
                 <sensor type="force_torque" name="tip${id}_fts">
                     <force_torque>
                         <frame>sensor</frame>
@@ -116,10 +124,10 @@
                     </force_torque>
                     <always_on>true</always_on>
                     <visualize>true</visualize>
-                    <update_rate>1000</update_rate>
-                    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose> <!-- check! -->
+                    <update_rate>200</update_rate>
+                    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose> 
               </sensor>
-
+        
             </gazebo>
 
         </xacro:if>

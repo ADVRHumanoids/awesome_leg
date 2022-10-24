@@ -86,19 +86,18 @@
 
         <xacro:if value="${ add_ft_sensor == True}"> 
 
-            <joint name="tip_joint${id}" type="revolute">
+            <joint name="tip_joint${id}" type="prismatic">
                 <parent link="shin${id}"/>
                 <child link="tip${id}"/>
                 <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom + fts_sphere_radius - fts_delta}"/>
                 <limit effort="0" lower="0.0" upper="0.0" velocity="0.0"/>
-
+                <axis  xyz="0 0 1"/>
             </joint>
-
             <link name="tip${id}"> 
                     <origin xyz="0.0 0.0 0.0"/>
                     <inertial>  
                         <origin xyz="0.0 0.0 0.0"/>
-                        <mass value="0.01"/>
+                        <mass value="0.005"/> <!-- fake inertial value, otherwise Gazebo throws errors  -->
                         <inertia ixx="0" iyy="0" izz="0"
                             ixy="0" ixz="0" iyz="0" />
                     </inertial>
