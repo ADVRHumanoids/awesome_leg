@@ -15,13 +15,13 @@
         <gazebo reference="shin${id}">
             <collision>
 
-                <max_contacts> 1 </max_contacts>
+                <max_contacts> 20 </max_contacts>
 
                 <surface>
                     <friction>
                         <ode>
-                            <mu>20</mu>
-                            <mu2>20</mu2>
+                            <mu>1</mu>
+                            <mu2>1</mu2>
                         </ode>
                         <bullet>
                             <friction>1.0</friction>
@@ -41,6 +41,39 @@
                             <kd>5</kd>
                         </bullet>
                     </contact> -->
+                </surface>
+            </collision>
+        </gazebo>
+
+        <gazebo reference="tip${id}">
+            <collision>
+
+                <max_contacts> 1 </max_contacts>
+
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>20</mu>
+                            <mu2>20</mu2>
+                        </ode>
+                        <bullet>
+                            <friction>1.0</friction>
+                            <friction2>1.0</friction2>
+                        </bullet>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>1000000000000</kp>
+                            <kd>1</kd>
+                            <!-- <max_vel>100</max_vel> -->
+                        </ode>
+                        <!-- <bullet>
+                            <soft_cfm>0.007</soft_cfm>
+                            <soft_erp>0.25</soft_erp>
+                            <kp>1000000</kp>
+                            <kd>5</kd>
+                        </bullet> -->
+                    </contact>
                 </surface>
             </collision>
         </gazebo>
@@ -74,27 +107,20 @@
 
         <xacro:if value="${ add_ft_sensor == True}"> 
 
-            <!-- <link name="ft_sensor${id}">
-                <inertial>
-                    <origin xyz="0.0 0.0 0.0"/>
-                    <mass value=""/>
-                    <inertia ixx="${4.6647423e+04 * kgmm2_2_kgm2}" iyy="${4.3720135e+04 * kgmm2_2_kgm2}" izz="${7.5794813e+04 * kgmm2_2_kgm2}"
-                        ixy="${-1.2697640e+01 * kgmm2_2_kgm2}" ixz="${-3.2745810e+01 * kgmm2_2_kgm2}" iyz="${-6.3299091e+04 * kgmm2_2_kgm2}" />
-                </inertial>
-                <visual>
-                    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-                    <geometry>
-                        <mesh filename="package://awesome_leg/description/new_meshes/visual/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
-                    </geometry>
-                    <material name="darkblue"/>
-                </visual>
-                <collision>
-                    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-                    <geometry>
-                        <mesh filename="package://awesome_leg/description/new_meshes/collision/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
-                    </geometry>
-                </collision>
-            </link> -->
+            <gazebo reference="tip_joint${id}">
+
+                <sensor type="force_torque" name="tip${id}_fts">
+                    <force_torque>
+                        <frame>sensor</frame>
+                        <measure_direction>child_to_parent</measure_direction>
+                    </force_torque>
+                    <always_on>true</always_on>
+                    <visualize>true</visualize>
+                    <update_rate>1000</update_rate>
+                    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose> <!-- check! -->
+              </sensor>
+
+            </gazebo>
 
         </xacro:if>
         

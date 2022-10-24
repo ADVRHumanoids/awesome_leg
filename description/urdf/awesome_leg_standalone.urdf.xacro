@@ -12,6 +12,6 @@
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.xbot.xacro"/>
     <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro" />
 
-    <xacro:awesome_leg id="1" base_link="none"/> 
+    <xacro:awesome_leg id="1" base_link="none" add_ft_sensor= "false"/> 
     
   </robot>

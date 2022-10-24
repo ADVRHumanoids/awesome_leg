@@ -190,6 +190,19 @@
             </gazebo>
 
         </xacro:if> -->
+  <gazebo reference="tip_joint1">
+    <sensor name="tip1_fts" type="force_torque">
+      <force_torque>
+        <frame>sensor</frame>
+        <measure_direction>child_to_parent</measure_direction>
+      </force_torque>
+      <always_on>true</always_on>
+      <visualize>true</visualize>
+      <update_rate>1000</update_rate>
+      <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
+      <!-- check! -->
+    </sensor>
+  </gazebo>
   <!-- only add joint to base if argument is non-empty -->
   <joint name="hip_pitch1" type="revolute">
     <parent link="base_link"/>
@@ -245,30 +258,24 @@
       </geometry>
     </collision>
   </link>
-  <joint name="tip_joint1" type="fixed">
+  <joint name="tip_joint1" type="revolute">
     <parent link="shin1"/>
     <child link="tip1"/>
-    <origin xyz="0.0 0.0233 -0.451"/>
+    <origin xyz="0.0 0.0233 -0.40900000000000003"/>
+    <limit effort="0" lower="0.0" upper="0.0" velocity="0.0"/>
   </joint>
-  <link name="tip1"/>
-  <!-- <transmission name="hip_pitch${id}">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="hip_pitch_1">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            </joint>
-            <actuator name="hip_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission>
-        <transmission name="knee_trans">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="knee_pitch_1">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            </joint>
-            <actuator name="knee_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission> -->
+  <link name="tip1">
+    <origin xyz="0.0 0.0 0.0"/>
+    <inertial>
+      <origin xyz="0.0 0.0 0.0"/>
+      <mass value="0.1"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+    <collision>
+      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+      <geometry>
+        <sphere radius="0.045"/>
+      </geometry>
+    </collision>
+  </link>
 </robot>

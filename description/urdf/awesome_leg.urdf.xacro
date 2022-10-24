@@ -6,7 +6,7 @@
 
     <xacro:macro name="awesome_leg" params="id base_link add_ft_sensor" >
 
-        <xacro:awesome_leg_gazebo id="${id} ${add_ft_sensor}"/> 
+        <xacro:awesome_leg_gazebo id="${id}" add_ft_sensor="${add_ft_sensor}"/> 
 
         <xacro:unless value="${ base_link=='None' or base_link=='none'}">
             <!-- only add joint to base if argument is non-empty -->
@@ -72,35 +72,48 @@
             </collision>
         </link>
 
-        <joint name="tip_joint${id}" type="fixed">
-            <parent link="shin${id}"/>
-            <child link="tip${id}"/>
-            <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom}"/>
-        </joint>
+        <xacro:unless value="${ add_ft_sensor == True}"> 
 
-        <link name="tip${id}"/> 
+            <joint name="tip_joint${id}" type="fixed">
+                <parent link="shin${id}"/>
+                <child link="tip${id}"/>
+                <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom}"/>
+            </joint>
 
-        <!-- <transmission name="hip_pitch${id}">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="hip_pitch_1">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <link name="tip${id}"/> 
+            
+        </xacro:unless>
+
+        <xacro:if value="${ add_ft_sensor == True}"> 
+
+            <joint name="tip_joint${id}" type="revolute">
+                <parent link="shin${id}"/>
+                <child link="tip${id}"/>
+                <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom + fts_sphere_radius - fts_delta}"/>
+                <limit effort="0" lower="0.0" upper="0.0" velocity="0.0"/>
+
             </joint>
-            <actuator name="hip_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission>
-        <transmission name="knee_trans">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="knee_pitch_1">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            </joint>
-            <actuator name="knee_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission> -->
-        
+
+            <link name="tip${id}"> 
+                    <origin xyz="0.0 0.0 0.0"/>
+                    <inertial>  
+                        <origin xyz="0.0 0.0 0.0"/>
+                        <mass value="0.01"/>
+                        <inertia ixx="0" iyy="0" izz="0"
+                            ixy="0" ixz="0" iyz="0" />
+                    </inertial>
+                    <collision>
+                        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                        <geometry>
+                            <sphere radius="${fts_sphere_radius}"/>
+                        </geometry> 
+                        <max_contacts> 20 </max_contacts>
+                    </collision>
+
+            </link>
+
+        </xacro:if>
+
     </xacro:macro>
 
 </robot>

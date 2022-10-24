@@ -17,13 +17,13 @@
           <contact>
              <!--<collide_bitmask>0xffff</collide_bitmask>-->
              <ode>
-                <kp>1000000000000000</kp> <!-- default 1000000000000 -->
-                <kd>1</kd>
+                <kp>1000000</kp> <!-- default 1000000000000 -->
+                <kd>100</kd>
                 <!--<min_depth> </min_depth>-->
                 <!--<max_vel>0.01</max_vel>-->
              </ode>
              <bullet>
-                <kp>1000000000000000</kp>
+                <kp>1000000000000</kp>
                 <kd>1</kd>
                 <!--<split_impulse_penetration_threshold>  </split_impulse_penetration_threshold>--> <!-- default -0.01 -->
              </bullet>
@@ -31,8 +31,8 @@
 
           <friction>
             <ode>
-              <mu>20</mu>
-              <mu2>20</mu2>
+              <mu>1</mu>
+              <mu2>1</mu2>
             </ode>
             <bullet>
               <friction>1</friction>

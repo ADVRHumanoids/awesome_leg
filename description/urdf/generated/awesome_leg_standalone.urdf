@@ -187,24 +187,4 @@
     <origin xyz="0.0 0.0233 -0.451"/>
   </joint>
   <link name="tip1"/>
-  <!-- <transmission name="hip_pitch${id}">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="hip_pitch_1">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            </joint>
-            <actuator name="hip_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission>
-        <transmission name="knee_trans">
-            <type>transmission_interface/SimpleTransmission</type>
-            <joint name="knee_pitch_1">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            </joint>
-            <actuator name="knee_motor">
-                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-                <mechanicalReduction>1</mechanicalReduction>
-            </actuator>
-        </transmission> -->
 </robot>

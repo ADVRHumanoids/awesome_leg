@@ -8,7 +8,7 @@
     <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
 
     <xacro:arg name="sliding_guide" default="true" />
-    <xacro:arg name="add_ft_sensor" default="false" />
+    <xacro:arg name="add_ft_sensor" default="true" />
     
     <xacro:arg name="dump_video_frames" default="false" />
     
@@ -114,27 +114,5 @@
     </link>    
 
     <xacro:awesome_leg id="1" base_link="base_link" add_ft_sensor="$(arg add_ft_sensor)"/> 
-
-    <link name="femur${id}">
-            <inertial>
-                <origin xyz="0.0 0.0 0.0"/>
-                <mass value="3.3712777"/>
-                <inertia ixx="${4.6647423e+04 * kgmm2_2_kgm2}" iyy="${4.3720135e+04 * kgmm2_2_kgm2}" izz="${7.5794813e+04 * kgmm2_2_kgm2}"
-                    ixy="${-1.2697640e+01 * kgmm2_2_kgm2}" ixz="${-3.2745810e+01 * kgmm2_2_kgm2}" iyz="${-6.3299091e+04 * kgmm2_2_kgm2}" />
-            </inertial>
-            <visual>
-                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-                <geometry>
-                    <mesh filename="package://awesome_leg/description/new_meshes/visual/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
-                </geometry>
-                <material name="darkblue"/>
-            </visual>
-            <collision>
-                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-                <geometry>
-                    <mesh filename="package://awesome_leg/description/new_meshes/collision/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
-                </geometry>
-            </collision>
-    </link>
 
 </robot>
