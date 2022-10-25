@@ -27,6 +27,8 @@
  #include <Eigen/Core>
 #include <Eigen/Geometry>
 
+#include <xbot2/hal/dev_ft.h>
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 
@@ -153,7 +155,9 @@ private:
 
     XBot::ModelInterface::Ptr _model; 
 
-    XBot::ForceTorqueSensor::ConstPtr _ft_sensor;
+//    XBot::ForceTorqueSensor::ConstPtr _ft_sensor;
+//    ::Ptr ;
+    std::shared_ptr<XBot::Hal::ForceTorque >_ft_sensor;
 
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
 

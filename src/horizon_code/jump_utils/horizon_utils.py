@@ -51,13 +51,13 @@ class JumpSolPlotter:
 
             self.sim_path_full = solution_dirpath + "/" + sim_postproc_filename
 
-            self.__run_sim_sol_postproc()
+            self.sim_data_loaded_ok = self.__run_sim_sol_postproc()
         
         if test_postproc_filename is not None:
             
             self.test_path_full = solution_dirpath + "/" + test_postproc_filename
 
-            self.__run_test_sol_postproc()
+            self.test_data_loaded_ok = self.__run_test_sol_postproc()
         
 
     def __run_opt_sol_postproc(self):
@@ -70,15 +70,19 @@ class JumpSolPlotter:
 
     def __run_sim_sol_postproc(self):
 
-        self.__load_sim_sol()   
+        self.__load_sim_plugin_data()   
 
-        self.__read_sim_sol()
+        sim_data_loaded_ok = self.__read_sim_plugin_data()
+
+        return sim_data_loaded_ok
 
     def __run_test_sol_postproc(self):
 
-        self.__load_test_sol()   
+        self.__load_test_plugin_data()   
 
-        self.__read_test_sol()
+        test_data_loaded_ok = self.__read_test_plugin_data()
+
+        return test_data_loaded_ok
         
     def __load_opt_sol(self):
         
@@ -116,12 +120,12 @@ class JumpSolPlotter:
 
             pass
 
-    def __load_sim_sol(self):
+    def __load_sim_plugin_data(self):
         
         self.ms_loader_sim = LogLoader(self.sim_path_full)
         self.sim_data = self.ms_loader_sim.data
 
-    def __load_test_sol(self):
+    def __load_test_plugin_data(self):
         
         self.ms_loader_test = LogLoader(self.test_path_full)
         self.test_data = self.ms_loader_test.data
@@ -174,60 +178,87 @@ class JumpSolPlotter:
         self.__read_res_opt_sol()
         self.__read_ref_opt_sol()
     
-    def __read_sim_sol(self):
+    def __read_sim_plugin_data(self):
 
-        self.sim_plugin_dt=self.sim_data["plugin_dt"] 
-        self.sim_replay_time=self.sim_data["replay_time"]
-        self.is_sim=self.sim_data["jump_replay_times"]
-        self.sim_q_p_meas=self.sim_data["q_p_meas"]
-        self.sim_q_p_dot_meas=self.sim_data["q_p_dot_meas"]
-        self.sim_q_p_cmd=self.sim_data["q_p_cmd"]
-        self.sim_q_p_dot_cmd=self.sim_data["q_p_dot_cmd"]
-        self.sim_replay_damping=self.sim_data["replay_damping"]
-        self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
-        self.sim_meas_damping=self.sim_data["meas_damping"]
-        self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
-        self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
-        self.sim_stop_damping=self.sim_data["stop_damping"]
-        self.sim_tau_meas=self.sim_data["tau_meas"]
-        self.sim_tau_cmd=self.sim_data["tau_cmd"]
-        self.sim_base_link_abs=self.sim_data["base_link_abs"]
-        try:
+        self.is_sim=bool(self.sim_data["is_sim"][0][0])
+
+        if self.is_sim:
+            # the loaded data belongs to a simulation 
+            self.sim_plugin_dt=self.sim_data["plugin_dt"] 
+            self.sim_replay_time=self.sim_data["replay_time"]
+            
+            self.sim_q_p_meas=self.sim_data["q_p_meas"]
+            self.sim_q_p_dot_meas=self.sim_data["q_p_dot_meas"]
+            self.sim_q_p_cmd=self.sim_data["q_p_cmd"]
+            self.sim_q_p_dot_cmd=self.sim_data["q_p_dot_cmd"]
+            self.sim_replay_damping=self.sim_data["replay_damping"]
+            self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
+            self.sim_meas_damping=self.sim_data["meas_damping"]
+            self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
+            self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
+            self.sim_stop_damping=self.sim_data["stop_damping"]
+            self.sim_tau_meas=self.sim_data["tau_meas"]
+            self.sim_tau_cmd=self.sim_data["tau_cmd"]
+            self.sim_base_link_abs=self.sim_data["base_link_abs"]
             self.sim_tip_pos_meas=self.sim_data["tip_pos_meas"]
-        except:
-            pass
-        self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
+            self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
 
-        # other stuff
+            self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
+            self.sim_meas_tip_f_loc = self.sim_data["meas_tip_f_loc"]
+            self.sim_meas_tip_f_abs = self.sim_data["meas_tip_f_abs"]
 
-        self.is_sim=self.sim_data["is_sim"]
-        self.is_sim=self.sim_data["send_pos_ref"]
-        self.is_sim=self.sim_data["send_vel_ref"]
-        self.is_sim=self.sim_data["send_eff_ref"]
+            # other stuff
+
+            self.is_sim=self.sim_data["is_sim"]
+            self.is_sim=self.sim_data["send_pos_ref"]
+            self.is_sim=self.sim_data["send_vel_ref"]
+            self.is_sim=self.sim_data["send_eff_ref"]
+
+            return True
+
+        else:
+
+            return False
+
+
+    def __read_test_plugin_data(self):
+
+        self.is_sim=bool(self.sim_data["is_sim"][0][0])
         
-
-
-    def __read_test_sol(self):
-
-        self.sim_plugin_dt=self.test_data["plugin_dt"] 
-        self.sim_replay_time=self.test_data["replay_time"]
-        self.sim_q_p_meas=self.test_data["q_p_meas"]
-        self.sim_q_p_dot_meas=self.test_data["q_p_dot_meas"]
-        self.sim_q_p_cmd=self.test_data["q_p_cmd"]
-        self.sim_q_p_dot_cmd=self.test_data["q_p_dot_cmd"]
-        self.sim_replay_damping=self.test_data["replay_damping"]
-        self.sim_replay_stiffness=self.test_data["replay_stiffness"]
-        self.sim_stop_damping=self.test_data["stop_damping"]
-        self.sim_tau_meas=self.test_data["tau_meas"]
-        self.sim_tau_cmd=self.test_data["tau_cmd"]
-        self.sim_base_link_abs=self.test_data["base_link_abs"]
-        try:
-            self.sim_tip_pos_meas=self.test_data["tip_pos_meas"]
-        except:
-            pass
-        self.sim_tip_pos_rel_base_link=self.test_data["tip_pos_rel_base_link"]
+        if not self.is_sim:
+            # the loaded data belongs to a test  
+            self.sim_plugin_dt=self.sim_data["plugin_dt"] 
+            self.sim_replay_time=self.sim_data["replay_time"]
+            
+            self.sim_q_p_meas=self.sim_data["q_p_meas"]
+            self.sim_q_p_dot_meas=self.sim_data["q_p_dot_meas"]
+            self.sim_q_p_cmd=self.sim_data["q_p_cmd"]
+            self.sim_q_p_dot_cmd=self.sim_data["q_p_dot_cmd"]
+            self.sim_replay_damping=self.sim_data["replay_damping"]
+            self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
+            self.sim_meas_damping=self.sim_data["meas_damping"]
+            self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
+            self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
+            self.sim_stop_damping=self.sim_data["stop_damping"]
+            self.sim_tau_meas=self.sim_data["tau_meas"]
+            self.sim_tau_cmd=self.sim_data["tau_cmd"]
         
-        return True
+            self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
+
+            self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
+
+            # other stuff
+
+            self.is_sim=self.sim_data["is_sim"]
+            self.is_sim=self.sim_data["send_pos_ref"]
+            self.is_sim=self.sim_data["send_vel_ref"]
+            self.is_sim=self.sim_data["send_eff_ref"]
+
+            return True
+
+        else:
+
+            return False
 
     def __compute_time_vect_opt(self):
 
@@ -766,13 +797,6 @@ class JumpSolPlotter:
         plt.title("Hip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
         plt.grid()
 
-    def __reshape(self, vector: np.ndarray):
-        
-        length = vector.size
-        vector = vector.reshape(1, length)
-        # by default reshape row-wise
-        return vector.flatten()
-
     def make_opt_plots(self, make_plt_slctr = [True] * 5):
 
         if make_plt_slctr[0]:
@@ -794,7 +818,7 @@ class JumpSolPlotter:
 
     def make_sim_plots(self, make_plots = False):
         
-        if make_plots:
+        if make_plots and self.sim_data_loaded_ok:
 
             _, ax_pos = plt.subplots(2)
 
@@ -868,24 +892,45 @@ class JumpSolPlotter:
             plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
             plt.grid()
 
-            _, ax_vel = plt.subplots(2)
+            _, ax_imp = plt.subplots(2)
 
             for i in range(len(self.sim_meas_stiffness[:, 0])):
                 
-                ax_vel[0].plot(self.sim_replay_time.flatten(), self.sim_meas_stiffness[i, :], label=r"read jnt stiffness" + str(i), linestyle='-', linewidth=2)
+                ax_imp[0].plot(self.sim_replay_time.flatten(), self.sim_meas_stiffness[i, :], label=r"read jnt stiffness" + str(i), linestyle='-', linewidth=2)
 
-                ax_vel[1].plot(self.sim_replay_time.flatten(), self.sim_meas_damping[i, :], label=r"read jnt damping" + str(i), linestyle='-', linewidth=2)
+                ax_imp[1].plot(self.sim_replay_time.flatten(), self.sim_meas_damping[i, :], label=r"read jnt damping" + str(i), linestyle='-', linewidth=2)
                 
-            ax_vel[0].legend(loc="upper left")
-            ax_vel[0].set_xlabel(r"t [s]")
-            ax_vel[0].set_ylabel('[Nm / rad]')
-            ax_vel[0].grid()
-            ax_vel[0].set_title("Read joint stiffnesses", fontdict=None, loc='center')
-            ax_vel[1].legend(loc="upper left")
-            ax_vel[1].set_xlabel(r"t [s]")
-            ax_vel[1].set_ylabel('[Nm s / rad]')
-            ax_vel[1].grid()
-            ax_vel[1].set_title("Read joint dampings", fontdict=None, loc='center')
+            ax_imp[0].legend(loc="upper left")
+            ax_imp[0].set_xlabel(r"t [s]")
+            ax_imp[0].set_ylabel('[Nm / rad]')
+            ax_imp[0].grid()
+            ax_imp[0].set_title("Read joint stiffnesses", fontdict=None, loc='center')
+            ax_imp[1].legend(loc="upper left")
+            ax_imp[1].set_xlabel(r"t [s]")
+            ax_imp[1].set_ylabel('[Nm s / rad]')
+            ax_imp[1].grid()
+            ax_imp[1].set_title("Read joint dampings", fontdict=None, loc='center')
+
+            _, ax_f_cont_meas = plt.subplots(2)
+
+            directions = ["x", "y", "z"]
+
+            for i in range(len(self.sim_meas_tip_f_abs[:, 0])): # iterate through spatial directions
+                
+                ax_f_cont_meas[0].plot(self.sim_replay_time.flatten(), self.sim_meas_tip_f_abs[i, :], label=r"contact force along abs. " + directions[i] + r" direction", linestyle='-', linewidth=2)
+
+                ax_f_cont_meas[1].plot(self.sim_replay_time.flatten(), self.sim_meas_tip_f_loc[i, :], label=r"contact force along loc. " + directions[i] + r" direction", linestyle='-', linewidth=2)
+                
+            ax_f_cont_meas[0].legend(loc="upper left")
+            ax_f_cont_meas[0].set_xlabel(r"t [s]")
+            ax_f_cont_meas[0].set_ylabel('[N]')
+            ax_f_cont_meas[0].grid()
+            ax_f_cont_meas[0].set_title("Measured absolute contact forces", fontdict=None, loc='center')
+            ax_f_cont_meas[1].legend(loc="upper left")
+            ax_f_cont_meas[1].set_xlabel(r"t [s]")
+            ax_f_cont_meas[1].set_ylabel('[N]')
+            ax_f_cont_meas[1].grid()
+            ax_f_cont_meas[1].set_title("Measured local (tip frame) contact forces", fontdict=None, loc='center')
             
             self.__make_sim_link_plots()
             
@@ -936,9 +981,15 @@ class JumpSolPlotter:
         plt.grid()
 
 
-    def make_test_plots():
+    def make_test_plots(self, make_plots = False):
+        
+        a = False
 
-        return True
+        if make_plots and self.test_data_loaded_ok:
+
+            a = True
+
+        return a
 
     def show_plots(self):
         

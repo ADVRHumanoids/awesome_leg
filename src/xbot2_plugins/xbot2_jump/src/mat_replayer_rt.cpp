@@ -142,7 +142,9 @@ void MatReplayerRt::is_sim(std::string sim_string = "sim")
     auto& pm = ctx.paramManager();
     _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
 
-    if (_hw_type.find(sim_string)) { // we are running the plugin in simulation
+    size_t sim_found = _hw_type.find(sim_string);
+
+    if (sim_found != std::string::npos) { // we are running the plugin in simulation
 
         _is_sim = true;
     }
@@ -174,7 +176,7 @@ void MatReplayerRt::init_ft_sensor(std::string fts_name)
   if(_is_sim)
   { // fts only available in simulation (for now)
 
-      _ft_sensor = _robot->getForceTorque()[fts_name];
+      _ft_sensor = _robot->getDevices<Hal::ForceTorque>().get_device(_tip_fts_name);
 
   }
 
@@ -283,7 +285,13 @@ void MatReplayerRt::get_fts_force()
   if(_is_sim)
   { // fts only available in simulation (for now)
 
-    _ft_sensor->getForce(_meas_tip_f_loc); // locally-aligned contact force
+    Eigen::Vector6d wrench = _ft_sensor->getWrench();
+
+    _meas_tip_f_loc = wrench.head(3);
+    _meas_tip_t_loc = wrench.tail(3);
+
+
+//        getForce(_meas_tip_f_loc); // locally-aligned contact force
 
     // rotating the force into world frame
     // then from base to world orientation
@@ -404,7 +412,6 @@ void MatReplayerRt::add_data2dump_logger()
                 _dump_logger->add("tau_meas", _tau_meas);
 
                 _dump_logger->add("f_contact_ref", _f_contact_ref);
-                // _dump_logger->add("f_contact_meas", _f_contact_ref);
 
                 _dump_logger->add("replay_time", _loop_time);
 
@@ -863,8 +870,9 @@ void MatReplayerRt::set_trajectory()
 
 bool MatReplayerRt::on_initialize()
 { 
-    
-    is_sim("sim"); // see if we are running a simulation
+    std::string sim_flagname = "sim";
+
+    is_sim(sim_flagname); // see if we are running a simulation
 
     _plugin_dt = getPeriodSec();
 
