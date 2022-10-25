@@ -67,7 +67,7 @@
             <inertia ixx="0.01" iyy="0.01" izz="0.01" ixy="0.0" ixz="0.0" iyz="0.0" />
         </inertial>
 
-    </link>  
+    </link> 
 
     <xacro:if value="$(arg sliding_guide)">
 
