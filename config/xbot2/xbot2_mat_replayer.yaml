@@ -82,6 +82,8 @@ xbotcore_plugins:
             
             verbose: {value: false, type: bool}
 
+            tip_fts_name: {value: "tip1_fts", type: string}
+
 # global parameters
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}

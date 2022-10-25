@@ -14,7 +14,7 @@ void MatReplayerRt::init_vars()
     _q_p_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _f_cont_cmd = Eigen::VectorXd::Zero(3);
+    _f_contact_ref = Eigen::VectorXd::Zero(3);
 }
 
 void MatReplayerRt::reset_flags()
@@ -132,13 +132,15 @@ void MatReplayerRt::get_params_from_config()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
+    _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
+
 }
 
 void MatReplayerRt::is_sim(std::string sim_string = "sim")
 {
     XBot::Context ctx;
     auto& pm = ctx.paramManager();
-    std::string _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
 
     if (_hw_type.find(sim_string)) { // we are running the plugin in simulation
 
@@ -166,6 +168,20 @@ void MatReplayerRt::init_model_interface()
     _n_jnts_model = _model->getJointNum();
 }
 
+void MatReplayerRt::init_ft_sensor(std::string fts_name)
+{
+
+  if(_is_sim)
+  { // fts only available in simulation (for now)
+
+      _ft_sensor = _robot->getForceTorque()[fts_name];
+
+  }
+
+
+}
+
+
 void MatReplayerRt::create_ros_api()
 {
     /*  Create ros api server */
@@ -187,6 +203,13 @@ void MatReplayerRt::update_state()
 
     _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
     _robot->getDamping(_meas_damping);
+
+    if (_is_sim)
+    { // if in sim, update the ground truth force
+
+      get_fts_force();
+
+    }
 
     // Updating the model with the measurements
     _model->setJointPosition(_q_p_meas);
@@ -249,7 +272,26 @@ void MatReplayerRt::send_cmds()
 
 void MatReplayerRt::get_abs_tip_position()
 {
-    _tip_abs_position = _base_link_abs * _tip_pose_rel_base_link.translation();
+
+    _tip_abs_position = _tip_pose_abs.translation();
+
+//    _tip_abs_position = _base_link_abs * _tip_pose_rel_base_link.translation();
+}
+
+void MatReplayerRt::get_fts_force()
+{
+  if(_is_sim)
+  { // fts only available in simulation (for now)
+
+    _ft_sensor->getForce(_meas_tip_f_loc); // locally-aligned contact force
+
+    // rotating the force into world frame
+    // then from base to world orientation
+
+    _meas_tip_f_abs = _tip_pose_abs * _meas_tip_f_loc;
+
+  }
+
 }
 
 void MatReplayerRt::init_dump_logger()
@@ -299,12 +341,18 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_dot_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("f_contact_cmd", 3, 1, _matlogger_buffer_size);
+    _dump_logger->create("f_contact_ref", 3, 1, _matlogger_buffer_size);
     _dump_logger->create("f_contact_meas", 3, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("tip_pos_meas", 3, 1, _matlogger_buffer_size);
+    if (_is_sim)
+    { // no estimate of base link abs position on the real robot (for now)
+      _dump_logger->create("tip_pos_meas", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("meas_tip_f_loc", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("meas_tip_f_abs", 3, 1, _matlogger_buffer_size);
+    }
+
     _dump_logger->create("tip_pos_rel_base_link", 3, 1, _matlogger_buffer_size);
-    _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
 
     // auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
     // dscrptn_files_cell[0] = _mat_path;
@@ -355,14 +403,24 @@ void MatReplayerRt::add_data2dump_logger()
                 _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
                 _dump_logger->add("tau_meas", _tau_meas);
 
-                _dump_logger->add("f_contact_cmd", _f_cont_cmd);
-                // _dump_logger->add("f_contact_meas", _f_contact_cmd);
+                _dump_logger->add("f_contact_ref", _f_contact_ref);
+                // _dump_logger->add("f_contact_meas", _f_contact_ref);
 
                 _dump_logger->add("replay_time", _loop_time);
 
-                _dump_logger->add("tip_pos_meas", _tip_abs_position);
+                if (_is_sim)
+                { // no estimate of base link abs position on the real robot (for now)
+                    _dump_logger->add("tip_pos_meas", _tip_abs_position);
+
+                    _dump_logger->add("base_link_abs", _base_link_abs.translation());
+
+                    _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
+
+                    _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
+                }
+
+
                 _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
-                _dump_logger->add("base_link_abs", _base_link_abs.translation());
 
             }
 
@@ -397,15 +455,24 @@ void MatReplayerRt::add_data2dump_logger()
         _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
         _dump_logger->add("tau_meas", _tau_meas);
 
-        _dump_logger->add("f_contact_cmd", _f_cont_cmd);
-        // _dump_logger->add("f_contact_meas", _f_contact_cmd);
+        _dump_logger->add("f_contact_ref", _f_contact_ref);
 
         _dump_logger->add("replay_time", _loop_time);
 
-        _dump_logger->add("tip_pos_meas", _tip_abs_position);
         _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
-        _dump_logger->add("base_link_abs", _base_link_abs.translation());
-        
+
+        if (_is_sim)
+        { // no estimate of base link abs position on the real robot (for now)
+            _dump_logger->add("tip_pos_meas", _tip_abs_position);
+
+            _dump_logger->add("base_link_abs", _base_link_abs.translation());
+
+            _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
+
+            _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
+
+        }
+
     }
     
     
@@ -509,6 +576,8 @@ bool MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 void MatReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
 {   
     tf::poseMsgToEigen(msg.pose, _base_link_abs);
+
+    _tip_pose_abs = _base_link_abs * _tip_pose_rel_base_link; // from tip to base link orientation,
 
     get_abs_tip_position();
 }
@@ -678,7 +747,7 @@ void MatReplayerRt::set_trajectory()
             _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
             _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
             _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
-            _f_cont_cmd = _f_cont_ref.col(_sample_index);
+            _f_contact_ref = _f_cont_ref.col(_sample_index);
             
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
@@ -702,7 +771,7 @@ void MatReplayerRt::set_trajectory()
                 _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
                 _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
                 _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
-                _f_cont_cmd = _f_cont_ref.col(_sample_index);
+                _f_contact_ref = _f_cont_ref.col(_sample_index);
                 
                 _stiffness_setpoint = _replay_stiffness; 
                 _damping_setpoint = _replay_damping;
@@ -713,7 +782,7 @@ void MatReplayerRt::set_trajectory()
                 _q_p_cmd = _q_p_ref.col(_takeoff_index).tail(_n_jnts_robot);
                 _q_p_dot_cmd = _q_p_dot_ref.col(_takeoff_index).tail(_n_jnts_robot);
                 _tau_cmd = _tau_ref.col(_takeoff_index).tail(_n_jnts_robot);
-                _f_cont_cmd = _f_cont_ref.col(_takeoff_index);
+                _f_contact_ref = _f_cont_ref.col(_takeoff_index);
 
                 _stiffness_setpoint = _touchdown_stiffness; 
                 _damping_setpoint = _touchdown_damping;
@@ -795,6 +864,8 @@ void MatReplayerRt::set_trajectory()
 bool MatReplayerRt::on_initialize()
 { 
     
+    is_sim("sim"); // see if we are running a simulation
+
     _plugin_dt = getPeriodSec();
 
     _n_jnts_robot = _robot->getJointNum();
@@ -818,6 +889,8 @@ bool MatReplayerRt::on_initialize()
     // a seg fault will arise)
 
     _peisekah_utils = plugin_utils::PeisekahTrans();
+
+    init_ft_sensor(_tip_fts_name);
 
     return true;
     

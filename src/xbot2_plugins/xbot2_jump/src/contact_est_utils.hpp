@@ -13,15 +13,20 @@
 //         void estimate_f();
 // };
 
-// class 
+//namespace contact_est_utils {
+
+//}
+// class
 // {
 //     public:
 
 //         ContactGroundTruth(); // default constructor
 
+//         ContactGroundTruth(); // default constructor
+
 //         Eigen::MatrixXd get_f(Eigen::VectorXd f_estimate);
 
-//     private: 
+//     private:
 
 //         Eigen::VectorXd _f_estimate;
         

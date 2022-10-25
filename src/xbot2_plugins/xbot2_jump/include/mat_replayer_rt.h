@@ -75,7 +75,8 @@ private:
     std::string _mat_path, _mat_name, _dump_mat_suffix, 
                 _urdf_path, _srdf_path, 
                 _tip_link_name, _base_link_name,
-                _hw_type;
+                _hw_type,
+                _tip_fts_name;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping, 
                     _replay_stiffness, _replay_damping, 
@@ -86,13 +87,18 @@ private:
                     _stiffness_setpoint, _damping_setpoint,
                     _cntrl_mode, 
                     _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
-                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_cont_cmd,
+                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_contact_ref,
                     _q_p_safe_cmd, 
                     _traj_time_vector, 
                     _effort_lims,
                     _approach_traj_target, 
                     _q_p_init_appr_traj, _q_p_trgt_appr_traj, 
                     _tip_abs_position;
+
+    Eigen::Vector3d _meas_tip_f_loc, _tip_f_est_loc,
+                    _meas_tip_t_loc, _tip_t_est_loc,
+                    _meas_tip_f_abs, _tip_f_est_abs,
+                    _meas_tip_t_abs, _tip_t_est_abs;
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref;
 
@@ -119,7 +125,7 @@ private:
         
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
-        _loop_time = 0.0, _loop_timer_reset_time = 30.0,
+        _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _approach_traj_exec_time = 4.0, 
         _approach_traj_time = 0.0,
         _pause_time, _traj_pause_time = 2.0, _approach_traj_pause_time = 5.0,
@@ -147,38 +153,49 @@ private:
 
     XBot::ModelInterface::Ptr _model; 
 
+    XBot::ForceTorqueSensor::ConstPtr _ft_sensor;
+
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
-    
+
     ServiceServerPtr<awesome_leg::JumpNowRequest,
                      awesome_leg::JumpNowResponse> _jump_now_srv;
 
     PublisherPtr<awesome_leg::MatReplayerStatus> _replay_status_pub;
 
     void get_params_from_config();
+
     void init_model_interface();
     void init_vars();
     void init_cartesio_solver();
     void init_clocks();
+    void init_nrt_ros_bridge();
+    void init_dump_logger();
+    void init_ft_sensor(std::string fts_name);
+
     void reset_flags();
-    void update_clocks();
+
     void load_opt_data();
     void resample_trajectory();
+
     void create_ros_api();
 
-    void set_approach_trajectory();
     void ramp_imp_smoothly();
-    void set_trajectory();
+
     void saturate_effort();
     
     void update_state();
+    void update_clocks();
+
+    void set_approach_trajectory();
+    void set_trajectory();
     void send_cmds();
 
-    void init_dump_logger();
     void add_data2dump_logger();
-    void init_nrt_ros_bridge();
+
     void spawn_nrt_thread();
 
     void get_abs_tip_position();
+    void get_fts_force();
 
     void is_sim(std::string sim_string);
 
