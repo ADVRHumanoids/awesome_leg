@@ -1,34 +1,21 @@
-// class ContactEstimation
-// {
-//     public:
+//#include <cartesian_interface/
+//namespace  {
 
-//         ContactEstimation(); // default constructor
+//  class ContactEstimation
+//  {
+//      public:
 
-//         Eigen::MatrixXd get_f(Eigen::VectorXd f_estimate);
+//          ContactEstimation(); // default constructor
 
-//     private: 
+//          Eigen::MatrixXd get_f(Eigen::VectorXd f_estimate);
 
-//         Eigen::VectorXd _f_estimate;
-        
-//         void estimate_f();
-// };
+//      private:
 
-//namespace contact_est_utils {
+//          Eigen::VectorXd _f_estimate;
+
+//          void estimate_f();
+//  };
 
 //}
-// class
-// {
-//     public:
 
-//         ContactGroundTruth(); // default constructor
 
-//         ContactGroundTruth(); // default constructor
-
-//         Eigen::MatrixXd get_f(Eigen::VectorXd f_estimate);
-
-//     private:
-
-//         Eigen::VectorXd _f_estimate;
-        
-//         void estimate_f();
-// };
