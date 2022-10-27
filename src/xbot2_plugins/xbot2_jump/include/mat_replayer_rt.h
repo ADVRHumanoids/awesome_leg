@@ -24,7 +24,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <geometry_msgs/Pose.h>
- #include <Eigen/Core>
+#include <Eigen/Core>
 #include <Eigen/Geometry>
 
 #include <xbot2/hal/dev_ft.h>
@@ -165,6 +165,8 @@ private:
                      awesome_leg::JumpNowResponse> _jump_now_srv;
 
     PublisherPtr<awesome_leg::MatReplayerStatus> _replay_status_pub;
+
+    ContactEstUtils::ContactEstimation ft_estimator;
 
     void get_params_from_config();
 
