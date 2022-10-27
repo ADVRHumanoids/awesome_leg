@@ -1,4 +1,6 @@
-#include </home/andreap/hhcm_ws/src/base_estimation/include/base_estimation/base_estimation.h>
+#include "/home/andreap/hhcm_ws/install/include/base_estimation/base_estimation.h"
+//#include <base_estimation/base_estimation.h>
+//#include <base_estimation.h>
 
 //namespace  {
 

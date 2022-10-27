@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.16)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 find_package(xbot2 REQUIRED)
 find_package(matlogger2 REQUIRED)
 find_package(base_estimation REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 add_xbot2_plugin(mat_replayer_rt
     src/mat_replayer_rt.cpp)
@@ -18,13 +21,17 @@ target_include_directories(plugin_utils PRIVATE include ${EIGEN3_INCLUDE_DIR} ${
 target_include_directories(contact_est_utils PRIVATE include ${EIGEN3_INCLUDE_DIR} ${matlogger2_INCLUDE_DIRS}
                                                             ${base_estimation_INCLUDE_DIRS})
 
-target_link_libraries(plugin_utils PRIVATE ${eig} Eigen3::Eigen matlogger2::matlogger2)
-target_link_libraries(contact_est_utils PRIVATE ${eig} Eigen3::Eigen matlogger2::matlogger2
-                                                ${base_estimation_LIBRARIES} ${cartesian_interface_LIBRARIES})
+target_link_libraries(plugin_utils PRIVATE Eigen3::Eigen matlogger2::matlogger2)
+#target_link_libraries(contact_est_utils PRIVATE Eigen3::Eigen matlogger2::matlogger2
+#                                                 ${base_estimation_LIBRARIES}
+#                                                 ${cartesian_interface_LIBRARIES})
+target_link_libraries(contact_est_utils PRIVATE Eigen3::Eigen matlogger2::matlogger2
+                                           "${/home/andreap/hhcm_ws/install/lib/libikbe.so}" ${cartesian_interface_LIBRARIES})
+
 target_link_libraries(mat_replayer_rt PRIVATE ${cartesian_interface_LIBRARIES} plugin_utils xbot2::xbot2_ros_support)
 target_link_libraries(start_cyclic_jump_client PRIVATE ${catkin_LIBRARIES} ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
 
-message(STATUS "${base_estimation_INCLUDE_DIRS}")
+message(STATUS "********${}")
 
 install(
     TARGETS mat_replayer_rt plugin_utils contact_est_utils DESTINATION lib
