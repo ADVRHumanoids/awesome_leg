@@ -31,6 +31,7 @@
 
 using namespace XBot;
 using namespace XBot::Cartesian;
+using namespace ContactEstUtils;
 
 /**
  * @brief The CartesioEllConfigRt class is a ControlPlugin
@@ -155,8 +156,6 @@ private:
 
     XBot::ModelInterface::Ptr _model; 
 
-//    XBot::ForceTorqueSensor::ConstPtr _ft_sensor;
-//    ::Ptr ;
     std::shared_ptr<XBot::Hal::ForceTorque >_ft_sensor;
 
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
@@ -166,7 +165,7 @@ private:
 
     PublisherPtr<awesome_leg::MatReplayerStatus> _replay_status_pub;
 
-    ContactEstUtils::ContactEstimation ft_estimator;
+    ContactEstimation::UniquePtr _ft_estimator;
 
     void get_params_from_config();
 
@@ -177,6 +176,7 @@ private:
     void init_nrt_ros_bridge();
     void init_dump_logger();
     void init_ft_sensor(std::string fts_name);
+    void init_ft_estimator(std::string contact_linkname);
 
     void reset_flags();
 

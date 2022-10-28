@@ -183,6 +183,12 @@ void MatReplayerRt::init_ft_sensor(std::string fts_name)
 
 }
 
+void MatReplayerRt::init_ft_estimator(std::string contact_linkname)
+{
+
+  _ft_estimator = ContactEstimation::MakeEstimator(contact_linkname);
+
+}
 
 void MatReplayerRt::create_ros_api()
 {
