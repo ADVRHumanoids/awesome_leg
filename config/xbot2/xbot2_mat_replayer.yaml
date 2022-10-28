@@ -44,7 +44,10 @@ xbotcore_plugins:
             
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
-
+            
+            urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg_test_rig.urdf, type: file} # used by the model interface
+            srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file} 
+            
             mat_path: {value: /tmp/pretakeoff_gen_13-10-2022-16_27_54/, type: string}
             mat_name: {value: awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
@@ -83,6 +86,8 @@ xbotcore_plugins:
             verbose: {value: false, type: bool}
 
             tip_fts_name: {value: "tip1_fts", type: string}
+
+            contact_linkname: {value: "tip1", type: string}
 
 # global parameters
 xbotcore_param:

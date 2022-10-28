@@ -12,7 +12,6 @@
    <build_depend>roscpp</build_depend>
    <build_depend>rospy</build_depend>
    <build_depend>urdf</build_depend>
-   <build_depend>base_estimation</build_depend>
 
    <buildtool_depend>catkin</buildtool_depend>
    
@@ -25,6 +24,5 @@
    <run_depend>gazebo_ros</run_depend>
    <run_depend>gazebo_ros_control</run_depend>
    <run_depend>xacro</run_depend>
-   <run_depend>base_estimation</run_depend>
    
 </package>

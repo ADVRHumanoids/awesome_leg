@@ -1,11 +1,3 @@
-//#include "/home/andreap/hhcm_ws/install/include/base_estimation/base_estimation.h"
-//#include "/home/andreap/hhcm_ws/install/include/base_estimation/contact_estimation.h"
-//#include "/home/andreap/hhcm_ws/install/include/base_estimation/vertex_force_optimizer.h"
-
-#include <base_estimation/base_estimation.h>
-#include <base_estimation/contact_estimation.h>
-#include <base_estimation/vertex_force_optimizer.h>
-
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
@@ -33,37 +25,51 @@ namespace ContactEstUtils
           typedef std::shared_ptr<ContactEstimation> Ptr;
           typedef std::unique_ptr<ContactEstimation> UniquePtr;
 
-          static UniquePtr MakeEstimator(std::string contact_linkname); // static method
+          static UniquePtr MakeEstimator(std::string contact_linkname,
+                                         std::vector<int> dofs,
+                                         XBot::ModelInterface::Ptr _model); // static method
           // so we can call it without an object of the class
 
-          void get_f(Eigen::Vector3d f_estimate);
+          Eigen::Vector3d get_f();
 
-          void get_w(Eigen::Vector3d w_estimate);
+          Eigen::Vector3d get_w();
 
           void update_estimate();
 
       private:
 
-          ContactEstimation(std::string link_name); // private constructor;
+          ContactEstimation(std::string link_name,
+                            std::vector<int> dofs,
+                            XBot::ModelInterface::Ptr model); // private constructor;
           // can only be called via the factory method
 
           Eigen::Vector3d _f_estimate, _w_estimate;
 
-          ikbe::BaseEstimation::UniquePtr _base_estimation;
+          XBot::Cartesian::Utils::ForceEstimation::Ptr _ft_estimator;
 
           XBot::ForceTorqueSensor::ConstPtr _ft_vs;
 
+          std::string _link_name;
+
+          std::vector<int> _dofs;
+
+          XBot::ModelInterface::Ptr _model; // shared instance of
+          // the model interface
+
           void estimate_f();
 
-          std::string _link_name;
+          void createVirtualFt();
+
   };
 
 }
 
 
 // This is the static factory method used to construct instances of the ContactEstimation class
-ContactEstUtils::ContactEstimation::UniquePtr ContactEstUtils::ContactEstimation::MakeEstimator(std::string contact_linkname)
+ContactEstUtils::ContactEstimation::UniquePtr ContactEstUtils::ContactEstimation::MakeEstimator(std::string contact_linkname,
+                                                                                                std::vector<int> dofs,
+                                                                                                XBot::ModelInterface::Ptr model)
 {
-    return UniquePtr(new ContactEstimation(contact_linkname));
+    return UniquePtr(new ContactEstimation(contact_linkname, dofs, model));
 }
 

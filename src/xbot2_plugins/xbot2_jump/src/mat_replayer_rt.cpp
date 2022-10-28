@@ -15,6 +15,13 @@ void MatReplayerRt::init_vars()
     _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _f_contact_ref = Eigen::VectorXd::Zero(3);
+
+    // states and contact force used for force estimation
+    _q_p_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
+    _q_p_dot_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
+    _q_p_ddot_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
+    _tau_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
+    _f_cont_est = Eigen::VectorXd::Zero(3);
 }
 
 void MatReplayerRt::reset_flags()
@@ -97,6 +104,9 @@ void MatReplayerRt::get_params_from_config()
     _urdf_path = getParamOrThrow<std::string>("~urdf_path"); 
     _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
 
+    _urdf_path_ft_est = getParamOrThrow<std::string>("~urdf_path_ft_est");
+    _srdf_path_ft_est = getParamOrThrow<std::string>("~srdf_path_ft_est");
+
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
@@ -134,6 +144,8 @@ void MatReplayerRt::get_params_from_config()
 
     _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
 
+    _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
+
 }
 
 void MatReplayerRt::is_sim(std::string sim_string = "sim")
@@ -157,7 +169,7 @@ void MatReplayerRt::is_sim(std::string sim_string = "sim")
 
 void MatReplayerRt::init_model_interface()
 {
-    
+    // test model
     XBot::ConfigOptions xbot_cfg;
     xbot_cfg.set_urdf_path(_urdf_path);
     xbot_cfg.set_srdf_path(_srdf_path);
@@ -165,9 +177,21 @@ void MatReplayerRt::init_model_interface()
     xbot_cfg.set_parameter("is_model_floating_base", false);
     xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
 
-    // Initializing XBot2 ModelInterface for the rt thread
+    // force estimation model
+    XBot::ConfigOptions xbot_cfg_ft_est;
+    xbot_cfg_ft_est.set_urdf_path(_urdf_path_ft_est);
+    xbot_cfg_ft_est.set_srdf_path(_srdf_path_ft_est);
+    xbot_cfg_ft_est.generate_jidmap();
+    xbot_cfg_ft_est.set_parameter("is_model_floating_base", false);
+    xbot_cfg_ft_est.set_parameter<std::string>("model_type", "RBDL");
+
+    // Initializing XBot2 ModelInterface for the test model
     _model = XBot::ModelInterface::getModel(xbot_cfg); 
     _n_jnts_model = _model->getJointNum();
+
+    // Initializing XBot2 ModelInterface for the test model
+    _model_ft_est = XBot::ModelInterface::getModel(xbot_cfg_ft_est);
+    _n_jnts_model_ft_est = _model_ft_est->getJointNum();
 }
 
 void MatReplayerRt::init_ft_sensor(std::string fts_name)
@@ -183,10 +207,13 @@ void MatReplayerRt::init_ft_sensor(std::string fts_name)
 
 }
 
-void MatReplayerRt::init_ft_estimator(std::string contact_linkname)
+void MatReplayerRt::init_ft_estimator()
 {
 
-  _ft_estimator = ContactEstimation::MakeEstimator(contact_linkname);
+  _ft_estimator = ContactEstimation::MakeEstimator(_contact_linkname,
+                                                   _contact_dofs,
+                                                   _model); // create
+  // the force estimator
 
 }
 
@@ -198,8 +225,54 @@ void MatReplayerRt::create_ros_api()
     opt.ros_namespace = getParamOr<std::string>("~ros_ns", "mat_replayer_rt");
 }
 
+void MatReplayerRt::get_passive_jnt_est(double& pssv_jnt_pos,
+                                        double& pssv_jnt_vel,
+                                        double& pssv_jnt_acc)
+{
+    Eigen::VectorXd base_link_pos_est = _base_link_abs.translation(); // for now use
+    // ground truth from Gazebo
+    Eigen::VectorXd base_link_tvel_est = _base_link_vel; // for now use
+
+    Eigen::VectorXd base_link_pos = _base_link_abs_est.translation();
+
+    pssv_jnt_pos = base_link_pos(base_link_pos.size() - 1);
+
+    pssv_jnt_vel = base_link_tvel_est(base_link_tvel_est.size() - 1);
+
+    pssv_jnt_acc = (pssv_jnt_vel -
+                    _q_p_dot_ft_est_prev(0) ) / _plugin_dt; // numerical diff
+
+}
+
+void MatReplayerRt::update_state_estimates()
+{
+    double passive_jnt_pos, passive_jnt_vel, pssv_jnt_acc;
+
+    get_passive_jnt_est(passive_jnt_pos, passive_jnt_vel, pssv_jnt_acc);
+
+    _q_p_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_meas; // assign actuated dofs with meas.
+    // from encoders
+    _q_p_ft_est(0) = passive_jnt_pos; // assign passive dofs
+
+    _q_p_dot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
+    // from encoders
+    _q_p_dot_ft_est(0) = passive_jnt_vel; // assign passive dofs
+
+    _q_p_dot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
+    // from encoders
+    _q_p_dot_ft_est(0) = pssv_jnt_acc; // assign passive dofs
+
+    _tau_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs with meas.
+    // from encoders
+    _tau_ft_est(0) = 0; // no effort on passive joints
+
+}
+
 void MatReplayerRt::update_state()
 {    
+    _q_p_dot_ft_est_prev = _q_p_dot_ft_est; // getting meas joint
+
+    // velocity before new state sensing
 
     // "sensing" the robot
     _robot->sense();
@@ -219,12 +292,38 @@ void MatReplayerRt::update_state()
 
     }
 
-    // Updating the model with the measurements
+    // Updating the test model with the measurements
     _model->setJointPosition(_q_p_meas);
     _model->setJointVelocity(_q_p_dot_meas);
     _model->update();
 
     _model->getPose(_tip_link_name, _base_link_name, _tip_pose_rel_base_link);
+
+    // Updating the force estimation model with the measurements:
+    // we have "exact" meas. for the actuated joints and the rest
+    // (i.e. the sliding guide) is to estimated somehow
+
+    update_state_estimates(); // updates state estimates
+    // (q, q_dot, q_ddot) and efforts
+
+    _model_ft_est->setJointPosition(_q_p_ft_est); // update the state
+    _model_ft_est->setJointVelocity(_q_p_dot_ft_est);
+    _model_ft_est->setJointAcceleration(_q_p_ddot_ft_est); // update joint accelerations
+    _model_ft_est->setJointEffort(_tau_ft_est); // update joint efforts
+
+    _model_ft_est->update(); // update the model
+
+    _ft_estimator->update_estimate(); // we can now update the
+    // force estimation
+
+    _f_cont_est = _ft_estimator->get_f(); // getting the estimated contact force
+
+    // getting estimates of the tip and hip position
+    // based on the reconstructed state used to update
+    // the force estimation model
+    _model_ft_est->getPose(_tip_link_name, _tip_pose_abs_est);
+    _model_ft_est->getPose(_base_link_name, _base_link_abs_est);
+
 }
 
 void MatReplayerRt::send_cmds()
@@ -283,7 +382,6 @@ void MatReplayerRt::get_abs_tip_position()
 
     _tip_abs_position = _tip_pose_abs.translation();
 
-//    _tip_abs_position = _base_link_abs * _tip_pose_rel_base_link.translation();
 }
 
 void MatReplayerRt::get_fts_force()
@@ -364,6 +462,14 @@ void MatReplayerRt::init_dump_logger()
       _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("meas_tip_f_loc", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("meas_tip_f_abs", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("base_link_vel", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("base_link_omega", 3, 1, _matlogger_buffer_size);
+
+      _dump_logger->create("q_p_ft_est", _n_jnts_model_ft_est), 1, _matlogger_buffer_size;
+      _dump_logger->create("q_p_dot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+      _dump_logger->create("q_p_ddot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+      _dump_logger->create("tau_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+      _dump_logger->create("f_cont_est", 3, 1, _matlogger_buffer_size);
     }
 
     _dump_logger->create("tip_pos_rel_base_link", 3, 1, _matlogger_buffer_size);
@@ -379,112 +485,92 @@ void MatReplayerRt::init_dump_logger()
 
 void MatReplayerRt::add_data2dump_logger()
 {
+
+    if (_is_first_jnt_passive)
+    { // remove first joint from logged commands
+
+        _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
+        _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
+        _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
+
+    }
+    else
+    {
+
+        _dump_logger->add("q_p_cmd", _q_p_cmd);
+        _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
+        _dump_logger->add("tau_cmd", _tau_cmd);
+
+    }
+
+    _dump_logger->add("replay_stiffness", _replay_stiffness);
+    _dump_logger->add("replay_damping", _replay_damping);
+    _dump_logger->add("meas_stiffness", _meas_stiffness);
+    _dump_logger->add("meas_damping", _meas_damping);
+
+    _dump_logger->add("q_p_meas", _q_p_meas);
+    _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+    _dump_logger->add("tau_meas", _tau_meas);
+
+    _dump_logger->add("f_contact_ref", _f_contact_ref);
+
+    _dump_logger->add("replay_time", _loop_time);
+
+    _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
+
+    if (_is_sim)
+    { // no estimate of base link abs position on the real robot (for now)
+        _dump_logger->add("tip_pos_meas", _tip_abs_position);
+
+        _dump_logger->add("base_link_abs", _base_link_abs.translation());
+
+        _dump_logger->add("base_link_vel", _base_link_vel);
+
+        _dump_logger->add("base_link_omega", _base_link_omega);
+
+        _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
+
+        _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
+
+
+        _dump_logger->add("q_p_ft_est", _q_p_ft_est);
+
+        _dump_logger->add("q_p_dot_ft_est", _q_p_dot_ft_est);
+
+        _dump_logger->add("q_p_ddot_ft_est", _q_p_ddot_ft_est);
+
+        _dump_logger->add("tau_ft_est", _tau_ft_est);
+
+        _dump_logger->add("f_cont_est", _f_cont_est);
+
+    }
+
+}
+
+void MatReplayerRt::add_data2bedumped()
+{
     
     // _dump_logger->add("plugin_time", _loop_time)
 
     if (_reduce_dumped_sol_size)
-    {
+    {  // only adding data when replaying trajectory to save memory
+
         if (_traj_started && !_traj_finished)
         { // trajectory is being published
-        // only adding data when replaying trajectory to save memory
             
             if (_sample_index <= (_traj.get_n_nodes() - 1))
-            { // commands have been computed
+            {
 
-                if (_is_first_jnt_passive)
-                { // remove first joint from logged commands
-
-                    _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
-                    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
-                    _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
-
-                }
-                else
-                {
-                    
-                    _dump_logger->add("q_p_cmd", _q_p_cmd);
-                    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
-                    _dump_logger->add("tau_cmd", _tau_cmd);
-
-                }
-
-                _dump_logger->add("replay_stiffness", _replay_stiffness);
-                _dump_logger->add("replay_damping", _replay_damping);
-                _dump_logger->add("meas_stiffness", _meas_stiffness);
-                _dump_logger->add("meas_damping", _meas_damping);
-
-                _dump_logger->add("q_p_meas", _q_p_meas);
-                _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
-                _dump_logger->add("tau_meas", _tau_meas);
-
-                _dump_logger->add("f_contact_ref", _f_contact_ref);
-
-                _dump_logger->add("replay_time", _loop_time);
-
-                if (_is_sim)
-                { // no estimate of base link abs position on the real robot (for now)
-                    _dump_logger->add("tip_pos_meas", _tip_abs_position);
-
-                    _dump_logger->add("base_link_abs", _base_link_abs.translation());
-
-                    _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
-
-                    _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
-                }
-
-
-                _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
+                add_data2dump_logger();
 
             }
 
         }
     }
     else
-    {
+    { // dump data at each loop cycle
 
-        if (_is_first_jnt_passive)
-        { // remove first joint from logged commands
-
-            _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
-            _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
-            _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
-
-        }
-        else
-        {
-            
-            _dump_logger->add("q_p_cmd", _q_p_cmd);
-            _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
-            _dump_logger->add("tau_cmd", _tau_cmd);
-
-        }
-
-        _dump_logger->add("replay_stiffness", _replay_stiffness);
-        _dump_logger->add("replay_damping", _replay_damping);
-        _dump_logger->add("meas_stiffness", _meas_stiffness);
-        _dump_logger->add("meas_damping", _meas_damping);
-
-        _dump_logger->add("q_p_meas", _q_p_meas);
-        _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
-        _dump_logger->add("tau_meas", _tau_meas);
-
-        _dump_logger->add("f_contact_ref", _f_contact_ref);
-
-        _dump_logger->add("replay_time", _loop_time);
-
-        _dump_logger->add("tip_pos_rel_base_link", _tip_pose_rel_base_link.translation());
-
-        if (_is_sim)
-        { // no estimate of base link abs position on the real robot (for now)
-            _dump_logger->add("tip_pos_meas", _tip_abs_position);
-
-            _dump_logger->add("base_link_abs", _base_link_abs.translation());
-
-            _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
-
-            _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
-
-        }
+         add_data2dump_logger();
 
     }
     
@@ -593,6 +679,16 @@ void MatReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped&
     _tip_pose_abs = _base_link_abs * _tip_pose_rel_base_link; // from tip to base link orientation,
 
     get_abs_tip_position();
+}
+
+void MatReplayerRt::on_base_link_twist_received(const geometry_msgs::Twist& msg)
+{
+    Eigen::Vector6d twist;
+
+    tf::twistMsgToEigen(msg, twist);
+
+    _base_link_vel = twist.head(3);
+    _base_link_omega = twist.tail(3);
 }
 
 void MatReplayerRt::load_opt_data()
