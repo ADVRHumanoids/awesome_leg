@@ -22,6 +22,8 @@ void MatReplayerRt::init_vars()
     _q_p_ddot_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
     _tau_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
     _f_cont_est = Eigen::VectorXd::Zero(3);
+    _f_cont_meas = Eigen::VectorXd::Zero(3);
+
 }
 
 void MatReplayerRt::reset_flags()
