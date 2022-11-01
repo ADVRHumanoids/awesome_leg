@@ -282,7 +282,7 @@ void MatReplayerRt::update_state_estimates()
     // from encoders
     _q_p_dot_ft_est(0) = passive_jnt_vel; // assign passive dofs
 
-    _q_p_dot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
+    _q_p_ddot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = ( _q_p_dot_meas - _q_p_dot_ft_est_prev.tail(_n_jnts_robot) ) / _plugin_dt; // assign actuated dofs with meas.
     // from encoders
     _q_p_dot_ft_est(0) = pssv_jnt_acc; // assign passive dofs
 
@@ -336,10 +336,10 @@ void MatReplayerRt::update_state()
 
     _model_ft_est->update(); // update the model
 
-//    _ft_estimator->update_estimate(); // we can now update the
+    _ft_estimator->update_estimate(); // we can now update the
     // force estimation
 
-//    _f_cont_est = _ft_estimator->get_f(); // getting the estimated contact force
+    _f_cont_est = _ft_estimator->get_f(); // getting the estimated contact force
 
     // getting estimates of the tip and hip position
     // based on the reconstructed state used to update
@@ -412,9 +412,7 @@ void MatReplayerRt::get_fts_force()
   if(_is_sim)
   { // fts only available in simulation (for now)
 
-//    Eigen::Vector6d wrench = _ft_sensor->getWrench();
-
-    Eigen::Vector6d wrench = Eigen::VectorXd::Zero(6);
+    Eigen::Vector6d wrench = _ft_sensor->getWrench();
 
     _meas_tip_f_loc = wrench.head(3);
     _meas_tip_t_loc = wrench.tail(3);
@@ -487,11 +485,11 @@ void MatReplayerRt::init_dump_logger()
       _dump_logger->create("base_link_vel", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("base_link_omega", 3, 1, _matlogger_buffer_size);
 
-//      _dump_logger->create("q_p_ft_est", _n_jnts_model_ft_est), 1, _matlogger_buffer_size;
-//      _dump_logger->create("q_p_dot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
-//      _dump_logger->create("q_p_ddot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
-//      _dump_logger->create("tau_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
-//      _dump_logger->create("f_cont_est", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("q_p_ft_est", _n_jnts_model_ft_est), 1, _matlogger_buffer_size;
+      _dump_logger->create("q_p_dot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+      _dump_logger->create("q_p_ddot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+      _dump_logger->create("tau_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+      _dump_logger->create("f_cont_est", 3, 1, _matlogger_buffer_size);
     }
 
     _dump_logger->create("tip_pos_rel_base_link", 3, 1, _matlogger_buffer_size);
@@ -555,15 +553,15 @@ void MatReplayerRt::add_data2dump_logger()
         _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
 
 
-//        _dump_logger->add("q_p_ft_est", _q_p_ft_est);
+        _dump_logger->add("q_p_ft_est", _q_p_ft_est);
 
-//        _dump_logger->add("q_p_dot_ft_est", _q_p_dot_ft_est);
+        _dump_logger->add("q_p_dot_ft_est", _q_p_dot_ft_est);
 
-//        _dump_logger->add("q_p_ddot_ft_est", _q_p_ddot_ft_est);
+        _dump_logger->add("q_p_ddot_ft_est", _q_p_ddot_ft_est);
 
-//        _dump_logger->add("tau_ft_est", _tau_ft_est);
+        _dump_logger->add("tau_ft_est", _tau_ft_est);
 
-//        _dump_logger->add("f_cont_est", _f_cont_est);
+        _dump_logger->add("f_cont_est", _f_cont_est);
 
     }
 
@@ -613,18 +611,24 @@ void MatReplayerRt::init_nrt_ros_bridge()
         this,
         &_queue);
 
-    /* Subscriber */
+    /* Subscribers */
     _base_link_pose_sub = _ros->subscribe("/xbotcore/link_state/base_link/pose",
                                 &MatReplayerRt::on_base_link_pose_received,
                                 this,
                                 1,  // queue size
                                 &_queue);
 
+    _base_link_twist_sub = _ros->subscribe("/xbotcore/link_state/base_link/twist",
+                                &MatReplayerRt::on_base_link_twist_received,
+                                this,
+                                1,  // queue size
+                                &_queue);
+
+    /* Publishers */
     awesome_leg::MatReplayerStatus replay_st_prealloc;
     replay_st_prealloc.approach_traj_finished = false;
     replay_st_prealloc.traj_finished = false;
 
-    /* Publisher */
     _replay_status_pub = _ros->advertise<awesome_leg::MatReplayerStatus>(
         "replay_status_node", 1, replay_st_prealloc);
 
@@ -696,6 +700,7 @@ bool MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 
 void MatReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
 {   
+
     tf::poseMsgToEigen(msg.pose, _base_link_abs);
 
     _tip_pose_abs = _base_link_abs * _tip_pose_rel_base_link; // from tip to base link orientation,
@@ -703,11 +708,12 @@ void MatReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped&
     get_abs_tip_position();
 }
 
-void MatReplayerRt::on_base_link_twist_received(const geometry_msgs::Twist& msg)
+void MatReplayerRt::on_base_link_twist_received(const geometry_msgs::TwistStamped& msg)
 {
+
     Eigen::Vector6d twist;
 
-    tf::twistMsgToEigen(msg, twist);
+    tf::twistMsgToEigen(msg.twist, twist);
 
     _base_link_vel = twist.head(3);
     _base_link_omega = twist.tail(3);
@@ -1024,6 +1030,8 @@ bool MatReplayerRt::on_initialize()
 
     init_ft_sensor();
 
+    init_ft_estimator();
+
     return true;
     
 }
@@ -1063,7 +1071,7 @@ void MatReplayerRt::run()
 
     pub_replay_status();
 
-//    add_data2dump_logger(); // add data to the logger
+    add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 

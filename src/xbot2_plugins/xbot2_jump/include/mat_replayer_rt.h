@@ -24,7 +24,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <geometry_msgs/Pose.h>
-#include <geometry_msgs/Twist.h>
+#include <geometry_msgs/TwistStamped.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -170,7 +170,7 @@ private:
     std::shared_ptr<XBot::Hal::ForceTorque >_ft_sensor;
 
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
-    SubscriberPtr<geometry_msgs::Twist> _base_link_twist_sub;
+    SubscriberPtr<geometry_msgs::TwistStamped> _base_link_twist_sub;
 
     ServiceServerPtr<awesome_leg::JumpNowRequest,
                      awesome_leg::JumpNowResponse> _jump_now_srv;
@@ -227,7 +227,7 @@ private:
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
-    void on_base_link_twist_received(const geometry_msgs::Twist& msg);
+    void on_base_link_twist_received(const geometry_msgs::TwistStamped& msg);
 
     void pub_replay_status();
 
