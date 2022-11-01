@@ -136,12 +136,12 @@
   </gazebo>
   <gazebo reference="shin1">
     <collision>
-      <max_contacts> 1 </max_contacts>
+      <max_contacts> 20 </max_contacts>
       <surface>
         <friction>
           <ode>
-            <mu>20</mu>
-            <mu2>20</mu2>
+            <mu>1</mu>
+            <mu2>1</mu2>
           </ode>
           <bullet>
             <friction>1.0</friction>
@@ -161,6 +161,36 @@
                             <kd>5</kd>
                         </bullet>
                     </contact> -->
+      </surface>
+    </collision>
+  </gazebo>
+  <gazebo reference="tip1">
+    <collision>
+      <max_contacts> 1 </max_contacts>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1</mu>
+            <mu2>1</mu2>
+          </ode>
+          <bullet>
+            <friction>1.0</friction>
+            <friction2>1.0</friction2>
+          </bullet>
+        </friction>
+        <contact>
+          <ode>
+            <kp>1000000000000</kp>
+            <kd>1</kd>
+            <!-- <max_vel>100</max_vel> -->
+          </ode>
+          <!-- <bullet>
+                            <soft_cfm>0.007</soft_cfm>
+                            <soft_erp>0.25</soft_erp>
+                            <kp>1000000</kp>
+                            <kd>5</kd>
+                        </bullet> -->
+        </contact>
       </surface>
     </collision>
   </gazebo>
@@ -190,19 +220,6 @@
             </gazebo>
 
         </xacro:if> -->
-  <gazebo reference="tip_joint1">
-    <sensor name="tip1_fts" type="force_torque">
-      <force_torque>
-        <frame>sensor</frame>
-        <measure_direction>child_to_parent</measure_direction>
-      </force_torque>
-      <always_on>true</always_on>
-      <visualize>true</visualize>
-      <update_rate>1000</update_rate>
-      <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose>
-      <!-- check! -->
-    </sensor>
-  </gazebo>
   <!-- only add joint to base if argument is non-empty -->
   <joint name="hip_pitch1" type="revolute">
     <parent link="base_link"/>
@@ -258,24 +275,10 @@
       </geometry>
     </collision>
   </link>
-  <joint name="tip_joint1" type="revolute">
+  <joint name="tip_joint1" type="fixed">
     <parent link="shin1"/>
     <child link="tip1"/>
-    <origin xyz="0.0 0.0233 -0.40900000000000003"/>
-    <limit effort="0" lower="0.0" upper="0.0" velocity="0.0"/>
+    <origin xyz="0.0 0.0233 -0.451"/>
   </joint>
-  <link name="tip1">
-    <origin xyz="0.0 0.0 0.0"/>
-    <inertial>
-      <origin xyz="0.0 0.0 0.0"/>
-      <mass value="0.1"/>
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
-    </inertial>
-    <collision>
-      <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-      <geometry>
-        <sphere radius="0.045"/>
-      </geometry>
-    </collision>
-  </link>
+  <link name="tip1"/>
 </robot>

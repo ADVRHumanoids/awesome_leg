@@ -74,12 +74,12 @@
   </gazebo>
   <gazebo reference="shin1">
     <collision>
-      <max_contacts> 1 </max_contacts>
+      <max_contacts> 20 </max_contacts>
       <surface>
         <friction>
           <ode>
-            <mu>20</mu>
-            <mu2>20</mu2>
+            <mu>1</mu>
+            <mu2>1</mu2>
           </ode>
           <bullet>
             <friction>1.0</friction>
@@ -99,6 +99,36 @@
                             <kd>5</kd>
                         </bullet>
                     </contact> -->
+      </surface>
+    </collision>
+  </gazebo>
+  <gazebo reference="tip1">
+    <collision>
+      <max_contacts> 1 </max_contacts>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1</mu>
+            <mu2>1</mu2>
+          </ode>
+          <bullet>
+            <friction>1.0</friction>
+            <friction2>1.0</friction2>
+          </bullet>
+        </friction>
+        <contact>
+          <ode>
+            <kp>1000000000000</kp>
+            <kd>1</kd>
+            <!-- <max_vel>100</max_vel> -->
+          </ode>
+          <!-- <bullet>
+                            <soft_cfm>0.007</soft_cfm>
+                            <soft_erp>0.25</soft_erp>
+                            <kp>1000000</kp>
+                            <kd>5</kd>
+                        </bullet> -->
+        </contact>
       </surface>
     </collision>
   </gazebo>
