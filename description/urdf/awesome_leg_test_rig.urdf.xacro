@@ -8,7 +8,7 @@
     <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
 
     <xacro:arg name="sliding_guide" default="true" />
-    <xacro:arg name="add_ft_sensor" default="true" />
+    <xacro:arg name="add_ft_sensor" default="false" />
     
     <xacro:arg name="dump_video_frames" default="false" />
     
