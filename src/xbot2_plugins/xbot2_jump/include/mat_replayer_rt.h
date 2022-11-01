@@ -191,7 +191,7 @@ private:
     void init_clocks();
     void init_nrt_ros_bridge();
     void init_dump_logger();
-    void init_ft_sensor(std::string fts_name);
+    void init_ft_sensor();
     void init_ft_estimator();
 
     void reset_flags();

@@ -13,14 +13,36 @@ void MatReplayerRt::init_vars()
 {
     _q_p_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _q_p_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _q_p_safe_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _q_p_trgt_appr_traj = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_p_init_appr_traj =  Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _meas_damping = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _meas_stiffness = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _ramp_damping = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _ramp_stiffness = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _ramp_strt_damping = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _ramp_strt_stiffness = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _f_contact_ref = Eigen::VectorXd::Zero(3);
+
+    _tip_abs_position = Eigen::VectorXd::Zero(3);
 
     // states and contact force used for force estimation
     _q_p_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
     _q_p_dot_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
+    _q_p_dot_ft_est_prev = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
     _q_p_ddot_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
     _tau_ft_est = Eigen::VectorXd::Zero(_n_jnts_model_ft_est);
+
     _f_cont_est = Eigen::VectorXd::Zero(3);
     _f_cont_meas = Eigen::VectorXd::Zero(3);
 
@@ -57,7 +79,7 @@ void MatReplayerRt::reset_flags()
 
 void MatReplayerRt::update_clocks()
 {
-    // Update time(s)
+    // Update timer(s)
     _loop_time += _plugin_dt;
     
     if(_pause_started && !_pause_finished)
@@ -196,7 +218,7 @@ void MatReplayerRt::init_model_interface()
     _n_jnts_model_ft_est = _model_ft_est->getJointNum();
 }
 
-void MatReplayerRt::init_ft_sensor(std::string fts_name)
+void MatReplayerRt::init_ft_sensor()
 {
 
   if(_is_sim)
@@ -272,8 +294,7 @@ void MatReplayerRt::update_state_estimates()
 
 void MatReplayerRt::update_state()
 {    
-    _q_p_dot_ft_est_prev = _q_p_dot_ft_est; // getting meas joint
-
+    _q_p_dot_ft_est_prev = _q_p_dot_ft_est; // getting estimated  joint
     // velocity before new state sensing
 
     // "sensing" the robot
@@ -315,10 +336,10 @@ void MatReplayerRt::update_state()
 
     _model_ft_est->update(); // update the model
 
-    _ft_estimator->update_estimate(); // we can now update the
+//    _ft_estimator->update_estimate(); // we can now update the
     // force estimation
 
-    _f_cont_est = _ft_estimator->get_f(); // getting the estimated contact force
+//    _f_cont_est = _ft_estimator->get_f(); // getting the estimated contact force
 
     // getting estimates of the tip and hip position
     // based on the reconstructed state used to update
@@ -391,13 +412,12 @@ void MatReplayerRt::get_fts_force()
   if(_is_sim)
   { // fts only available in simulation (for now)
 
-    Eigen::Vector6d wrench = _ft_sensor->getWrench();
+//    Eigen::Vector6d wrench = _ft_sensor->getWrench();
+
+    Eigen::Vector6d wrench = Eigen::VectorXd::Zero(6);
 
     _meas_tip_f_loc = wrench.head(3);
     _meas_tip_t_loc = wrench.tail(3);
-
-
-//        getForce(_meas_tip_f_loc); // locally-aligned contact force
 
     // rotating the force into world frame
     // then from base to world orientation
@@ -467,11 +487,11 @@ void MatReplayerRt::init_dump_logger()
       _dump_logger->create("base_link_vel", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("base_link_omega", 3, 1, _matlogger_buffer_size);
 
-      _dump_logger->create("q_p_ft_est", _n_jnts_model_ft_est), 1, _matlogger_buffer_size;
-      _dump_logger->create("q_p_dot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
-      _dump_logger->create("q_p_ddot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
-      _dump_logger->create("tau_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
-      _dump_logger->create("f_cont_est", 3, 1, _matlogger_buffer_size);
+//      _dump_logger->create("q_p_ft_est", _n_jnts_model_ft_est), 1, _matlogger_buffer_size;
+//      _dump_logger->create("q_p_dot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+//      _dump_logger->create("q_p_ddot_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+//      _dump_logger->create("tau_ft_est", _n_jnts_model_ft_est, 1, _matlogger_buffer_size);
+//      _dump_logger->create("f_cont_est", 3, 1, _matlogger_buffer_size);
     }
 
     _dump_logger->create("tip_pos_rel_base_link", 3, 1, _matlogger_buffer_size);
@@ -535,15 +555,15 @@ void MatReplayerRt::add_data2dump_logger()
         _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
 
 
-        _dump_logger->add("q_p_ft_est", _q_p_ft_est);
+//        _dump_logger->add("q_p_ft_est", _q_p_ft_est);
 
-        _dump_logger->add("q_p_dot_ft_est", _q_p_dot_ft_est);
+//        _dump_logger->add("q_p_dot_ft_est", _q_p_dot_ft_est);
 
-        _dump_logger->add("q_p_ddot_ft_est", _q_p_ddot_ft_est);
+//        _dump_logger->add("q_p_ddot_ft_est", _q_p_ddot_ft_est);
 
-        _dump_logger->add("tau_ft_est", _tau_ft_est);
+//        _dump_logger->add("tau_ft_est", _tau_ft_est);
 
-        _dump_logger->add("f_cont_est", _f_cont_est);
+//        _dump_logger->add("f_cont_est", _f_cont_est);
 
     }
 
@@ -978,7 +998,12 @@ bool MatReplayerRt::on_initialize()
 
     is_sim(sim_flagname); // see if we are running a simulation
 
+    get_params_from_config(); // load params from yaml file
+
     _plugin_dt = getPeriodSec();
+
+    // Initializing XBot2 model interface using the read parameters
+    init_model_interface();
 
     _n_jnts_robot = _robot->getJointNum();
 
@@ -987,12 +1012,7 @@ bool MatReplayerRt::on_initialize()
     _robot->getEffortLimits(_effort_lims);
 
     init_nrt_ros_bridge();
-
-    get_params_from_config(); // load params from yaml file
     
-    // Initializing XBot2 model interface using the read parameters 
-    init_model_interface();
-
     // Initializing CartesIO solver, ros server and spawning the non rt thread
     // init_cartesio_solver();
     create_ros_api();
@@ -1002,7 +1022,7 @@ bool MatReplayerRt::on_initialize()
 
     _peisekah_utils = plugin_utils::PeisekahTrans();
 
-    init_ft_sensor(_tip_fts_name);
+    init_ft_sensor();
 
     return true;
     
@@ -1021,13 +1041,10 @@ void MatReplayerRt::starting()
     _damping_setpoint = _replay_damping;
 
     // setting the control mode to effort + velocity + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + 
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() +
             ControlMode::Damping());
 
     update_state(); // read current jnt positions and velocities
-    
-    // compute_approach_traj_offline(); // based on the current state, compute a smooth transition to the\\
-    // first trajectory position sample
 
     // Move on to run()
     start_completed();
@@ -1036,16 +1053,17 @@ void MatReplayerRt::starting()
 
 void MatReplayerRt::run()
 {  
+    int i = 0;
 
     update_state(); // update all necessary states
 
     _queue.run();
 
     set_trajectory();
-    
+
     pub_replay_status();
 
-    add_data2dump_logger(); // add data to the logger
+//    add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
