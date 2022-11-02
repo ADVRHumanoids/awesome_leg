@@ -751,9 +751,6 @@ void MatReplayerRt::load_opt_data()
 
         _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt, _f_cont_ref);
 
-        jwarn("The loaded trajectory was generated with a dt of {} s, while the rt plugin runs at {} .\n ",
-        dt_opt(0), _plugin_dt);
-
     }
 
     _takeoff_index = _traj.get_takeoff_index(); // takeoff index
