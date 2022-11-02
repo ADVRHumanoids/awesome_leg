@@ -30,6 +30,8 @@ void ContactEstimation::createVirtualFt()
 
 Eigen::Vector3d ContactEstimation::get_f()
 {
+    estimate_f();
+
     Eigen::Vector3d f_estimate = _f_estimate;
 
     return f_estimate;

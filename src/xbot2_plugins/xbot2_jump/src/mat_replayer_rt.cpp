@@ -247,7 +247,7 @@ void MatReplayerRt::init_ft_estimator()
 
   _ft_estimator = ContactEstimation::MakeEstimator(_contact_linkname,
                                                    _contact_dofs,
-                                                   _model); // create
+                                                   _model_ft_est); // create
   // the force estimator
 
 }
