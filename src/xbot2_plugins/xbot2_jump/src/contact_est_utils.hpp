@@ -43,13 +43,16 @@ namespace ContactEstUtils
                             XBot::ModelInterface::Ptr model); // private constructor;
           // can only be called via the factory method
 
-          Eigen::Vector3d _f_estimate, _w_estimate;
+          Eigen::Vector3d _f_estimate_loc, _w_estimate_loc,
+                          _f_estimate, _w_estimate;
 
           XBot::Cartesian::Utils::ForceEstimation::Ptr _ft_estimator;
 
           XBot::ForceTorqueSensor::ConstPtr _ft_vs;
 
           std::string _link_name;
+
+          Eigen::Affine3d _contact_link_pose;
 
           std::vector<int> _dofs;
 

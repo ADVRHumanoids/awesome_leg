@@ -53,6 +53,11 @@ void ContactEstimation::update_estimate(){
 
 void ContactEstimation::estimate_f(){
 
-    _ft_vs->getForce(_f_estimate); // get the force estimate from
+    _ft_vs->getForce(_f_estimate_loc); // get the force estimate from
     // the force torque sensor
+
+    _model->getPose(_link_name, _contact_link_pose);
+
+    _f_estimate = _contact_link_pose * _f_estimate_loc; // rotate force from local
+    // to base link frame
 };
