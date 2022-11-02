@@ -110,7 +110,8 @@ private:
                 _tip_link_name, _base_link_name,
                 _hw_type,
                 _tip_fts_name,
-                _contact_linkname = "tip1";
+                _contact_linkname = "tip1",
+                _test_rig_linkname = "test_rig";
 
     double _delta_effort_lim,
         _nominal_traj_dt, _plugin_dt,
@@ -149,8 +150,10 @@ private:
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est, _f_cont_est,
                     _q_p_dot_ft_est_prev;
 
-    Eigen::Affine3d _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
-                    _base_link_abs_est, _tip_pose_abs_est;
+    Eigen::Affine3d _test_rig_pose,
+                    _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
+                    _base_link_abs_est, _tip_pose_abs_est,
+                    _base_link_pos_rel_test_rig;
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref;
 

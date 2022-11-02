@@ -168,8 +168,8 @@ void MatReplayerRt::get_params_from_config()
     _verbose = getParamOrThrow<bool>("~verbose");
 
     _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
-
     _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
+    _test_rig_linkname = getParamOrThrow<std::string>("~test_rig_linkname");
 
 }
 
@@ -217,6 +217,12 @@ void MatReplayerRt::init_model_interface()
     // Initializing XBot2 ModelInterface for the test model
     _model_ft_est = XBot::ModelInterface::getModel(xbot_cfg_ft_est);
     _n_jnts_model_ft_est = _model_ft_est->getJointNum();
+
+
+    _model_ft_est->getPose(_test_rig_linkname, _test_rig_pose);
+    // offset of the base link wrt the world link in the ft estimation
+    // model
+
 }
 
 void MatReplayerRt::init_ft_sensor()
@@ -258,11 +264,15 @@ void MatReplayerRt::get_passive_jnt_est(double& pssv_jnt_pos,
                                         double& pssv_jnt_vel,
                                         double& pssv_jnt_acc)
 {
-    Eigen::VectorXd base_link_pos_est = _base_link_abs.translation(); // for now use
-    // ground truth from Gazebo
+
+    _base_link_pos_rel_test_rig = _base_link_abs * _test_rig_pose.inverse(); // base link pos
+    // wrt test rig link
+
+    Eigen::VectorXd base_link_pos_est = _base_link_pos_rel_test_rig.translation(); // test rig joint position
+
     Eigen::VectorXd base_link_tvel_est = _base_link_vel; // for now use
 
-    pssv_jnt_pos = base_link_pos_est(base_link_pos_est.size() - 1);
+    pssv_jnt_pos = base_link_pos_est(base_link_pos_est.size() - 1); // last element(z-component)
 
     pssv_jnt_vel = base_link_tvel_est(base_link_tvel_est.size() - 1);
 
@@ -311,12 +321,7 @@ void MatReplayerRt::update_state()
     _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
     _robot->getDamping(_meas_damping);
 
-    if (_is_sim)
-    { // if in sim, update the ground truth force
-
-      get_fts_force();
-
-    }
+    get_fts_force();
 
     // Updating the test model with the measurements
     _model->setJointPosition(_q_p_meas);

@@ -84,8 +84,8 @@ xbotcore_plugins:
             
             verbose: {value: false, type: bool}
 
+            test_rig_linkname: {value: "test_rig", type: string}
             tip_fts_name: {value: "tip1_fts", type: string}
-
             contact_linkname: {value: "tip1", type: string}
 
 # global parameters
