@@ -93,7 +93,8 @@ private:
         _is_sim = true,
         _reduce_dumped_sol_size = false,
         _send_whole_traj = false,
-        _verbose = false;
+        _verbose = false,
+        _ft_tip_sensor_found = false;
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,

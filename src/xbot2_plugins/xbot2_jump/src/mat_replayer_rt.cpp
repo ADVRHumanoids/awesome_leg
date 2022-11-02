@@ -227,6 +227,10 @@ void MatReplayerRt::init_ft_sensor()
 
       _ft_sensor = _robot->getDevices<Hal::ForceTorque>().get_device(_tip_fts_name);
 
+      _ft_tip_sensor_found = (!_ft_sensor) ?  false : true; // flag to signal the
+      // presence (or absence) of the tip force torque sensor (calling methods on a nullptr
+      // causes a seg. fault)
+
   }
 
 
@@ -258,9 +262,7 @@ void MatReplayerRt::get_passive_jnt_est(double& pssv_jnt_pos,
     // ground truth from Gazebo
     Eigen::VectorXd base_link_tvel_est = _base_link_vel; // for now use
 
-    Eigen::VectorXd base_link_pos = _base_link_abs_est.translation();
-
-    pssv_jnt_pos = base_link_pos(base_link_pos.size() - 1);
+    pssv_jnt_pos = base_link_pos_est(base_link_pos_est.size() - 1);
 
     pssv_jnt_vel = base_link_tvel_est(base_link_tvel_est.size() - 1);
 
@@ -285,7 +287,7 @@ void MatReplayerRt::update_state_estimates()
 
     _q_p_ddot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = ( _q_p_dot_meas - _q_p_dot_ft_est_prev.tail(_n_jnts_robot) ) / _plugin_dt; // assign actuated dofs with meas.
     // from encoders
-    _q_p_dot_ft_est(0) = pssv_jnt_acc; // assign passive dofs
+    _q_p_ddot_ft_est(0) = pssv_jnt_acc; // assign passive dofs
 
     _tau_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs with meas.
     // from encoders
@@ -410,7 +412,7 @@ void MatReplayerRt::get_abs_tip_position()
 
 void MatReplayerRt::get_fts_force()
 {
-  if(_is_sim)
+  if(_is_sim && _ft_tip_sensor_found)
   { // fts only available in simulation (for now)
 
     Eigen::Vector6d wrench = _ft_sensor->getWrench();
@@ -418,12 +420,12 @@ void MatReplayerRt::get_fts_force()
     _meas_tip_f_loc = wrench.head(3);
     _meas_tip_t_loc = wrench.tail(3);
 
-    // rotating the force into world frame
-    // then from base to world orientation
-
-    _meas_tip_f_abs = _tip_pose_abs * _meas_tip_f_loc;
-
   }
+
+  // rotating the force into world frame
+  // then from base to world orientation
+
+  _meas_tip_f_abs = _tip_pose_abs * _meas_tip_f_loc;
 
 }
 
