@@ -77,8 +77,7 @@ public:
 
 private:
 
-    bool _looped_traj = false,
-        _approach_traj_started = false, _approach_traj_finished = false,
+    bool _approach_traj_started = false, _approach_traj_finished = false,
         _traj_started = false, _traj_finished = false,
         _imp_traj_started = false, _imp_traj_finished = false,
         _is_first_run = true,

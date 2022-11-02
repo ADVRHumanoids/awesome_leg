@@ -5,8 +5,10 @@
 void MatReplayerRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
+
     _pause_time = 0.0;
     _approach_traj_time = 0.0;
+    _smooth_imp_time = 0.0;
 }
 
 void MatReplayerRt::init_vars()
@@ -92,7 +94,7 @@ void MatReplayerRt::update_clocks()
         _smooth_imp_time += _plugin_dt;
     }
 
-    if(_approach_traj_started && !_approach_traj_finished)
+    if(_imp_traj_finished && _approach_traj_started && !_approach_traj_finished && _jump)
     {
         _approach_traj_time += _plugin_dt;
     }
@@ -109,12 +111,12 @@ void MatReplayerRt::update_clocks()
         _pause_time = _pause_time - _traj_pause_time;
     }
 
-    if(_approach_traj_time >= _approach_traj_exec_time)
+    if(_approach_traj_finished)
     {
         _approach_traj_time = _approach_traj_exec_time;
     }
 
-    if(_smooth_imp_time >= _imp_ramp_time)
+    if(_imp_traj_finished)
     {
         _smooth_imp_time = _imp_ramp_time;
     }
@@ -149,8 +151,7 @@ void MatReplayerRt::get_params_from_config()
     _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness"); 
     _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping"); 
 
-    _looped_traj = getParamOrThrow<bool>("~looped_traj");
-    _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
+   _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
     _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
@@ -653,8 +654,9 @@ int MatReplayerRt::was_jump_signal_received()
             _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
-            _imp_traj_started = true;
-            _approach_traj_started = true;
+            _imp_traj_started = true; // start impedance traj
+            _approach_traj_started = false; // will wait for imp. traj to finish
+            // before starting the approach trajectory
 
             _ramp_strt_stiffness = _meas_stiffness;
             _ramp_strt_damping = _meas_damping;
@@ -812,24 +814,26 @@ void MatReplayerRt::set_trajectory()
   // remember to increase the sample index at the end of each phase, 
   // if necessary
 
-    if (_is_first_run)
-    { // set impedance vals and pos ref to safe values at first plugin loop
+//    if (_is_first_run)
+//    { // set impedance vals and pos ref to safe values at first plugin loop
 
-        if (_verbose)
-        {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                       "\n (first run) \n");
-        }
-        _q_p_safe_cmd = _q_p_meas;
-        
-        _ramp_strt_stiffness = _meas_stiffness;
-        _ramp_strt_damping = _meas_damping;
+//        if (_verbose)
+//        {
+//            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+//                       "\n (first run) \n");
+//        }
 
-        _imp_traj_started = true; // ramp impedance to target values smoothly at 
-        // the beginning of each plugin loop
+//        _ramp_strt_stiffness = _meas_stiffness;
+//        _ramp_strt_damping = _meas_damping;
 
-        _sample_index++; // incrementing loop counter
-    }
+//        _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
+//        // upon plugin start
+
+//        _imp_traj_started = true; // ramp impedance to target values smoothly when
+//        //starting the plugin the first time
+
+//        _sample_index++; // incrementing loop counter
+//    }
 
     if (_imp_traj_started && !_imp_traj_finished)
     { // still ramping (up) impedance
@@ -837,10 +841,15 @@ void MatReplayerRt::set_trajectory()
         if (_smooth_imp_time > _imp_ramp_time - 0.000001)
         {
             _imp_traj_finished = true; // finished ramping imp.
-            // _approach_traj_started = true;
+
+            _approach_traj_started = true; // start publishing approach
+            // trajectory
 
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
+
+            _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
+            // to last sent position command
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Joint impedance successfully ramped to target \n");
@@ -895,8 +904,6 @@ void MatReplayerRt::set_trajectory()
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                    "\n (before takeoff) \n");
             }
-            
-
         
         }
 
@@ -1100,7 +1107,9 @@ void MatReplayerRt::on_stop()
     // Sending references
     _robot->move();
 
-    _is_first_run = true;
+    reset_flags();
+
+    init_clocks();
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _dump_logger.reset();
