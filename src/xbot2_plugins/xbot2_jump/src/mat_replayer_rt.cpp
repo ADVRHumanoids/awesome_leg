@@ -482,7 +482,9 @@ void MatReplayerRt::init_dump_logger()
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
       _dump_logger->create("tip_pos_meas", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("tip_pose_abs_est", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("base_link_abs_est", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("meas_tip_f_loc", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("meas_tip_f_abs", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("base_link_vel", 3, 1, _matlogger_buffer_size);
@@ -545,7 +547,11 @@ void MatReplayerRt::add_data2dump_logger()
     { // no estimate of base link abs position on the real robot (for now)
         _dump_logger->add("tip_pos_meas", _tip_abs_position);
 
+        _dump_logger->add("tip_pos_est", _tip_pose_abs_est.translation());
+
         _dump_logger->add("base_link_abs", _base_link_abs.translation());
+
+        _dump_logger->add("base_link_abs_est", _base_link_abs_est.translation());
 
         _dump_logger->add("base_link_vel", _base_link_vel);
 
