@@ -651,7 +651,9 @@ int MatReplayerRt::was_jump_signal_received()
 
             res = 1;
 
+//            _q_p_safe_cmd = _q_p_meas; // safe position command
             _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
+
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
             _imp_traj_started = true; // start impedance traj
@@ -780,7 +782,7 @@ void MatReplayerRt::ramp_imp_smoothly()
 
     _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping);
 
-    _q_p_cmd = _q_p_safe_cmd; // enforce reference to a "safe" state
+//    _q_p_cmd = _q_p_safe_cmd; // enforce reference to a "safe" state
 
     _stiffness_setpoint = _ramp_stiffness; 
     _damping_setpoint = _ramp_damping;
@@ -792,7 +794,7 @@ void MatReplayerRt::set_approach_trajectory()
 
     double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
-    _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_safe_cmd, _q_p_trgt_appr_traj);
+    _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
 
     _stiffness_setpoint = _replay_stiffness; 
     _damping_setpoint = _replay_damping;
@@ -814,26 +816,23 @@ void MatReplayerRt::set_trajectory()
   // remember to increase the sample index at the end of each phase, 
   // if necessary
 
-//    if (_is_first_run)
-//    { // set impedance vals and pos ref to safe values at first plugin loop
+    if (_is_first_run)
+    { // set impedance vals and pos ref to safe values at first plugin loop
 
-//        if (_verbose)
-//        {
-//            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-//                       "\n (first run) \n");
-//        }
+        if (_verbose)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                       "\n (first run) \n");
+        }
 
-//        _ramp_strt_stiffness = _meas_stiffness;
-//        _ramp_strt_damping = _meas_damping;
+        // setting commands to currently meas
+        // state to avoid jumps upon plugin start
+        _stiffness_setpoint = _meas_stiffness;
+        _damping_setpoint = _meas_damping;
 
-//        _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
-//        // upon plugin start
+        _q_p_cmd = _q_p_meas;
 
-//        _imp_traj_started = true; // ramp impedance to target values smoothly when
-//        //starting the plugin the first time
-
-//        _sample_index++; // incrementing loop counter
-//    }
+    }
 
     if (_imp_traj_started && !_imp_traj_finished)
     { // still ramping (up) impedance
@@ -843,7 +842,6 @@ void MatReplayerRt::set_trajectory()
             _imp_traj_finished = true; // finished ramping imp.
 
             _approach_traj_started = true; // start publishing approach
-            // trajectory
 
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
@@ -1106,6 +1104,8 @@ void MatReplayerRt::on_stop()
 
     // Sending references
     _robot->move();
+
+    _is_first_run = true;
 
     reset_flags();
 
