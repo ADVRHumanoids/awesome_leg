@@ -13,7 +13,7 @@
 
 using namespace plugin_utils;
 
-///////////////////////////// PeisekahTrans /////////////////////////////
+//***************************** PeisekahTrans *****************************//
 
 PeisekahTrans::PeisekahTrans(){};
 
@@ -180,7 +180,8 @@ Eigen::MatrixXd PeisekahTrans::get_traj()
     return _traj;
     
 }
-///////////////////////////// TrajLinInterp /////////////////////////////
+
+//***************************** TrajLinInterp *****************************//
 
 TrajLinInterp::TrajLinInterp(){};
 
@@ -385,7 +386,7 @@ void TrajLinInterp::get_closest_points(double inter_time, int& first_indx, int& 
 }
 
 
-///////////////////////////// TrajLoader /////////////////////////////
+//***************************** TrajLoader *****************************//
 
 TrajLoader::TrajLoader(){};
 

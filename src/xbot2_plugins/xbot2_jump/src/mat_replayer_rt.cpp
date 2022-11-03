@@ -48,6 +48,8 @@ void MatReplayerRt::init_vars()
     _f_cont_est = Eigen::VectorXd::Zero(3);
     _f_cont_meas = Eigen::VectorXd::Zero(3);
 
+    _meas_driver_temp = Eigen::VectorXd::Zero(_n_jnts_robot);
+
 }
 
 void MatReplayerRt::reset_flags()
@@ -151,7 +153,7 @@ void MatReplayerRt::get_params_from_config()
     _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness"); 
     _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping"); 
 
-   _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
+    _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
     _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
@@ -170,6 +172,8 @@ void MatReplayerRt::get_params_from_config()
     _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
     _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
     _test_rig_linkname = getParamOrThrow<std::string>("~test_rig_linkname");
+
+    _driver_temp_threshold = getParamOrThrow<Eigen::VectorXd>("~driver_temp_threshold");
 
 }
 
@@ -321,6 +325,8 @@ void MatReplayerRt::update_state()
     _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
     _robot->getDamping(_meas_damping);
 
+    _robot->getTemperature(_meas_driver_temp); // getting driver temperature
+
     get_fts_force();
 
     // Updating the test model with the measurements
@@ -469,6 +475,8 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->add("send_vel_ref", int(_send_vel_ref));
     _dump_logger->add("send_eff_ref", int(_send_eff_ref));
 
+    _dump_logger->add("driver_temp_threshold", _driver_temp_threshold);
+
     // _dump_logger->create("plugin_time", 1);
     _dump_logger->create("jump_replay_times", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("replay_time", 1, 1, _matlogger_buffer_size);
@@ -476,6 +484,10 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger->create("replay_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("meas_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("meas_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("meas_driver_temp", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("is_drivers_temp_ok", 1, 1, _matlogger_buffer_size);
+
     _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
@@ -537,6 +549,10 @@ void MatReplayerRt::add_data2dump_logger()
     _dump_logger->add("replay_damping", _replay_damping);
     _dump_logger->add("meas_stiffness", _meas_stiffness);
     _dump_logger->add("meas_damping", _meas_damping);
+
+    _dump_logger->add("meas_driver_temp", _meas_driver_temp);
+
+    _dump_logger->add("is_drivers_temp_ok", _is_drivers_temp_ok);
 
     _dump_logger->add("q_p_meas", _q_p_meas);
     _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
@@ -704,6 +720,9 @@ bool MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 
     _jump = req.jump_now; // setting jump flag
 
+    check_driver_temp_limits(); // deactivates jump if temperature of any of the
+    // joint driver goes beyond the prescibed threshold
+
     std::string message;
     
     _jump_phase_state = was_jump_signal_received();
@@ -780,6 +799,18 @@ void MatReplayerRt::saturate_effort()
 
             _tau_cmd[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
         }
+    }
+}
+
+void MatReplayerRt::check_driver_temp_limits()
+{
+
+    _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_threshold.array()).all();
+
+    if(!_is_drivers_temp_ok)
+    {
+        _jump = false; // do not start the jumping sequence
+        // even if a positive jumping command was received
     }
 }
 

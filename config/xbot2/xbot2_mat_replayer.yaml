@@ -76,7 +76,7 @@ xbotcore_plugins:
             base_link_name: {value: base_link, type: string}
 
             approach_traj_exec_time: {value: 5, type: double}
-            imp_ramp_time: {value: 1.0, type: double}
+            imp_ramp_time: {value: 3.0, type: double}
 
             reduce_dumped_sol_size: {value: false, type: bool}
 
@@ -87,6 +87,8 @@ xbotcore_plugins:
             test_rig_linkname: {value: "test_rig", type: string}
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
+
+            driver_temp_threshold: {value: [60.0, 65.0], type: Eigen::VectorXd}
 
 # global parameters
 xbotcore_param:

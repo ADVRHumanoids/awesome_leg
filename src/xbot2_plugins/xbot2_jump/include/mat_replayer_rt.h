@@ -35,6 +35,8 @@ using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace ContactEstUtils;
 
+typedef Eigen::Array<bool, Eigen::Dynamic, 1> VectorXb;
+
 /**
  * @brief The CartesioEllConfigRt class is a ControlPlugin
  * implementing a trajectory tracking (elliptical traj.). 
@@ -47,7 +49,7 @@ class MatReplayerRt : public ControlPlugin
 {
 
 public:
-    
+
     using ControlPlugin::ControlPlugin;
 
     // initialization method; the plugin won't be run
@@ -94,7 +96,8 @@ private:
         _reduce_dumped_sol_size = false,
         _send_whole_traj = false,
         _verbose = false,
-        _ft_tip_sensor_found = false;
+        _ft_tip_sensor_found = false,
+        _is_drivers_temp_ok = true;
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,
@@ -148,7 +151,8 @@ private:
                     _q_p_init_appr_traj, _q_p_trgt_appr_traj,
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est, _f_cont_est,
-                    _q_p_dot_ft_est_prev;
+                    _q_p_dot_ft_est_prev,
+                    _meas_driver_temp, _driver_temp_threshold;
 
     Eigen::Affine3d _test_rig_pose,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
@@ -207,6 +211,8 @@ private:
     void ramp_imp_smoothly();
 
     void saturate_effort();
+
+    void check_driver_temp_limits();
     
     void update_state();
     void update_state_estimates();
