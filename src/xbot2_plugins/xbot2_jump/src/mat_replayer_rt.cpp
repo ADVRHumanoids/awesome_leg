@@ -251,7 +251,8 @@ void MatReplayerRt::init_ft_estimator()
 
   _ft_estimator = ContactEstimation::MakeEstimator(_contact_linkname,
                                                    _contact_dofs,
-                                                   _model_ft_est); // create
+                                                   _model_ft_est,
+                                                   1.0/_plugin_dt); // create
   // the force estimator
 
 }
@@ -345,7 +346,7 @@ void MatReplayerRt::update_state()
 
     _model_ft_est->setJointPosition(_q_p_ft_est); // update the state
     _model_ft_est->setJointVelocity(_q_p_dot_ft_est);
-    _model_ft_est->setJointAcceleration(_q_p_ddot_ft_est); // update joint accelerations
+//    _model_ft_est->setJointAcceleration(_q_p_ddot_ft_est); // update joint accelerations
     _model_ft_est->setJointEffort(_tau_ft_est); // update joint efforts
 
     _model_ft_est->update(); // update the model

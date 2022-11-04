@@ -4,8 +4,9 @@ using namespace ContactEstUtils;
 
 ContactEstimation::ContactEstimation(std::string link_name,
                                      std::vector<int> dofs,
-                                     XBot::ModelInterface::Ptr model)
-    : _link_name{link_name}, _model{model}, _dofs{dofs}
+                                     XBot::ModelInterface::Ptr model,
+                                     double plugin_rate)
+    : _link_name{link_name}, _model{model}, _dofs{dofs}, _plugin_rate{plugin_rate}
 {
 
     this->createVirtualFt();
@@ -18,9 +19,11 @@ void ContactEstimation::createVirtualFt()
 
     if(!_ft_estimator)
     {
-        _ft_estimator = std::make_shared<ForceEstimation>(
+        _ft_estimator = std::make_shared<ForceEstimationMomentumBased>(
                     _model,
-                    ForceEstimation::DEFAULT_SVD_THRESHOLD);
+                    _plugin_rate,
+                    ForceEstimation::DEFAULT_SVD_THRESHOLD,
+                    DEFAULT_OBS_BW);
     }
 
     // generate virtual ft

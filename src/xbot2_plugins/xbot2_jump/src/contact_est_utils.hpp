@@ -27,7 +27,8 @@ namespace ContactEstUtils
 
           static UniquePtr MakeEstimator(std::string contact_linkname,
                                          std::vector<int> dofs,
-                                         XBot::ModelInterface::Ptr _model); // static method
+                                         XBot::ModelInterface::Ptr _model,
+                                         double plugin_rate); // static method
           // so we can call it without an object of the class
 
           Eigen::Vector3d get_f();
@@ -38,9 +39,12 @@ namespace ContactEstUtils
 
       private:
 
+          static constexpr double DEFAULT_OBS_BW = 4.0;
+
           ContactEstimation(std::string link_name,
                             std::vector<int> dofs,
-                            XBot::ModelInterface::Ptr model); // private constructor;
+                            XBot::ModelInterface::Ptr model,
+                            double plugin_rate); // private constructor;
           // can only be called via the factory method
 
           Eigen::Vector3d _f_estimate_loc, _w_estimate_loc,
@@ -51,6 +55,8 @@ namespace ContactEstUtils
           XBot::ForceTorqueSensor::ConstPtr _ft_vs;
 
           std::string _link_name;
+
+          double _plugin_rate;
 
           Eigen::Affine3d _contact_link_pose;
 
@@ -71,8 +77,9 @@ namespace ContactEstUtils
 // This is the static factory method used to construct instances of the ContactEstimation class
 ContactEstUtils::ContactEstimation::UniquePtr ContactEstUtils::ContactEstimation::MakeEstimator(std::string contact_linkname,
                                                                                                 std::vector<int> dofs,
-                                                                                                XBot::ModelInterface::Ptr model)
+                                                                                                XBot::ModelInterface::Ptr model,
+                                                                                                double plugin_rate)
 {
-    return UniquePtr(new ContactEstimation(contact_linkname, dofs, model));
+    return UniquePtr(new ContactEstimation(contact_linkname, dofs, model, plugin_rate));
 }
 
