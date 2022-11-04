@@ -4,14 +4,14 @@
     
     <arg name="launch_pose_init" default="true"/>
     
-    <rosparam command="load" file="$(find awesome_leg_pholus)/config/horizon/horizon_xbot_cmd_pub.yaml" subst_value="true"/> 
+    <rosparam command="load" file="$(find awesome_leg)/config/horizon/horizon_xbot_cmd_pub.yaml" subst_value="true"/> 
 
     <!-- Simply load all the necessary parameters into the parameter server -->
-    <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>
+    <include file="$(find awesome_leg)/launch/load_params.launch" pass_all_args="true"/>
 
     <group if="$(eval arg('launch_pose_init'))"> <!-- if launch_pose_init=true, launch the associated node and set the proper parameter -->
         <param name="/horizon_xbot_cmd_pub/approaching_traj/wait_until_initial_pose" type="bool" value="true" />
-        <node name="horizon_xbot_init_pos_pub" pkg="awesome_leg_pholus" type="horizon_xbot_init_pos_pub.py" output="screen"/> <!-- start the horizon-xbot initial pose publisher node-->
+        <node name="horizon_xbot_init_pos_pub" pkg="awesome_leg" type="horizon_xbot_init_pos_pub.py" output="screen"/> <!-- start the horizon-xbot initial pose publisher node-->
     </group>
 
     <group if="$(eval (not arg('launch_pose_init')))">
@@ -19,6 +19,6 @@
     </group>
 
     <!-- Launch the xbot command publisher node -->
-    <node name="horizon_xbot_cmd_pub" pkg="awesome_leg_pholus" type="horizon_xbot_cmd_pub.py" output="screen"/> <!-- start the horizon-xbot publisher node-->
+    <node name="horizon_xbot_cmd_pub" pkg="awesome_leg" type="horizon_xbot_cmd_pub.py" output="screen"/> <!-- start the horizon-xbot publisher node-->
 
 </launch>

@@ -3,8 +3,9 @@
 
 #include <math.h> 
 
-#include <Eigen/Dense>
-#include <Eigen/Core>
+// #include <Eigen/Dense>
+// #include <Eigen/Core>
+#include <Eigen/Eigen>
 
 #include <vector>
 #include <map>
@@ -83,7 +84,7 @@ namespace plugin_utils{
             int get_n_jnts();
             int get_n_nodes();
             double get_exec_time();
-            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::VectorXd& dt_opt);
+            void get_loaded_traj(Eigen::MatrixXd& q_p, Eigen::MatrixXd& q_p_dot, Eigen::MatrixXd& tau, Eigen::MatrixXd& dt_opt);
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res, Eigen::MatrixXd& tau_res);
 
             
@@ -96,12 +97,15 @@ namespace plugin_utils{
             std::string _q_p_name = "q_p"; // these names have to match the ones of the loaded data
             std::string _q_p_dot_name = "q_p_dot";
             std::string _efforts_name = "tau";
+            std::string _f_contact_name = "f_contact";
             std::string _dt_name = "dt_opt";
 
             Eigen::MatrixXd _q_p;
             Eigen::MatrixXd _q_p_dot;
             Eigen::MatrixXd _tau;
-            Eigen::VectorXd _dt_opt, _sample_times;
+            Eigen::MatrixXd _f_contact;
+            Eigen::MatrixXd _dt_opt;
+            Eigen::VectorXd _sample_times;
 
             double _exec_time;
 

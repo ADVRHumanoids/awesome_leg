@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- 
+    Leg urdf for use with Cartesio (added world link) and RBDL
+-->
+
+<robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- importing the base leg file -->
+
+    <link name="world"> </link>
+
+    <joint name="world2pelvis" type="fixed">
+        <parent link="world"/>
+        <child link="pelvis"/>
+    </joint>
+
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro" />
+
+  </robot>

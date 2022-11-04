@@ -4,7 +4,7 @@
 
 import rospy
 
-from awesome_leg_pholus.srv import SinJointTraj, SinJointTrajRequest
+from awesome_leg.srv import SinJointTraj, SinJointTrajRequest
 
 rospy.init_node("jnt_sin_traj_setter")
 

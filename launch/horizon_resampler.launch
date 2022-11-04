@@ -1,9 +1,9 @@
 <launch>
 
     <!-- Simply load all the necessary parameters into the parameter server -->
-    <include file="$(find awesome_leg_pholus)/launch/load_params.launch" pass_all_args="true"/>
+    <include file="$(find awesome_leg)/launch/load_params.launch" pass_all_args="true"/>
 
     <!-- and launch the resampler node -->
-    <node name="horizon_traj_resampler" pkg="awesome_leg_pholus" type="horizon_traj_resampler.py" output="screen"/>
+    <node name="horizon_traj_resampler" pkg="awesome_leg" type="horizon_traj_resampler.py" output="screen"/>
 
 </launch>

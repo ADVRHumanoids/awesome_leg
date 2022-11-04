@@ -153,8 +153,8 @@ void BypassDsp::peisekah_transition()
     }
 }
 
-bool BypassDsp::on_sin_traj_recv_srv(const awesome_leg_pholus::SinJointTrajRequest& req,
-                          awesome_leg_pholus::SinJointTrajResponse& res)
+bool BypassDsp::on_sin_traj_recv_srv(const awesome_leg::SinJointTrajRequest& req,
+                          awesome_leg::SinJointTrajResponse& res)
 {
 
     _traj_par_callback_trigger = true; // to signal to other methods that a callback was received
@@ -228,8 +228,8 @@ bool BypassDsp::on_sin_traj_recv_srv(const awesome_leg_pholus::SinJointTrajReque
     return res.success;
 }
 
-bool BypassDsp::on_jnt_imp_setpoint_recv_srv(const awesome_leg_pholus::BypassDspRtRequest& req,
-                          awesome_leg_pholus::BypassDspRtResponse& res)
+bool BypassDsp::on_jnt_imp_setpoint_recv_srv(const awesome_leg::BypassDspRtRequest& req,
+                          awesome_leg::BypassDspRtResponse& res)
 {   
     _imp_callback_trigger = true; // to signal to other methods that a callback was received
 

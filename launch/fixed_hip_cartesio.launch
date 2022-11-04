@@ -4,13 +4,13 @@
     <arg name="gui" default="true"/>
 
     <param name="robot_description"
-        textfile="$(find awesome_leg_pholus)/description/urdf/awesome_leg_cartesio.urdf"/>
+        textfile="$(find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf"/>
 
     <param name="robot_description_semantic"
-        textfile="$(find awesome_leg_pholus)/description/srdf/awesome_leg_complete_fixed.srdf"/>
+        textfile="$(find awesome_leg)/description/srdf/awesome_leg_test_rig_fixed.srdf"/>
 
     <param name="cartesian/problem_description"
-        textfile="$(find awesome_leg_pholus)/config/cartesio/cartesio_fixed_hip.yaml"/>
+        textfile="$(find awesome_leg)/config/cartesio/cartesio_fixed_hip.yaml"/>
         
     <include file="$(find cartesian_interface)/launch/cartesio.launch">
         <!-- Control frequency (Hz) -->
@@ -26,7 +26,7 @@
             type="rviz"
             name="rviz"
             pkg="rviz"
-            args="-d $(find awesome_leg_pholus)/rviz/cartesio_fixed_hip.rviz"/>
+            args="-d $(find awesome_leg)/rviz/cartesio_fixed_hip.rviz"/>
             output="screen"/>
 
 </launch>

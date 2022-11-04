@@ -2,6 +2,6 @@
 
     <!-- LAUNCHES THE HORIZON PUBLISHER NODE (which publishes commands to XBot; then XBot forwards them to Gazebo) -->
 
-    <node name="horizon_xbot_cmd_pub" pkg="awesome_leg_pholus" type="horizon_xbot_cmd_pub.py" /> <!-- start the publisher node-->
+    <node name="horizon_xbot_cmd_pub" pkg="awesome_leg" type="horizon_xbot_cmd_pub.py" /> <!-- start the publisher node-->
 
 </launch>

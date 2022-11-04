@@ -12,13 +12,18 @@ void MatReplayerRt::reset_flags()
 {
 
     _first_run = true; // reset flag in case the plugin is run multiple times
+
     _approach_traj_started = false;
     _approach_traj_finished = false;
+    _recompute_approach_traj = true;
+
     _traj_started = false;
     _traj_finished = false;
+
     _pause_started = false;
     _pause_finished = false;
-    _send_eff_ref = false;
+
+    _jump = false;
 
     _sample_index = 0; // resetting samples index, in case the plugin stopped and started again
 
@@ -35,9 +40,9 @@ void MatReplayerRt::update_clocks()
     }
 
     // Reset timers, if necessary
-    if (_loop_time >= _loop_reset_time)
+    if (_loop_time >= _loop_timer_reset_time)
     {
-        _loop_time = _loop_time - _loop_reset_time;
+        _loop_time = _loop_time - _loop_timer_reset_time;
     }
 
     if(_pause_time >= _traj_pause_time)
@@ -53,7 +58,9 @@ void MatReplayerRt::get_params_from_config()
     // Reading some parameters from XBot2 config. YAML file
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
-    _math_name = getParamOrThrow<std::string>("~mat_name"); 
+    _mat_name = getParamOrThrow<std::string>("~mat_name"); 
+    _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
+    _resample = getParamOrThrow<bool>("~resample"); 
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
     _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
@@ -64,6 +71,8 @@ void MatReplayerRt::get_params_from_config()
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
     _looped_traj = getParamOrThrow<bool>("~looped_traj");
     _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
+    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
+    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
 }
@@ -74,7 +83,8 @@ void MatReplayerRt::update_state()
     _robot->sense();
     // Getting robot state
     _robot->getJointPosition(_q_p_meas);
-    _robot->getMotorVelocity(_q_p_dot_meas);    
+    _robot->getMotorVelocity(_q_p_dot_meas);  
+    _robot->getJointEffort(_tau_meas);
     
 }
 
@@ -88,12 +98,25 @@ void MatReplayerRt::init_dump_logger()
     _dump_logger = MatLogger2::MakeLogger("/tmp/MatReplayerRt", opt); // date-time automatically appended
     _dump_logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
+    _dump_logger->add("plugin_dt", _plugin_dt);
+    _dump_logger->add("stop_stiffness", _stop_stiffness);
+    _dump_logger->add("stop_damping", _stop_damping);
+
+    _dump_logger->create("plugin_time", 1);
+    _dump_logger->create("replay_stiffness", _n_jnts_model);
+    _dump_logger->create("replay_damping", _n_jnts_model);
     _dump_logger->create("q_p_meas", _n_jnts_model);
     _dump_logger->create("q_p_dot_meas", _n_jnts_model);
+    _dump_logger->create("tau_meas", _n_jnts_model);
+    _dump_logger->create("q_p_cmd", _n_jnts_model);
+    _dump_logger->create("q_p_dot_cmd", _n_jnts_model);
+    _dump_logger->create("tau_cmd", _n_jnts_model);
 
-    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(2);
-    dscrptn_files_cell[0] = _robot->getUrdfPath();
-    dscrptn_files_cell[1] = _robot->getSrdfPath();
+    auto dscrptn_files_cell = XBot::matlogger2::MatData::make_cell(4);
+    dscrptn_files_cell[0] = _mat_path;
+    dscrptn_files_cell[1] = _mat_name;
+    dscrptn_files_cell[2] = _robot->getUrdfPath();
+    dscrptn_files_cell[3] = _robot->getSrdfPath();
     _dump_logger->save("description_files", dscrptn_files_cell);
 
 }
@@ -101,11 +124,39 @@ void MatReplayerRt::init_dump_logger()
 void MatReplayerRt::add_data2dump_logger()
 {
     
-    _dump_logger->add("plugin_dt", _plugin_dt);
-    _dump_logger->add("stop_stiffness", _stop_stiffness);
-    _dump_logger->add("stop_damping", _stop_damping);
+    _dump_logger->add("replay_stiffness", _replay_stiffness);
+    _dump_logger->add("replay_damping", _replay_damping);
     _dump_logger->add("q_p_meas", _q_p_meas);
-    _dump_logger->add("q_p_dot_meas", _q_p_meas);
+    _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+    _dump_logger->add("tau_meas", _tau_meas);
+    _dump_logger->add("plugin_time", _loop_time);
+
+    if (_traj_started && !_traj_finished)
+    { // trajectory is being published
+        
+        if (_sample_index <= (_traj.get_n_nodes() - 1))
+        { // commands have been computed
+
+            if (_is_first_jnt_passive)
+            { // remove first joint from logged commands
+
+                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_model));
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_model));
+                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_model));
+
+            }
+            else
+            {
+                
+                _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_model));
+                _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_model));
+                _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_model));
+
+            }
+
+        }
+
+    }
 
 }
 
@@ -115,31 +166,82 @@ void MatReplayerRt::init_nrt_ros_bridge()
 
     _ros = std::make_unique<RosSupport>(nh);
 
-    // /* Service server */
-    // _ell_traj_srv = _ros->advertiseService(
-    //     "my_ell_traj_srvc",
-    //     &MatReplayerRt::on_ell_traj_recv_srv,
-    //     this,
-    //     &_queue);
+    /* Service server */
+    _jump_now_srv = _ros->advertiseService(
+        "my_jump_now",
+        &MatReplayerRt::on_jump_msg_rcvd,
+        this,
+        &_queue);
 
+}
+
+bool  MatReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
+                    awesome_leg::JumpNowResponse& res)
+{
+
+    _jump = req.jump_now;
+
+    if (req.jump_now)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n Received jump signal! Hopefully the robot won't break...\n");
+
+        res.message = "Starting replaying of jump trajectory!";
+        
+    }
+
+    if (!req.jump_now)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n Stopping trajectory replay ...\n");
+
+        res.message = "Stopping trajectory replay!";
+
+        _recompute_approach_traj = true; // resetting flag so that a new approaching traj can be computed
+
+        reset_flags();
+    }
+
+    res.success = true;
+
+    return true; 
 }
 
 void MatReplayerRt::load_opt_data()
 {   
 
-    _traj = plugin_utils::TrajLoader(_mat_path);
+    _traj = plugin_utils::TrajLoader(_mat_path + _mat_name);
+
     int n_traj_jnts = _traj.get_n_jnts();
 
     if(n_traj_jnts != _n_jnts_model) 
     {
-        jerror("The loaded trajectory has {} joints, while the robot has {} .", n_traj_jnts, _n_jnts_model);
+        jwarn("The loaded trajectory has {} joints, while the robot has {} .\n Make sure to somehow select the right components!!",
+        n_traj_jnts, _n_jnts_model);
     }
 
-    _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
+    if (_resample)
+    { // resample input data at the plugin frequency (for now it sucks)
+
+        _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
+
+    }
+    else
+    { // load raw data without changes
+
+        Eigen::MatrixXd dt_opt;
+
+        _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt);
+
+        jwarn("The loaded trajectory was generated with a dt of {} s, while the rt plugin runs at {} .\n ",
+        dt_opt(0), _plugin_dt);
+
+    }
+
 
 }
 
-void MatReplayerRt::saturate_input()
+void MatReplayerRt::saturate_effort()
 {
     int input_sign = 1; // defaults to positive sign 
 
@@ -159,6 +261,10 @@ void MatReplayerRt::compute_approach_traj()
 
     _approach_traj = plugin_utils::PeisekahTrans(_q_p_meas, _approach_traj_target, _approach_traj_exec_time, _plugin_dt); 
 
+    _dump_logger->add("approach_traj", _approach_traj.get_traj());
+
+    _recompute_approach_traj = false;
+
 }
 
 void MatReplayerRt::send_approach_trajectory()
@@ -176,7 +282,16 @@ void MatReplayerRt::send_approach_trajectory()
     {
         _q_p_cmd = _approach_traj.eval_at(_sample_index);
 
-        _robot->setPositionReference(_q_p_cmd);
+        if (_is_first_jnt_passive)
+        { // send the last _n_jnts_model components
+            _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
+        }
+        else{
+            
+            _robot->setPositionReference(_q_p_cmd);
+
+        }
+        
 
         _robot->move(); // Send commands to the robot
     }
@@ -188,7 +303,8 @@ void MatReplayerRt::send_trajectory()
     // first, set the control mode and stiffness when entering the first control loop (to be used during the approach traj)
     if (_first_run)
     { // first time entering the control loop
-
+        
+        _sample_index = 0;
         _approach_traj_started = true; // flag signaling the start of the approach trajectory
        
     }
@@ -214,7 +330,14 @@ void MatReplayerRt::send_trajectory()
         
     }
 
-    // If publishing the approach traj -> call the associated method
+    // When the plugin is stopped from service, recompute a transition trajectory
+    // from the current state
+    if (_recompute_approach_traj)
+    {
+        
+        compute_approach_traj(); // necessary if traj replay is stopped and started again from service (probably breaks rt performance)
+    }
+
     if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
 
@@ -228,30 +351,66 @@ void MatReplayerRt::send_trajectory()
         if (_sample_index > (_traj.get_n_nodes() - 1))
         { // reached the end of the trajectory
 
+            
             _traj_finished = true;
             _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
+            
 
         }
         else
         { // send command
-
+            
+            // by default assign all commands anyway
             _q_p_cmd = _q_p_ref.col(_sample_index);
-
-            // _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
-
+            _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index);
             _tau_cmd = _tau_ref.col(_sample_index);
 
-            _robot->setPositionReference(_q_p_cmd);
+            if (_is_first_jnt_passive)
+            { // send the last _n_jnts_model components
+                
+                if (_send_eff_ref)
+                {
+                    _robot->setEffortReference(_tau_cmd.tail(_n_jnts_model));
+                }
 
-            if(_send_eff_ref)
-            {
-                _robot->setEffortReference(_tau_cmd);
+                if(_send_pos_ref)
+                {  
+
+                    _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_model));
+                }
+
+                if(_send_vel_ref)
+                {  
+
+                    _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_model));
+                }
+
+            }
+            else{
+                
+                if (_send_eff_ref)
+                {
+                    _robot->setEffortReference(_tau_cmd);
+                }
+
+                if(_send_pos_ref)
+                {  
+
+                    _robot->setPositionReference(_q_p_cmd);
+                }
+
+                if(_send_vel_ref)
+                {  
+
+                    _robot->setVelocityReference(_q_p_dot_cmd);
+                }
+
             }
             
             _robot->setStiffness(_replay_stiffness); // necessary at each loop (for some reason)
             _robot->setDamping(_replay_damping);
 
-            saturate_input();  
+            saturate_effort(); // perform input torque saturation
 
             _robot->move(); // Send commands to the robot
         
@@ -263,7 +422,6 @@ void MatReplayerRt::send_trajectory()
 
 bool MatReplayerRt::on_initialize()
 {   
-    get_params_from_config(); // load params from yaml file
     
     _plugin_dt = getPeriodSec();
 
@@ -273,43 +431,56 @@ bool MatReplayerRt::on_initialize()
 
     init_nrt_ros_bridge();
 
+    get_params_from_config(); // load params from yaml file
+    
+    load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
+    // a seg fault will arise)
+
     return true;
 }
 
 void MatReplayerRt::starting()
 {
-    load_opt_data(); // load trajectory from file (to be èut in starting because otherwise a seg fault will arise)
 
-    init_dump_logger();
+    init_dump_logger(); // needs to be here
 
     reset_flags();
 
     init_clocks(); // initialize clocks timers
 
-    // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+    // setting the control mode to effort + velocity + stiffness + damping
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() + 
+            ControlMode::Damping());
     _robot->setStiffness(_replay_stiffness);
     _robot->setDamping(_replay_damping);
 
     update_state(); // read current jnt positions and velocities
-
-    compute_approach_traj(); // based on the current state, compute a smooth transition to the first trajectory position sample
+    
+    compute_approach_traj(); // based on the current state, compute a smooth transition to the\\
+    first trajectory position sample
 
     // Move on to run()
     start_completed();
-
+    
 }
 
 void MatReplayerRt::run()
 {  
-    
-    send_trajectory();
 
+    update_state(); // read current jnt positions and velocities
+
+    _queue.run();
+
+    if (_jump) // only jump if a positive jump signal was received
+    {
+        send_trajectory();
+    }
+    
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    if (_first_run == true)
+    if (_first_run == true & _jump)
     { // this is the end of the first control loop
         _first_run = false;
     }
@@ -360,6 +531,9 @@ void MatReplayerRt::on_abort()
 
     // Sending references
     _robot->move();
+
+    // Destroy logger and dump .mat file
+    _dump_logger.reset();
 }
 
 void MatReplayerRt::on_close()

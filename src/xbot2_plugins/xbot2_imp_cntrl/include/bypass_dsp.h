@@ -13,8 +13,8 @@
 
 #include <math.h> 
 
-#include <awesome_leg_pholus/SinJointTraj.h>
-#include <awesome_leg_pholus/BypassDspRt.h>
+#include <awesome_leg/SinJointTraj.h>
+#include <awesome_leg/BypassDspRt.h>
 
 #include <thread>
 
@@ -118,18 +118,18 @@ private:
     void compute_jnt_imp_cntrl();
 
     // ROS service callbacks
-    bool on_sin_traj_recv_srv(const awesome_leg_pholus::SinJointTrajRequest& req,
-                          awesome_leg_pholus::SinJointTrajResponse& res);
+    bool on_sin_traj_recv_srv(const awesome_leg::SinJointTrajRequest& req,
+                          awesome_leg::SinJointTrajResponse& res);
 
-    bool on_jnt_imp_setpoint_recv_srv(const awesome_leg_pholus::BypassDspRtRequest& req,
-                          awesome_leg_pholus::BypassDspRtResponse& res);
+    bool on_jnt_imp_setpoint_recv_srv(const awesome_leg::BypassDspRtRequest& req,
+                          awesome_leg::BypassDspRtResponse& res);
 
     // XBot2.0 servers wrapping the ones from ROS
-    ServiceServerPtr<awesome_leg_pholus::SinJointTrajRequest,
-                     awesome_leg_pholus::SinJointTrajResponse> _sin_traj_srv;
+    ServiceServerPtr<awesome_leg::SinJointTrajRequest,
+                     awesome_leg::SinJointTrajResponse> _sin_traj_srv;
 
-    ServiceServerPtr<awesome_leg_pholus::BypassDspRtRequest,
-                     awesome_leg_pholus::BypassDspRtResponse> _bypass_dsp_srv;
+    ServiceServerPtr<awesome_leg::BypassDspRtRequest,
+                     awesome_leg::BypassDspRtResponse> _bypass_dsp_srv;
                      
 };
 

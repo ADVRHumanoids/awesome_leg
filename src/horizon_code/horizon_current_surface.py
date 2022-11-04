@@ -15,7 +15,7 @@ import numpy as np
 ###############################################
 
 rospackage=rospkg.RosPack()
-ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg_pholus")+"/opt_results/horizon_offline_solver.mat")
+ms_loaded = mat_storer.matStorer(rospackage.get_path("awesome_leg")+"/opt_results/horizon_offline_solver.mat")
 solution=ms_loaded.load() # loading the solution dictionary
 
 q_p_ddot=solution["q_p_ddot"]

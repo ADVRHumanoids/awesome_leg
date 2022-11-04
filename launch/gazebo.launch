@@ -1,16 +1,18 @@
 <launch>
 
   <!-- Args -->
-  <arg name="gazebo_model_type" default="fixed_hip" /> <!-- model to be loaded by Gazebo. Allowed values: "sliding_hip", "sliding_all", "sliding_all_underact"  -->
   <arg name="paused" default="false"/>
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="true"/>
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
 
+  <arg name="sliding_guide" default="true" />
+  <arg name="calibrated_urdf" default="false" />
+
   <!-- Launching awesome_leg.world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find awesome_leg_pholus)/worlds/awesome_leg.world"/>
+    <arg name="world_name" value="$(find awesome_leg)/worlds/awesome_leg.world"/>
     <arg name="debug" value="$(arg debug)" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="paused" value="$(arg paused)"/>
@@ -19,16 +21,10 @@
   </include>
 
   <!-- Load the right URDF into the ROS Parameter Server, depending on the chosen model type -->
-  <group if="$(eval arg('gazebo_model_type')=='fixed_hip')">
-      <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_fixed.xacro'" />
-  </group>
-  <group if="$(eval arg('gazebo_model_type')=='sliding_hip')">
-    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg.xacro'" />
-  </group>
-  <group if="$(eval arg('gazebo_model_type')=='sliding_all')">
-    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg_pholus)/description/urdf/awesome_leg_sliding_all.xacro'" />
-  </group>
 
+  <param name="robot_description" command="$(find xacro)/xacro --inorder '$(find awesome_leg)/description/urdf/awesome_leg_test_rig.urdf.xacro' 
+    sliding_guide:=$(arg sliding_guide) calibrated_urdf:=$(arg calibrated_urdf) " />
+  
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model awesome_leg -param robot_description"/>
 

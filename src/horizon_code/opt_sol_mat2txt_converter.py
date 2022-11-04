@@ -7,7 +7,7 @@ import numpy as np
 import csv	
 from numpy import genfromtxt
 
-mat_path = "/home/andreap/hhcm_ws/src/awesome_leg_pholus/opt_results/horizon_jump/jump_test/"
+mat_path = "/home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/"
 mat_name = "horizon_offline_solver_res.mat"
 
 dump_path = mat_path
