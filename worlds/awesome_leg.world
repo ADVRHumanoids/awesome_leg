@@ -28,7 +28,7 @@
               <speed>10</speed>
           </clouds>
         </sky>
-        <shadows>0</shadows> <!-- necessary, otherwise the models appear dark-->
+        <!-- <shadows>0</shadows>  -->
         <grid>0</grid>
         <origin_visual>0</origin_visual>
     </scene>
