@@ -1,0 +1,137 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+    
+    <xacro:macro name="awesome_leg_gazebo" params="id add_ft_sensor"  >
+
+    <!--Gazebo-specific tags-->
+
+        <gazebo reference="femur${id}">
+            <material>Gazebo/SkyBlue  </material>
+        </gazebo>
+        <gazebo reference="shin${id}">
+            <material>Gazebo/Grey  </material>
+        </gazebo>
+
+        <gazebo reference="shin${id}">
+            <collision>
+
+                <max_contacts> 20 </max_contacts>
+
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>1</mu>
+                            <mu2>1</mu2>
+                        </ode>
+                        <bullet>
+                            <friction>1.0</friction>
+                            <friction2>1.0</friction2>
+                        </bullet>
+                    </friction>
+                    <!-- <contact>
+                        <ode>
+                            <kp>2100000</kp>
+                            <kd>1</kd>
+                            <max_vel>100</max_vel>
+                        </ode>
+                        <bullet>
+                            <soft_cfm>0.007</soft_cfm>
+                            <soft_erp>0.25</soft_erp>
+                            <kp>1000000</kp>
+                            <kd>5</kd>
+                        </bullet>
+                    </contact> -->
+                </surface>
+            </collision>
+        </gazebo>
+
+        <gazebo reference="tip${id}">
+            <collision>
+
+                <max_contacts> 1 </max_contacts>
+
+                <surface>
+                    <friction>
+                        <ode>
+                            <mu>1</mu>
+                            <mu2>1</mu2>
+                        </ode>
+                        <bullet>
+                            <friction>1.0</friction>
+                            <friction2>1.0</friction2>
+                        </bullet>
+                    </friction>
+                    <contact>
+                        <ode>
+                            <kp>1000000000000</kp>
+                            <kd>1</kd>
+                            <!-- <max_vel>100</max_vel> -->
+                        </ode>
+                        <!-- <bullet>
+                            <soft_cfm>0.007</soft_cfm>
+                            <soft_erp>0.25</soft_erp>
+                            <kp>1000000</kp>
+                            <kd>5</kd>
+                        </bullet> -->
+                    </contact>
+                </surface>
+            </collision>
+        </gazebo>
+
+        <!-- <xacro:if value="${ dump_video_frames== True}">
+
+            <gazebo reference="camera">
+                <sensor name="my_camera" type="camera">
+                    <camera>
+                        <save enabled="true">
+                            <path "$(find awesome_leg)/description/urdf/utils.urdf.xacro" >
+                        </save>
+                        <horizontal_fov>1</horizontal_fov>
+                        <image>
+                        <width>1920</width>
+                        <height>1080</height>
+                        </image>
+                        <clip>
+                        <near>0.1</near>
+                        <far>100</far>
+                        </clip>
+                        <view_controller>orbit</view_controller>
+                    </camera>
+                    <always_on>1</always_on>
+                    <visualize>false</visualize>
+                    <update_rate>30</update_rate>
+                </sensor>
+            </gazebo>
+
+        </xacro:if> -->
+
+        <xacro:if value="${ add_ft_sensor == True}"> 
+
+            <gazebo>
+                <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
+                    <updateRate>200.0</updateRate>
+                    <topicName>awesome_leg/ft_sensor_tip</topicName>
+                    <jointName>tip_joint${id}</jointName>
+                </plugin>
+            </gazebo>
+
+            <gazebo reference="tip_joint${id}">
+                <provideFeedback>true</provideFeedback>
+                <sensor type="force_torque" name="tip${id}_fts">
+                    <force_torque>
+                        <frame>sensor</frame>
+                        <measure_direction>child_to_parent</measure_direction>
+                    </force_torque>
+                    <always_on>true</always_on>
+                    <visualize>true</visualize>
+                    <update_rate>200</update_rate>
+                    <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose> 
+              </sensor>
+        
+            </gazebo>
+
+        </xacro:if>
+        
+    </xacro:macro>
+
+</robot>

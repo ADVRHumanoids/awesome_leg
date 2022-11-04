@@ -2,8 +2,8 @@
 
 # description
 XBotInterface:
-  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf
-  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg_cartesio.srdf
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf
+  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg.srdf
 
 # model interface
 ModelInterface:
@@ -45,11 +45,11 @@ xbotcore_plugins:
         params:
         
             # For testing on the real prototype:
-            # urdf_path: {value: $PWD/../../description/urdf/genereted/awesome_leg_reduced_calibrated.urdf, type: file} 
-            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # urdf_path: {value: $PWD/../../description/urdf/genereted/awesome_leg_standalone_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_standalone.srdf, type: file} # cartesian impedance control
             # For simulation:
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_cartesio.urdf, type: file} 
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_cartesio.srdf, type: file} # cartesian impedance control
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} # cartesian impedance control
 
             # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control
             cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} 
@@ -67,11 +67,11 @@ xbotcore_plugins:
         params:
 
             # For testing on the real prototype:
-            # urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_reduced_calibrated.urdf, type: file} 
-            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_reduced.srdf, type: file} # cartesian impedance control
+            # urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_standalone_calibrated.urdf, type: file} 
+            # srdf_path: {value: $PWD/../../description/srdf/awesome_leg_standalone.srdf, type: file} # cartesian impedance control
             # For simulation:
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_cartesio.urdf, type: file} 
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_cartesio.srdf, type: file} # cartesian impedance control
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} 
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} # cartesian impedance control
 
             # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_rt.yaml, type: yamlfile} # impedance control with singular direction handling
             # cartesio_yaml_path: {value: $PWD/../cartesio/cartesio_imp_cntrl_v2_rt.yaml, type: yamlfile} # Interaction + Postural cntrl

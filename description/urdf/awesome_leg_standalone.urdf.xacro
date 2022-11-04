@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- 
+    Leg base URDF (no external links). Variant of the URDF adapted for use with Pinocchio and for performing inertial parameter identification 
+-->
+
+<robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro" />
+
+    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.xbot.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro" />
+
+    <xacro:awesome_leg id="1" base_link="none" add_ft_sensor= "false"/> 
+    
+  </robot>

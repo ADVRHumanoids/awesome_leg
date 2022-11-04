@@ -320,10 +320,7 @@ bool CartesioEllRt::on_initialize()
     // Setting robot control mode, stiffness and damping
     _n_jnts_robot = _robot->getJointNum();
 
-    // Initializing CartesIO solver, ros server and spawning the non rt thread
-    init_cartesio_solver();
-    create_ros_api();
-    spawn_rnt_thread();
+    spawn_rnt_thread
 
     // Reading joint effort limits (used for saturating the trajectory)
     _model->getEffortLimits(_effort_lims);

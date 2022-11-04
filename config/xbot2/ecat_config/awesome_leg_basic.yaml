@@ -1,11 +1,10 @@
 XBotInterface:
-  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg.urdf
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf
   srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg.srdf
 
 ModelInterface:
   model_type: RBDL
   is_model_floating_base: false
-
 
 # hal
 xbotcore_device_configs:

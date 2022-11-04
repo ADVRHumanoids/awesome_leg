@@ -3,7 +3,7 @@
 
     <arg name="prefix" default=""/>
     <arg name="gui" default="true"/>
-    <arg name="use_joint_publisher_gui" default="true"/>
+    <arg name="use_joint_publisher_gui" default="false"/>
 
     <arg name="sliding_guide" default="true" />
     <arg name="calibrated_urdf" default="false" />

@@ -4,7 +4,7 @@ inertial_identification_static:
 
   actuators_config_path: $(find awesome_leg)/config/actuators.yaml
   
-  urdf_path: $(find awesome_leg)/description/urdf/generated/awesome_leg_reduced.urdf
+  urdf_path: $(find awesome_leg)/description/urdf/generated/awesome_leg_standalone.urdf
 
   # Used calibration poses
   matfile_paths: [$(find awesome_leg)/test_results/fixed_hip_setup/static_poses/pose1/robot_state_log__0_2022_02_02__17_14_40.mat,

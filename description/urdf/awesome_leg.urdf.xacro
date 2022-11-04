@@ -2,174 +2,117 @@
 
 <robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro" />
-      
-    <link name="pelvis">
-        <inertial>
-        <mass value="1.0"/> <!-- here an additional mass contribution can be added to mimic a weight can be added (standard link mass = 1 Kg) -->
-        <inertia ixx="0.00208333333333" ixy="0.0" ixz="0.0" iyy="0.00208333333333" iyz="0.0" izz="0.0025"/>
-        </inertial>
-        <visual>
-        <geometry>
-            <cylinder length="0.1" radius="0.1"/>
-        </geometry>
-        </visual>
-        <visual>
-        <geometry>
-            <cylinder length="0.1" radius="0.1"/>
-        </geometry>
-        </visual>
-    </link>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.gazebo.xacro" />
 
-    <joint name="hip_yaw_1" type="fixed">
-        <parent link="pelvis"/>
-        <child link="hip1_1"/>
-        <origin rpy="3.14159265359 0.0 0.0" xyz="0.0 -0.0 -0.0566"/>
-    </joint>
+    <xacro:macro name="awesome_leg" params="id base_link add_ft_sensor" >
 
-    <link name="hip1_1">
-        <inertial>
-        <origin xyz="0.010214199 0.0 0.038090987"/>
-        <mass value="1.9194403"/>
-        <inertia ixx="0.0047439572" ixy="-0.0" ixz="-0.0003784138" iyy="0.0040551878" iyz="-0.0" izz="0.0034146219"/>
-        </inertial>
-        <visual>
-        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/visual/hip-yaw.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        <material name="grey"/>
-        </visual>
-        <collision>
-        <origin rpy="0.0 0.0 2.03221245002" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/collision/hip-yaw.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
+        <xacro:awesome_leg_gazebo id="${id}" add_ft_sensor="${add_ft_sensor}"/> 
 
-    <joint name="hip_pitch_1" type="revolute">
-        <parent link="hip1_1"/>
-        <child link="hip2_1"/>
-        <origin rpy="1.57079632679 0.0 1.5707963268" xyz="0.0 0.0 0.0625"/>
-        <axis xyz="0 0 1"/>
-        <limit effort="112" lower="-2.4" upper="2.4" velocity="20.0"/>
-    </joint>
+        <xacro:unless value="${ base_link=='None' or base_link=='none'}">
+            <!-- only add joint to base if argument is non-empty -->
+            <joint name="hip_pitch${id}" type="revolute">
+                <parent link="${base_link}" />
+                <child link="femur${id}" />
+                <axis xyz="0 1 0"/>
+                <origin xyz="0 ${214.6 * mmTom} 0" />
+                <limit effort="112" lower="-2.4" upper="2.4" velocity="20.0"/>
+            </joint>
 
-    <link name="hip2_1"> <!-- #### -->
-        <inertial>
-        <origin xyz="2.57966e-05 0.1810266 0.085669756"/>
-        <mass value="2.7264471"/>
-        <!-- org: 4.5 -->
-        <inertia ixx="0.04851869" ixy="-4.11894e-05" ixz="-1.68778e-05" iyy="0.004242055" iyz="0.0032243188" izz="0.04825583"/>
-        </inertial>
-        <visual>
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-        <material name="sky_blue"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/visual/hip-pitch.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </visual>
-        <collision>
-        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-        <geometry>
-            <mesh filename="package://awesome_leg/description/meshes/collision/hip-pitch.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
+        </xacro:unless>
 
-    <joint name="knee_pitch_1" type="revolute">
-        <parent link="hip2_1"/>
-        <child link="knee_1"/>
-        <origin rpy="3.14159265359 0.0 1.57079632679" xyz="0.0 0.3 -0.0036"/>
-        <axis xyz="0 0 1"/>grey
-        <limit effort="112" lower="-2.4" upper="2.4" velocity="20.0"/>
-    </joint>
+        <link name="femur${id}">
+            <inertial>
+                <origin xyz="0.0 0.0 0.0"/>
+                <mass value="3.3712777"/>
+                <inertia ixx="${4.6647423e+04 * kgmm2_2_kgm2}" iyy="${4.3720135e+04 * kgmm2_2_kgm2}" izz="${7.5794813e+04 * kgmm2_2_kgm2}"
+                    ixy="${-1.2697640e+01 * kgmm2_2_kgm2}" ixz="${-3.2745810e+01 * kgmm2_2_kgm2}" iyz="${-6.3299091e+04 * kgmm2_2_kgm2}" />
+            </inertial>
+            <visual>
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                <geometry>
+                    <mesh filename="package://awesome_leg/description/new_meshes/visual/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                </geometry>
+                <material name="darkblue"/>
+            </visual>
+            <collision>
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                <geometry>
+                    <mesh filename="package://awesome_leg/description/new_meshes/collision/femur.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                </geometry>
+            </collision>
+        </link>
 
-    <link name="knee_1"> <!-- #### -->
-        <inertial>
-        <mass value="1.1927236"/>
-        <origin rpy="0.0 0.0 0.0" xyz="0.19572282 -0.014549221 -0.020785942"/>
-        <inertia ixx="0.0013302597" ixy="0.00060307457" ixz="0.0" iyy="0.035313402" iyz="-1.1029574e-07" izz="0.035530025"/>
-        </inertial>
-        <visual>
-        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
-        <material name="grey"/>
-        <geometry name="1_stick_visual">
-            <mesh filename="package://awesome_leg/description/meshes/visual/front_right_stick.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </visual>
-        <collision name="foot_tip_collision">
-        <origin rpy="1.57079632679 0 -1.57079632679" xyz="0 0 0"/>
-        <geometry name="1_stick_collision">
-            <mesh filename="package://awesome_leg/description/meshes/collision/front_right_stick.stl" scale="0.001 0.001 0.001"/>
-        </geometry>
-        </collision>
-    </link>
-    
-    <joint name="tip_joint" type="fixed">
-        <parent link="knee_1"/>
-        <child link="tip"/>
-        <origin xyz="0.45 0.0 -0.02"/>
-    </joint>
-
-    <link name="tip"/> <!-- just for reference-->
-
-    <transmission name="hip_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="hip_pitch_1">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        <joint name="knee_pitch${id}" type="revolute">
+            <parent link="femur${id}"/>
+            <child link="shin${id}"/>
+            <origin rpy="0.0 0.0 0.0" xyz="0.0 ${-118.2 * mmTom} ${-300.0 * mmTom}"/>
+            <axis xyz="0 -1 0"/>
+            <limit effort="112" lower="-2.4" upper="2.4" velocity="20.0"/>
         </joint>
-        <actuator name="hip_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
-    <transmission name="knee_trans">
-        <type>transmission_interface/SimpleTransmission</type>
-        <joint name="knee_pitch_1">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-        </joint>
-        <actuator name="knee_motor">
-            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-            <mechanicalReduction>1</mechanicalReduction>
-        </actuator>
-    </transmission>
 
-    <!-- xbot2 joint device driver-->
-    <gazebo>  
-        <plugin name='xbot2_gz_joint_server' filename='libxbot2_gz_joint_server.so'> 
-            <pid>
+        <link name="shin${id}">
+            <inertial>
+                <origin xyz="0.0 0.0 0.0"/>
+                <mass value="1.3106594"/>
+                <inertia ixx="${4.0133965e+04 * kgmm2_2_kgm2}" iyy="${4.0269285e+04 * kgmm2_2_kgm2}" izz="${1.5274496e+03 * kgmm2_2_kgm2}"
+                    ixy="${4.6219082e-02 * kgmm2_2_kgm2}" ixz="${-3.0432320e-01 * kgmm2_2_kgm2}" iyz="${1.3816329e+03 * kgmm2_2_kgm2}" />
+            </inertial>
+            <visual>
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                <geometry>
+                    <mesh filename="package://awesome_leg/description/new_meshes/visual/shin.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                </geometry>
+                <material name="grey"/>
+            </visual>
+            <collision>
+                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                <geometry>
+                    <mesh filename="package://awesome_leg/description/new_meshes/collision/shin.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                </geometry>
+            </collision>
+        </link>
 
-                <gain name="null_mode"  p="0"  d="0"/>
-                <gain name="small_mot"  p="250"  d="5"/>
-                <gain name="medium_mot" p="1000" d="10"/>
-                <gain name="big_mot"    p="3000" d="10"/>
+        <xacro:unless value="${ add_ft_sensor == True}"> 
 
-                <gain name="test_rig2HIP" profile="null_mode"/>
-                <gain name="hip_actuation" profile="medium_mot"/>
-                <gain name="knee_actuation" profile="medium_mot"/>
-            </pid>
-        </plugin>
-    </gazebo>
+            <joint name="tip_joint${id}" type="fixed">
+                <parent link="shin${id}"/>
+                <child link="tip${id}"/>
+                <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom}"/>
+            </joint>
 
-    <gazebo> 
-        <plugin name="xbot2_ft_driver" filename="libxbot2_gz_ft_server.so"/>
-    </gazebo>
-    
-    <!--Gazebo-specific tags-->
+            <link name="tip${id}"/> 
+            
+        </xacro:unless>
 
-    <gazebo reference="pelvis">
-    <material>Gazebo/Grey  </material>
-    </gazebo>
-    <gazebo reference="hip1_1">
-        <material>Gazebo/Grey   </material>
-    </gazebo>
-    <gazebo reference="hip2_1">
-        <material>Gazebo/SkyBlue </material>
-    </gazebo>
-    <gazebo reference="knee_1">
-        <material>Gazebo/Grey  </material>
-    </gazebo>
-  
-  </robot>
+        <xacro:if value="${ add_ft_sensor == True}"> 
+
+            <joint name="tip_joint${id}" type="prismatic">
+                <parent link="shin${id}"/>
+                <child link="tip${id}"/>
+                <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom + fts_sphere_radius - fts_delta}"/>
+                <limit effort="0" lower="0.0" upper="0.0" velocity="0.0"/>
+                <axis  xyz="0 0 1"/>
+            </joint>
+            <link name="tip${id}"> 
+                    <origin xyz="0.0 0.0 0.0"/>
+                    <inertial>  
+                        <origin xyz="0.0 0.0 0.0"/>
+                        <mass value="${aux_mass_tip}"/> <!-- fake inertial value, otherwise Gazebo throws errors  -->
+                        <inertia ixx="0" iyy="0" izz="0"
+                            ixy="0" ixz="0" iyz="0" />
+                    </inertial>
+                    <collision>
+                        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                        <geometry>
+                            <sphere radius="${fts_sphere_radius}"/>
+                        </geometry> 
+                        <max_contacts> 20 </max_contacts>
+                    </collision>
+
+            </link>
+
+        </xacro:if>
+
+    </xacro:macro>
+
+</robot>

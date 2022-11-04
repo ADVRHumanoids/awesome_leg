@@ -12,12 +12,9 @@
    <build_depend>roscpp</build_depend>
    <build_depend>rospy</build_depend>
    <build_depend>urdf</build_depend>
-   <!-- <build_depend>xbot_msgs</build_depend> -->
 
    <buildtool_depend>catkin</buildtool_depend>
    
-   <!-- <build_export_depend>xbot_msgs</build_export_depend> -->
-
    <run_depend>message_runtime</run_depend> 
    <run_depend>tf</run_depend>
    <run_depend>joint_state_publisher</run_depend>
@@ -27,7 +24,5 @@
    <run_depend>gazebo_ros</run_depend>
    <run_depend>gazebo_ros_control</run_depend>
    <run_depend>xacro</run_depend>
-
-  <!-- <exec_depend>xbot_msgs</exec_depend> -->
    
 </package>

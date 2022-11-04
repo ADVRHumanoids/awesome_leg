@@ -28,7 +28,7 @@ today = date.today()
 today_is = today.strftime("%d-%m-%Y")
 
 urdf_path = rospy.get_param("/horizon/urdf_path")  # urdf absolute path 
-media_path = rospy.get_param("/horizon/media_path")  # media absolute path
+# media_path = rospy.get_param("/horizon/media_path")  # media absolute path
 
 opt_res_path = rospy.get_param("/horizon/opt_results_path")  # optimal results absolute path
 
@@ -36,17 +36,9 @@ task_type = rospy.get_param("/horizon/task_type")  # task type
 
 if task_type == "jump":
     
-    plot_res = rospy.get_param("/horizon/horizon_plotter/plt_resample")  # optimal results absolute path
+    sol_mat_name = rospy.get_param("/horizon/horizon_solver/sol_mat_name")
 
-    if plot_res:
-
-        sol_mat_name = rospy.get_param("/horizon/horizon_solver/res_sol_mat_name")
-
-    else:
-
-        sol_mat_name = rospy.get_param("/horizon/horizon_solver/sol_mat_name")
-
-    ms_loaded = mat_storer.matStorer(opt_res_path + "/jump_test/" + sol_mat_name + ".mat")
+    ms_loaded = mat_storer.matStorer(opt_res_path + "/" + sol_mat_name + ".mat")
     
     save_path = rospy.get_param("/horizon/horizon_plotter/save_path")
 
@@ -92,6 +84,7 @@ elif task_type == "trot":
     hip_vel=solution["hip_velocity"]
        
 else:
+
     raise Exception('You did not specify a valid task type')
 
 time_vector = np.zeros([tau[0,:].size+1])

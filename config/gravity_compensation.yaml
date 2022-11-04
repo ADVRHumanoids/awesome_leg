@@ -11,7 +11,7 @@ gravity_compensator:
         
   torque_bias: [ 3.20372297e-01, -2.56218453e-01 ] # bias torques, estimated via param. identification
 
-  urdf_path: $(find awesome_leg)/description/urdf/generated/awesome_leg_reduced.urdf # urdf relative path (wrt to the package) used by the URDF parser
+  urdf_path: $(find awesome_leg)/description/urdf/generated/awesome_leg_standalone.urdf # urdf relative path (wrt to the package) used by the URDF parser
   # srdf_path: $(find awesome_leg)/description/srdf/awesome_legv2.srdf # srdf relative path (wrt to the package) 
   
   ctrl_mode: [28, 28]

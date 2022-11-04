@@ -8,7 +8,7 @@
         <geometry>
           <plane>
             <normal>0 0 1</normal>
-            <size>100 100</size>
+            <size>3 3</size>
           </plane>
         </geometry>
 
@@ -17,13 +17,13 @@
           <contact>
              <!--<collide_bitmask>0xffff</collide_bitmask>-->
              <ode>
-                <kp>1000000000000000</kp> <!-- default 1000000000000 -->
-                <kd>1</kd>
+                <kp>1000000</kp> <!-- default 1000000000000 -->
+                <kd>1000</kd>
                 <!--<min_depth> </min_depth>-->
                 <!--<max_vel>0.01</max_vel>-->
              </ode>
              <bullet>
-                <kp>1000000000000000</kp>
+                <kp>1000000000000</kp>
                 <kd>1</kd>
                 <!--<split_impulse_penetration_threshold>  </split_impulse_penetration_threshold>--> <!-- default -0.01 -->
              </bullet>
@@ -47,7 +47,7 @@
         <geometry>
           <plane>
             <normal>0 0 1</normal>
-            <size>100 100</size>
+            <size>3 3</size>
           </plane>
         </geometry>
         <material>

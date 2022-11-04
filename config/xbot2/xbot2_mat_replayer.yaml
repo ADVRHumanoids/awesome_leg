@@ -2,8 +2,8 @@
 
 # description
 XBotInterface:
-  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_cartesio.urdf
-  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg_cartesio.srdf
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf
+  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg.srdf
 
 # model interface
 ModelInterface:
@@ -21,7 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     # rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
-    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    rt_main:  {sched: fifo , prio: 60, period: 0.004, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
 # plugins
@@ -41,28 +41,60 @@ xbotcore_plugins:
         thread: rt_main
         type: mat_replayer_rt
         params:
-            mat_path: {value: /home/andreap/hhcm_ws/src/awesome_leg/opt_results/horizon_jump/jump_test/, type: string}
-            mat_name: {value: horizon_offline_solver.mat, type: string}
+            
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file} 
+            
+            urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+            srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file} 
+            
+            mat_path: {value: /tmp/pretakeoff_gen_13-10-2022-16_27_54/, type: string}
+            mat_name: {value: awesome_jump_res.mat, type: string}
+            dump_mat_suffix: {value: traj_replay, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: false, type: bool}
-            stop_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            stop_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+            
             delta_effort_lim: {value: 1e-6, type: double} 
-            approach_traj_exec_time: {value: 6.0, type: double} 
-            approach_traj_target: {value: [0.0, 0.0], type: Eigen::VectorXd}
             # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
-            replay_stiffness: {value: [1000.0, 1000.0], type: Eigen::VectorXd}
-            replay_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
+
+            replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
+            replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [40.0, 20.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [5.0, 2.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
+            stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
+
             send_pos_ref: {value: true, type: bool}
             send_vel_ref: {value: false, type: bool}
             send_eff_ref: {value: false, type: bool}
-            looped_traj: {value: true, type: bool}
-            traj_pause_time: {value: 6, type: double}
+
+            traj_pause_time: {value: 0.5, type: double}
+
+            tip_link_name: {value: tip1, type: string}
+            base_link_name: {value: base_link, type: string}
+
+            approach_traj_exec_time: {value: 5, type: double}
+            imp_ramp_time: {value: 3.0, type: double}
+
+            reduce_dumped_sol_size: {value: false, type: bool}
+
+            send_whole_traj: {value: false, type: bool}
+            
+            verbose: {value: false, type: bool}
+
+            test_rig_linkname: {value: "test_rig", type: string}
+            tip_fts_name: {value: "tip1_fts", type: string}
+            contact_linkname: {value: "tip1", type: string}
+
+            driver_temp_threshold: {value: [60.0, 65.0], type: Eigen::VectorXd}
 
 # global parameters
 xbotcore_param:
-    /jm/tx_filter_autostart: {value: false, type: bool}
+    /jm/tx_filter_autostart: {value: true, type: bool}
     /jm/tx_filter_cutoff: {value: 2.0, type: double}
+    # /jm/tx_filter_cutoff: {value: 500.0, type: double}
     /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
 
     
