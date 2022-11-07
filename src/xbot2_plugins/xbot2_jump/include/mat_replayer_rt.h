@@ -210,7 +210,7 @@ private:
 
     void ramp_imp_smoothly();
 
-    void saturate_effort();
+    void saturate_cmds();
 
     void check_driver_temp_limits();
     

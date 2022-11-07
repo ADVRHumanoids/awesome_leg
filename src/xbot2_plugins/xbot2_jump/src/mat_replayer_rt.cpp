@@ -788,19 +788,13 @@ void MatReplayerRt::load_opt_data()
 
 }
 
-void MatReplayerRt::saturate_effort()
+void MatReplayerRt::saturate_cmds()
 {
-    int input_sign = 1; // defaults to positive sign 
 
-    for(int i = 0; i < _n_jnts_robot; i++)
-    {
-        if (abs(_tau_cmd[i]) >= abs(_effort_lims[i]))
-        {
-            input_sign = (signbit(_tau_cmd[i])) ? -1: 1; 
+    _robot->enforceJointLimits(_q_p_cmd);
+    _robot->enforceVelocityLimit(_q_p_dot_cmd);
+    _robot->enforceEffortLimit(_tau_cmd);
 
-            _tau_cmd[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
-        }
-    }
 }
 
 void MatReplayerRt::check_driver_temp_limits()
@@ -938,7 +932,9 @@ void MatReplayerRt::set_trajectory()
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
 
-            saturate_effort(); // perform input torque saturation
+            saturate_cmds(); // saturate all cmds if they exceed limits
+            // (position, velocity and efforts)
+
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
@@ -977,7 +973,7 @@ void MatReplayerRt::set_trajectory()
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                     "\n (after takeoff) \n");
             }
-            saturate_effort(); // perform input torque saturation
+            saturate_cmds(); // perform input torque saturation
             
         }
 
