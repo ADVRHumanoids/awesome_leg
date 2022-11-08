@@ -154,7 +154,7 @@ private:
                     _q_p_dot_ft_est_prev,
                     _meas_driver_temp, _driver_temp_threshold;
 
-    Eigen::Affine3d _test_rig_pose,
+    Eigen::Affine3d _test_rig_pose, _test_rig_pose_inv,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
                     _base_link_abs_est, _tip_pose_abs_est,
                     _base_link_pos_rel_test_rig;
