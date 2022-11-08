@@ -224,6 +224,10 @@ void MatReplayerRt::init_model_interface()
 
 
     _model_ft_est->getPose(_test_rig_linkname, _test_rig_pose);
+
+    _test_rig_pose_inv = _test_rig_pose.inverse(); // computed here
+    // to avoid rt constraint violations in the control loop
+    
     // offset of the base link wrt the world link in the ft estimation
     // model
 
@@ -270,7 +274,7 @@ void MatReplayerRt::get_passive_jnt_est(double& pssv_jnt_pos,
                                         double& pssv_jnt_acc)
 {
 
-    _base_link_pos_rel_test_rig = _base_link_abs * _test_rig_pose.inverse(); // base link pos
+    _base_link_pos_rel_test_rig = _base_link_abs * _test_rig_pose_inv; // base link pos
     // wrt test rig link
 
     Eigen::VectorXd base_link_pos_est = _base_link_pos_rel_test_rig.translation(); // test rig joint position
