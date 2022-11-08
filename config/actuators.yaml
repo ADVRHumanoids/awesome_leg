@@ -1,4 +1,4 @@
-# USED FOR LOADING ACTUATOR PARAMETERS
+# actuator parameters
 
 K_d0: [3.24, 10.72] # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
 K_d1: [1.45, 1.77] # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
