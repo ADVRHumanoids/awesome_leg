@@ -274,6 +274,8 @@ void MatReplayerRt::get_passive_jnt_est(double& pssv_jnt_pos,
                                         double& pssv_jnt_acc)
 {
 
+    if(_is_sim)
+    { // for now, estimates only available in simulation
     _base_link_pos_rel_test_rig = _base_link_abs * _test_rig_pose_inv; // base link pos
     // wrt test rig link
 
@@ -288,11 +290,13 @@ void MatReplayerRt::get_passive_jnt_est(double& pssv_jnt_pos,
     pssv_jnt_acc = (pssv_jnt_vel -
                     _q_p_dot_ft_est_prev(0) ) / _plugin_dt; // numerical diff
 
+    }
+
 }
 
 void MatReplayerRt::update_state_estimates()
 {
-    double passive_jnt_pos, passive_jnt_vel, pssv_jnt_acc;
+    double passive_jnt_pos = 0, passive_jnt_vel = 0, pssv_jnt_acc = 0;
 
     get_passive_jnt_est(passive_jnt_pos, passive_jnt_vel, pssv_jnt_acc);
 
