@@ -53,7 +53,7 @@ xbotcore_plugins:
             dump_mat_suffix: {value: traj_replay, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            is_first_jnt_passive : {value: true, type: bool}
+            is_first_jnt_passive : {value: true, type: bool} 
             resample: {value: false, type: bool}
             
             delta_effort_lim: {value: 1e-6, type: double} 
@@ -61,8 +61,8 @@ xbotcore_plugins:
 
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
-            touchdown_stiffness: {value: [35.0, 35.0], type: Eigen::VectorXd}
-            touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
             stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
             stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
 
@@ -70,12 +70,12 @@ xbotcore_plugins:
             send_vel_ref: {value: false, type: bool}
             send_eff_ref: {value: false, type: bool}
 
-            traj_pause_time: {value: 0.5, type: double}
+            traj_pause_time: {value: 0.001, type: double}
 
             tip_link_name: {value: tip1, type: string}
             base_link_name: {value: base_link, type: string}
 
-            approach_traj_exec_time: {value: 5, type: double}
+            approach_traj_exec_time: {value: 3.0, type: double}
             imp_ramp_time: {value: 3.0, type: double}
 
             reduce_dumped_sol_size: {value: false, type: bool}
