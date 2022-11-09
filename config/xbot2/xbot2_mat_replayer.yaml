@@ -48,8 +48,8 @@ xbotcore_plugins:
             urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file} 
             
-            mat_path: {value: /tmp/pretakeoff_gen_09-11-2022-17_06_03/, type: string}
-            mat_name: {value: awesome_jump_res.mat, type: string}
+            mat_path: {value: /tmp/jump_generation_09-11-2022-18_41_05/, type: string}
+            mat_name: {value: pretakeoff_awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
@@ -80,7 +80,7 @@ xbotcore_plugins:
 
             reduce_dumped_sol_size: {value: false, type: bool}
 
-            send_whole_traj: {value: true, type: bool}
+            send_whole_traj: {value: false, type: bool}
             
             verbose: {value: false, type: bool}
 

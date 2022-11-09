@@ -69,7 +69,7 @@ up2apex_gen:
 
     n_int: 100
 
-    takeoff_node: 95
+    takeoff_node: 49
 
     dt_lb: 0.0001
     dt_ub: 0.1
@@ -93,7 +93,7 @@ up2apex_gen:
       weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
       weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
 
-      weight_com_term_vel: 1000
+      weight_com_term_vel: 100
       weight_com_vel: -1
       weight_tip_under_hip: -1
 
