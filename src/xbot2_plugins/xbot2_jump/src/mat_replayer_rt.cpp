@@ -679,19 +679,20 @@ int MatReplayerRt::was_jump_signal_received()
         _is_first_trigger = !_is_first_trigger;
         
         if (!_approach_traj_started && !_traj_started && _is_first_trigger)
-        {
+        { // triggered by the first jump signal
             jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                 "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.\n");
 
             res = 1;
 
-//            _q_p_safe_cmd = _q_p_meas; // safe position command
-            _q_p_safe_cmd = _q_p_meas; // initial position for the approach traj.
+            _q_p_safe_cmd = _q_p_meas; // "safe" position command
 
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
+            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
+
             _imp_traj_started = true; // start impedance traj
-            _approach_traj_started = false; // will wait for imp. traj to finish
+            _approach_traj_started = false; // the pluginwill wait for imp. traj to finish
             // before starting the approach trajectory
 
             _ramp_strt_stiffness = _meas_stiffness;
@@ -699,7 +700,7 @@ int MatReplayerRt::was_jump_signal_received()
         }
         
         if (_approach_traj_finished && !_traj_started && !_is_first_trigger)
-        {
+        { // triggered by the second jump signal
             
             _traj_started = true; // send actual trajectory
 
@@ -804,12 +805,24 @@ void MatReplayerRt::saturate_cmds()
 void MatReplayerRt::check_driver_temp_limits()
 {
 
+    bool were_drivers_temp_ok = _is_drivers_temp_ok; // getting previous value
+
     _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_threshold.array()).all();
 
     if(!_is_drivers_temp_ok)
     {
         _jump = false; // do not start the jumping sequence
         // even if a positive jumping command was received
+
+        jhigh().jprint(fmt::fg(fmt::terminal_color::red),
+                   "\n Plugin driver temperature threshold exceeded. Disabling jump sequence...\n");
+
+    }
+
+    if(!were_drivers_temp_ok && _is_drivers_temp_ok)
+    { // temperatures went under the threshold --> we can jump again
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                   "\n Driver temperatures went under the plugin threshold. We can start jumping again... \n");
     }
 }
 
@@ -821,8 +834,6 @@ void MatReplayerRt::ramp_imp_smoothly()
     _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_stiffness, _replay_stiffness);
 
     _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping);
-
-//    _q_p_cmd = _q_p_safe_cmd; // enforce reference to a "safe" state
 
     _stiffness_setpoint = _ramp_stiffness; 
     _damping_setpoint = _ramp_damping;
