@@ -1583,10 +1583,13 @@ class up2ApexGen:
         
         self.prb = Problem(self.n_int)  # initialization of a problem object
 
-        dt_sing_var = self.prb.createSingleVariable("dt", 1)  # dt before the takeoff
-        dt_sing_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+        dt_pretakeoff = self.prb.createSingleVariable("dt_pretakeoff", 1)  # dt before the takeoff
+        dt_flight = self.prb.createSingleVariable("dt_flight", 1)  # dt before the takeoff
 
-        dt=[dt_sing_var]* (self.n_int) # holds the complete time list
+        dt_pretakeoff.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+        dt_flight.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+
+        dt = [dt_sing_var]* (self.n_int) +  [dt_sing_var]* (self.n_int)# holds the complete time list
 
         self.prb.setDt(dt)
 

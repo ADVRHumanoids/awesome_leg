@@ -4,7 +4,9 @@ import argparse
 
 import rospkg
 
-from jump_utils.jump_tasks import preTakeoffTO, up2ApexGen, fullJumpGen
+from jump_utils.pretakeoff import preTakeoffTO
+from jump_utils.up2apex import up2ApexGen
+from jump_utils.full_gen import fullJumpGen
 
 import subprocess
 
@@ -46,8 +48,8 @@ def main(args):
                     actuators_config_fullpath, 
                     urdf_full_path,
                     args.results_dir, 
-                    sol_mat_name = pretakeoff_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = pretakeoff_opt_name + "_" + args.sol_mat_name_res)
+                    sol_mat_name = apex_opt_name + "_" + args.sol_mat_name, 
+                    sol_mat_name_res = apex_opt_name + "_" + args.sol_mat_name_res)
 
     if args.opt_type == full_opt_name:
 
@@ -55,8 +57,8 @@ def main(args):
                     args.actuators_yaml_path, 
                     args.urdf_path,
                     args.results_dir, 
-                    sol_mat_name = pretakeoff_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = pretakeoff_opt_name + "_" + args.sol_mat_name_res)
+                    sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
+                    sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res)
 
     jump_generator.init_prb()
     jump_generator.setup_prb()

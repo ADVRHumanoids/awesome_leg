@@ -15,14 +15,17 @@ from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
 
 from jump_utils.horizon_utils import inv_dyn_from_sol
 
-class preTakeoffTO:
+class fullJumpGen:
 
     def __init__(self, yaml_path: str, actuators_yaml_path: str, 
                 urdf_path: str,
                 results_path: str,
                 sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
-                cost_epsi = 1.0):
+                cost_epsi = 1.0, 
+                yaml_tag = "full_gen"):
         
+        self.yaml_tag = yaml_tag
+
         self.yaml_path = yaml_path
         self.actuators_yaml_path = actuators_yaml_path
         self.urdf_path = urdf_path
@@ -60,34 +63,34 @@ class preTakeoffTO:
 
     def __read_opts_from_yaml(self):
 
-        self.tanh_coeff = self.yaml_file["i_q_estimation"]["tanh_coeff"]
+        self.tanh_coeff = self.yaml_file[self.yaml_tag]["i_q_estimation"]["tanh_coeff"]
 
-        self.jnt_limit_margin = abs(self.yaml_file["problem"]["jnt_limit_margin"])
-        self.jnt_vel_limit_margin = abs(self.yaml_file["problem"]["jnt_vel_limit_margin"])
+        self.jnt_limit_margin = abs(self.yaml_file[self.yaml_tag]["problem"]["jnt_limit_margin"])
+        self.jnt_vel_limit_margin = abs(self.yaml_file[self.yaml_tag]["problem"]["jnt_vel_limit_margin"])
 
-        self.slvr_opt = {"ipopt.tol": self.yaml_file["solver"]["ipopt_tol"],
-            "ipopt.max_iter": self.yaml_file["solver"]["ipopt_maxiter"],
-            "ipopt.constr_viol_tol": self.yaml_file["solver"]["ipopt_cnstr_viol_tol"],
-            "ipopt.linear_solver": self.yaml_file["solver"]["ipopt_lin_solver"]
+        self.slvr_opt = {"ipopt.tol": self.yaml_file[self.yaml_tag]["solver"]["ipopt_tol"],
+            "ipopt.max_iter": self.yaml_file[self.yaml_tag]["solver"]["ipopt_maxiter"],
+            "ipopt.constr_viol_tol": self.yaml_file[self.yaml_tag]["solver"]["ipopt_cnstr_viol_tol"],
+            "ipopt.linear_solver": self.yaml_file[self.yaml_tag]["solver"]["ipopt_lin_solver"]
         }
 
-        self.slvr_name = self.yaml_file["solver"]["name"] 
+        self.slvr_name = self.yaml_file[self.yaml_tag]["solver"]["name"] 
 
-        self.trans_name = self.yaml_file["transcription"]["name"] 
-        self.trans_integrator = self.yaml_file["transcription"]["integrator_name"] 
+        self.trans_name = self.yaml_file[self.yaml_tag]["transcription"]["name"] 
+        self.trans_integrator = self.yaml_file[self.yaml_tag]["transcription"]["integrator_name"] 
 
         self.n_actuators = len(self.act_yaml_file["K_d0"])
 
-        self.is_iq_cnstrnt = self.yaml_file["problem"]["is_iq_cnstrnt"]
+        self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
         
-        self.is_friction_cone = self.yaml_file["problem"]["is_friction_cone"]
+        self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
 
-        self.mu_friction_cone = abs(self.yaml_file["problem"]["friction_cnstrnt"]["mu_friction_cone"])
+        self.mu_friction_cone = abs(self.yaml_file[self.yaml_tag]["problem"]["friction_cnstrnt"]["mu_friction_cone"])
 
-        self.scale_factor_base = self.yaml_file["problem"]["weights"]["scale_factor_costs_base"]  
+        self.scale_factor_base = self.yaml_file[self.yaml_tag]["problem"]["weights"]["scale_factor_costs_base"]  
 
-        self.n_int = self.yaml_file["problem"]["n_int"]
-        self.takeoff_node = self.yaml_file["problem"]["takeoff_node"]
+        self.n_int = self.yaml_file[self.yaml_tag]["problem"]["n_int"]
+        self.takeoff_node = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"]
 
         self.n_nodes = self.n_int + 1 
         self.last_node = self.n_nodes - 1
@@ -96,21 +99,25 @@ class preTakeoffTO:
         self.contact_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
-        self.dt_lb = self.yaml_file["problem"]["dt_lb"]
-        self.dt_ub = self.yaml_file["problem"]["dt_ub"] 
+        self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
+        self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
 
-        self.dt_res = self.yaml_file["resampling"]["dt"] 
+        self.dt_res = self.yaml_file[self.yaml_tag]["resampling"]["dt"] 
         
-        self.weight_f_contact_diff = self.yaml_file["problem"]["weights"]["weight_f_contact_diff"]  
-        self.weight_f_contact_cost = self.yaml_file["problem"]["weights"]["weight_f_contact"] 
-        self.weight_q_dot = self.yaml_file["problem"]["weights"]["weight_q_p_dot"] 
-        self.weight_q_ddot = self.yaml_file["problem"]["weights"]["weight_q_p_ddot"] 
-        self.weight_q_p_ddot_diff = self.yaml_file["problem"]["weights"]["weight_q_p_ddot_diff"] 
+        self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact_diff"]  
+        self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact"] 
+        self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_dot"] 
+        self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot"] 
+        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot_diff"] 
 
-        self.weight_term_com_vel = self.yaml_file["problem"]["weights"]["weight_com_term_vel"] 
-        self.weight_com_vel = self.yaml_file["problem"]["weights"]["weight_com_vel"] 
-        self.weight_tip_under_hip = self.yaml_file["problem"]["weights"]["weight_tip_under_hip"] 
-        self.weight_sat_i_q = self.yaml_file["problem"]["weights"]["weight_sat_i_q"] 
+        self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_term_vel"] 
+        self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel"] 
+        self.weight_tip_under_hip = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_tip_under_hip"] 
+        self.weight_sat_i_q = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_sat_i_q"] 
+
+        self.weight_com_vel_vert_at_takeoff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel_vert_at_takeoff"] 
+        
+        self.weight_com_pos = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_pos"] 
 
     def __init_sol_dumpers(self):
 
@@ -186,17 +193,23 @@ class preTakeoffTO:
         self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
         # self.tau_limits.setBounds(-np.array([0, cs.inf, cs.inf]), np.array([0, cs.inf, cs.inf]))  # setting input limits
 
-        self.prb.createIntermediateConstraint("foot_vel_zero", self.v_foot_tip, self.contact_nodes) 
+        self.prb.createConstraint("foot_vel_zero", self.v_foot_tip, self.contact_nodes) 
 
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  
-    
-        # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizoin
-        # hip_above_ground.setBounds(0.0, cs.inf)
-        # knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizoin
-        # knee_above_ground.setBounds(0.0, cs.inf)
+
+        # self.prb.createConstraint("tip_under_hip", self.foot_tip_position[1], nodes=0)
+
+        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizoin
+        hip_above_ground.setBounds(0.0, cs.inf)
+        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizoin
+        knee_above_ground.setBounds(0.0, cs.inf)
         
-        hip_towards_vert = self.prb.createConstraint("com_towards_vertical", self.vcom[2])  # no ground penetration on all the horizoin
-        hip_towards_vert.setBounds(0.0, cs.inf)
+        com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2]) # intermediate, so all except last node
+        com_towards_vertical.setBounds(0.0, cs.inf)
+
+        com_towards_vertical = self.prb.createIntermediateConstraint("com_apex", self.vcom[2], nodes = self.last_node)  
+        
+        # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1])  
 
         self.prb.createIntermediateConstraint("GRF_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
@@ -253,6 +266,10 @@ class preTakeoffTO:
 
         self.weight_sat_i_q = self.weight_sat_i_q / self.cost_scaling_factor
 
+        self.weight_com_vel_vert_at_takeoff = self.weight_com_vel_vert_at_takeoff / self.cost_scaling_factor
+
+        self.weight_com_pos = self.weight_com_pos / self.cost_scaling_factor
+
     def __set_costs(self):
         
         self.__scale_weights()
@@ -283,7 +300,18 @@ class preTakeoffTO:
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
 
         if self.weight_tip_under_hip > 0:
-            self.prb.createIntermediateCost("max_tip_under_hip_first_node", self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = 0)
+            self.prb.createIntermediateCost("max_tip_under_hip_first_node", \
+                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])),\
+                nodes = 0)
+
+        if self.weight_com_vel_vert_at_takeoff > 0:
+            self.prb.createIntermediateCost("com_vel_only_vertical_x", \
+                self.weight_com_vel_vert_at_takeoff * (self.vcom[1]**2),\
+                nodes = self.contact_nodes[-1])
+
+        if self.weight_com_vel > 0:
+            self.prb.createIntermediateCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
+                nodes = self.last_node - 1)
 
         if self.weight_sat_i_q > 0:
             
@@ -493,5 +521,3 @@ class preTakeoffTO:
         self.__postproc_sol()
 
         self.__dump_sol2file()
-
-    
