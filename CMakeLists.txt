@@ -42,6 +42,7 @@ set_target_properties(robot_state_logger PROPERTIES INSTALL_RPATH_USE_LINK_PATH 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY worlds DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY config/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)
+install(DIRECTORY rviz/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz)
 install(DIRECTORY description/sdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
 install(DIRECTORY description/urdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
 install(DIRECTORY description/srdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
@@ -51,8 +52,7 @@ install(DIRECTORY description/new_meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DEST
 install(TARGETS robot_state_logger DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(PROGRAMS 
-        src/horizon_code/plot_horizon_jump.py src/horizon_code/pretakeoff_gen.py 
-        src/horizon_code/awesome_jump_pipeline.py src/horizon_code/rviz_traj_replayer.py 
+        src/horizon_code/plot_horizon_jump.py src/horizon_code/jump_generation.py 
         src/awesome_leg_utils/robot_state_log_plotter.py
         src/awesome_leg_utils/logger_utilities.py
         src/awesome_leg_utils/param_identification_utilities.py

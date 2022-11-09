@@ -3,7 +3,7 @@
 robot_state_log_plotter:
 
   # matfile_path: $(find awesome_leg)/$(find awesome_leg)//fixed_hip_setup/tip_cart_acc_cntrl/checks/real_tests/1_04_22/robot_state_log1.mat # logged data mat file path
-  matfile_path: /tmp/robot_state_log__0_2022_10_21__17_28_32.mat
+  matfile_path: /tmp/robot_state_log__0_2022_11_09__16_14_30.mat
 
   save_fig: true # whether or not to save figures to the destination folder (defaults to true if show_plots is false)
   
