@@ -68,12 +68,6 @@ if __name__ == '__main__':
     horizon_config_fullpath = horizon_config_path + args.hor_confname + ".yaml"
     actuators_config_fullpath = config_path + "actuators.yaml"
 
-    os.mkdir(args.results_dir)
-    shutil.copyfile(actuators_config_fullpath, args.results_dir + "/actuators" + unique_id + ".yaml") 
-    shutil.copyfile(horizon_config_fullpath, args.results_dir + "/" + "horizon_config.yaml" )
-    shutil.copyfile(xacro_full_path, args.results_dir + "/" + urdf_name + ".urdf.xacro" )
-    shutil.copyfile(urdf_full_path, args.results_dir + "/" + urdf_name + ".urdf" )
-
     try:
 
         print(colored("\n--> GENERATING LEG URDF...\n", "blue"))
@@ -89,4 +83,10 @@ if __name__ == '__main__':
 
         print(colored('FAILED TO GENERATE URDF.', "red"))
 
+    os.mkdir(args.results_dir)
+    shutil.copyfile(actuators_config_fullpath, args.results_dir + "/actuators" + unique_id + ".yaml") 
+    shutil.copyfile(horizon_config_fullpath, args.results_dir + "/" + "horizon_config.yaml" )
+    shutil.copyfile(xacro_full_path, args.results_dir + "/" + urdf_name + ".urdf.xacro" )
+    shutil.copyfile(urdf_full_path, args.results_dir + "/" + urdf_name + ".urdf" )
+    
     main(args)
