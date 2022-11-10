@@ -87,7 +87,7 @@ up2apex_gen:
     tanh_coeff: 20
 
   resampling:
-    dt: 0.004
+    dt: 0.001
 
   problem:
 
@@ -109,7 +109,7 @@ up2apex_gen:
 
     weights: 
 
-      use_same_weights: false 
+      use_same_weights: true 
       
       ig_generation:
 
@@ -121,7 +121,7 @@ up2apex_gen:
         weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
         weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
 
-        weight_com_term_vel: 1000
+        weight_com_term_vel: 10
         weight_com_vel: -1
         weight_tip_under_hip: -1
 
@@ -129,7 +129,7 @@ up2apex_gen:
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: 100 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 1 # maximize terminal com pos at the end of the horizon
 
       refinement:
 
@@ -141,7 +141,7 @@ up2apex_gen:
         weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
         weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
 
-        weight_com_term_vel: 1000
+        weight_com_term_vel: 10
         weight_com_vel: -1
         weight_tip_under_hip: -1
 
@@ -149,7 +149,7 @@ up2apex_gen:
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: 10 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 1 # maximize terminal com pos at the end of the horizon
 
         ig_tracking:
           
