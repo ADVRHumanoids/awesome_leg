@@ -165,13 +165,10 @@ class up2ApexGen:
         # raw_pretakeoff_dt = self.loaded_sol["dt_opt"][0][0]
 
         raw_n_int_pretakeoff = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"] + 1 # n int. of the pretakeoff phase
-        takeoff_time = raw_n_int_pretakeoff * raw_n_int_pretakeoff
+        takeoff_time = raw_n_int_pretakeoff * self.loaded_sol[self.dt_pretakeoff_name][0][0]
 
         self.n_int = int(np.round(t_exec/dt_res))
         self.takeoff_node = int(np.round(takeoff_time/dt_res))
-
-        print(self.takeoff_node)
-        exit()
         
         self.n_nodes = self.n_int + 1 
         self.last_node = self.n_nodes - 1
