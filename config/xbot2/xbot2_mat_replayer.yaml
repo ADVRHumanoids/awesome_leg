@@ -37,6 +37,18 @@ xbotcore_plugins:
         params:
             qhome: {value: [-1.0, -1.57], type: Eigen::VectorXd}
 
+    homing_takeoff:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [-2.3, -2.3], type: Eigen::VectorXd}
+
+    homing_landing:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [-0.8, -0.9], type: Eigen::VectorXd}
+
     ros_io: {thread: nrt_main, type: ros_io}
 
     ros_control: {thread: nrt_main, type: ros_control}

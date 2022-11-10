@@ -846,6 +846,8 @@ void MatReplayerRt::check_driver_temp_limits()
     { // temperatures went under the threshold --> we can jump again
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Driver temperatures went under the plugin threshold. We can start jumping again... \n");
+
+        reset_flags(); // resetting flags so that we start from the beginning of the jump pipeline
     }
 }
 
