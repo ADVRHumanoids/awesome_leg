@@ -156,9 +156,9 @@ class up2ApexGen:
         ms_loaded_ig = mat_storer.matStorer(ms_ig_path)
         self.loaded_sol=ms_loaded_ig.load() # loading the solution dictionary
  
-        dt_res = self.loaded_sol["dt_res"].flatten()[0]
+        dt_res = self.loaded_sol["dt_opt"].flatten()[0]
         
-        t_exec = sum(self.loaded_sol["dt_opt"].flatten()) # total raw opt trajectory execution time
+        t_exec = sum(self.loaded_sol["dt_opt_raw"].flatten()) # total raw opt trajectory execution time
 
         # f_z_raw = self.loaded_sol["f_contact_raw"][2]
 
@@ -469,7 +469,7 @@ class up2ApexGen:
                         "hip_velocity":np.transpose(np.transpose(res_v_foot_hip)), 
                         self.dt_flight_name: self.solution[self.dt_flight_name], 
                         self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name],
-                        "dt_opt": self.slvr.getDt(), "dt_res":dt_res_vector, 
+                        "dt_opt_raw": self.slvr.getDt(), "dt_opt":dt_res_vector, 
                         self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name], 
                         self.dt_flight_name: self.solution[self.dt_flight_name]}
 
