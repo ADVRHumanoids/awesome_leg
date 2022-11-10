@@ -689,11 +689,11 @@ int MatReplayerRt::was_jump_signal_received()
 
             res = 1;
 
-//            _q_p_safe_cmd = _q_p_meas; // "safe" position command
+            _q_p_safe_cmd = _q_p_meas; // "safe" position command
 
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
-//            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
+            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
 
             _imp_traj_started = true; // start impedance traj
             _approach_traj_started = false; // the pluginwill wait for imp. traj to finish

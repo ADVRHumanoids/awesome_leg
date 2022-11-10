@@ -82,7 +82,7 @@ xbotcore_plugins:
 
             send_whole_traj: {value: false, type: bool}
             
-            verbose: {value: true, type: bool}
+            verbose: {value: false, type: bool}
 
             test_rig_linkname: {value: "test_rig", type: string}
             tip_fts_name: {value: "tip1_fts", type: string}

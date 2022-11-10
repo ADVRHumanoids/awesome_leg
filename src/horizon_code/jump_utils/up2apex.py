@@ -253,6 +253,9 @@ class up2ApexGen:
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1])  
 
+        self.positive_f_contact = self.prb.createIntermediateConstraint("GRF_positive", self.f_contact[2])  # cannoyt pull the ground
+        self.positive_f_contact.setBounds(0, cs.inf)
+
         self.prb.createIntermediateConstraint("GRF_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
         self.prb.createConstraint("init_joint_vel_zero", self.q_p_dot,

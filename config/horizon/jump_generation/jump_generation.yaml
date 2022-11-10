@@ -123,15 +123,15 @@ up2apex_gen:
         weight_q_p_ddot: 0.001 # cost for penalizing joint accelerations (which are the input)
         weight_q_p_ddot_diff: 0.0001 # cost for penalizing differences between successive inputs
 
-        weight_com_term_vel: 1000
+        weight_com_term_vel: 100000
         weight_com_vel: -1
-        weight_tip_under_hip: 10
+        weight_tip_under_hip: 100
 
         weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: -1 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 10 # maximize terminal com pos at the end of the horizon
 
       refinement:
 
@@ -140,12 +140,12 @@ up2apex_gen:
         weight_f_contact: 0.1 # cost for penalizing contact forces
         weight_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
         weight_q_p_dot: -1
-        weight_q_p_ddot: 0.1 # cost for penalizing joint accelerations (which are the input)
-        weight_q_p_ddot_diff: 0.01 # cost for penalizing differences between successive inputs
+        weight_q_p_ddot: 0.001 # cost for penalizing joint accelerations (which are the input)
+        weight_q_p_ddot_diff: 0.0001 # cost for penalizing differences between successive inputs
 
-        weight_com_term_vel: 1000
+        weight_com_term_vel: -1
         weight_com_vel: -1
-        weight_tip_under_hip: 10
+        weight_tip_under_hip: -1
 
         weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
@@ -157,13 +157,13 @@ up2apex_gen:
           
           weight_q_tracking: -1
 
-          weight_tip_tracking: 10000000
+          weight_tip_tracking: -1
 
 
   solver:
     ipopt_tol: 0.000001
     ipopt_maxiter: 10000
-    ipopt_cnstr_viol_tol: 0.0000001
+    ipopt_cnstr_viol_tol: 0.000001
     ipopt_lin_solver: "mumps" 
     name: "ipopt"
 
