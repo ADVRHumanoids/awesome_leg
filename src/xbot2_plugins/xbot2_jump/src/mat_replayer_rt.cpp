@@ -972,7 +972,7 @@ void MatReplayerRt::set_trajectory()
                 _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
                 _f_contact_ref = _f_cont_ref.col(_sample_index);
                 
-                _stiffness_setpoint = _replay_stiffness; 
+                _stiffness_setpoint = _replay_stiffness; // keep impedance high
                 _damping_setpoint = _replay_damping;
 
             }
@@ -983,7 +983,7 @@ void MatReplayerRt::set_trajectory()
                 _tau_cmd = _tau_ref.col(_takeoff_index).tail(_n_jnts_robot);
                 _f_contact_ref = _f_cont_ref.col(_takeoff_index);
 
-                _stiffness_setpoint = _touchdown_stiffness; 
+                _stiffness_setpoint = _touchdown_stiffness; // low impedance
                 _damping_setpoint = _touchdown_damping;
 
             }
@@ -999,6 +999,14 @@ void MatReplayerRt::set_trajectory()
         if (_sample_index > (_traj.get_n_nodes() - 1))
         { // reached the end of the trajectory
             
+            if (_send_whole_traj)
+            { // set impedance to low value (ideally here we are in flight phase if
+              // using the trajectory optimized up to the apex)
+
+                _stiffness_setpoint = _touchdown_stiffness; // low impedance
+                _damping_setpoint = _touchdown_damping;
+            }
+
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
