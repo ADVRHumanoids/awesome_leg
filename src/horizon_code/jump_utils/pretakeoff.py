@@ -199,7 +199,7 @@ class preTakeoffTO:
 
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  
 
-        # self.prb.createConstraint("tip_under_hip", self.foot_tip_position[1], nodes=0)
+        self.prb.createConstraint("tip_under_hip", self.foot_tip_position[1], nodes=0)
 
         hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizoin
         hip_above_ground.setBounds(0.0, cs.inf)
@@ -300,9 +300,8 @@ class preTakeoffTO:
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
 
         if self.weight_tip_under_hip > 0:
-            self.prb.createIntermediateCost("max_tip_under_hip_first_node", \
-                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])),\
-                nodes = 0)
+            self.prb.createIntermediateCost("max_tip_under_hip", \
+                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])))
 
         if self.weight_com_vel_vert_at_takeoff > 0:
             self.prb.createIntermediateCost("com_vel_only_vertical_x", \

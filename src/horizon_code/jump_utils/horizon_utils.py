@@ -94,9 +94,13 @@ class JumpSolPlotter:
 
             self.solution_raw=self.ms_loader_raw.load() # loading the solution dictionary
 
+            self.raw_opt_sol_read_ok = True
+
         except:
             
             print("\nFailed to load opt. solution data!!!\n")
+            
+            self.raw_opt_sol_read_ok = False
 
             pass
 
@@ -104,19 +108,27 @@ class JumpSolPlotter:
 
             self.solution_res=self.ms_loader_res.load() # loading the solution dictionary
 
+            self.res_opt_sol_read_ok = True
+
         except:
             
             print("\nFailed to load resampled opt. solution data!!!\n")
-
+            
+            self.res_opt_sol_read_ok = False
+    
             pass
 
         try:
             
             self.solution_ref=self.ms_loader_ref.load() # loading the solution dictionary
 
+            self.ref_opt_sol_read_ok = True
+
         except:
             
             print("\nFailed to load refined opt. solution data!!!\n")
+
+            self.ref_opt_sol_read_ok = False
 
             pass
 
@@ -152,7 +164,7 @@ class JumpSolPlotter:
         self.i_q_res=self.solution_res["i_q"]
         self.GRF_res=self.solution_res["f_contact"]
         self.tau_res=self.solution_res["tau"][1:3,:] 
-        self.dt_res=self.solution_res["dt_res"].flatten()
+        self.dt_res=self.solution_res["dt_opt"].flatten()
         self.hip_height_res=self.solution_res["hip_height"]
         self.foot_tip_height_res=self.solution_res["foot_tip_height"]
         self.foot_tip_vel_res=self.solution_res["tip_velocity"]
@@ -166,17 +178,25 @@ class JumpSolPlotter:
         self.i_q_ref=self.solution_ref["i_q"]
         self.GRF_ref=self.solution_ref["f_contact"]
         self.tau_ref=self.solution_ref["tau"][1:3,:] 
-        self.dt_ref=self.solution_res["dt_res"].flatten() # refinement happend @ dt_res
+        self.dt_ref=self.solution_res["dt_opt"].flatten() # refinement happend @ dt_res
         self.hip_height_ref=self.solution_ref["hip_height"]
         self.foot_tip_height_ref=self.solution_ref["foot_tip_height"]
         self.foot_tip_vel_ref=self.solution_ref["tip_velocity"]
         self.hip_vel_ref=self.solution_ref["hip_velocity"]
 
     def __read_opt_sol(self):
+        
+        if self.raw_opt_sol_read_ok:
 
-        self.__read_raw_opt_sol()
-        self.__read_res_opt_sol()
-        self.__read_ref_opt_sol()
+            self.__read_raw_opt_sol()
+
+        if self.res_opt_sol_read_ok:
+
+            self.__read_res_opt_sol()
+
+        if self.ref_opt_sol_read_ok:
+            
+            self.__read_ref_opt_sol()
     
     def __read_sim_plugin_data(self):
 
@@ -261,18 +281,21 @@ class JumpSolPlotter:
             return False
 
     def __compute_time_vect_opt(self):
+        
+        if self.raw_opt_sol_read_ok:
+            self.time_vector_raw = np.zeros([self.tau_raw[0, :].size + 1])
+            for i in range(self.tau_raw[0,:].size):
+                self.time_vector_raw[i+1] = self.time_vector_raw[i] + self.dt_raw[i]
 
-        self.time_vector_raw = np.zeros([self.tau_raw[0, :].size + 1])
-        for i in range(self.tau_raw[0,:].size):
-            self.time_vector_raw[i+1] = self.time_vector_raw[i] + self.dt_raw[i]
+        if self.res_opt_sol_read_ok:
+            self.time_vector_res = np.zeros([self.tau_res[0, :].size + 1])
+            for i in range(self.tau_res[0,:].size):
+                self.time_vector_res[i+1] = self.time_vector_res[i] + self.dt_res[i]
 
-        self.time_vector_res = np.zeros([self.tau_res[0, :].size + 1])
-        for i in range(self.tau_res[0,:].size):
-            self.time_vector_res[i+1] = self.time_vector_res[i] + self.dt_res[i]
-
-        self.time_vector_ref = np.zeros([self.tau_ref[0, :].size + 1])
-        for i in range(self.tau_ref[0,:].size):
-            self.time_vector_ref[i+1] = self.time_vector_ref[i] + self.dt_ref[i]
+        if self.ref_opt_sol_read_ok:
+            self.time_vector_ref = np.zeros([self.tau_ref[0, :].size + 1])
+            for i in range(self.tau_ref[0,:].size):
+                self.time_vector_ref[i+1] = self.time_vector_ref[i] + self.dt_ref[i]
 
     def __make_raw_opt_plots(self):
 

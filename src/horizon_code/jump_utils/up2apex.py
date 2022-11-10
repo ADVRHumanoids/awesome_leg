@@ -139,6 +139,7 @@ class up2ApexGen:
             self.last_node = self.n_nodes - 1
             self.input_nodes = list(range(0, self.n_nodes - 1))
             self.input_diff_nodes = list(range(1, self.n_nodes - 1))
+            self.f_diff_nodes = list(range(1, self.takeoff_node))
             self.contact_nodes = list(range(0, self.takeoff_node + 1))
             self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
@@ -169,7 +170,7 @@ class up2ApexGen:
 
         self.n_int = int(np.round(t_exec/dt_res))
         self.takeoff_node = int(np.round(takeoff_time/dt_res))
-        
+
         self.n_nodes = self.n_int + 1 
         self.last_node = self.n_nodes - 1
         self.input_nodes = list(range(0, self.n_nodes - 1))
@@ -284,6 +285,11 @@ class up2ApexGen:
             friction_cone_2 = self.prb.createConstraint("friction_cone_2",\
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
+
+        # 
+        if self.weight_f_contact_diff > 0:
+            self.prb.createIntermediateCost("f_contact_diff",\
+                self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
 
     def __scale_weights(self):
 

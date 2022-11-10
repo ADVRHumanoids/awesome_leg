@@ -21,7 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     # rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
-    rt_main:  {sched: fifo , prio: 60, period: 0.004, core_id: 2}
+    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
 # plugins
@@ -48,8 +48,8 @@ xbotcore_plugins:
             urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file} 
             
-            mat_path: {value: /tmp/pretakeoff_gen_13-10-2022-16_27_54/, type: string}
-            mat_name: {value: awesome_jump_ref.mat, type: string}
+            mat_path: {value: /tmp/jump_generation_10-11-2022-15_40_58/, type: string}
+            mat_name: {value: apex_awesome_jump_res.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
