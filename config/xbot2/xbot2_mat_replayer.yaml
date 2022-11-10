@@ -106,7 +106,7 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            driver_temp_threshold: {value: [60.0, 65.0], type: Eigen::VectorXd}
+            driver_temp_threshold: {value: [60.0, 60.0], type: Eigen::VectorXd}
 
 # global parameters
 xbotcore_param:
