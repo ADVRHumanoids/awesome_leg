@@ -50,6 +50,8 @@ void MatReplayerRt::init_vars()
 
     _meas_driver_temp = Eigen::VectorXd::Zero(_n_jnts_robot);
 
+    _auxiliary_vector = Eigen::VectorXd::Zero(_n_jnts_robot);
+
 }
 
 void MatReplayerRt::reset_flags()
@@ -78,6 +80,8 @@ void MatReplayerRt::reset_flags()
     _jump_now = false;
     
     _is_first_trigger = false;
+
+    _hold_q_p_safe_cmd = false;
 
 }
 
@@ -308,7 +312,8 @@ void MatReplayerRt::update_state_estimates()
     // from encoders
     _q_p_dot_ft_est(0) = passive_jnt_vel; // assign passive dofs
 
-    _q_p_ddot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = ( _q_p_dot_meas - _q_p_dot_ft_est_prev.tail(_n_jnts_robot) ) / _plugin_dt; // assign actuated dofs with meas.
+    _auxiliary_vector = _q_p_dot_ft_est_prev.tail(_n_jnts_robot); // used to avoid to break the rt constraint
+    _q_p_ddot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = ( _q_p_dot_meas - _auxiliary_vector ) / _plugin_dt; // assign actuated dofs with meas.
     // from encoders
     _q_p_ddot_ft_est(0) = pssv_jnt_acc; // assign passive dofs
 
@@ -383,19 +388,20 @@ void MatReplayerRt::send_cmds()
         
         if (_send_eff_ref)
         {
-            _robot->setEffortReference(_tau_cmd.tail(_n_jnts_robot));
+            _auxiliary_vector = _tau_cmd.tail(_n_jnts_robot);
+            _robot->setEffortReference(_auxiliary_vector);
         }
 
         if(_send_pos_ref)
         {  
-
-            _robot->setPositionReference(_q_p_cmd.tail(_n_jnts_robot));
+            _auxiliary_vector = _q_p_cmd.tail(_n_jnts_robot);
+            _robot->setPositionReference(_auxiliary_vector);
         }
 
         if(_send_vel_ref)
         {  
-
-            _robot->setVelocityReference(_q_p_dot_cmd.tail(_n_jnts_robot));
+            _auxiliary_vector = _q_p_dot_cmd.tail(_n_jnts_robot);
+            _robot->setVelocityReference(_auxiliary_vector);
         }
 
     }
@@ -539,10 +545,12 @@ void MatReplayerRt::add_data2dump_logger()
 
     if (_is_first_jnt_passive)
     { // remove first joint from logged commands
-
-        _dump_logger->add("q_p_cmd", _q_p_cmd.tail(_n_jnts_robot));
-        _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd.tail(_n_jnts_robot));
-        _dump_logger->add("tau_cmd", _tau_cmd.tail(_n_jnts_robot));
+        _auxiliary_vector = _q_p_cmd.tail(_n_jnts_robot);
+        _dump_logger->add("q_p_cmd", _auxiliary_vector);
+        _auxiliary_vector = _q_p_dot_cmd.tail(_n_jnts_robot);
+        _dump_logger->add("q_p_dot_cmd", _auxiliary_vector);
+        _auxiliary_vector = _tau_cmd.tail(_n_jnts_robot);
+        _dump_logger->add("tau_cmd", _auxiliary_vector);
 
     }
     else
@@ -693,7 +701,8 @@ int MatReplayerRt::was_jump_signal_received()
 
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
-            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
+            _q_p_safe_cmd = _q_p_meas; // "safe" position command
+//            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
 
             _imp_traj_started = true; // start impedance traj
             _approach_traj_started = false; // the pluginwill wait for imp. traj to finish
@@ -1075,7 +1084,13 @@ void MatReplayerRt::set_trajectory()
 
     if (!_jump)
     {
-        // _q_p_cmd = _q_p_safe_cmd;
+//        if (!_hold_q_p_safe_cmd)
+//        {
+//            _q_p_safe_cmd = _q_p_meas;
+//            _hold_q_p_safe_cmd = true;
+//        }
+
+//        _q_p_cmd = _q_p_safe_cmd; // set position cmd to a "safe" position
         _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
         _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
 

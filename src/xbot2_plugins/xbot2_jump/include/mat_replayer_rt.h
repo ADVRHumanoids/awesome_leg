@@ -97,7 +97,8 @@ private:
         _send_whole_traj = false,
         _verbose = false,
         _ft_tip_sensor_found = false,
-        _is_drivers_temp_ok = true;
+        _is_drivers_temp_ok = true,
+        _hold_q_p_safe_cmd = false;
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,
@@ -152,7 +153,8 @@ private:
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est, _f_cont_est,
                     _q_p_dot_ft_est_prev,
-                    _meas_driver_temp, _driver_temp_threshold;
+                    _meas_driver_temp, _driver_temp_threshold,
+                    _auxiliary_vector;
 
     Eigen::Affine3d _test_rig_pose, _test_rig_pose_inv,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
