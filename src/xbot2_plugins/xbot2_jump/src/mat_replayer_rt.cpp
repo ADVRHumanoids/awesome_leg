@@ -697,16 +697,16 @@ int MatReplayerRt::was_jump_signal_received()
 
             res = 1;
 
-            _q_p_safe_cmd = _q_p_meas; // "safe" position command
-
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
-            _q_p_safe_cmd = _q_p_meas; // "safe" position command
-//            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
-
             _imp_traj_started = true; // start impedance traj
-            _approach_traj_started = false; // the pluginwill wait for imp. traj to finish
-            // before starting the approach trajectory
+
+            _approach_traj_started = true;
+            _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
+            // to last sent position command
+
+//            _approach_traj_started = false; // the pluginwill wait for imp. traj to finish
+//            // before starting the approach trajectory
 
             _ramp_strt_stiffness = _meas_stiffness;
             _ramp_strt_damping = _meas_damping;
@@ -917,13 +917,10 @@ void MatReplayerRt::set_trajectory()
         {
             _imp_traj_finished = true; // finished ramping imp.
 
-            _approach_traj_started = true; // start publishing approach
+//            _approach_traj_started = true; // start publishing approach
 
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
-
-            _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
-            // to last sent position command
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Joint impedance successfully ramped to target \n");
@@ -931,20 +928,21 @@ void MatReplayerRt::set_trajectory()
         else
         {
 
-            if (_is_first_imp_ramp_loop)
-            { // at the beginning of the imp ramp
-              // set the position reference to the currently meas.
-              // pos.
-                _q_p_cmd = _q_p_meas;
-                _is_first_imp_ramp_loop = false; // q_p
+//            if (_is_first_imp_ramp_loop)
+//            { // at the beginning of the imp ramp
+//              // set the position reference to the currently meas.
+//              // pos.
 
-                if (_verbose)
-                {
-                    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                       "\n (first imp. ramp loop) \n");
-                }
+//                _q_p_cmd = _q_p_meas;
+//                _is_first_imp_ramp_loop = false; // q_p
 
-            }
+//                if (_verbose)
+//                {
+//                    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+//                       "\n (first imp. ramp loop) \n");
+//                }
+
+//            }
 
             ramp_imp_smoothly();
 
@@ -957,7 +955,7 @@ void MatReplayerRt::set_trajectory()
 
     }
 
-    if (_imp_traj_finished && _approach_traj_started && !_approach_traj_finished && _jump)
+    if (_approach_traj_started && !_approach_traj_finished && _jump)
     { // still publishing the approach trajectory
 
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
