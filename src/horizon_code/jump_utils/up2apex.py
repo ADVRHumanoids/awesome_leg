@@ -344,10 +344,14 @@ class up2ApexGen:
             self.prb.createIntermediateCost("min_f_contact_diff",\
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
 
+        # if self.weight_tip_under_hip > 0:
+        #     self.prb.createIntermediateCost("max_tip_under_hip", \
+        #         self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])),\
+        #         nodes = 0)
+
         if self.weight_tip_under_hip > 0:
-            self.prb.createIntermediateCost("max_tip_under_hip_first_node", \
-                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])),\
-                nodes = 0)
+            self.prb.createIntermediateCost("max_tip_under_hip", \
+                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])))
 
         if self.weight_com_vel_vert_at_takeoff > 0:
             self.prb.createIntermediateCost("com_vel_only_vertical_x", \

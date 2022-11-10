@@ -98,6 +98,8 @@ namespace plugin_utils{
             void resample(double res_dt, Eigen::MatrixXd& q_p_res, Eigen::MatrixXd& q_p_dot_res,
                         Eigen::MatrixXd& tau_res, Eigen::MatrixXd& f_cont_res);
 
+            void get_opt_dt(double& dt);
+
         private:
 
             std::string _data_path; // path to directory where data is stored. If a file name and mat extension is provided, data il loaded from a .mat database, otherwise from CSV file

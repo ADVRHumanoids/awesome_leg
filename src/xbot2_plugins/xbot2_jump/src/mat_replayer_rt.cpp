@@ -689,11 +689,11 @@ int MatReplayerRt::was_jump_signal_received()
 
             res = 1;
 
-            _q_p_safe_cmd = _q_p_meas; // "safe" position command
+//            _q_p_safe_cmd = _q_p_meas; // "safe" position command
 
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
-            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
+//            _q_p_cmd = _q_p_safe_cmd; // setting position reference to a safe reference
 
             _imp_traj_started = true; // start impedance traj
             _approach_traj_started = false; // the pluginwill wait for imp. traj to finish
@@ -776,6 +776,16 @@ void MatReplayerRt::load_opt_data()
     {
         jwarn("The loaded trajectory has {} joints, while the robot has {} .\n Make sure to somehow select the right components!!",
         n_traj_jnts, _n_jnts_robot);
+    }
+
+    double dt_opt = -1.0;
+
+    _traj.get_opt_dt(dt_opt);
+
+    if( (abs(dt_opt - _plugin_dt) > 0.000001) and !_resample)
+    {
+        jerror("The plugin is running at a rate of {} Hz, while the loaded data was generated at {} Hz.\n Please make sure to replay the trajectory at the same rate of the plugin(or resample it)!!",
+        1.0/_plugin_dt, 1.0/ dt_opt);
     }
 
     if (_resample)
@@ -1029,7 +1039,11 @@ void MatReplayerRt::set_trajectory()
         if (!_pause_finished)
         { // do nothing in this control loop
 
-
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                    "\n (in pause) \n");
+            }
         }
         else 
         {
@@ -1039,6 +1053,12 @@ void MatReplayerRt::set_trajectory()
             _jump = false; // directly trigger next jump sequence
 
             _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
+
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                    "\n (pause ended) \n");
+            }
         }
 
         _stiffness_setpoint = _touchdown_stiffness; 

@@ -132,7 +132,7 @@ if __name__ == '__main__':
                         help = 'horizon config file name', default = pretakeoff_opt_name, 
                         choices = [pretakeoff_opt_name, apex_opt_name, full_opt_name])
 
-    parser.add_argument('--load_ig', '-uig', type = str2bool, default = True)
+    parser.add_argument('--load_ig', '-uig', type = str2bool, default = False)
 
     args = parser.parse_args()
 

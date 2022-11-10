@@ -580,6 +580,11 @@ double TrajLoader::get_exec_time()
     return _exec_time;
 }
 
+void TrajLoader::get_opt_dt(double& dt)
+{
+    dt = _dt_opt(0);
+}
+
 void TrajLoader::check_loaded_data_dims()
 {   
     // By convention, the tau value at the last node is zero.
