@@ -20,10 +20,20 @@ class up2ApexGen:
     def __init__(self, yaml_path: str, actuators_yaml_path: str, 
                 urdf_path: str,
                 results_path: str,
-                sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
+                sol_mat_name =  "up2apex", sol_mat_name_res = "up2apex_res", sol_mat_name_ref = "up2apex_ref",   
                 cost_epsi = 1.0, 
-                yaml_tag = "up2apex_gen"):
+                yaml_tag = "up2apex_gen", 
+                is_ref_prb = False, 
+                load_ig = True):
         
+        self.is_ref_prb = is_ref_prb
+
+        self.raw_prb_weight_tag = "ig_generation"
+        self.ref_prb_weight_tag = "refinement"
+        
+        self.dt_pretakeoff_name = "dt_pretakeoff"
+        self.dt_flight_name = "dt_flight"
+
         self.yaml_tag = yaml_tag
 
         self.yaml_path = yaml_path
@@ -41,7 +51,7 @@ class up2ApexGen:
 
         self.cost_epsi = cost_epsi
 
-        self.load_ig = False
+        self.load_ig = load_ig # whether to use the ig during the ref. phase
 
     def __parse_config_yamls(self):
 
@@ -74,6 +84,7 @@ class up2ApexGen:
             "ipopt.linear_solver": self.yaml_file[self.yaml_tag]["solver"]["ipopt_lin_solver"]
         }
 
+
         self.slvr_name = self.yaml_file[self.yaml_tag]["solver"]["name"] 
 
         self.trans_name = self.yaml_file[self.yaml_tag]["transcription"]["name"] 
@@ -87,11 +98,81 @@ class up2ApexGen:
 
         self.mu_friction_cone = abs(self.yaml_file[self.yaml_tag]["problem"]["friction_cnstrnt"]["mu_friction_cone"])
 
-        self.scale_factor_base = self.yaml_file[self.yaml_tag]["problem"]["weights"]["scale_factor_costs_base"]  
+        self.dt_res = self.yaml_file[self.yaml_tag]["resampling"]["dt"] 
+        
+        self.use_same_weights = self.yaml_file[self.yaml_tag]["problem"]["weights"]["use_same_weights"]
 
-        self.n_int = self.yaml_file[self.yaml_tag]["problem"]["n_int"]
-        self.takeoff_node = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"]
+        weight_selector = self.ref_prb_weight_tag if (self.is_ref_prb and not self.use_same_weights) else self.raw_prb_weight_tag
 
+        self.scale_factor_base = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["scale_factor_costs_base"]  
+
+        self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact_diff"]  
+        self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact"] 
+        self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_dot"] 
+        self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_ddot"] 
+        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_ddot_diff"] 
+
+        self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_term_vel"] 
+        self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel"] 
+        self.weight_tip_under_hip = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_tip_under_hip"] 
+        self.weight_sat_i_q = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_sat_i_q"] 
+
+        self.weight_com_vel_vert_at_takeoff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel_vert_at_takeoff"] 
+        
+        self.weight_com_pos = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_pos"] 
+        
+        # these are only used in the refinement stage
+        self.weight_q_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_q_tracking"] 
+        self.weight_tip_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_tip_tracking"] 
+
+        self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
+        self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
+
+        if not self.is_ref_prb:
+            
+            # only read problem interval/node specification if not performing the refinement stage 
+
+            self.n_int = self.yaml_file[self.yaml_tag]["problem"]["n_int"]
+            self.takeoff_node = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"]
+        
+            self.n_nodes = self.n_int + 1 
+            self.last_node = self.n_nodes - 1
+            self.input_nodes = list(range(0, self.n_nodes - 1))
+            self.input_diff_nodes = list(range(1, self.n_nodes - 1))
+            self.contact_nodes = list(range(0, self.takeoff_node + 1))
+            self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
+
+    def __init_sol_dumpers(self):
+
+        self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
+
+        self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.res_sol_mat_name + ".mat")  # resampled opt. sol
+
+        self.ms_refined = mat_storer.matStorer(self.results_path + "/" + self.ref_sol_mat_name + ".mat")  # refined opt. sol
+    
+    def __load_ig(self):
+
+        ms_ig_path = self.results_path + "/" + self.res_sol_mat_name + ".mat" # load resampled sol.
+        ms_loaded_ig = mat_storer.matStorer(ms_ig_path)
+        self.loaded_sol=ms_loaded_ig.load() # loading the solution dictionary
+ 
+        dt_res = self.loaded_sol["dt_res"].flatten()[0]
+        
+        t_exec = sum(self.loaded_sol["dt_opt"].flatten()) # total raw opt trajectory execution time
+
+        # f_z_raw = self.loaded_sol["f_contact_raw"][2]
+
+        # raw_pretakeoff_dt = self.loaded_sol["dt_opt"][0][0]
+
+        raw_n_int_pretakeoff = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"] + 1 # n int. of the pretakeoff phase
+        takeoff_time = raw_n_int_pretakeoff * raw_n_int_pretakeoff
+
+        self.n_int = int(np.round(t_exec/dt_res))
+        self.takeoff_node = int(np.round(takeoff_time/dt_res))
+
+        print(self.takeoff_node)
+        exit()
+        
         self.n_nodes = self.n_int + 1 
         self.last_node = self.n_nodes - 1
         self.input_nodes = list(range(0, self.n_nodes - 1))
@@ -99,63 +180,26 @@ class up2ApexGen:
         self.contact_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
-        self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
-        self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
-
-        self.dt_res = self.yaml_file[self.yaml_tag]["resampling"]["dt"] 
-        
-        self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact_diff"]  
-        self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact"] 
-        self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_dot"] 
-        self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot"] 
-        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot_diff"] 
-
-        self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_term_vel"] 
-        self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel"] 
-        self.weight_tip_under_hip = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_tip_under_hip"] 
-        self.weight_sat_i_q = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_sat_i_q"] 
-
-        self.weight_com_vel_vert_at_takeoff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel_vert_at_takeoff"] 
-        
-        self.weight_com_pos = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_pos"] 
-
-    def __init_sol_dumpers(self):
-
-        self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
-
-        self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.res_sol_mat_name + ".mat")  # original opt. sol
-
-    def __load_ig(self):
-
-        ms_ig_path = self.results_path + "/" + self.res_sol_mat_name + ".mat"
-        ms_loaded_ig = mat_storer.matStorer(ms_ig_path)
-        self.loaded_sol=ms_loaded_ig.load() # loading the solution dictionary
- 
-        dt_res = self.loaded_sol["dt_opt"].flatten()[0]
-
-        t_exec = sum(self.loaded_sol["dt_opt_raw"].flatten())
-    
-        self.n_int = int(np.round(t_exec/dt_res))
-
-        self.cost_scaling_factor = self.loaded_sol["cost_scaling_factor"]
 
     def __set_igs(self):
         
-        if not self.load_ig:
-
-            self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-            self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-            self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-
-            self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
-
-        else:
+        if self.load_ig and self.is_ref_prb: # only use if in the refinement phase
 
             self.q_p.setInitialGuess(self.loaded_sol["q_p"])
             self.q_p_dot.setInitialGuess(self.loaded_sol["q_p_dot"])
             self.q_p_ddot.setInitialGuess(self.loaded_sol["q_p_ddot"])
 
             self.f_contact.setInitialGuess(self.loaded_sol["f_contact"])
+
+        else:
+            
+            self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+            self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+            self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
+
+            
 
     def __get_quantities_from_urdf(self):
         
@@ -207,7 +251,7 @@ class up2ApexGen:
         com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2]) # intermediate, so all except last node
         com_towards_vertical.setBounds(0.0, cs.inf)
 
-        com_towards_vertical = self.prb.createIntermediateConstraint("com_apex", self.vcom[2], nodes = self.last_node)  
+        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], nodes = self.last_node)  
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1])  
 
@@ -270,6 +314,10 @@ class up2ApexGen:
 
         self.weight_com_pos = self.weight_com_pos / self.cost_scaling_factor
 
+        self.weight_q_tracking = self.weight_q_tracking / self.cost_scaling_factor
+
+        self.weight_tip_tracking = self.weight_tip_tracking / self.cost_scaling_factor
+
     def __set_costs(self):
         
         self.__scale_weights()
@@ -318,6 +366,19 @@ class up2ApexGen:
             for i in range(self.n_q -1):
 
                 self.prb.createIntermediateCost("saturate_i_q_j" + str(i), self.weight_sat_i_q * 1/(cs.sumsqr(self.i_q[i]) + self.cost_epsi))
+
+        if self.is_ref_prb:
+
+            for i in range(self.n_int + 1):
+                
+                if self.weight_q_tracking > 0:
+                    self.prb.createIntermediateCost("q_tracking_tracking_cost_node" + str(i),\
+                        self.weight_q_tracking * cs.sumsqr(self.q_p - self.loaded_sol["q_p"][:, i]),\
+                        nodes= i)
+
+                if self.weight_tip_tracking > 0:
+                    self.prb.createIntermediateCost("tip_tracking_tracking_cost_node" + str(i),\
+                        self.weight_tip_tracking * cs.sumsqr(self.foot_tip_position[2] - self.fk_foot(q = self.loaded_sol["q_p"][:, i])["ee_pos"][2]), nodes= i)
 
     def __get_solution(self):
 
@@ -402,23 +463,29 @@ class up2ApexGen:
         dt_res_vector = np.tile(self.dt_res, n_res_samples - 1)
 
         self.useful_solutions_res={"q_p":self.p_res,"q_p_dot":self.v_res, "q_p_ddot":self.a_res,
-                        "tau":self.tau_res, "f_contact":self.res_f_contact, "i_q":i_q_res, "dt_opt":dt_res_vector,
+                        "tau":self.tau_res, 
+                        "f_contact":self.res_f_contact, "f_contact_raw": self.solution["f_contact"],
+                        "i_q":i_q_res,
                         "foot_tip_height":np.transpose(res_foot_tip_position), 
                         "hip_height":np.transpose(res_hip_position), 
                         "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),
                         "hip_velocity":np.transpose(np.transpose(res_v_foot_hip)), 
                         self.dt_flight_name: self.solution[self.dt_flight_name], 
                         self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name],
-                        "dt_opt_raw": self.slvr.getDt(), 
-                        "cost_scaling_factor": self.cost_scaling_factor}
+                        "dt_opt": self.slvr.getDt(), "dt_res":dt_res_vector, 
+                        self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name], 
+                        self.dt_flight_name: self.solution[self.dt_flight_name]}
 
     def __postproc_sol(self):
 
-        self.__postproc_raw_sol()
+        self.__postproc_raw_sol() # will dump ref solutions in case of 
+        # refinement phase
 
-        self.__postproc_res_sol()
+        if not self.is_ref_prb:
 
-        self.sol_dict_full_res_sol= {**self.useful_solutions_res}
+            self.__postproc_res_sol()
+
+            self.sol_dict_full_res_sol= {**self.useful_solutions_res}
 
         self.sol_dict_full_raw_sol = {**self.solution,
                 **self.cnstr_opt,
@@ -426,11 +493,21 @@ class up2ApexGen:
                 **self.other_stuff}
 
     def __dump_sol2file(self):
+        
+        if not self.is_ref_prb:
 
-        self.ms_sol.store(self.sol_dict_full_raw_sol) # saving solution data to file
-        self.ms_resampl.store(self.sol_dict_full_res_sol) # saving solution data to file
+            self.ms_sol.store(self.sol_dict_full_raw_sol) # saving solution data to file
+            self.ms_resampl.store(self.sol_dict_full_res_sol) # saving solution data to file
 
-    def __init_raw_prb(self, n_passive_joints = 1):
+        else:
+            
+            self.ms_refined.store(self.sol_dict_full_raw_sol)
+
+    def __init_prb(self, n_passive_joints = 1):
+
+        if self.is_ref_prb:
+
+            self.__load_ig()
 
         self.urdf = open(self.urdf_path, "r").read()
         self.urdf_kin_dyn = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(self.urdf)
@@ -453,15 +530,21 @@ class up2ApexGen:
         
         self.prb = Problem(self.n_int)  # initialization of a problem object
 
-        self.dt_pretakeoff_name = "dt_pretakeoff"
-        self.dt_flight_name = "dt_flight"
-        dt_pretakeoff = self.prb.createSingleVariable(self.dt_pretakeoff_name, 1)  # dt before the takeoff
-        dt_flight = self.prb.createSingleVariable(self.dt_flight_name, 1)  # dt before the takeoff
+        dt = None
 
-        dt_pretakeoff.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
-        dt_flight.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+        if not self.is_ref_prb:
 
-        dt = [dt_pretakeoff]* (len(self.contact_nodes) - 1) +  [dt_flight]* (len(self.flight_nodes)) # holds the complete time list
+            dt_pretakeoff = self.prb.createSingleVariable(self.dt_pretakeoff_name, 1)  # dt before the takeoff
+            dt_flight = self.prb.createSingleVariable(self.dt_flight_name, 1)  # dt before the takeoff
+
+            dt_pretakeoff.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+            dt_flight.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+
+            dt = [dt_pretakeoff]* (len(self.contact_nodes) - 1) +  [dt_flight]* (len(self.flight_nodes)) # holds the complete time list
+
+        else:
+
+            dt = self.dt_res
 
         self.prb.setDt(dt)
 
@@ -484,7 +567,7 @@ class up2ApexGen:
 
     def init_prb(self):
 
-        self.__init_raw_prb()
+        self.__init_prb()
         
     def setup_prb(self):
         
@@ -522,7 +605,9 @@ class up2ApexGen:
 
         self.__get_solution()
         
-        self.__resample_sol()
+        if not self.is_ref_prb:
+
+            self.__resample_sol()
 
         self.__postproc_sol()
 

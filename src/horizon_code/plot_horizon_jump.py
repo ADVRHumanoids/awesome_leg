@@ -21,13 +21,16 @@ if __name__ == '__main__':
     parser.add_argument('--plot_ref', '-ref', type = str2bool, default = False)
     parser.add_argument('--plot_comp_resref', '-comp_rsrf', type = str2bool, default = False)
     parser.add_argument('--plot_comp_rawres', '-comp_rwrs', type = str2bool, default = False)
+    parser.add_argument('--plot_comp_rawref', '-comp_rwrf', type = str2bool, default = False)
     parser.add_argument('--plot_link_comp', '-link_comp', type = str2bool, default = False)
 
     args = parser.parse_args()
 
-    plotter = JumpSolPlotter(args.sol_path, sim_postproc_filename= args.sim_name, test_postproc_filename= args.sim_name)
+    plotter = JumpSolPlotter(args.sol_path, 
+                            sim_postproc_filename= args.sim_name, test_postproc_filename= args.sim_name, 
+                            opt_base_sol_name = args.base_sol_name)
     make_plot_selector = [args.plot_raw, args.plot_res, args.plot_ref, \
-                            args.plot_comp_resref, args.plot_comp_rawres]
+                            args.plot_comp_resref, args.plot_comp_rawres, args.plot_comp_rawref]
     
     plotter.make_opt_plots(make_plot_selector)
 

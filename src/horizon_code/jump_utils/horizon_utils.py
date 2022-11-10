@@ -41,9 +41,9 @@ class JumpSolPlotter:
                 sim_postproc_filename = None, 
                 test_postproc_filename = None):
 
-        self.solution_path_ref_raw = solution_dirpath + "/" + opt_base_sol_name
-        self.solution_path_ref_res = solution_dirpath + "/" + opt_base_sol_name + res_sol_suffix
-        self.solution_path_ref_ref = solution_dirpath + "/" + opt_base_sol_name + ref_sol_suffix
+        self.solution_path_raw = solution_dirpath + "/" + opt_base_sol_name
+        self.solution_path_res = solution_dirpath + "/" + opt_base_sol_name + res_sol_suffix
+        self.solution_path_ref = solution_dirpath + "/" + opt_base_sol_name + ref_sol_suffix
         
         self.__run_opt_sol_postproc()
 
@@ -86,9 +86,9 @@ class JumpSolPlotter:
         
     def __load_opt_sol(self):
         
-        self.ms_loader_raw = mat_storer.matStorer(self.solution_path_ref_raw)
-        self.ms_loader_res = mat_storer.matStorer(self.solution_path_ref_res)
-        self.ms_loader_ref = mat_storer.matStorer(self.solution_path_ref_ref)
+        self.ms_loader_raw = mat_storer.matStorer(self.solution_path_raw)
+        self.ms_loader_res = mat_storer.matStorer(self.solution_path_res)
+        self.ms_loader_ref = mat_storer.matStorer(self.solution_path_ref)
         
         try:
 
@@ -152,7 +152,7 @@ class JumpSolPlotter:
         self.i_q_res=self.solution_res["i_q"]
         self.GRF_res=self.solution_res["f_contact"]
         self.tau_res=self.solution_res["tau"][1:3,:] 
-        self.dt_res=self.solution_res["dt_opt"].flatten()
+        self.dt_res=self.solution_res["dt_res"].flatten()
         self.hip_height_res=self.solution_res["hip_height"]
         self.foot_tip_height_res=self.solution_res["foot_tip_height"]
         self.foot_tip_vel_res=self.solution_res["tip_velocity"]
@@ -166,7 +166,7 @@ class JumpSolPlotter:
         self.i_q_ref=self.solution_ref["i_q"]
         self.GRF_ref=self.solution_ref["f_contact"]
         self.tau_ref=self.solution_ref["tau"][1:3,:] 
-        self.dt_ref=self.solution_ref["dt_opt"].flatten()
+        self.dt_ref=self.solution_res["dt_res"].flatten() # refinement happend @ dt_res
         self.hip_height_ref=self.solution_ref["hip_height"]
         self.foot_tip_height_ref=self.solution_ref["foot_tip_height"]
         self.foot_tip_vel_ref=self.solution_ref["tip_velocity"]
@@ -565,7 +565,123 @@ class JumpSolPlotter:
         plt.title("Hip velocity (cartesian components) - ref solution", fontdict=None, loc='center')
         plt.grid()
 
-    def __make_ref_compar_plots(self):
+    def __make_rawref_compar_plots(self):
+
+        f1=plt.figure()
+
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[0, :-1], label=r"F_x_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle='-', linewidth=2)
+
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[0, :-1], label=r"F_x_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle='dashed', linewidth=2)
+
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel('[N]')
+        plt.title("Ground reaction forces - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+        # if save_fig:
+        #     plt.savefig(save_path+"GRF.pdf", format="pdf")
+
+        f2=plt.figure()
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[rad]")
+        plt.title("Joint positions - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+
+        f3=plt.figure()
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_raw$", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[rad/s]")
+        plt.title("Joint velocities - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+
+        f4=plt.figure()
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
+        plt.title("Joint accelerations - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+    
+        f5=plt.figure()
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle='dashed', linewidth=2)
+        
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[Nm]")
+        plt.title("Joint efforts (link side) - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+        
+        f6=plt.figure()
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[A]")
+        plt.title("Actuators quadrature current - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+
+        f10=plt.figure()
+        plt.plot(self.time_vector_raw.flatten(), self.hip_height_raw,label="hip height raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_height_raw,label="foot tip height raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height ref", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[m]")
+        plt.title("Link heights during the jump - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+        
+        f11=plt.figure()
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[0,:],label="tip vel. x raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[1,:],label="tip vel. y raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[2,:],label="tip vel. z raw", linestyle='-', linewidth=2)
+
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[0,:],label="tip vel. x ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle='dashed', linewidth=2)
+
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[m/s]")
+        plt.title("Foot tip velocity (cartesian components) - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+        
+        f12=plt.figure()
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[0,:],label="hip vel. x raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[1,:],label="hip vel. y raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[2,:],label="hip vel. z raw", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle='dashed', linewidth=2)
+        plt.legend(loc="upper left")
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[m/s]")
+        plt.title("Hip velocity (cartesian components) - raw VS ref", fontdict=None, loc='center')
+        plt.grid()
+
+    def __make_resref_compar_plots(self):
 
         f1=plt.figure()
 
@@ -681,7 +797,7 @@ class JumpSolPlotter:
         plt.title("Hip velocity (cartesian components) - res VS ref", fontdict=None, loc='center')
         plt.grid()
     
-    def __make_res_compar_plots(self):
+    def __make_rawres_compar_plots(self):
 
         f1=plt.figure()
 
@@ -797,7 +913,7 @@ class JumpSolPlotter:
         plt.title("Hip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
         plt.grid()
 
-    def make_opt_plots(self, make_plt_slctr = [True] * 5):
+    def make_opt_plots(self, make_plt_slctr = [True] * 6):
 
         if make_plt_slctr[0]:
             self.__make_raw_opt_plots()
@@ -809,10 +925,13 @@ class JumpSolPlotter:
             self.__make_ref_opt_plots()
 
         if make_plt_slctr[3]:
-            self.__make_ref_compar_plots()
+            self.__make_resref_compar_plots()
 
         if make_plt_slctr[4]:
-            self.__make_res_compar_plots()
+            self.__make_rawres_compar_plots()
+
+        if make_plt_slctr[5]:
+            self.__make_rawref_compar_plots()
 
         return True
 
