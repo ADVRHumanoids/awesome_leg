@@ -31,6 +31,12 @@ xbotcore_plugins:
         thread: rt_main
         type: homing_example
 
+    homing_custom:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [-1.0, -1.57], type: Eigen::VectorXd}
+
     ros_io: {thread: nrt_main, type: ros_io}
 
     ros_control: {thread: nrt_main, type: ros_control}
@@ -82,7 +88,7 @@ xbotcore_plugins:
 
             send_whole_traj: {value: false, type: bool}
             
-            verbose: {value: false, type: bool}
+            verbose: {value: true, type: bool}
 
             test_rig_linkname: {value: "test_rig", type: string}
             tip_fts_name: {value: "tip1_fts", type: string}
