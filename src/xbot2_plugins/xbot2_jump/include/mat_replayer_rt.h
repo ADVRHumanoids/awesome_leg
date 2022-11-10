@@ -98,7 +98,7 @@ private:
         _verbose = false,
         _ft_tip_sensor_found = false,
         _is_drivers_temp_ok = true,
-        _hold_q_p_safe_cmd = false;
+        _is_first_imp_ramp_loop = false;
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,

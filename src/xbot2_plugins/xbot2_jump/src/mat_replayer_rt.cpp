@@ -81,7 +81,7 @@ void MatReplayerRt::reset_flags()
     
     _is_first_trigger = false;
 
-    _hold_q_p_safe_cmd = false;
+    _is_first_imp_ramp_loop = true;
 
 }
 
@@ -928,7 +928,29 @@ void MatReplayerRt::set_trajectory()
         }
         else
         {
+
+            if (_is_first_imp_ramp_loop)
+            { // at the beginning of the imp ramp
+              // set the position reference to the currently meas.
+              // pos.
+                _q_p_cmd = _q_p_meas;
+                _is_first_imp_ramp_loop = false; // q_p
+
+                if (_verbose)
+                {
+                    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                       "\n (first imp. ramp loop) \n");
+                }
+
+            }
+
             ramp_imp_smoothly();
+
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n (ramping impedance...) \n");
+            }
         }
 
     }
@@ -948,6 +970,12 @@ void MatReplayerRt::set_trajectory()
         }
         else
         {
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n (setting approach trajectory...) \n");
+            }
+
             set_approach_trajectory();
         }
 
