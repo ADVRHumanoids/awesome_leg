@@ -961,7 +961,7 @@ void MatReplayerRt::set_trajectory()
         
     }
 
-    if (_traj_started && !_traj_finished && _jump && )
+    if (_traj_started && !_traj_finished && _jump)
     { // publish current trajectory sample
         
         if (_sample_index <= _takeoff_index)
