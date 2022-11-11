@@ -93,8 +93,8 @@ xbotcore_plugins:
             tip_link_name: {value: tip1, type: string}
             base_link_name: {value: base_link, type: string}
 
-            approach_traj_exec_time: {value: 3.0, type: double}
-            imp_ramp_time: {value: 3.0, type: double}
+            approach_traj_exec_time: {value: 5.0, type: double}
+            imp_ramp_time: {value: 5.0, type: double}
 
             reduce_dumped_sol_size: {value: false, type: bool}
 

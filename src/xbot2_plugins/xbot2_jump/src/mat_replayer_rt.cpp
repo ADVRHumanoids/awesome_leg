@@ -100,7 +100,7 @@ void MatReplayerRt::update_clocks()
         _smooth_imp_time += _plugin_dt;
     }
 
-    if(_imp_traj_finished && _approach_traj_started && !_approach_traj_finished && _jump)
+    if(_approach_traj_started && !_approach_traj_finished && _jump)
     {
         _approach_traj_time += _plugin_dt;
     }
@@ -700,8 +700,8 @@ int MatReplayerRt::was_jump_signal_received()
             _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
             _imp_traj_started = true; // start impedance traj
-
             _approach_traj_started = true;
+
             _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
             // to last sent position command
 
@@ -712,7 +712,7 @@ int MatReplayerRt::was_jump_signal_received()
             _ramp_strt_damping = _meas_damping;
         }
         
-        if (_approach_traj_finished && !_traj_started && !_is_first_trigger)
+        if (_approach_traj_finished && _imp_traj_finished && !_traj_started && !_is_first_trigger)
         { // triggered by the second jump signal
             
             _traj_started = true; // send actual trajectory
@@ -871,9 +871,6 @@ void MatReplayerRt::set_approach_trajectory()
     double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
     _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
-
-    _stiffness_setpoint = _replay_stiffness; 
-    _damping_setpoint = _replay_damping;
     
 }
 
@@ -917,33 +914,14 @@ void MatReplayerRt::set_trajectory()
         {
             _imp_traj_finished = true; // finished ramping imp.
 
-//            _approach_traj_started = true; // start publishing approach
-
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\n Joint impedance successfully ramped to target \n");
+                   "\n Finished ramping joint impedance \n");
         }
         else
         {
-
-//            if (_is_first_imp_ramp_loop)
-//            { // at the beginning of the imp ramp
-//              // set the position reference to the currently meas.
-//              // pos.
-
-//                _q_p_cmd = _q_p_meas;
-//                _is_first_imp_ramp_loop = false; // q_p
-
-//                if (_verbose)
-//                {
-//                    jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-//                       "\n (first imp. ramp loop) \n");
-//                }
-
-//            }
-
             ramp_imp_smoothly();
 
             if (_verbose)
@@ -955,7 +933,7 @@ void MatReplayerRt::set_trajectory()
 
     }
 
-    if (_approach_traj_started && !_approach_traj_finished && _jump)
+    if (_approach_traj_started && !_approach_traj_finished)
     { // still publishing the approach trajectory
 
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
@@ -983,7 +961,7 @@ void MatReplayerRt::set_trajectory()
         
     }
 
-    if (_traj_started && !_traj_finished && _jump)
+    if (_traj_started && !_traj_finished && _jump && )
     { // publish current trajectory sample
         
         if (_sample_index <= _takeoff_index)
