@@ -13,7 +13,8 @@ from horizon.solvers import solver
 from horizon.transcriptions import transcriptor
 from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
 
-from jump_utils.horizon_utils import inv_dyn_from_sol, forw_dyn_from_sol
+from jump_utils.horizon_utils import inv_dyn_from_sol, forw_dyn_from_sol, \
+                                        compute_required_iq_estimate, compute_required_iq_estimate_num
 
 class up2ApexGen:
 
@@ -112,13 +113,16 @@ class up2ApexGen:
         self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact_diff"]  
         self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact"] 
         self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_dot"] 
-        self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_ddot"] 
+        self.weight_jnt_input = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input"] 
         self.weight_jnt_input_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input_diff"] 
 
         self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_term_vel"] 
         self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel"] 
         self.weight_tip_under_hip = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_tip_under_hip"] 
         self.weight_sat_i_q = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_sat_i_q"] 
+
+        self.weight_hip_height = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_hip_height"] 
+        self.weight_tip_clearance = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_tip_clearance"] 
 
         self.weight_com_vel_vert_at_takeoff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel_vert_at_takeoff"] 
         
@@ -180,7 +184,6 @@ class up2ApexGen:
         self.input_diff_nodes = list(range(1, self.n_nodes - 1))
         self.contact_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
-
 
     def __set_igs(self):
         
@@ -255,44 +258,43 @@ class up2ApexGen:
 
             self.q_p_ddot_lim = self.prb.createIntermediateConstraint("q_p_ddot_lim", self.q_p_ddot) 
             self.q_p_ddot_lim.setBounds(-inf_array, inf_array)  # setting input limits
-
-        self.prb.createConstraint("foot_vel_zero", self.v_foot_tip, self.contact_nodes) 
-
+        
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  
 
-        # self.prb.createConstraint("tip_under_hip", self.foot_tip_position[1], nodes=0)
+        self.prb.createConstraint("tip_stays_on_ground", self.v_foot_tip, self.contact_nodes) 
 
-        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizoin
+        # self.prb.createConstraint("tip_starts_under_hip", self.foot_tip_position[1], nodes=0)
+        # self.prb.createConstraint("tip_stays_under_hip", self.foot_tip_position[1])
+
+        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
         hip_above_ground.setBounds(0.0, cs.inf)
-        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizoin
+        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
         knee_above_ground.setBounds(0.0, cs.inf)
         
         com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2]) # intermediate, so all except last node
         com_towards_vertical.setBounds(0.0, cs.inf)
 
-        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], nodes = self.last_node)  
+        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], nodes = self.last_node) # reach the apex at the end of the trajectory 
         
-        # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1])  
+        # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
 
         self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
-        self.prb.createConstraint("init_joint_vel_zero", self.q_p_dot,
-                            nodes=0) 
+        grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.contact_nodes)  # 0 GRF during flight
+        grf_positive.setBounds(1, cs.inf)
+
+        self.prb.createConstraint("leg_starts_still", self.q_p_dot,
+                            nodes=0) # leg starts still
 
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
         self.compensated_tau = []
         self.i_q_cnstr = []
-        self.i_q = []
-        for i in range(self.n_q -1):
-            self.compensated_tau.append(self.tau[i + 1] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.q_p_dot[i + 1]) + self.act_yaml_file["K_d1"][i] * self.q_p_dot[i + 1])
-            self.i_q.append((self.act_yaml_file["rotor_axial_MoI"][i] * self.q_p_ddot[i + 1] / self.act_yaml_file["red_ratio"][i] +\
-                self.compensated_tau[i] * self.act_yaml_file["red_ratio"][i] / \
-                self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i])
-
+        self.i_q_estimate = compute_required_iq_estimate(self.act_yaml_file, self.q_p_dot, self.q_p_ddot, self.tau, self.tanh_coeff)
+        
         if self.is_iq_cnstrnt:
             for i in range(self.n_q -1):
-                self.i_q_cnstr.append( self.prb.createIntermediateConstraint("quadrature_current_j" + str(i), self.i_q[i]) )
+                self.i_q_cnstr.append( self.prb.createIntermediateConstraint("quadrature_current_jnt_n" + str(i), self.i_q_estimate[i]) )
                 self.i_q_cnstr[i].setBounds(- self.I_lim[i], self.I_lim[i])  # setting input limits
 
         # friction constraints
@@ -307,11 +309,6 @@ class up2ApexGen:
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
 
-        # minimize contact force derivative
-        if self.weight_f_contact_diff > 0:
-            self.prb.createIntermediateCost("f_contact_diff",\
-                self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
-
     def __scale_weights(self):
 
         self.cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
@@ -320,11 +317,15 @@ class up2ApexGen:
 
         self.weight_q_dot = self.weight_q_dot / self.cost_scaling_factor
 
-        self.weight_q_ddot = self.weight_q_ddot / self.cost_scaling_factor
+        self.weight_jnt_input = self.weight_jnt_input / self.cost_scaling_factor
 
         self.weight_com_vel = self.weight_com_vel / self.cost_scaling_factor
 
         self.weight_term_com_vel = self.weight_term_com_vel / self.cost_scaling_factor
+
+        self.weight_hip_height = self.weight_hip_height / self.cost_scaling_factor
+
+        self.weight_tip_clearance = self.weight_tip_clearance / self.cost_scaling_factor
 
         self.weight_jnt_input_diff = self.weight_jnt_input_diff / self.cost_scaling_factor
 
@@ -351,10 +352,10 @@ class up2ApexGen:
                 self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]), nodes = self.input_nodes)
 
         if self.weight_q_dot > 0:
-            self.prb.createIntermediateCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot[1:])) 
+            self.prb.createCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot[1:])) 
 
-        if self.weight_q_ddot > 0:
-            self.prb.createIntermediateCost("min_q_ddot", self.weight_q_ddot * cs.sumsqr(self.q_p_ddot[1:]), nodes = self.input_nodes) 
+        if self.weight_jnt_input > 0:
+            self.prb.createIntermediateCost("min_q_ddot", self.weight_jnt_input * cs.sumsqr(self.q_p_ddot[1:]), nodes = self.input_nodes) 
 
         if self.weight_com_vel > 0:
             self.prb.createIntermediateCost("max_com_vel", self.weight_com_vel * 1/ ( cs.sumsqr(self.vcom[2]) + 0.0001 ))
@@ -362,6 +363,16 @@ class up2ApexGen:
         if self.weight_term_com_vel > 0:
             self.prb.createIntermediateCost("max_com_term_vel", self.weight_term_com_vel * 1/ ( cs.sumsqr(self.vcom[2]) + 0.0001 ), \
                                             nodes = self.contact_nodes[-1])
+
+        if self.weight_hip_height > 0:
+            self.prb.createIntermediateCost("max_hip_height_jump",\
+                self.weight_hip_height * cs.sumsqr(1 / (self.hip_position +  0.0001)),\
+                nodes=self.flight_nodes)
+
+        if self.weight_tip_clearance > 0:
+            self.prb.createIntermediateCost("max_foot_tip_clearance",\
+                self.weight_tip_clearance * cs.sumsqr(1 / (self.foot_tip_position[2] + 0.0001)),\
+                nodes=self.flight_nodes)
 
         if self.weight_jnt_input_diff > 0:
        
@@ -390,7 +401,7 @@ class up2ApexGen:
                 nodes = self.contact_nodes[-1])
 
         if self.weight_com_vel > 0:
-            self.prb.createIntermediateCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
+            self.prb.createCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
                 nodes = self.last_node - 1)
 
         if self.weight_sat_i_q > 0:
@@ -470,13 +481,7 @@ class up2ApexGen:
         sol_q_p_ddot = self.solution["q_p_ddot"] if self.acc_based_formulation else self.cnstr_opt["q_p_ddot_lim"]
         sol_tau = self.cnstr_opt["tau_limits"] if self.acc_based_formulation else self.solution["tau"]
 
-        i_q_n_samples = len(sol_q_p_ddot[0, :])
-        i_q = np.zeros((self.n_q - 1, i_q_n_samples))
-        for i in range(self.n_q - 1):
-            compensated_tau = self.tau_sol[i + 1, :] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * sol_q_p_dot[i + 1, 1:(i_q_n_samples + 1)]) + \
-                                                self.act_yaml_file["K_d1"][i] * sol_q_p_dot[i + 1, 1:(i_q_n_samples + 1)]
-            i_q[i, :] = (self.act_yaml_file["rotor_axial_MoI"][i] * sol_q_p_ddot[i + 1, :] / self.act_yaml_file["red_ratio"][i] +\
-                        compensated_tau * self.act_yaml_file["red_ratio"][i] / self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i]
+        i_q_est_raw = compute_required_iq_estimate_num(self.act_yaml_file, sol_q_p_dot, sol_q_p_ddot, sol_tau, self.tanh_coeff)
 
         solution_foot_tip_position = self.fk_foot(q = sol_q_p)["ee_pos"][2,:].toarray()  # foot position
         solution_hip_position = self.fk_hip(q=sol_q_p)["ee_pos"][2,:].toarray()   # hip position
@@ -484,7 +489,7 @@ class up2ApexGen:
         solution_v_foot_hip = self.dfk_hip(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
 
         self.other_stuff = {
-                    "i_q":i_q,\
+                    "i_q":i_q_est_raw,\
                     "dt_opt":self.slvr.getDt(),
                     "foot_tip_height": np.transpose(solution_foot_tip_position), 
                     "hip_height": np.transpose(solution_hip_position), 
@@ -494,21 +499,19 @@ class up2ApexGen:
                     "weight_min_input_diff": self.weight_jnt_input_diff, 
                     "weight_min_f_contact_diff": self.weight_f_contact_diff}
 
-        if self.acc_based_formulation: # in this case we add it to the dumped solution explicitly
+        if self.acc_based_formulation: # we add what is not in the sol. dictionary by default
             
             self.other_stuff["tau"] =  sol_tau
 
+        else:
+            
+            self.other_stuff["q_p_ddot"] =  sol_q_p_ddot
+
     def __postproc_res_sol(self):
 
-        # Hip and knee quadrature current estimation
         n_res_samples = len(self.p_res[0, :])
-        i_q_res = np.zeros((self.n_q - 1, n_res_samples - 1))
 
-        for i in range(self.n_q - 1):
-            compensated_tau = self.tau_res[i + 1, :] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.v_res[i + 1, 1:(n_res_samples)]) +\
-                                                self.act_yaml_file["K_d1"][i] * self.v_res[i + 1, 1:(n_res_samples)]
-            i_q_res[i, :] = (self.act_yaml_file["rotor_axial_MoI"][i] * self.a_res[i + 1, 0:(n_res_samples)] / self.act_yaml_file["red_ratio"][i] + \
-                            compensated_tau * self.act_yaml_file["red_ratio"][i] / self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i]
+        i_q_est_res = compute_required_iq_estimate_num(self.act_yaml_file, self.v_res, self.a_res, self.tau_res, self.tanh_coeff)
 
         res_foot_tip_position = self.fk_foot(q = self.p_res)["ee_pos"][2,:].toarray()  # foot position
         res_hip_position = self.fk_hip(q=self.p_res)["ee_pos"][2,:].toarray()   # hip position
@@ -519,7 +522,7 @@ class up2ApexGen:
         self.useful_solutions_res={"q_p":self.p_res,"q_p_dot":self.v_res, "q_p_ddot":self.a_res,
                         "tau":self.tau_res, 
                         "f_contact":self.res_f_contact, "f_contact_raw": self.solution["f_contact"],
-                        "i_q":i_q_res,
+                        "i_q":i_q_est_res,
                         "foot_tip_height":np.transpose(res_foot_tip_position), 
                         "hip_height":np.transpose(res_hip_position), 
                         "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),

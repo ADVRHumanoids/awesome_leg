@@ -36,6 +36,19 @@ def main(args):
         print(colored('FAILED TO GENERATE URDF.', "red"))
 
     try:
+        # in case Gazebo was run
+        rviz_window = subprocess.Popen(["rosparam",\
+                                        "set",\
+                                        "/use_sim_time", \
+                                        "false"])
+
+        print(colored("\n use_sim_time set to false.\n", "blue"))
+
+    except:
+
+        print('Failed to set use_sim_time ROS parameter.')
+
+    try:
 
         rviz_window = subprocess.Popen(["roslaunch",\
                                         "awesome_leg",\
