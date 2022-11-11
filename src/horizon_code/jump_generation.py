@@ -96,13 +96,35 @@ def main(args):
 
     if args.opt_type == full_opt_name:
 
-        jump_generator_resampled = fullJumpGen(args.yaml_path, 
-                    args.actuators_yaml_path, 
-                    args.urdf_path,
+        # raw + resampled solution generation
+        jump_generator = fullJumpGen(horizon_config_fullpath, 
+                    actuators_config_fullpath, 
+                    urdf_full_path,
                     args.results_dir, 
-                    sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res,
-                    sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref, 
+                    sol_mat_name = apex_opt_name + "_" + args.sol_mat_name, 
+                    sol_mat_name_res = apex_opt_name + "_" + args.sol_mat_name_res, 
+                    sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref,
+                    is_ref_prb = False, 
+                    acc_based_formulation = args.is_acc_based_form)
+
+        jump_generator.init_prb()
+        
+        jump_generator.setup_prb()
+
+        jump_generator.solve_prb()
+
+        jump_generator.postproc_sol()
+
+        # refined solution generation
+        jump_generator = fullJumpGen(horizon_config_fullpath, 
+                    actuators_config_fullpath, 
+                    urdf_full_path,
+                    args.results_dir, 
+                    sol_mat_name = apex_opt_name + "_" + args.sol_mat_name, 
+                    sol_mat_name_res = apex_opt_name + "_" + args.sol_mat_name_res, 
+                    sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref,
+                    is_ref_prb = True, 
+                    load_ig = args.load_ig, 
                     acc_based_formulation = args.is_acc_based_form)
 
         jump_generator.init_prb()
