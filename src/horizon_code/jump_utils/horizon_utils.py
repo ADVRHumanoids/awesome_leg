@@ -28,6 +28,22 @@ def inv_dyn_from_sol(urdf_kin_dyn, q_p, q_p_dot, q_p_ddot, force_ref_frame, fram
 
     return tau_res
 
+def forw_dyn_from_sol(urdf_kin_dyn, q_p, q_p_dot, tau, force_ref_frame, frame_force_map):
+    
+    FD = kin_dyn.ForwardDynamics(urdf_kin_dyn, frame_force_map.keys(), force_ref_frame)
+
+    n_intervals = tau.shape[1]
+
+    a_res = np.zeros(tau.shape)
+
+    for i in range(n_intervals):
+        frame_force_map_i = dict()
+        for frame, wrench in frame_force_map.items():
+            frame_force_map_i[frame] = wrench[:, i]
+        a_i = FD.call(q_p[:, i], q_p_dot[:, i], tau[:, i], frame_force_map_i)
+        a_res[:, i] = a_i.toarray().flatten()
+
+    return a_res
 
 class JumpSolPlotter:
 

@@ -37,7 +37,7 @@ full_gen:
         weight_f_contact_diff: -1 # cost for penalizing differences between successive f_contacts
         weight_q_p_dot: -1
         weight_q_p_ddot: 1 # cost for penalizing joint accelerations (which are the input)
-        weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff: -1 # cost for penalizing differences between successive inputs
 
         weight_com_term_vel: 1000
         weight_com_vel: -1
@@ -57,7 +57,7 @@ full_gen:
         weight_f_contact_diff: -1 # cost for penalizing differences between successive f_contacts
         weight_q_p_dot: -1
         weight_q_p_ddot: 1 # cost for penalizing joint accelerations (which are the input)
-        weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff: -1 # cost for penalizing differences between successive inputs
 
         weight_com_term_vel: 1000
         weight_com_vel: -1
@@ -121,7 +121,7 @@ up2apex_gen:
         weight_f_contact_diff: 0.0001 # cost for penalizing differences between successive f_contacts
         weight_q_p_dot: -1
         weight_q_p_ddot: 0.001 # cost for penalizing joint accelerations (which are the input)
-        weight_q_p_ddot_diff: 0.0001 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff: 0.0001 # cost for penalizing differences between successive inputs
 
         weight_com_term_vel: 100000
         weight_com_vel: -1
@@ -141,7 +141,7 @@ up2apex_gen:
         weight_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
         weight_q_p_dot: -1
         weight_q_p_ddot: 0.001 # cost for penalizing joint accelerations (which are the input)
-        weight_q_p_ddot_diff: 0.0001 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff: 0.0001 # cost for penalizing differences between successive inputs
 
         weight_com_term_vel: -1
         weight_com_vel: -1
@@ -209,7 +209,7 @@ pretakeoff_gen:
       weight_f_contact_diff: 0.0001 # cost for penalizing differences between successive f_contacts
       weight_q_p_dot: -1
       weight_q_p_ddot: 0.0000001 # cost for penalizing joint accelerations (which are the input)
-      weight_q_p_ddot_diff: -1 # cost for penalizing differences between successive inputs
+      weight_jnt_input_diff: -1 # cost for penalizing differences between successive inputs
 
       weight_com_term_vel: 1000
       weight_com_vel: -1

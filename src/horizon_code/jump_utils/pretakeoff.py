@@ -24,7 +24,8 @@ class preTakeoffTO:
                 results_path: str,
                 sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
                 cost_epsi = 1.0, 
-                yaml_tag = "pretakeoff_gen"):
+                yaml_tag = "pretakeoff_gen", 
+                acc_based_formulation = True):
         
         self.yaml_tag = yaml_tag
 

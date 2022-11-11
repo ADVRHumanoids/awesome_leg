@@ -13,7 +13,7 @@ from horizon.solvers import solver
 from horizon.transcriptions import transcriptor
 from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
 
-from jump_utils.horizon_utils import inv_dyn_from_sol
+from jump_utils.horizon_utils import inv_dyn_from_sol, forw_dyn_from_sol
 
 class up2ApexGen:
 
@@ -24,8 +24,11 @@ class up2ApexGen:
                 cost_epsi = 1.0, 
                 yaml_tag = "up2apex_gen", 
                 is_ref_prb = False, 
-                load_ig = True):
+                load_ig = True, 
+                acc_based_formulation = True):
         
+        self.acc_based_formulation = acc_based_formulation
+
         self.is_ref_prb = is_ref_prb
 
         self.raw_prb_weight_tag = "ig_generation"
@@ -110,7 +113,7 @@ class up2ApexGen:
         self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact"] 
         self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_dot"] 
         self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_ddot"] 
-        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_ddot_diff"] 
+        self.weight_jnt_input_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input_diff"] 
 
         self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_term_vel"] 
         self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel"] 
@@ -185,7 +188,13 @@ class up2ApexGen:
 
             self.q_p.setInitialGuess(self.loaded_sol["q_p"])
             self.q_p_dot.setInitialGuess(self.loaded_sol["q_p_dot"])
-            self.q_p_ddot.setInitialGuess(self.loaded_sol["q_p_ddot"])
+            
+            if self.acc_based_formulation:
+
+                self.q_p_ddot.setInitialGuess(self.loaded_sol["q_p_ddot"])
+            else:
+                
+                self.tau.setInitialGuess(self.loaded_sol["tau"])
 
             self.f_contact.setInitialGuess(self.loaded_sol["f_contact"])
 
@@ -193,11 +202,16 @@ class up2ApexGen:
             
             self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
             self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-            self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            if self.acc_based_formulation:
+
+                self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            else:
+                
+                self.tau.setInitialGuess(np.array([0.0, 0.0, 0.0]))
 
             self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
-
-            
 
     def __get_quantities_from_urdf(self):
         
@@ -235,6 +249,13 @@ class up2ApexGen:
         self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
         # self.tau_limits.setBounds(-np.array([0, cs.inf, cs.inf]), np.array([0, cs.inf, cs.inf]))  # setting input limits
 
+        if not self.acc_based_formulation: # creating constraint just to have q_p_ddot in the dumped solution
+
+            inf_array = np.array([cs.inf, cs.inf, cs.inf])
+
+            self.q_p_ddot_lim = self.prb.createIntermediateConstraint("q_p_ddot_lim", self.q_p_ddot) 
+            self.q_p_ddot_lim.setBounds(-inf_array, inf_array)  # setting input limits
+
         self.prb.createConstraint("foot_vel_zero", self.v_foot_tip, self.contact_nodes) 
 
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  
@@ -253,10 +274,7 @@ class up2ApexGen:
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1])  
 
-        self.positive_f_contact = self.prb.createIntermediateConstraint("GRF_positive", self.f_contact[2])  # cannoyt pull the ground
-        self.positive_f_contact.setBounds(0, cs.inf)
-
-        self.prb.createIntermediateConstraint("GRF_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
+        self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
         self.prb.createConstraint("init_joint_vel_zero", self.q_p_dot,
                             nodes=0) 
@@ -289,7 +307,7 @@ class up2ApexGen:
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
 
-        # 
+        # minimize contact force derivative
         if self.weight_f_contact_diff > 0:
             self.prb.createIntermediateCost("f_contact_diff",\
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
@@ -308,7 +326,7 @@ class up2ApexGen:
 
         self.weight_term_com_vel = self.weight_term_com_vel / self.cost_scaling_factor
 
-        self.weight_q_p_ddot_diff = self.weight_q_p_ddot_diff / self.cost_scaling_factor
+        self.weight_jnt_input_diff = self.weight_jnt_input_diff / self.cost_scaling_factor
 
         self.weight_f_contact_diff = self.weight_f_contact_diff / self.cost_scaling_factor
 
@@ -345,9 +363,13 @@ class up2ApexGen:
             self.prb.createIntermediateCost("max_com_term_vel", self.weight_term_com_vel * 1/ ( cs.sumsqr(self.vcom[2]) + 0.0001 ), \
                                             nodes = self.contact_nodes[-1])
 
-        if self.weight_q_p_ddot_diff > 0:
-            self.prb.createIntermediateCost("min_input_diff", \
-                self.weight_q_p_ddot_diff * cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1)), nodes = self.input_diff_nodes)  
+        if self.weight_jnt_input_diff > 0:
+       
+            jnt_input_diff = cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1)) if self.acc_based_formulation \
+                            else cs.sumsqr(self.tau[1:] - self.tau[1:].getVarOffset(-1))
+
+            self.prb.createIntermediateCost("min_jnt_input_diff", \
+                self.weight_jnt_input_diff * jnt_input_diff, nodes = self.input_diff_nodes)  
 
         if self.weight_f_contact_diff > 0:
             self.prb.createIntermediateCost("min_f_contact_diff",\
@@ -414,36 +436,54 @@ class up2ApexGen:
                                                                                             
         self.p_res = x_res[:self.n_q]
         self.v_res = x_res[self.n_q:]
-        self.a_res = resampler_trajectory.resample_input(self.solution["q_p_ddot"],\
-                                        self.slvr.getDt().flatten(), self.dt_res)
 
         self.res_f_contact = resampler_trajectory.resample_input(self.solution["f_contact"],\
                                                 self.slvr.getDt().flatten(), self.dt_res)
         self.res_f_contact_map = dict(tip1 = self.res_f_contact)
 
-        self.tau_res = inv_dyn_from_sol(self.urdf_kin_dyn, 
+        if self.acc_based_formulation:
+        
+            self.a_res = resampler_trajectory.resample_input(self.solution["q_p_ddot"],\
+                                            self.slvr.getDt().flatten(), self.dt_res)
+
+            self.tau_res = inv_dyn_from_sol(self.urdf_kin_dyn, 
                                 self.p_res, self.v_res, self.a_res,\
                                 casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED,\
                                 self.res_f_contact_map)
 
+        else:
+
+            self.tau_res = resampler_trajectory.resample_input(self.solution["tau"],\
+                                            self.slvr.getDt().flatten(), self.dt_res)
+
+            self.a_res = forw_dyn_from_sol(self.urdf_kin_dyn, 
+                                self.p_res, self.v_res, self.tau_res,\
+                                casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED,\
+                                self.res_f_contact_map) 
+
     def __postproc_raw_sol(self):
         
         # Hip and knee quadrature current estimation
-        i_q_n_samples = len(self.solution["q_p_ddot"][0, :])
+
+        sol_q_p = self.solution["q_p"]
+        sol_q_p_dot = self.solution["q_p_dot"]
+        sol_q_p_ddot = self.solution["q_p_ddot"] if self.acc_based_formulation else self.cnstr_opt["q_p_ddot_lim"]
+        sol_tau = self.cnstr_opt["tau_limits"] if self.acc_based_formulation else self.solution["tau"]
+
+        i_q_n_samples = len(sol_q_p_ddot[0, :])
         i_q = np.zeros((self.n_q - 1, i_q_n_samples))
         for i in range(self.n_q - 1):
-            compensated_tau = self.tau_sol[i + 1, :] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]) + \
-                                                self.act_yaml_file["K_d1"][i] * self.solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]
-            i_q[i, :] = (self.act_yaml_file["rotor_axial_MoI"][i] * self.solution["q_p_ddot"][i + 1, :] / self.act_yaml_file["red_ratio"][i] +\
+            compensated_tau = self.tau_sol[i + 1, :] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * sol_q_p_dot[i + 1, 1:(i_q_n_samples + 1)]) + \
+                                                self.act_yaml_file["K_d1"][i] * sol_q_p_dot[i + 1, 1:(i_q_n_samples + 1)]
+            i_q[i, :] = (self.act_yaml_file["rotor_axial_MoI"][i] * sol_q_p_ddot[i + 1, :] / self.act_yaml_file["red_ratio"][i] +\
                         compensated_tau * self.act_yaml_file["red_ratio"][i] / self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i]
 
-        solution_q_p = self.solution["q_p"]
-        solution_foot_tip_position = self.fk_foot(q = solution_q_p)["ee_pos"][2,:].toarray()  # foot position
-        solution_hip_position = self.fk_hip(q=solution_q_p)["ee_pos"][2,:].toarray()   # hip position
-        solution_v_foot_tip = self.dfk_foot(q=self.solution["q_p"], qdot=self.solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
-        solution_v_foot_hip = self.dfk_hip(q=self.solution["q_p"], qdot=self.solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
+        solution_foot_tip_position = self.fk_foot(q = sol_q_p)["ee_pos"][2,:].toarray()  # foot position
+        solution_hip_position = self.fk_hip(q=sol_q_p)["ee_pos"][2,:].toarray()   # hip position
+        solution_v_foot_tip = self.dfk_foot(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
+        solution_v_foot_hip = self.dfk_hip(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
 
-        self.other_stuff = {"tau":self.cnstr_opt["tau_limits"],\
+        self.other_stuff = {
                     "i_q":i_q,\
                     "dt_opt":self.slvr.getDt(),
                     "foot_tip_height": np.transpose(solution_foot_tip_position), 
@@ -451,8 +491,12 @@ class up2ApexGen:
                     "tip_velocity": np.transpose(np.transpose(solution_v_foot_tip)),
                     "hip_velocity": np.transpose(np.transpose(solution_v_foot_hip)),
                     "sol_time": self.solution_time,
-                    "weight_min_input_diff": self.weight_q_p_ddot_diff, 
+                    "weight_min_input_diff": self.weight_jnt_input_diff, 
                     "weight_min_f_contact_diff": self.weight_f_contact_diff}
+
+        if self.acc_based_formulation: # in this case we add it to the dumped solution explicitly
+            
+            self.other_stuff["tau"] =  sol_tau
 
     def __postproc_res_sol(self):
 
@@ -565,14 +609,31 @@ class up2ApexGen:
         self.q_p.setBounds(self.lbs, self.ubs) 
         self.q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
-        # Defining the input/s (joint accelerations)
-        self.q_p_ddot = self.prb.createInputVariable("q_p_ddot", self.n_v)  # using joint accelerations as an input variable
-
-        self.xdot = utils.double_integrator(self.q_p, self.q_p_dot, self.q_p_ddot)  # building the full state
-
         # Creating an additional input variable for the contact forces on the foot tip
         self.f_contact = self.prb.createInputVariable("f_contact", 3)  # dimension 3
-        
+        self.f_contact[2].setLowerBounds(0)  # tip cannot be pulled from the ground
+        self.contact_map = dict(tip1 = self.f_contact)  # creating a contact map for applying the input to the foot
+
+        # Defining the input/s
+
+        if self.acc_based_formulation:
+            
+            self.q_p_ddot = self.prb.createInputVariable("q_p_ddot", self.n_v)  # using joint accelerations as an input variable
+            
+            self.tau = kin_dyn.InverseDynamics(self.urdf_kin_dyn, self.contact_map.keys(), \
+                    casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(self.q_p,\
+                                                            self.q_p_dot, self.q_p_ddot, self.contact_map) 
+
+        else: # torque as input
+
+            self.tau = self.prb.createInputVariable("tau", self.n_q)  # using joint accelerations as an input variable
+
+            self.q_p_ddot = kin_dyn.ForwardDynamics(self.urdf_kin_dyn, self.contact_map.keys(),\
+                        casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(self.q_p,\
+                                                            self.q_p_dot, self.tau, self.contact_map)
+
+        self.xdot = utils.double_integrator(self.q_p, self.q_p_dot, self.q_p_ddot)  # integrator for the system's dynamics
+
         return self.prb
 
     def init_prb(self):
@@ -581,19 +642,11 @@ class up2ApexGen:
         
     def setup_prb(self):
         
-        self.__set_igs()
-
-        self.f_contact[2].setLowerBounds(0)  # tip cannot be pulled from the ground
-
-        self.contact_map = dict(tip1 = self.f_contact)  # creating a contact map for applying the input to the foot
+        self.__set_igs() # setting the initial guesses for the problem
 
         self.prb.setDynamics(self.xdot)  # setting the dynamics we are interested of in the problem object (xdot)
 
         transcriptor.Transcriptor.make_method(self.trans_name, self.prb, dict(integrator = self.trans_integrator))  # setting the transcriptor
-
-        self.tau = kin_dyn.InverseDynamics(self.urdf_kin_dyn, self.contact_map.keys(), \
-                casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(self.q_p,\
-                                                        self.q_p_dot, self.q_p_ddot, self.contact_map) 
 
         self.__get_quantities_from_urdf()
 

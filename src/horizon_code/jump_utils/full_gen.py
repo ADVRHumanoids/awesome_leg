@@ -22,7 +22,8 @@ class FullJumpGen:
                 results_path: str,
                 sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
                 cost_epsi = 1.0, 
-                is_ref_prb = False):
+                is_ref_prb = False, 
+                acc_based_formulation = True):
         
         self.is_ref_prb = is_ref_prb
 

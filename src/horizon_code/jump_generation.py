@@ -42,7 +42,8 @@ def main(args):
                     urdf_full_path,
                     args.results_dir, 
                     sol_mat_name = pretakeoff_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = pretakeoff_opt_name + "_" + args.sol_mat_name_res)
+                    sol_mat_name_res = pretakeoff_opt_name + "_" + args.sol_mat_name_res, 
+                    acc_based_formulation = args.is_acc_based_form)
 
         jump_generator.init_prb()
 
@@ -62,7 +63,8 @@ def main(args):
                     sol_mat_name = apex_opt_name + "_" + args.sol_mat_name, 
                     sol_mat_name_res = apex_opt_name + "_" + args.sol_mat_name_res, 
                     sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref,
-                    is_ref_prb = False)
+                    is_ref_prb = False, 
+                    acc_based_formulation = args.is_acc_based_form)
 
         jump_generator.init_prb()
         
@@ -81,7 +83,8 @@ def main(args):
                     sol_mat_name_res = apex_opt_name + "_" + args.sol_mat_name_res, 
                     sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref,
                     is_ref_prb = True, 
-                    load_ig = args.load_ig)
+                    load_ig = args.load_ig, 
+                    acc_based_formulation = args.is_acc_based_form)
 
         jump_generator.init_prb()
         
@@ -99,7 +102,8 @@ def main(args):
                     args.results_dir, 
                     sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
                     sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res,
-                    sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref,)
+                    sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref, 
+                    acc_based_formulation = args.is_acc_based_form)
 
         jump_generator.init_prb()
         
@@ -129,8 +133,11 @@ if __name__ == '__main__':
                         help = 'horizon config file name', default = file_name)
                         
     parser.add_argument('--opt_type', '-optt', type = str,\
-                        help = 'horizon config file name', default = pretakeoff_opt_name, 
+                        help = 'optimization type', default = pretakeoff_opt_name, 
                         choices = [pretakeoff_opt_name, apex_opt_name, full_opt_name])
+
+    parser.add_argument('--is_acc_based_form', '-isacc', type = str2bool,\
+                        help = 'whether to use an acceleration-based formulation or not', default = True)
 
     parser.add_argument('--load_ig', '-uig', type = str2bool, default = False)
 
