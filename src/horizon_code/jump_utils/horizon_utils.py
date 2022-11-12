@@ -291,10 +291,9 @@ class JumpSolPlotter:
 
             # other stuff
 
-            self.is_sim=self.sim_data["is_sim"]
-            self.is_sim=self.sim_data["send_pos_ref"]
-            self.is_sim=self.sim_data["send_vel_ref"]
-            self.is_sim=self.sim_data["send_eff_ref"]
+            self.sim_send_pos_ref=self.sim_data["send_pos_ref"]
+            self.sim_send_vel_ref=self.sim_data["send_vel_ref"]
+            self.sim_send_eff_ref=self.sim_data["send_eff_ref"]
 
             return True
 
@@ -305,36 +304,35 @@ class JumpSolPlotter:
 
     def __read_test_plugin_data(self):
 
-        self.is_sim=bool(self.sim_data["is_sim"][0][0])
+        self.is_sim=bool(self.test_data["is_sim"][0][0])
         
         if not self.is_sim:
             # the loaded data belongs to a test  
-            self.sim_plugin_dt=self.sim_data["plugin_dt"] 
-            self.sim_replay_time=self.sim_data["replay_time"]
+            self.test_plugin_dt=self.test_data["plugin_dt"] 
+            self.test_replay_time=self.test_data["replay_time"]
             
-            self.sim_q_p_meas=self.sim_data["q_p_meas"]
-            self.sim_q_p_dot_meas=self.sim_data["q_p_dot_meas"]
-            self.sim_q_p_cmd=self.sim_data["q_p_cmd"]
-            self.sim_q_p_dot_cmd=self.sim_data["q_p_dot_cmd"]
-            self.sim_replay_damping=self.sim_data["replay_damping"]
-            self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
-            self.sim_meas_damping=self.sim_data["meas_damping"]
-            self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
-            self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
-            self.sim_stop_damping=self.sim_data["stop_damping"]
-            self.sim_tau_meas=self.sim_data["tau_meas"]
-            self.sim_tau_cmd=self.sim_data["tau_cmd"]
+            self.test_q_p_meas=self.test_data["q_p_meas"]
+            self.test_q_p_dot_meas=self.test_data["q_p_dot_meas"]
+            self.test_q_p_cmd=self.test_data["q_p_cmd"]
+            self.test_q_p_dot_cmd=self.test_data["q_p_dot_cmd"]
+            self.test_replay_damping=self.test_data["replay_damping"]
+            self.test_replay_stiffness=self.test_data["replay_stiffness"]
+            self.test_meas_damping=self.test_data["meas_damping"]
+            self.test_meas_stiffness=self.test_data["meas_stiffness"]
+            self.test_stop_stiffness=self.test_data["stop_stiffness"]
+            self.test_stop_damping=self.test_data["stop_damping"]
+            self.test_tau_meas=self.test_data["tau_meas"]
+            self.test_tau_cmd=self.test_data["tau_cmd"]
         
-            self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
+            # self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
 
-            self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
+            # self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
 
             # other stuff
 
-            self.is_sim=self.sim_data["is_sim"]
-            self.is_sim=self.sim_data["send_pos_ref"]
-            self.is_sim=self.sim_data["send_vel_ref"]
-            self.is_sim=self.sim_data["send_eff_ref"]
+            self.test_send_pos_ref=self.test_data["send_pos_ref"]
+            self.test_send_vel_ref=self.test_data["send_vel_ref"]
+            self.test_send_eff_ref=self.test_data["send_eff_ref"]
 
             return True
 
@@ -1184,17 +1182,6 @@ class JumpSolPlotter:
         plt.title("base_link absolute position", fontdict=None, loc='center')
         plt.grid()
 
-
-    def make_test_plots(self, make_plots = False):
-        
-        a = False
-
-        if make_plots and self.test_data_loaded_ok:
-
-            a = True
-
-        return a
-
     def show_plots(self):
         
         plt.show() # show the plots
@@ -1204,6 +1191,101 @@ class JumpSolPlotter:
     def save_plots(self):
 
         return True
+                
+    def make_test_plots(self, make_plots = False):
+        
+        if make_plots and self.test_data_loaded_ok:
+
+            _, ax_pos = plt.subplots(2)
+
+            for i in range(len(self.test_q_p_meas[:, 0])):
+                
+                print
+                ax_pos[0].plot(self.test_replay_time.flatten(),self.test_q_p_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_pos[0].plot(self.test_replay_time.flatten(), self.test_q_p_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+                # errors
+                ax_pos[1].plot(self.test_replay_time.flatten(), np.subtract(self.test_q_p_cmd[i, :], self.test_q_p_meas[i, :]),\
+                    label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+            
+            ax_pos[0].legend(loc="upper left")
+            ax_pos[0].set_xlabel(r"t [s]")
+            ax_pos[0].set_ylabel('[rad]')
+            ax_pos[0].grid()
+            ax_pos[0].set_title("Joint positions - meas. VS ref.", fontdict=None, loc='center')
+            ax_pos[1].legend(loc="upper left")
+            ax_pos[1].set_xlabel(r"t [s]")
+            ax_pos[1].set_ylabel('[rad]')
+            ax_pos[1].grid()
+            ax_pos[1].set_title("Joint pos. tracking error", fontdict=None, loc='center')
+            
+            _, ax_vel = plt.subplots(2)
+
+            for i in range(len(self.test_q_p_meas[:, 0])):
+                
+                ax_vel[0].plot(self.test_replay_time.flatten(), self.test_q_p_dot_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_vel[0].plot(self.test_replay_time.flatten(), self.test_q_p_dot_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+                # errors
+                ax_vel[1].plot(self.test_replay_time.flatten(), np.subtract(self.test_q_p_dot_cmd[i, :],\
+                    self.test_q_p_dot_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+                
+            ax_vel[0].legend(loc="upper left")
+            ax_vel[0].set_xlabel(r"t [s]")
+            ax_vel[0].set_ylabel('[rad]')
+            ax_vel[0].grid()
+            ax_vel[0].set_title("Joint velocities - meas. VS ref.", fontdict=None, loc='center')
+            ax_vel[1].legend(loc="upper left")
+            ax_vel[1].set_xlabel(r"t [s]")
+            ax_vel[1].set_ylabel('[rad/s]')
+            ax_vel[1].grid()
+            ax_vel[1].set_title("Joint vel. tracking error", fontdict=None, loc='center')
+
+            f2=plt.figure()
+
+            for i in range(len(self.test_tau_meas[:, 0])):
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_meas[i, :], label=r"tau_meas_j" + str(i), linestyle='-', linewidth=2)
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+            plt.legend(loc="upper left")
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[Nm]')
+            plt.title("Joint efforts - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
+            f3=plt.figure()
+            for i in range(len(self.test_tau_meas[:, 0])):
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_meas[i, :] * self.test_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_cmd[i, :] * self.test_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j" + str(i), linestyle='dashed', linewidth=2)
+
+            plt.legend(loc="upper left")
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[m]')
+            plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
+            _, ax_imp = plt.subplots(2)
+
+            for i in range(len(self.test_meas_stiffness[:, 0])):
+                
+                ax_imp[0].plot(self.test_replay_time.flatten(), self.test_meas_stiffness[i, :], label=r"read jnt stiffness" + str(i), linestyle='-', linewidth=2)
+
+                ax_imp[1].plot(self.test_replay_time.flatten(), self.test_meas_damping[i, :], label=r"read jnt damping" + str(i), linestyle='-', linewidth=2)
+                
+            ax_imp[0].legend(loc="upper left")
+            ax_imp[0].set_xlabel(r"t [s]")
+            ax_imp[0].set_ylabel('[Nm / rad]')
+            ax_imp[0].grid()
+            ax_imp[0].set_title("Read joint stiffnesses", fontdict=None, loc='center')
+            ax_imp[1].legend(loc="upper left")
+            ax_imp[1].set_xlabel(r"t [s]")
+            ax_imp[1].set_ylabel('[Nm s / rad]')
+            ax_imp[1].grid()
+            ax_imp[1].set_title("Read joint dampings", fontdict=None, loc='center')
 
 class LogLoader:
 
