@@ -62,7 +62,7 @@ full_gen:
 
         weight_q_p_dot: -1
 
-        weight_com_pos: 0.00001
+        weight_com_pos: -1
         weight_com_term_vel: -1
         weight_com_vel: -1
         weight_tip_under_hip: -1

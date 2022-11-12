@@ -191,7 +191,7 @@ class fullJumpGen:
         self.pretakeoff_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.touchdown_node))
         self.touchdown_nodes = list(range(self.touchdown_node, self.n_nodes))
-
+   
     def __set_igs(self):
         
         if self.load_ig and self.is_ref_prb: # only use if in the refinement phase
@@ -275,17 +275,17 @@ class fullJumpGen:
         # self.prb.createConstraint("tip_starts_under_hip", self.foot_tip_position[1], nodes=0)
         # self.prb.createConstraint("tip_stays_under_hip", self.foot_tip_position[1])
 
-        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
-        hip_above_ground.setBounds(0.0, cs.inf)
-        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
-        knee_above_ground.setBounds(0.0, cs.inf)
+        # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
+        # hip_above_ground.setBounds(0.0, cs.inf)
+        # knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
+        # knee_above_ground.setBounds(0.0, cs.inf)
         
-        com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.pretakeoff_nodes) # intermediate, so all except last node
-        com_towards_vertical.setBounds(0.0, cs.inf)
+        # com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.pretakeoff_nodes) # intermediate, so all except last node
+        # com_towards_vertical.setBounds(0.0, cs.inf)
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.pretakeoff_nodes[-1]) # keep CoM on the hip vertical
 
-        self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes)  # 0 GRF during flight
+        # self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes)  # 0 GRF during flight
 
         # grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.pretakeoff_nodes + self.touchdown_nodes)  # 0 GRF during flight
         # grf_positive.setBounds(1, cs.inf)
@@ -522,11 +522,11 @@ class fullJumpGen:
                         "hip_height":np.transpose(res_hip_position), 
                         "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),
                         "hip_velocity":np.transpose(np.transpose(res_v_foot_hip)), 
-                        self.dt_flight_name: self.solution[self.dt_flight_name], 
                         self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name],
                         "dt_opt_raw": self.slvr.getDt(), "dt_opt":dt_res_vector, 
                         self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name], 
-                        self.dt_flight_name: self.solution[self.dt_flight_name]}
+                        self.dt_flight_name: self.solution[self.dt_flight_name], 
+                        self.dt_touchdown_name: self.solution[self.dt_touchdown_name]}
 
     def __postproc_sol(self):
 
