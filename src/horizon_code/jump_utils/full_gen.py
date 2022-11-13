@@ -275,10 +275,10 @@ class fullJumpGen:
         # self.prb.createConstraint("tip_starts_under_hip", self.foot_tip_position[1], nodes=0)
         # self.prb.createConstraint("tip_stays_under_hip", self.foot_tip_position[1])
 
-        # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
-        # hip_above_ground.setBounds(0.0, cs.inf)
-        # knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
-        # knee_above_ground.setBounds(0.0, cs.inf)
+        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
+        hip_above_ground.setBounds(0.0, cs.inf)
+        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
+        knee_above_ground.setBounds(0.0, cs.inf)
         
         # com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.pretakeoff_nodes) # intermediate, so all except last node
         # com_towards_vertical.setBounds(0.0, cs.inf)
@@ -594,8 +594,8 @@ class fullJumpGen:
             dt_flight.setBounds(self.dt_lb, self.dt_ub)
             dt_touchdown.setBounds(self.dt_lb, self.dt_ub)
 
-            dt = [dt_pretakeoff]* (len(self.pretakeoff_nodes) - 1) +  [dt_flight]* (len(self.flight_nodes)) + \
-                    [dt_touchdown]* (len(self.touchdown_nodes)) # holds the complete time list
+            dt = [dt_pretakeoff]* (len(self.pretakeoff_nodes)) +  [dt_flight]* (len(self.flight_nodes)) + \
+                    [dt_touchdown]* (len(self.touchdown_nodes) - 1) # holds the complete time list
 
         else:
 

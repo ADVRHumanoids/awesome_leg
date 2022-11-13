@@ -34,12 +34,12 @@ full_gen:
       
       ig_generation:
 
-        scale_factor_costs_base: 1 # scale factor for costs (other scalings are applied internally)
+        scale_factor_costs_base: 100000000 # scale factor for costs (other scalings are applied internally)
         
         weight_f_contact: 0.001 # cost for penalizing contact forces
-        weight_f_contact_diff: 0.001 # cost for penalizing differences between successive f_contacts
-        weight_jnt_input: 0.001 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff: 0.001 # cost for penalizing differences between successive inputs
+        weight_f_contact_diff: -1 # cost for penalizing differences between successive f_contacts
+        weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
+        weight_jnt_input_diff: -1 # cost for penalizing differences between successive inputs
 
         weight_q_p_dot: -1
 
@@ -78,7 +78,7 @@ full_gen:
 
   solver:
     ipopt_tol: 0.0001
-    ipopt_maxiter: 10000
+    ipopt_maxiter: 300
     ipopt_cnstr_viol_tol: 0.0000001
     ipopt_lin_solver: "mumps" 
     name: "ipopt"
@@ -123,7 +123,7 @@ up2apex_gen:
       
       ig_generation:
 
-        scale_factor_costs_base: 100000 # scale factor for costs (other scalings are applied internally)
+        scale_factor_costs_base: 1 # scale factor for costs (other scalings are applied internally)
         
         weight_f_contact: 0.001 # cost for penalizing contact forces
         weight_f_contact_diff: 0.0001 # cost for penalizing differences between successive f_contacts
