@@ -128,6 +128,8 @@ class fullJumpGen:
         self.weight_hip_height = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_hip_height"] 
         self.weight_tip_clearance = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_tip_clearance"] 
         
+        self.weight_grf_zero = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_grf_zero"] 
+
         # these are only used in the refinement stage
         self.weight_q_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_q_tracking"] 
         self.weight_tip_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_tip_tracking"] 
@@ -174,11 +176,11 @@ class fullJumpGen:
 
         # raw_pretakeoff_dt = self.loaded_sol["dt_opt"][0][0]
 
-        raw_n_int_pretakeoff = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"] + 1 # n int. of the pretakeoff phase
-        raw_n_int_touchdown = self.yaml_file[self.yaml_tag]["problem"]["touchdown_node"] + 1 # n int. of the touchdown phase
+        raw_n_int_pretakeoff = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"] # n int. of the pretakeoff phase
+        raw_n_int_touchdown = self.yaml_file[self.yaml_tag]["problem"]["touchdown_node"] - raw_n_int_pretakeoff # n int. of the touchdown phase
 
         takeoff_time = raw_n_int_pretakeoff * self.loaded_sol[self.dt_pretakeoff_name][0][0]
-        touchdown_time = raw_n_int_touchdown * self.loaded_sol[self.dt_touchdown_name][0][0]
+        touchdown_time = takeoff_time + raw_n_int_touchdown * self.loaded_sol[self.dt_flight_name][0][0]
 
         self.n_int = int(np.round(t_exec/dt_res))
         self.takeoff_node = int(np.round(takeoff_time/dt_res))
@@ -258,7 +260,7 @@ class fullJumpGen:
         self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau)  # torque limits
         self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
         # self.tau_limits.setBounds(-np.array([0, cs.inf, cs.inf]), np.array([0, cs.inf, cs.inf]))  # setting input limits
-
+        
         if not self.acc_based_formulation: # creating constraint just to have q_p_ddot in the dumped solution
 
             inf_array = np.array([cs.inf, cs.inf, cs.inf])
@@ -267,34 +269,36 @@ class fullJumpGen:
             self.q_p_ddot_lim.setBounds(-inf_array, inf_array)  # setting input limits
         
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  
-        self.prb.createConstraint("tip_ends_on_ground", self.foot_tip_position[2], nodes=self.last_node)
+        self.prb.createFinalConstraint("tip_ends_on_ground", self.foot_tip_position[2])
 
         self.prb.createConstraint("tip_stays_on_ground_pretakeoff", self.v_foot_tip, self.pretakeoff_nodes) 
         self.prb.createConstraint("tip_stays_on_ground_touchdown", self.v_foot_tip, self.touchdown_nodes) 
 
+        self.prb.createConstraint("leg_starts_still", self.q_p_dot,
+                            nodes=0) # leg starts still
+        self.prb.createFinalConstraint("leg_ends_still", self.q_p_dot) # leg starts still
+                            
+        self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes)  # 0 GRF during flight
+        # grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.pretakeoff_nodes + self.touchdown_nodes)  # 0 GRF during flight
+        # grf_positive.setBounds(0.0001, cs.inf)
+
         # self.prb.createConstraint("tip_starts_under_hip", self.foot_tip_position[1], nodes=0)
+        # self.prb.createFinalConstraint("tip_ends_under_hip", self.foot_tip_position[1])
+
         # self.prb.createConstraint("tip_stays_under_hip", self.foot_tip_position[1])
 
         hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
         hip_above_ground.setBounds(0.0, cs.inf)
         knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
         knee_above_ground.setBounds(0.0, cs.inf)
-        
+        # tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
+        # tip_above_ground.setBounds(0.0, cs.inf)
+
         # com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.pretakeoff_nodes) # intermediate, so all except last node
         # com_towards_vertical.setBounds(0.0, cs.inf)
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.pretakeoff_nodes[-1]) # keep CoM on the hip vertical
 
-        # self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes)  # 0 GRF during flight
-
-        # grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.pretakeoff_nodes + self.touchdown_nodes)  # 0 GRF during flight
-        # grf_positive.setBounds(1, cs.inf)
-
-        self.prb.createConstraint("leg_starts_still", self.q_p_dot,
-                            nodes=0) # leg starts still
-        self.prb.createConstraint("leg_ends_still", self.q_p_dot,
-                            nodes=self.last_node) # leg starts still
-                            
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
         self.compensated_tau = []
@@ -317,10 +321,12 @@ class fullJumpGen:
             friction_cone_2 = self.prb.createConstraint("friction_cone_2",\
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
-
+            
     def __scale_weights(self):
 
-        self.cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
+        # self.cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
+        
+        self.cost_scaling_factor = self.scale_factor_base
 
         self.weight_f_contact_cost = self.weight_f_contact_cost / self.cost_scaling_factor
 
@@ -348,13 +354,15 @@ class fullJumpGen:
 
         self.weight_com_pos = self.weight_com_pos / self.cost_scaling_factor
 
+        self.weight_grf_zero = self.weight_grf_zero / self.cost_scaling_factor
+
     def __set_costs(self):
         
         self.__scale_weights()
 
         if self.weight_f_contact_cost > 0:
             self.prb.createIntermediateCost("min_f_contact", \
-                self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]), nodes = self.input_nodes)
+                self.weight_f_contact_cost * cs.sumsqr(self.f_contact), nodes = self.input_nodes)
 
         if self.weight_q_dot > 0:
             self.prb.createCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot[1:])) 
@@ -371,14 +379,12 @@ class fullJumpGen:
                                             nodes = self.pretakeoff_nodes[-1])
 
         if self.weight_hip_height > 0:
-            self.prb.createIntermediateCost("max_hip_height_jump",\
-                self.weight_hip_height * cs.sumsqr(1 / (self.hip_position +  0.0001)),\
-                nodes=self.flight_nodes)
+            self.prb.createCost("max_hip_height",\
+                self.weight_hip_height * cs.sumsqr(1 / (self.hip_position +  0.0001)))
 
         if self.weight_tip_clearance > 0:
-            self.prb.createIntermediateCost("max_foot_tip_clearance",\
-                self.weight_tip_clearance * cs.sumsqr(1 / (self.foot_tip_position[2] + 0.0001)),\
-                nodes=self.flight_nodes)
+            self.prb.createCost("max_foot_tip_clearance",\
+                self.weight_tip_clearance * cs.sumsqr(1 / (self.foot_tip_position[2] + 0.0001)), nodes = self.flight_nodes)
 
         if self.weight_jnt_input_diff > 0:
        
@@ -392,31 +398,33 @@ class fullJumpGen:
             self.prb.createIntermediateCost("min_f_contact_diff",\
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
 
-        # if self.weight_tip_under_hip > 0:
-        #     self.prb.createIntermediateCost("max_tip_under_hip", \
-        #         self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])),\
-        #         nodes = 0)
-
         if self.weight_tip_under_hip > 0:
-            self.prb.createIntermediateCost("max_tip_under_hip", \
-                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])))
+            self.prb.createCost("max_tip_under_hip", \
+                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = [0, self.last_node])
 
         if self.is_ref_prb:
 
             for i in range(self.n_int + 1):
                 
                 if self.weight_q_tracking > 0:
-                    self.prb.createIntermediateCost("q_tracking_tracking_cost_node" + str(i),\
+                    self.prb.createCost("q_tracking_tracking_cost_node" + str(i),\
                         self.weight_q_tracking * cs.sumsqr(self.q_p - self.loaded_sol["q_p"][:, i]),\
                         nodes= i)
 
                 if self.weight_tip_tracking > 0:
-                    self.prb.createIntermediateCost("tip_tracking_tracking_cost_node" + str(i),\
+                    self.prb.createCost("tip_tracking_tracking_cost_node" + str(i),\
                         self.weight_tip_tracking * cs.sumsqr(self.foot_tip_position[2] - self.fk_foot(q = self.loaded_sol["q_p"][:, i])["ee_pos"][2]), nodes= i)
 
-        if self.weight_com_vel > 0:
-            self.prb.createCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
+        if self.weight_com_pos > 0:
+
+            self.prb.createCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2])), \
                 nodes = self.flight_nodes)
+
+
+        if self.weight_grf_zero > 0:
+            
+            self.prb.createCost("grf_zero_x", self.weight_grf_zero * cs.sumsqr(self.f_contact), nodes = self.flight_nodes)  # 0 GRF during flight
+
 
     def __get_solution(self):
 
@@ -586,16 +594,16 @@ class fullJumpGen:
 
         if not self.is_ref_prb:
 
-            dt_pretakeoff = self.prb.createSingleVariable(self.dt_pretakeoff_name, 1)
-            dt_flight = self.prb.createSingleVariable(self.dt_flight_name, 1)
-            dt_touchdown = self.prb.createSingleVariable(self.dt_touchdown_name, 1) 
+            self.dt_pretakeoff = self.prb.createSingleVariable(self.dt_pretakeoff_name, 1)
+            self.dt_flight = self.prb.createSingleVariable(self.dt_flight_name, 1)
+            self.dt_touchdown = self.prb.createSingleVariable(self.dt_touchdown_name, 1) 
 
-            dt_pretakeoff.setBounds(self.dt_lb, self.dt_ub)  
-            dt_flight.setBounds(self.dt_lb, self.dt_ub)
-            dt_touchdown.setBounds(self.dt_lb, self.dt_ub)
+            self.dt_pretakeoff.setBounds(self.dt_lb, self.dt_ub)  
+            self.dt_flight.setBounds(self.dt_lb, self.dt_ub)
+            self.dt_touchdown.setBounds(self.dt_lb, self.dt_ub)
 
-            dt = [dt_pretakeoff]* (len(self.pretakeoff_nodes)) +  [dt_flight]* (len(self.flight_nodes)) + \
-                    [dt_touchdown]* (len(self.touchdown_nodes) - 1) # holds the complete time list
+            dt = [self.dt_pretakeoff]* (len(self.pretakeoff_nodes)) +  [self.dt_flight]* (len(self.flight_nodes)) + \
+                    [self.dt_touchdown]* (len(self.touchdown_nodes) - 1) # holds the complete time list
 
         else:
 

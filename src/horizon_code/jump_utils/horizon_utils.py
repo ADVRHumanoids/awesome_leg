@@ -1153,6 +1153,18 @@ class JumpSolPlotter:
             plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
             plt.grid()
 
+            f3_1=plt.figure()
+            for i in range(len(self.sim_tau_meas[:, 0])):
+
+                plt.plot(self.sim_replay_time.flatten(), self.sim_tau_meas[i, :] * self.sim_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
+
+            legend =  plt.legend(loc="upper left")
+            legend.set_draggable(state = True)
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[m]')
+            plt.title("Measured joint mechanical power ", fontdict=None, loc='center')
+            plt.grid()
+
             _, ax_imp = plt.subplots(2)
 
             for i in range(len(self.sim_meas_stiffness[:, 0])):
@@ -1331,6 +1343,18 @@ class JumpSolPlotter:
             plt.xlabel(r"t [s]")
             plt.ylabel('[m]')
             plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
+            f3_1=plt.figure()
+            for i in range(len(self.test_tau_meas[:, 0])):
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_meas[i, :] * self.test_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
+
+            legend =  plt.legend(loc="upper left")
+            legend.set_draggable(state = True)
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[m]')
+            plt.title("Measured joint mechanical power ", fontdict=None, loc='center')
             plt.grid()
 
             _, ax_imp = plt.subplots(2)
