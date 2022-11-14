@@ -439,7 +439,7 @@ class up2ApexGen:
 
         if self.weight_max_leg_retraction > 0:
             self.prb.createCost("max_leg_retraction", \
-                self.weight_max_leg_retraction * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.apex_node)
+                self.weight_max_leg_retraction * (cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.apex_node)
 
 
     def __get_solution(self):

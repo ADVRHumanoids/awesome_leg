@@ -122,7 +122,7 @@ up2apex_gen:
     dt_lb: 0.01
     dt_ub: 0.1
 
-    apex_perc: 0.3
+    apex_perc: 0.4
 
     q_p_touchdown_conf: [0.0, 0.0]
 
@@ -157,7 +157,7 @@ up2apex_gen:
         weight_hip_height: -1
         weight_tip_clearance: -1
 
-        weight_max_leg_retraction: 10000
+        weight_max_leg_retraction: 1
 
         weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
