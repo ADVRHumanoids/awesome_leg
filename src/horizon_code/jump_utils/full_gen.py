@@ -130,6 +130,10 @@ class fullJumpGen:
         
         self.weight_grf_zero = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_grf_zero"] 
 
+        self.weight_max_leg_retraction = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_max_leg_retraction"] 
+        
+        self.weight_no_singularity = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_no_singularity"] 
+
         # these are only used in the refinement stage
         self.weight_q_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_q_tracking"] 
         self.weight_tip_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_tip_tracking"] 
@@ -356,6 +360,10 @@ class fullJumpGen:
 
         self.weight_grf_zero = self.weight_grf_zero / self.cost_scaling_factor
 
+        self.weight_max_leg_retraction = self.weight_max_leg_retraction / self.cost_scaling_factor
+
+        self.weight_no_singularity = self.weight_no_singularity / self.cost_scaling_factor
+
     def __set_costs(self):
         
         self.__scale_weights()
@@ -400,7 +408,11 @@ class fullJumpGen:
 
         if self.weight_tip_under_hip > 0:
             self.prb.createCost("max_tip_under_hip", \
-                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])), nodes = [0, self.last_node])
+                self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])))
+
+        if self.weight_max_leg_retraction > 0:
+            self.prb.createCost("max_leg_retraction", \
+                self.weight_max_leg_retraction * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.flight_nodes)
 
         if self.is_ref_prb:
 
@@ -425,6 +437,9 @@ class fullJumpGen:
             
             self.prb.createCost("grf_zero_x", self.weight_grf_zero * cs.sumsqr(self.f_contact), nodes = self.flight_nodes)  # 0 GRF during flight
 
+        if self.weight_no_singularity > 0:
+            self.prb.createCost("no_singularity",\
+                self.weight_no_singularity * 1 / (cs.sumsqr(self.q_p[1:3]) + 0.0001))
 
     def __get_solution(self):
 

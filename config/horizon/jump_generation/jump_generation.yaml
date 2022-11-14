@@ -7,16 +7,16 @@ full_gen:
     tanh_coeff: 20
 
   resampling:
-    dt: 0.004
+    dt: 0.002
 
   problem:
 
     n_int: 100
 
     takeoff_node:  60
-    touchdown_node: 90
+    touchdown_node: 98
 
-    dt_lb: 0.005
+    dt_lb: 0.01
     dt_ub: 0.1
 
     jnt_limit_margin: 0.04
@@ -37,9 +37,9 @@ full_gen:
         scale_factor_costs_base: 10000000 # scale factor for costs (other scalings are applied internally)
         
         weight_f_contact: 1 # cost for penalizing contact forces
-        weight_f_contact_diff: 0.01  # cost for penalizing differences between successive f_contacts
+        weight_f_contact_diff: 0.1  # cost for penalizing differences between successive f_contacts
         weight_jnt_input: 1 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff: 0.01  # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff: 0.1  # cost for penalizing differences between successive inputs
 
         weight_q_p_dot: -1
 
@@ -47,12 +47,16 @@ full_gen:
         weight_com_term_vel: -1
         weight_com_vel: -1
 
-        weight_tip_under_hip: 1
+        weight_tip_under_hip: -1
 
         weight_grf_zero: -1
 
         weight_hip_height: -1
-        weight_tip_clearance: 10000
+        weight_tip_clearance: -1
+
+        weight_max_leg_retraction: -1
+        
+        weight_no_singularity: -1
         
       refinement:
 
@@ -73,6 +77,10 @@ full_gen:
 
         weight_hip_height: -1
         weight_tip_clearance: -1
+
+        weight_max_leg_retraction: 1
+
+        weight_no_singularity: 1
 
         weight_grf_zero: -1
 
