@@ -278,7 +278,9 @@ class up2ApexGen:
         hip_above_ground.setBounds(0.0, cs.inf)
         knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
         knee_above_ground.setBounds(0.0, cs.inf)
-        
+        tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
+        tip_above_ground.setBounds(0.0, cs.inf)
+
         com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
         com_towards_vertical.setBounds(0.0, cs.inf)
 
@@ -416,7 +418,7 @@ class up2ApexGen:
 
         if self.weight_com_vel > 0:
             self.prb.createCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
-                nodes = self.last_node - 1)
+                nodes = self.apex_node)
 
         if self.weight_sat_i_q > 0:
             
