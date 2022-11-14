@@ -122,7 +122,7 @@ up2apex_gen:
     dt_lb: 0.01
     dt_ub: 0.1
 
-    apex_perc: 0.4
+    apex_perc: 0.2
 
     q_p_touchdown_conf: [0.0, 0.0]
 
