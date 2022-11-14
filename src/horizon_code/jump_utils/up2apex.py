@@ -128,6 +128,8 @@ class up2ApexGen:
         
         self.weight_com_pos = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_pos"] 
         
+        self.weight_max_leg_retraction = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_max_leg_retraction"] 
+        
         # these are only used in the refinement stage
         self.weight_q_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_q_tracking"] 
         self.weight_tip_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_tip_tracking"] 
@@ -343,6 +345,8 @@ class up2ApexGen:
 
         self.weight_tip_tracking = self.weight_tip_tracking / self.cost_scaling_factor
 
+        self.weight_max_leg_retraction = self.weight_max_leg_retraction / self.cost_scaling_factor
+
     def __set_costs(self):
         
         self.__scale_weights()
@@ -422,6 +426,11 @@ class up2ApexGen:
                 if self.weight_tip_tracking > 0:
                     self.prb.createIntermediateCost("tip_tracking_tracking_cost_node" + str(i),\
                         self.weight_tip_tracking * cs.sumsqr(self.foot_tip_position[2] - self.fk_foot(q = self.loaded_sol["q_p"][:, i])["ee_pos"][2]), nodes= i)
+
+        if self.weight_max_leg_retraction > 0:
+            self.prb.createCost("max_leg_retraction", \
+                self.weight_max_leg_retraction * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.flight_nodes)
+
 
     def __get_solution(self):
 

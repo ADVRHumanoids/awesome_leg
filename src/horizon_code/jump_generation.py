@@ -79,9 +79,9 @@ def main(args):
                     actuators_config_fullpath, 
                     urdf_full_path,
                     args.results_dir, 
-                    sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res, 
-                    sol_mat_name_ref = full_opt_name + "_" + args.sol_mat_name_ref,
+                    sol_mat_name = apex_opt_name + "_" + args.sol_mat_name, 
+                    sol_mat_name_res = apex_opt_name + "_" + args.sol_mat_name_res, 
+                    sol_mat_name_ref = apex_opt_name + "_" + args.sol_mat_name_ref,
                     is_ref_prb = True, 
                     load_ig = args.load_ig, 
                     acc_based_formulation = args.is_acc_based_form)
