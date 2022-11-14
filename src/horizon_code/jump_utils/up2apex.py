@@ -154,6 +154,8 @@ class up2ApexGen:
             self.contact_nodes = list(range(0, self.takeoff_node + 1))
             self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
+            self.apex_node = self.takeoff_node + round((self.last_node - self.takeoff_node) * (1 - self.apex_perc))
+
     def __init_sol_dumpers(self):
 
         self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
@@ -188,6 +190,8 @@ class up2ApexGen:
         self.input_diff_nodes = list(range(1, self.n_nodes - 1))
         self.contact_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
+
+        self.apex_node = self.takeoff_node + round((self.last_node - self.takeoff_node) * (1 - self.apex_perc))
 
     def __set_igs(self):
         
@@ -279,7 +283,7 @@ class up2ApexGen:
         com_towards_vertical.setBounds(0.0, cs.inf)
 
         com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], \
-                    nodes = self.takeoff_node + round((self.last_node - self.takeoff_node) * (1 - self.apex_perc))) # reach the apex at the end of the trajectory 
+                    nodes = self.apex_node) # reach the apex at the end of the trajectory 
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
 
@@ -435,7 +439,7 @@ class up2ApexGen:
 
         if self.weight_max_leg_retraction > 0:
             self.prb.createCost("max_leg_retraction", \
-                self.weight_max_leg_retraction * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.flight_nodes)
+                self.weight_max_leg_retraction * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.apex_node)
 
 
     def __get_solution(self):

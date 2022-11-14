@@ -157,7 +157,7 @@ up2apex_gen:
         weight_hip_height: -1
         weight_tip_clearance: -1
 
-        weight_max_leg_retraction: 10
+        weight_max_leg_retraction: 10000
 
         weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
