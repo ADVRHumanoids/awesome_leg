@@ -8,7 +8,7 @@ rotor_mass: [0.27, 0.27] # mass of the rotor ([Kg])
 
 red_ratio: [0.02, 0.02] # gear reduction ratio of the actuator (always <=1)
 
-# efficiency: [1, 1] # harmonic drive efficiency
+efficiency: [1, 1] # harmonic drive efficiency
 
 K_t: [0.045, 0.045] # from datasheets: 0.045; torque constant ([Nm/A])
 K_bmf: [4.71, 4.71] # ([V/Krpm])

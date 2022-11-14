@@ -27,7 +27,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     plotter = JumpSolPlotter(args.sol_path, 
-                            sim_postproc_filename= args.sim_name, test_postproc_filename= args.sim_name, 
+                            sim_postproc_filename= args.sim_name, test_postproc_filename= args.test_name, 
                             opt_base_sol_name = args.base_sol_name)
     make_plot_selector = [args.plot_raw, args.plot_res, args.plot_ref, \
                             args.plot_comp_resref, args.plot_comp_rawres, args.plot_comp_rawref]
@@ -37,5 +37,9 @@ if __name__ == '__main__':
     plot_sim = True if args.sim_name is not None else False
 
     plotter.make_sim_plots(plot_sim)
+
+    plot_test = True if args.test_name is not None else False
+
+    plotter.make_test_plots(plot_test)
 
     plotter.show_plots()

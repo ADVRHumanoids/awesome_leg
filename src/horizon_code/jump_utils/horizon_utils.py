@@ -291,10 +291,9 @@ class JumpSolPlotter:
 
             # other stuff
 
-            self.is_sim=self.sim_data["is_sim"]
-            self.is_sim=self.sim_data["send_pos_ref"]
-            self.is_sim=self.sim_data["send_vel_ref"]
-            self.is_sim=self.sim_data["send_eff_ref"]
+            self.sim_send_pos_ref=self.sim_data["send_pos_ref"]
+            self.sim_send_vel_ref=self.sim_data["send_vel_ref"]
+            self.sim_send_eff_ref=self.sim_data["send_eff_ref"]
 
             return True
 
@@ -305,36 +304,35 @@ class JumpSolPlotter:
 
     def __read_test_plugin_data(self):
 
-        self.is_sim=bool(self.sim_data["is_sim"][0][0])
+        self.is_sim=bool(self.test_data["is_sim"][0][0])
         
         if not self.is_sim:
             # the loaded data belongs to a test  
-            self.sim_plugin_dt=self.sim_data["plugin_dt"] 
-            self.sim_replay_time=self.sim_data["replay_time"]
+            self.test_plugin_dt=self.test_data["plugin_dt"] 
+            self.test_replay_time=self.test_data["replay_time"]
             
-            self.sim_q_p_meas=self.sim_data["q_p_meas"]
-            self.sim_q_p_dot_meas=self.sim_data["q_p_dot_meas"]
-            self.sim_q_p_cmd=self.sim_data["q_p_cmd"]
-            self.sim_q_p_dot_cmd=self.sim_data["q_p_dot_cmd"]
-            self.sim_replay_damping=self.sim_data["replay_damping"]
-            self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
-            self.sim_meas_damping=self.sim_data["meas_damping"]
-            self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
-            self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
-            self.sim_stop_damping=self.sim_data["stop_damping"]
-            self.sim_tau_meas=self.sim_data["tau_meas"]
-            self.sim_tau_cmd=self.sim_data["tau_cmd"]
+            self.test_q_p_meas=self.test_data["q_p_meas"]
+            self.test_q_p_dot_meas=self.test_data["q_p_dot_meas"]
+            self.test_q_p_cmd=self.test_data["q_p_cmd"]
+            self.test_q_p_dot_cmd=self.test_data["q_p_dot_cmd"]
+            self.test_replay_damping=self.test_data["replay_damping"]
+            self.test_replay_stiffness=self.test_data["replay_stiffness"]
+            self.test_meas_damping=self.test_data["meas_damping"]
+            self.test_meas_stiffness=self.test_data["meas_stiffness"]
+            self.test_stop_stiffness=self.test_data["stop_stiffness"]
+            self.test_stop_damping=self.test_data["stop_damping"]
+            self.test_tau_meas=self.test_data["tau_meas"]
+            self.test_tau_cmd=self.test_data["tau_cmd"]
         
-            self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
+            # self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
 
-            self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
+            # self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
 
             # other stuff
 
-            self.is_sim=self.sim_data["is_sim"]
-            self.is_sim=self.sim_data["send_pos_ref"]
-            self.is_sim=self.sim_data["send_vel_ref"]
-            self.is_sim=self.sim_data["send_eff_ref"]
+            self.test_send_pos_ref=self.test_data["send_pos_ref"]
+            self.test_send_vel_ref=self.test_data["send_vel_ref"]
+            self.test_send_eff_ref=self.test_data["send_eff_ref"]
 
             return True
 
@@ -365,7 +363,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[0, :-1], label=r"F_x")
         plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y")
         plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
         plt.title("Ground reaction forces - raw solution", fontdict=None, loc='center')
@@ -376,7 +375,8 @@ class JumpSolPlotter:
         f2=plt.figure()
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
         plt.title("Joint positions - raw solution", fontdict=None, loc='center')
@@ -385,7 +385,8 @@ class JumpSolPlotter:
         f3=plt.figure()
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
         plt.title("Joint velocities - raw solution", fontdict=None, loc='center')
@@ -394,7 +395,8 @@ class JumpSolPlotter:
         f4=plt.figure()
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
         plt.title("Joint accelerations - raw solution", fontdict=None, loc='center')
@@ -403,7 +405,8 @@ class JumpSolPlotter:
         f5=plt.figure()
         plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
         plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
         plt.title("Joint efforts (link side) - raw solution", fontdict=None, loc='center')
@@ -412,7 +415,8 @@ class JumpSolPlotter:
         f6=plt.figure()
         plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
         plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
         plt.title("Actuators quadrature current - raw solution", fontdict=None, loc='center')
@@ -420,7 +424,8 @@ class JumpSolPlotter:
     
         f8=plt.figure()
         plt.plot(self.time_vector_raw[:-1].flatten(), self.dt_raw, drawstyle='steps-post')
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.ylabel(r"t [s]")
         plt.xlabel("node number")
         plt.title("Optimization dt - raw solution", fontdict=None, loc='center')
@@ -429,7 +434,8 @@ class JumpSolPlotter:
         f10=plt.figure()
         plt.plot(self.time_vector_raw.flatten(), self.hip_height_raw,label="hip height")
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_height_raw,label="foot tip height")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
         plt.title("Link heights during the jump - raw solution", fontdict=None, loc='center')
@@ -440,7 +446,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[1,:],label="tip vel. y")
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[2,:],label="tip vel. z")
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Foot tip velocity (cartesian components) - raw solution", fontdict=None, loc='center')
@@ -450,7 +457,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[0,:],label="hip vel. x")
         plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[1,:],label="hip vel. y")
         plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[2,:],label="hip vel. z")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - raw solution", fontdict=None, loc='center')
@@ -462,7 +470,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[0, :-1], label=r"F_x")
         plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y")
         plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
         plt.title("Ground reaction forces - res solution", fontdict=None, loc='center')
@@ -473,7 +482,8 @@ class JumpSolPlotter:
         f2=plt.figure()
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
         plt.title("Joint positions - res solution", fontdict=None, loc='center')
@@ -482,7 +492,8 @@ class JumpSolPlotter:
         f3=plt.figure()
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
         plt.title("Joint velocities - res solution", fontdict=None, loc='center')
@@ -491,7 +502,8 @@ class JumpSolPlotter:
         f4=plt.figure()
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
         plt.title("Joint accelerations - res solution", fontdict=None, loc='center')
@@ -500,7 +512,8 @@ class JumpSolPlotter:
         f5=plt.figure()
         plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
         plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
         plt.title("Joint efforts (link side) - res solution", fontdict=None, loc='center')
@@ -509,7 +522,8 @@ class JumpSolPlotter:
         f6=plt.figure()
         plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
         plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
         plt.title("Actuators quadrature current - res solution", fontdict=None, loc='center')
@@ -517,7 +531,8 @@ class JumpSolPlotter:
     
         f8=plt.figure()
         plt.plot(self.time_vector_res[:-1].flatten(), self.dt_res, drawstyle='steps-post')
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.ylabel(r"t [s]")
         plt.xlabel("node number")
         plt.title("Optimization dt - res solution", fontdict=None, loc='center')
@@ -526,7 +541,8 @@ class JumpSolPlotter:
         f10=plt.figure()
         plt.plot(self.time_vector_res.flatten(), self.hip_height_res,label="hip height")
         plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
         plt.title("Link heights during the jump - res solution", fontdict=None, loc='center')
@@ -537,7 +553,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[1,:],label="tip vel. y")
         plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[2,:],label="tip vel. z")
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Foot tip velocity (cartesian components) - res solution", fontdict=None, loc='center')
@@ -547,7 +564,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[0,:],label="hip vel. x")
         plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[1,:],label="hip vel. y")
         plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[2,:],label="hip vel. z")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - res solution", fontdict=None, loc='center')
@@ -559,7 +577,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[0, :-1], label=r"F_x")
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y")
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
         plt.title("Ground reaction forces - ref solution", fontdict=None, loc='center')
@@ -570,7 +589,8 @@ class JumpSolPlotter:
         f2=plt.figure()
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
         plt.title("Joint positions - ref solution", fontdict=None, loc='center')
@@ -579,7 +599,8 @@ class JumpSolPlotter:
         f3=plt.figure()
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
         plt.title("Joint velocities - ref solution", fontdict=None, loc='center')
@@ -588,7 +609,8 @@ class JumpSolPlotter:
         f4=plt.figure()
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$")
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
         plt.title("Joint accelerations - ref solution", fontdict=None, loc='center')
@@ -597,7 +619,8 @@ class JumpSolPlotter:
         f5=plt.figure()
         plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque")
         plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
         plt.title("Joint efforts (link side) - ref solution", fontdict=None, loc='center')
@@ -606,7 +629,8 @@ class JumpSolPlotter:
         f6=plt.figure()
         plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current")
         plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
         plt.title("Actuators quadrature current - ref solution", fontdict=None, loc='center')
@@ -614,7 +638,8 @@ class JumpSolPlotter:
     
         f8=plt.figure()
         plt.plot(self.time_vector_ref[:-1].flatten(), self.dt_ref, drawstyle='steps-post')
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.ylabel(r"t [s]")
         plt.xlabel("node number")
         plt.title("Optimization dt - ref solution", fontdict=None, loc='center')
@@ -623,7 +648,8 @@ class JumpSolPlotter:
         f10=plt.figure()
         plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height")
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
         plt.title("Link heights during the jump - ref solution", fontdict=None, loc='center')
@@ -634,7 +660,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y")
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z")
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Foot tip velocity (cartesian components) - ref solution", fontdict=None, loc='center')
@@ -644,7 +671,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x")
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y")
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z")
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - ref solution", fontdict=None, loc='center')
@@ -662,7 +690,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle='dashed', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
         plt.title("Ground reaction forces - raw VS ref", fontdict=None, loc='center')
@@ -675,7 +704,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_raw", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
         plt.title("Joint positions - raw VS ref", fontdict=None, loc='center')
@@ -686,7 +716,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_raw$", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
         plt.title("Joint velocities - raw VS ref", fontdict=None, loc='center')
@@ -698,7 +729,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
         
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
         plt.title("Joint accelerations - raw VS ref", fontdict=None, loc='center')
@@ -710,7 +742,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle='dashed', linewidth=2)
         
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
         plt.title("Joint efforts (link side) - raw VS ref", fontdict=None, loc='center')
@@ -721,7 +754,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current raw", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
         plt.title("Actuators quadrature current - raw VS ref", fontdict=None, loc='center')
@@ -732,7 +766,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_height_raw,label="foot tip height raw", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
         plt.title("Link heights during the jump - raw VS ref", fontdict=None, loc='center')
@@ -747,7 +782,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle='dashed', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Foot tip velocity (cartesian components) - raw VS ref", fontdict=None, loc='center')
@@ -760,7 +796,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - raw VS ref", fontdict=None, loc='center')
@@ -778,7 +815,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle='dashed', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
         plt.title("Ground reaction forces - res VS ref", fontdict=None, loc='center')
@@ -791,7 +829,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
         plt.title("Joint positions - res VS ref", fontdict=None, loc='center')
@@ -802,7 +841,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
         plt.title("Joint velocities - res VS ref", fontdict=None, loc='center')
@@ -814,7 +854,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
         
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
         plt.title("Joint accelerations - res VS ref", fontdict=None, loc='center')
@@ -826,7 +867,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle='dashed', linewidth=2)
         
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
         plt.title("Joint efforts (link side) - res VS ref", fontdict=None, loc='center')
@@ -837,7 +879,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
         plt.title("Actuators quadrature current - res VS ref", fontdict=None, loc='center')
@@ -848,7 +891,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
         plt.title("Link heights during the jump - res VS ref", fontdict=None, loc='center')
@@ -863,7 +907,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle='dashed', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Foot tip velocity (cartesian components) - res VS ref", fontdict=None, loc='center')
@@ -876,7 +921,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - res VS ref", fontdict=None, loc='center')
@@ -894,7 +940,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle='dashed', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[N]')
         plt.title("Ground reaction forces - res VS raw", fontdict=None, loc='center')
@@ -907,7 +954,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_raw[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad]")
         plt.title("Joint positions - res VS raw", fontdict=None, loc='center')
@@ -918,7 +966,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_dot_raw[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[rad/s]")
         plt.title("Joint velocities - res VS raw", fontdict=None, loc='center')
@@ -930,7 +979,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.q_p_ddot_raw[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_raw", linestyle='dashed', linewidth=2)
         
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[$\mathrm{rad}/\mathrm{s}^2$]")
         plt.title("Joint accelerations - res VS raw", fontdict=None, loc='center')
@@ -942,7 +992,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.tau_raw[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque raw", linestyle='dashed', linewidth=2)
         
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[Nm]")
         plt.title("Joint efforts (link side) - res VS raw", fontdict=None, loc='center')
@@ -953,7 +1004,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw[:-1].flatten(), self.i_q_raw[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current raw", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[A]")
         plt.title("Actuators quadrature current - res VS raw", fontdict=None, loc='center')
@@ -964,7 +1016,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_raw.flatten(), self.hip_height_raw,label="hip height raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_height_raw,label="foot tip height raw", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m]")
         plt.title("Link heights during the jump - res VS raw", fontdict=None, loc='center')
@@ -979,7 +1032,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[1,:],label="tip vel. y raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw.flatten(), self.foot_tip_vel_raw[2,:],label="tip vel. z raw", linestyle='dashed', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Foot tip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
@@ -992,7 +1046,8 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[0,:],label="hip vel. x raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[1,:],label="hip vel. y raw", linestyle='dashed', linewidth=2)
         plt.plot(self.time_vector_raw.flatten(), self.hip_vel_raw[2,:],label="hip vel. z raw", linestyle='dashed', linewidth=2)
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel(r"[m/s]")
         plt.title("Hip velocity (cartesian components) - res VS raw", fontdict=None, loc='center')
@@ -1077,7 +1132,8 @@ class JumpSolPlotter:
 
                 plt.plot(self.sim_replay_time.flatten(), self.sim_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
 
-            plt.legend(loc="upper left")
+            legend =  plt.legend(loc="upper left")
+            legend.set_draggable(state = True)
             plt.xlabel(r"t [s]")
             plt.ylabel('[Nm]')
             plt.title("Joint efforts - meas. VS ref.", fontdict=None, loc='center')
@@ -1090,7 +1146,8 @@ class JumpSolPlotter:
 
                 plt.plot(self.sim_replay_time.flatten(), self.sim_tau_cmd[i, :] * self.sim_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j" + str(i), linestyle='dashed', linewidth=2)
 
-            plt.legend(loc="upper left")
+            legend =  plt.legend(loc="upper left")
+            legend.set_draggable(state = True)
             plt.xlabel(r"t [s]")
             plt.ylabel('[m]')
             plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
@@ -1166,7 +1223,8 @@ class JumpSolPlotter:
         plt.plot(self.sim_replay_time.flatten(), self.sim_tip_pos_meas[1, :], label=r"tip_pos_y", linestyle='-', linewidth=2)
         plt.plot(self.sim_replay_time.flatten(), self.sim_tip_pos_meas[2, :], label=r"tip_pos_z", linestyle='-', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[m]')
         plt.title("Tip absolute position", fontdict=None, loc='center')
@@ -1178,22 +1236,12 @@ class JumpSolPlotter:
         plt.plot(self.sim_replay_time.flatten(), self.sim_base_link_abs[1, :], label=r"base_link_pos_y", linestyle='-', linewidth=2)
         plt.plot(self.sim_replay_time.flatten(), self.sim_base_link_abs[2, :], label=r"base_link_pos_z", linestyle='-', linewidth=2)
 
-        plt.legend(loc="upper left")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
         plt.ylabel('[m]')
         plt.title("base_link absolute position", fontdict=None, loc='center')
         plt.grid()
-
-
-    def make_test_plots(self, make_plots = False):
-        
-        a = False
-
-        if make_plots and self.test_data_loaded_ok:
-
-            a = True
-
-        return a
 
     def show_plots(self):
         
@@ -1204,6 +1252,105 @@ class JumpSolPlotter:
     def save_plots(self):
 
         return True
+
+    def make_test_plots(self, make_plots = False):
+        
+        if make_plots and self.test_data_loaded_ok:
+
+            _, ax_pos = plt.subplots(2)
+
+            for i in range(len(self.test_q_p_meas[:, 0])):
+                
+                print
+                ax_pos[0].plot(self.test_replay_time.flatten(),self.test_q_p_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_pos[0].plot(self.test_replay_time.flatten(), self.test_q_p_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+                # errors
+                ax_pos[1].plot(self.test_replay_time.flatten(), np.subtract(self.test_q_p_cmd[i, :], self.test_q_p_meas[i, :]),\
+                    label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+            
+            legend =  ax_pos[0].legend(loc="upper left")
+            legend.set_draggable(state=True)
+            ax_pos[0].set_xlabel(r"t [s]")
+            ax_pos[0].set_ylabel('[rad]')
+            ax_pos[0].grid()
+            ax_pos[0].set_title("Joint positions - meas. VS ref.", fontdict=None, loc='center')
+            ax_pos[1].legend(loc="upper left")
+            ax_pos[1].set_xlabel(r"t [s]")
+            ax_pos[1].set_ylabel('[rad]')
+            ax_pos[1].grid()
+            ax_pos[1].set_title("Joint pos. tracking error", fontdict=None, loc='center')
+            
+            _, ax_vel = plt.subplots(2)
+
+            for i in range(len(self.test_q_p_meas[:, 0])):
+                
+                ax_vel[0].plot(self.test_replay_time.flatten(), self.test_q_p_dot_meas[i, :], label=r"q_meas_j" + str(i), linestyle='-', linewidth=2)
+                ax_vel[0].plot(self.test_replay_time.flatten(), self.test_q_p_dot_cmd[i, :], label=r"q_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+                # errors
+                ax_vel[1].plot(self.test_replay_time.flatten(), np.subtract(self.test_q_p_dot_cmd[i, :],\
+                    self.test_q_p_dot_meas[i, :]), label=r"q_err_j" + str(i), linestyle='-', linewidth=2)
+            
+            legend =  ax_vel[0].legend(loc="upper left")
+            legend.set_draggable(state = True)
+            ax_vel[0].set_xlabel(r"t [s]")
+            ax_vel[0].set_ylabel('[rad]')
+            ax_vel[0].grid()
+            ax_vel[0].set_title("Joint velocities - meas. VS ref.", fontdict=None, loc='center')
+            ax_vel[1].legend(loc="upper left")
+            ax_vel[1].set_xlabel(r"t [s]")
+            ax_vel[1].set_ylabel('[rad/s]')
+            ax_vel[1].grid()
+            ax_vel[1].set_title("Joint vel. tracking error", fontdict=None, loc='center')
+
+            f2=plt.figure()
+
+            for i in range(len(self.test_tau_meas[:, 0])):
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_meas[i, :], label=r"tau_meas_j" + str(i), linestyle='-', linewidth=2)
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_cmd[i, :], label=r"tau_cmd_j" + str(i), linestyle='dashed', linewidth=2)
+
+            legend =  plt.legend(loc="upper left")
+            legend.set_draggable(state = True)
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[Nm]')
+            plt.title("Joint efforts - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
+            f3=plt.figure()
+            for i in range(len(self.test_tau_meas[:, 0])):
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_meas[i, :] * self.test_q_p_dot_meas[i, :], label=r"mech_pow_meas_j" + str(i), linestyle='-', linewidth=2)
+
+                plt.plot(self.test_replay_time.flatten(), self.test_tau_cmd[i, :] * self.test_q_p_dot_cmd[i, :], label=r"mech_pow_ref_j" + str(i), linestyle='dashed', linewidth=2)
+
+            legend =  plt.legend(loc="upper left")
+            legend.set_draggable(state = True)
+            plt.xlabel(r"t [s]")
+            plt.ylabel('[m]')
+            plt.title("Joint mechanical power - meas. VS ref.", fontdict=None, loc='center')
+            plt.grid()
+
+            _, ax_imp = plt.subplots(2)
+
+            for i in range(len(self.test_meas_stiffness[:, 0])):
+                
+                ax_imp[0].plot(self.test_replay_time.flatten(), self.test_meas_stiffness[i, :], label=r"read jnt stiffness" + str(i), linestyle='-', linewidth=2)
+
+                ax_imp[1].plot(self.test_replay_time.flatten(), self.test_meas_damping[i, :], label=r"read jnt damping" + str(i), linestyle='-', linewidth=2)
+                
+            ax_imp[0].legend(loc="upper left")
+            ax_imp[0].set_xlabel(r"t [s]")
+            ax_imp[0].set_ylabel('[Nm / rad]')
+            ax_imp[0].grid()
+            ax_imp[0].set_title("Read joint stiffnesses", fontdict=None, loc='center')
+            ax_imp[1].legend(loc="upper left")
+            ax_imp[1].set_xlabel(r"t [s]")
+            ax_imp[1].set_ylabel('[Nm s / rad]')
+            ax_imp[1].grid()
+            ax_imp[1].set_title("Read joint dampings", fontdict=None, loc='center')
 
 class LogLoader:
 
