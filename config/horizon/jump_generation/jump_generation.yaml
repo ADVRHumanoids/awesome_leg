@@ -122,6 +122,10 @@ up2apex_gen:
     dt_lb: 0.01
     dt_ub: 0.1
 
+    apex_perc: 0.3
+
+    q_p_touchdown_conf: [0.0, 0.0]
+
     jnt_limit_margin: 0.04 # the actual imposed jnt limit will be reduced by this amount
     jnt_vel_limit_margin: 0.05
 
@@ -148,18 +152,18 @@ up2apex_gen:
 
         weight_com_term_vel: 1
         weight_com_vel: -1
-        weight_tip_under_hip: 100
+        weight_tip_under_hip: -1
 
         weight_hip_height: -1
         weight_tip_clearance: -1
 
-        weight_max_leg_retraction: -1
+        weight_max_leg_retraction: 10
 
         weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: 1 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: -1 # maximize terminal com pos at the end of the horizon
 
       refinement:
 

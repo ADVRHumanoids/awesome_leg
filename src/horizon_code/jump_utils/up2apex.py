@@ -136,6 +136,8 @@ class up2ApexGen:
 
         self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
         self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
+        self.apex_perc = self.yaml_file[self.yaml_tag]["problem"]["apex_perc"]
+        self.q_p_touchdown_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_touchdown_conf"]
 
         if not self.is_ref_prb:
             
@@ -273,20 +275,24 @@ class up2ApexGen:
         knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
         knee_above_ground.setBounds(0.0, cs.inf)
         
-        com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2]) # intermediate, so all except last node
+        com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
         com_towards_vertical.setBounds(0.0, cs.inf)
 
-        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], nodes = self.last_node) # reach the apex at the end of the trajectory 
+        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], \
+                    nodes = self.takeoff_node + round((self.last_node - self.takeoff_node) * (1 - self.apex_perc))) # reach the apex at the end of the trajectory 
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
 
         self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.contact_nodes)  # 0 GRF during flight
-        grf_positive.setBounds(1, cs.inf)
+        grf_positive.setBounds(0.001, cs.inf)
 
         self.prb.createConstraint("leg_starts_still", self.q_p_dot,
                             nodes=0) # leg starts still
+
+        self.prb.createConstraint("leg_ends_at_touchdown_conf", self.q_p[1:3] - self.q_p_touchdown_conf,
+                            nodes=self.last_node) # leg starts still
 
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
