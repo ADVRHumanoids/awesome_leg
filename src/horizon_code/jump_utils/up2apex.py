@@ -433,7 +433,7 @@ class up2ApexGen:
                 self.weight_com_vel_vert_at_takeoff * (self.vcom[1]**2),\
                 nodes = self.contact_nodes[-1])
 
-        if self.weight_com_vel > 0:
+        if self.weight_com_pos > 0:
             self.prb.createCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
                 nodes = self.apex_node)
 
