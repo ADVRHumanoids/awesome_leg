@@ -161,7 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--is_acc_based_form', '-isacc', type = str2bool,\
                         help = 'whether to use an acceleration-based formulation or not', default = True)
 
-    parser.add_argument('--load_ig', '-uig', type = str2bool, default = False)
+    parser.add_argument('--load_ig', '-uig', type = str2bool, default = True)
 
     args = parser.parse_args()
 

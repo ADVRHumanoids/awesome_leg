@@ -124,7 +124,7 @@ up2apex_gen:
 
     apex_perc: 0.2
 
-    q_p_touchdown_conf: [0.0, 0.0]
+    q_p_touchdown_conf: [-0.8, -0.9]
 
     jnt_limit_margin: 0.04 # the actual imposed jnt limit will be reduced by this amount
     jnt_vel_limit_margin: 0.05
@@ -143,10 +143,10 @@ up2apex_gen:
 
         scale_factor_costs_base: 1 # scale factor for costs (other scalings are applied internally)
         
-        weight_f_contact: 0.001 # cost for penalizing contact forces
-        weight_f_contact_diff: 0.0001 # cost for penalizing differences between successive f_contacts
-        weight_jnt_input: 0.001 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff: 0.0001 # cost for penalizing differences between successive inputs
+        weight_f_contact: 0.01 # cost for penalizing contact forces
+        weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
+        weight_jnt_input: 0.01 # cost for penalizing joint accelerations (which are the input)
+        weight_jnt_input_diff: 0.1 # cost for penalizing differences between successive inputs
 
         weight_q_p_dot: -1
 
@@ -157,13 +157,13 @@ up2apex_gen:
         weight_hip_height: -1
         weight_tip_clearance: -1
 
-        weight_max_leg_retraction: 1
+        weight_max_leg_retraction: 100
 
         weight_sat_i_q: -1 # try to saturate the joint current, while keeping it within bounds
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: -1 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 10 # maximize terminal com pos at the end of the horizon
 
       refinement:
 
