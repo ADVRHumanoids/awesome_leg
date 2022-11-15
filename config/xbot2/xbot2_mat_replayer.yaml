@@ -66,7 +66,7 @@ xbotcore_plugins:
             urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file} 
             
-            mat_path: {value: /tmp/jump_generation_15-11-2022-11_30_30/, type: string}
+            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
             mat_name: {value: apex_awesome_jump_ref.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
