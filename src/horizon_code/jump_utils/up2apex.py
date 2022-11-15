@@ -113,6 +113,7 @@ class up2ApexGen:
         self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact_diff"]  
         self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact"] 
         self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_dot"] 
+        self.weight_q_dot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_dot_diff"] 
         self.weight_jnt_input = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input"] 
         self.weight_jnt_input_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input_diff"] 
 
@@ -138,6 +139,7 @@ class up2ApexGen:
         self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
         self.apex_perc = self.yaml_file[self.yaml_tag]["problem"]["apex_perc"]
         self.q_p_touchdown_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_touchdown_conf"]
+        self.q_p_retraction_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_retraction_conf"]
 
         if not self.is_ref_prb:
             
@@ -298,7 +300,17 @@ class up2ApexGen:
                             nodes=0) # leg starts still
 
         self.prb.createConstraint("leg_ends_at_touchdown_conf", self.q_p[1:3] - self.q_p_touchdown_conf,
-                            nodes=self.last_node) # leg starts still
+                            nodes=self.last_node)
+
+        term_vel_perc = 0.2
+        terminal_vel_node = self.apex_node + round((self.last_node - self.apex_node) * (1 - term_vel_perc))
+        terminal_vel_nodes = [*range(terminal_vel_node, self.last_node + 1, 1)]
+        print("\n ----------------\n")
+        print(terminal_vel_nodes)
+        print("\n ----------------\n")
+        # terminal_vel_nodes = self.last_node
+        self.prb.createConstraint("no_residual_jnt_vel_at_touchdown_conf", self.q_p_dot[1:3],
+                                nodes=terminal_vel_nodes)
 
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
@@ -330,6 +342,8 @@ class up2ApexGen:
         self.weight_f_contact_cost = self.weight_f_contact_cost / self.cost_scaling_factor
 
         self.weight_q_dot = self.weight_q_dot / self.cost_scaling_factor
+        
+        self.weight_q_dot_diff = self.weight_q_dot_diff / self.cost_scaling_factor
 
         self.weight_jnt_input = self.weight_jnt_input / self.cost_scaling_factor
 
@@ -368,7 +382,10 @@ class up2ApexGen:
                 self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]), nodes = self.input_nodes)
 
         if self.weight_q_dot > 0:
-            self.prb.createCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot[1:])) 
+            self.prb.createCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot)) 
+
+        if self.weight_q_dot_diff > 0:
+            self.prb.createIntermediateCost("min_q_dot_diff", self.weight_q_dot_diff * cs.sumsqr(self.q_p_dot - self.q_p_dot.getVarOffset(-1)))
 
         if self.weight_jnt_input > 0:
             self.prb.createIntermediateCost("min_q_ddot", self.weight_jnt_input * cs.sumsqr(self.q_p_ddot[1:]), nodes = self.input_nodes) 
@@ -441,7 +458,7 @@ class up2ApexGen:
 
         if self.weight_max_leg_retraction > 0:
             self.prb.createCost("max_leg_retraction", \
-                self.weight_max_leg_retraction * (cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), self.apex_node)
+                self.weight_max_leg_retraction * (cs.sumsqr(self.q_p[1:3] - self.q_p_retraction_conf)), self.apex_node)
 
 
     def __get_solution(self):
