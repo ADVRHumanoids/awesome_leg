@@ -16,18 +16,21 @@ namespace calib_utils{
     {
         public:
 
-            AcfImpl(); // default constructor of the implementation of the Ad Cazzum Filter
+            AcfImpl(); // default constructor of the implementation of the renowed Ad Cazzum Filter
 
             AcfImpl();
 
-            // -> we need:
-            // method for filtering row of data (size N)
-            // method which stacks up filtered data from a matrix of samples S of dimension nd x N
-            // -> what is needed for the "single row" filtering part:
-            // initialization of D matrix (always the same) : D * S(i, :).T = Delta, where Delta is the difference vector between samples (dim. N x 1), with first el. set to 0
+            // S -> matrix of samples (nd x Ns), where Ns are the number of samples and nd is the number of dimensions
 
-            // the D is a N x N matrix with the following pattern:
+            // method which stacks up filtered data from a
+            // matrix of samples S
+            // of dimension nd x Ns
 
+            // constant D matrix : D * S(j, :).T = Delta(j), where Delta is the difference vector between samples (dim. Ns x 1)
+            // of the data array j
+
+            // the D is a Ns x Ns matrix with the following pattern:
+            // D:=
             // [ 0  0  ............................  0]
             // |-1  1  0 ..........................  0|
             // | 0 -1  1  0 .......................  0|
@@ -43,8 +46,8 @@ namespace calib_utils{
             // | 0  .  .  .  .  .  .  .  .  .  .  .  0|
             // | 0 ........................ 0  . -1  1|
 
-            // Delta is a vector with the following pattern (j = 0,....., nd - 1)
-
+            // Delta(j) has the following pattern (j = 0,....., nd - 1)
+            // Delta(j) :=
             // [             0              ]
             // | S(j, 1)     -  S(j, 0)     |
             // | S(j, 2)     -  S(j, 1)     |
@@ -54,43 +57,58 @@ namespace calib_utils{
             // | S(j, .)     -  S(j, .)     |
             // | S(j, .)     -  S(j, .)     |
             // | S(j, .)     -  S(j, .)     |
-            // | S(j, N - 2) -  S(j, N - 3) |
-            // [ S(j, N - 1) -  S(j, N - 2) ]
+            // | S(j, Ns - 2) -  S(j, Ns - 3) |
+            // [ S(j, Ns - 1) -  S(j, Ns - 2) ]
 
-            // Mu is a weight vector for the filtering window indicating how much each filtered sample is influenced by previous samples (one would want something like an hyperbolic function
+            // and DELTA is a matrix of dimension nd x Ns
+            // DELTA :=
+            // [      Delta(0).T ]
+            // |      Delta(1).T |
+            // |      Delta(.).T |
+            // | Delta(nd - 2).T |
+            // | Delta(nd - 1).T |
 
-            // [ Mu( 0 ) ]
-            // | Mu( 1 ) |
-            // | Mu( h ) |
-            // | Mu(n-2) |
-            // [ Mu(n-1) ]
+            // with these definitions,
+            // S(j, :) * D.T =  Delta(j).T
+            // --> S * D.T = DELTA
 
-            // where mu(0) weights the difference between the k-th and the (k-th - 1) sample
+            // Mu is a weight vector for the filtering window indicating how much each
+            // sample in S(j, :) is influenced by previous one (one would want something like an hyperbolic function
+            // so that older samples are weighted less)
+            // Mu:=
+            // [     Mu(0)  ]
+            // |     Mu(1)  |
+            // |     Mu(h)  |
+            // |   Mu(nw-2)  |
+            // [   Mu(nw-1)  ]
+            // where Mu(0) weights the difference S(j, k) - S(j, k - 1)
+            // Mu(1) weights the difference S(j, k - 1) - S(j, k - 2)
+            // and so on and so forth
 
-            // we also need a vector Dt of time differences between the samples:
-            // Dt pattern:
+            // we also need to define the vector Dt which holds the time differences between samples
+            // (we assume that all trains of data S(j, :) are sampled with the same rate):
+            // Dt pattern (dimension (Ns - 1) x 1 ):
             // [     0     ]
             // | Dt( 0 )   |
             // | Dt( 1 )   |
             // | Dt( . )   |
-            // [ Dt( N - 2)]
+            // [ Dt( Ns - 2)]
 
-            // let's also define the vector Xi of dimension 1 x N
-            // Xi pattern:
-            // Mu[h] * [1.0/Dt(k - 0)]
-
-            // XI is a matrix of dimensions n x N, where n is the order of the filter or, equivalently, the window length
+            // let's also define the matrix XI of dimension n x Ns
+            // XI is a matrix of dimensions n x Ns, where n is the order of the filter or, equivalently, the window length
 
             // XI has the following pattern:
 
-            // [0   Mu[0]/Dt(1)     Mu[0]/Dt(2)    Mu[0]/Dt(3) . .       Mu[0]/Dt(n - 1)    .       Mu[0]/Dt(k)    .        Mu[0]/Dt(N - 1)]
-            // |.             0     Mu[1]/Dt(2)    Mu[1]/Dt(3) . .       Mu[1]/Dt(n - 1)    .       Mu[1]/Dt(k)    .        Mu[1]/Dt(N - 1)|
-            // |.             0               0    Mu[2]/Dt(3) . .       Mu[2]/Dt(n - 1)    .       Mu[2]/Dt(k)    .        Mu[2]/Dt(N - 1)|
-            // |.             .               .              . . .       Mu[.]/Dt(n - 1)    .       Mu[.]/Dt(k)    .        Mu[.]/Dt(N - 1)|
-            // |.             .               0              0 . .   Mu[n - 2]/Dt(n - 1)    .   Mu[n - 2]/Dt(k)    .    Mu[n - 2]/Dt(N - 1)|
-            // [0             .               0              0 . .   Mu[n - 1]/Dt(n - 1)    .   Mu[n - 1]/Dt(k)    .    Mu[n - 1]/Dt(N - 1)]
+            // [0   Mu[0]/Dt(1)     Mu[0]/Dt(2)    Mu[0]/Dt(3) . .        Mu[0]/Dt(nw - 1)    .         Mu[0]/Dt(k)    .         Mu[0]/Dt(Ns - 1)]
+            // |.             0     Mu[1]/Dt(2)    Mu[1]/Dt(3) . .        Mu[1]/Dt(nw - 1)    .         Mu[1]/Dt(k)    .         Mu[1]/Dt(Ns - 1)|
+            // |.             0               0    Mu[2]/Dt(3) . .        Mu[2]/Dt(nw - 1)    .         Mu[2]/Dt(k)    .         Mu[2]/Dt(Ns - 1)|
+            // |.             .               .              . . .        Mu[.]/Dt(nw - 1)    .         Mu[.]/Dt(k)    .         Mu[.]/Dt(Ns - 1)|
+            // |.             .               0              0 . .   Mu[nw - 2]/Dt(nw - 1)    .    Mu[nw - 2]/Dt(k)    .    Mu[nw - 2]/Dt(Ns - 1)|
+            // [0             .               0              0 . .   Mu[nw - 1]/Dt(nw - 1)    .    Mu[nw - 1]/Dt(k)    .    Mu[nw - 1]/Dt(Ns - 1)]
 
-            // W is the "window matrix" of dimension N x N which has the following pattern:
+            // S * D.T = DELTA
+
+            // W is the "window matrix" of dimension Ns x Ns which has the following pattern:
 
             // [1 0 ............................0]
             // |1 1 0 ..........................0|
@@ -109,9 +127,6 @@ namespace calib_utils{
             // [0.................. 1 . . . . 1 0]
             // [0.....................1 . . . . 1]
 
-
-
-            // matrix of samples ->
             
             Eigen::VectorXd eval_at(int node);
 
