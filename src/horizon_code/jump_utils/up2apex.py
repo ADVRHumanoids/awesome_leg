@@ -283,8 +283,8 @@ class up2ApexGen:
         tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
         tip_above_ground.setBounds(0.0, cs.inf)
 
-        com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
-        com_towards_vertical.setBounds(0.0, cs.inf)
+        # com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
+        # com_towards_vertical.setBounds(0.0, cs.inf)
 
         com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], \
                     nodes = self.apex_node) # reach the apex at the end of the trajectory 
@@ -294,7 +294,7 @@ class up2ApexGen:
         self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.contact_nodes)  # 0 GRF during flight
-        grf_positive.setBounds(0.001, cs.inf)
+        grf_positive.setBounds(0.00001, cs.inf)
 
         self.prb.createConstraint("leg_starts_still", self.q_p_dot,
                             nodes=0) # leg starts still
@@ -302,15 +302,11 @@ class up2ApexGen:
         self.prb.createConstraint("leg_ends_at_touchdown_conf", self.q_p[1:3] - self.q_p_touchdown_conf,
                             nodes=self.last_node)
 
-        term_vel_perc = 0.2
-        terminal_vel_node = self.apex_node + round((self.last_node - self.apex_node) * (1 - term_vel_perc))
-        terminal_vel_nodes = [*range(terminal_vel_node, self.last_node + 1, 1)]
-        print("\n ----------------\n")
-        print(terminal_vel_nodes)
-        print("\n ----------------\n")
-        # terminal_vel_nodes = self.last_node
-        self.prb.createConstraint("no_residual_jnt_vel_at_touchdown_conf", self.q_p_dot[1:3],
-                                nodes=terminal_vel_nodes)
+        # term_vel_perc = 0.2
+        # terminal_vel_node = self.apex_node + round((self.last_node - self.apex_node) * (1 - term_vel_perc))
+        # terminal_vel_nodes = [*range(terminal_vel_node, self.last_node + 1, 1)]
+        # self.prb.createConstraint("no_residual_jnt_vel_at_touchdown_conf", self.q_p_dot[1:3],
+        #                         nodes=terminal_vel_nodes)
 
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
