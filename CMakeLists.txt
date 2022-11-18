@@ -33,6 +33,7 @@ catkin_package(CATKIN_DEPENDS message_runtime)
 # add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
 # add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
 add_subdirectory(src/xbot2_plugins/xbot2_jump)
+add_subdirectory(src/xbot2_plugins/xbot2_iq_model_calib)
 
 add_executable(robot_state_logger src/awesome_leg_utils/robot_state_logger.cpp)
 target_link_libraries(robot_state_logger ${catkin_LIBRARIES} ${XBotInterface_LIBRARIES} matlogger2::matlogger2)

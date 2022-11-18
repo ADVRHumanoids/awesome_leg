@@ -49,6 +49,21 @@ xbotcore_plugins:
     
     ec_ros: {thread: nrt_main, type: ec_ros}
 
+    iq_model_calib:
+        thread: rt_main
+        type: iq_model_calib
+        params:
+
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
+
+            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
+            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
+            dump_mat_suffix: {value: traj_replay, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            verbose: {value: false, type: bool}
+
     mat_replayer_rt:
         thread: rt_main
         type: mat_replayer_rt

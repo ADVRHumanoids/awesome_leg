@@ -5,8 +5,6 @@
 void IqModelCalibRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
-
-    _pause_time = 0.0;
 }
 
 void IqModelCalibRt::init_vars()
@@ -51,8 +49,6 @@ void IqModelCalibRt::get_params_from_config()
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
-
     _verbose = getParamOrThrow<bool>("~verbose");
 
 }
@@ -74,14 +70,6 @@ void IqModelCalibRt::is_sim(std::string sim_string = "sim")
         _is_sim = false;
     }
 
-}
-
-void IqModelCalibRt::create_ros_api()
-{
-    /*  Create ros api server */
-    RosServerClass::Options opt;
-    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "mr");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "iq_model_calib_rt");
 }
 
 void IqModelCalibRt::update_state()
@@ -132,6 +120,22 @@ void IqModelCalibRt::init_dump_logger()
 
 }
 
+void IqModelCalibRt::init_nrt_ros_bridge()
+{
+    ros::NodeHandle nh(getName());
+
+    _ros = std::make_unique<RosSupport>(nh);
+
+    /* Subscribers */
+    _aux_signals_sub = _ros->subscribe("/xbotcore/aux",
+                                &CalibUtils::AuxSigDecoder::on_aux_signal_received,
+                                &_aux_sig_decoder,
+                                1,  // queue size
+                                &_queue);
+
+
+}
+
 void IqModelCalibRt::add_data2dump_logger()
 {
 
@@ -143,69 +147,9 @@ void IqModelCalibRt::add_data2dump_logger()
 
 void IqModelCalibRt::add_data2bedumped()
 {
+
+    add_data2dump_logger();
     
-    // _dump_logger->add("plugin_time", _loop_time)
-
-    if (_reduce_dumped_sol_size)
-    {  // only adding data when replaying trajectory to save memory
-
-        if (_traj_started && !_traj_finished)
-        { // trajectory is being published
-            
-            if (_sample_index <= (_traj.get_n_nodes() - 1))
-            {
-
-                add_data2dump_logger();
-
-            }
-
-        }
-    }
-    else
-    { // dump data at each loop cycle
-
-         add_data2dump_logger();
-
-    }
-    
-    
-
-}
-
-void IqModelCalibRt::init_nrt_ros_bridge()
-{    
-    ros::NodeHandle nh(getName());
-
-    _ros = std::make_unique<RosSupport>(nh);
-
-    /* Service server */
-    _jump_now_srv = _ros->advertiseService(
-        "my_jump_now",
-        &IqModelCalibRt::on_jump_msg_rcvd,
-        this,
-        &_queue);
-
-    /* Subscribers */
-    _aux_signals_sub = _ros->subscribe("/xbotcore/link_state/base_link/pose",
-                                &IqModelCalibRt::on_aux_signal_received,
-                                this,
-                                1,  // queue size
-                                &_queue);
-
-    /* Publishers */
-    awesome_leg::MatReplayerStatus replay_st_prealloc;
-    replay_st_prealloc.approach_traj_finished = false;
-    replay_st_prealloc.traj_finished = false;
-
-    _replay_status_pub = _ros->advertise<awesome_leg::MatReplayerStatus>(
-        "replay_status_node", 1, replay_st_prealloc);
-
-
-}
-
-void MatReplayerRt::on_aux_signal_received()
-{
-
 }
 
 bool IqModelCalibRt::on_initialize()
@@ -224,7 +168,7 @@ bool IqModelCalibRt::on_initialize()
 
     init_nrt_ros_bridge();
 
-    create_ros_api();
+    _aux_sig_decoder = AuxSigDecoder();
 
     return true;
     
@@ -233,7 +177,7 @@ bool IqModelCalibRt::on_initialize()
 void IqModelCalibRt::starting()
 {
 
-    init_dump_logger(); // needs to be here
+//    init_dump_logger(); // needs to be here
 
     reset_flags(); // reset flags, just in case
 
@@ -252,7 +196,7 @@ void IqModelCalibRt::run()
 
     _queue.run();
 
-    add_data2dump_logger(); // add data to the logger
+//    add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 

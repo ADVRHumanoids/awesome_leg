@@ -3,27 +3,37 @@
 
 #include <math.h> 
 
- #include <Eigen/Dense>
- #include <Eigen/Core>
+#include <Eigen/Dense>
+#include <Eigen/Core>
 #include <Eigen/Eigen>
 
 #include <vector>
 #include <map>
 
-namespace calib_utils{
+#include <xbot2/ros/ros_support.h>
+
+#include <cartesian_interface/ros/RosServerClass.h>
+
+#include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
+
+#include <xbot_msgs/CustomState.h>
+
+using namespace XBot;
+
+namespace CalibUtils{
 
     class AuxSigDecoder
     {
 
       public:
 
-        AuxSigDecoder();
+        void on_aux_signal_received(const xbot_msgs::CustomState& aux_sig);
 
     };
 
 }
 
-namespace sign_proc_utils{
+namespace SignProcUtils{
 
   class AcfImpl
   {
