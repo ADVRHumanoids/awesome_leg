@@ -24,7 +24,7 @@ void AuxSigDecoder::on_aux_signal_received(const xbot_msgs::CustomState& aux_sig
 }
 
 template <typename T, typename t_v >
-int find_index(std::vector<T> input_v, t_v value)
+int AuxSigDecoder::find_index(std::vector<T> input_v, t_v value)
 {
     /**
     Finds the index of a value in an array.
@@ -52,7 +52,7 @@ int find_index(std::vector<T> input_v, t_v value)
 }
 
 template <typename T>
-std::vector<int> map_indices(std::vector<T> input_v1, std::vector<T> input_v2)
+std::vector<int> AuxSigDecoder::map_indices(std::vector<T> input_v1, std::vector<T> input_v2)
 {
     /**
     Maps the elements of the first input array to the second.
@@ -75,7 +75,7 @@ std::vector<int> map_indices(std::vector<T> input_v1, std::vector<T> input_v2)
     return indices_map;
 }
 
-int aux_type_encoder(std::string msg_type)
+int AuxSigDecoder::aux_type_encoder(std::string msg_type)
 {
     /**
     Computes the code ID associated with a given message type and saves this code to the .mat file,
@@ -98,7 +98,7 @@ int aux_type_encoder(std::string msg_type)
     return msg_code;
 }
 
-std::tuple< std::vector<int>, std::vector<float> > aux_mapper(const xbot_msgs::CustomState& aux_sig)
+std::tuple<std::vector<int>, std::vector<float>> AuxSigDecoder::aux_mapper(const xbot_msgs::CustomState& aux_sig)
 {
 
     /**

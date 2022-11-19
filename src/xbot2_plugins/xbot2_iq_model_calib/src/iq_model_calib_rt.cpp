@@ -177,7 +177,7 @@ bool IqModelCalibRt::on_initialize()
 void IqModelCalibRt::starting()
 {
 
-    init_dump_logger(); // needs to be here
+//    init_dump_logger(); // needs to be here
 
     reset_flags(); // reset flags, just in case
 
