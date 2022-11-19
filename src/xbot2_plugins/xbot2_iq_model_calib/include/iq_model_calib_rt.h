@@ -1,5 +1,5 @@
-#ifndef IQ_MODEL_CALIB
-#define IQ_MODEL_CALIB
+#ifndef IQ_MODEL_CALIB_RT
+#define IQ_MODEL_CALIB_RT
 
 #include <matlogger2/matlogger2.h>
 
@@ -9,7 +9,7 @@
 
 #include <thread>
 
-#include "utils.hpp"
+#include "calib_utils.hpp"
 
 #include <std_msgs/Bool.h>
 
@@ -25,7 +25,6 @@
 
 
 using namespace XBot;
-using namespace XBot::Cartesian;
 using namespace CalibUtils;
 using namespace SignProcUtils;
 
@@ -127,4 +126,4 @@ private:
                  
 };
 
-#endif // IQ_MODEL_CALIB
+#endif // IQ_MODEL_CALIB_RT
