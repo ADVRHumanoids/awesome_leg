@@ -18,6 +18,9 @@
 
 #include <xbot_msgs/CustomState.h>
 
+#include <map>
+#include <vector>
+
 using namespace XBot;
 
 namespace CalibUtils{
@@ -28,6 +31,27 @@ namespace CalibUtils{
       public:
 
         void on_aux_signal_received(const xbot_msgs::CustomState& aux_sig);
+
+      private:
+
+        bool _was_aux_msg_received = false, _is_first_aux_sig = true;
+
+        int _aux_types_encode_number = 0; // global counter used to assign incremental values to aux signal types
+
+        std::vector<int> _indices; // for holding the joint mapping
+
+        std::map<std::string, int> _aux_msg_type_map;
+        std::vector<std::string> _jnt_names; // auxiliary vector where the joint names (as visible in the js message) are saved.
+
+        template <typename T, typename t_v >
+        int find_index(std::vector<T> input_v, t_v value);
+
+        template <typename T>
+        std::vector<int> map_indices(std::vector<T> input_v1, std::vector<T> input_v2);
+
+        int aux_type_encoder(std::string msg_type);
+
+        std::tuple<std::vector<int>, std::vector<float>> aux_mapper(const xbot_msgs::CustomState& aux_sig);
 
     };
 
