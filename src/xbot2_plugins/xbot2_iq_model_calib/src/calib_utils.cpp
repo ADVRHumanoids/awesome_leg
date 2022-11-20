@@ -3,23 +3,34 @@
 using namespace CalibUtils;
 using namespace SignProcUtils;
 
+void AuxSigDecoder::on_js_signal_received(const xbot_msgs::JointState& js_sig)
+{
+  _jnt_names = js_sig.name;
+
+  _is_first_js_sig = false; // to signal that we now have read the joint names
+}
+
 void AuxSigDecoder::on_aux_signal_received(const xbot_msgs::CustomState& aux_sig)
 {
     _was_aux_msg_received = true;
 
-//    aux_sig.header.stamp.secs
-//    aux_sig.header.stamp.toSec()
+    if (!_is_first_js_sig)
+    {
 
-//    aux_sig.name
-//    aux_sig.type
+        auto remapped_aux_tuple = aux_mapper(aux_sig); // remapping aux types
 
-//    aux_sig.value
+        std::vector<double> ordered_vals = std::get<1>(remapped_aux_tuple); // ordered as _jnt_names
 
-    auto remapped_tuple = aux_mapper(aux_sig); // remapping aux types
+        double* ptr = &ordered_vals[0];
 
-    // aux_sig.header.stamp.toSec()
-    // std::get<0>(remapped_tuple); // type
-    // std::*/get<1>(remapped_tuple); // value
+    //    Eigen::Map<Eigen::VectorXd> ordered_iq(ptr, ordered_vals.size());
+
+    //    _iq_out_fb = ordered_iq;
+
+        _iq_out_fb = Eigen::Map<Eigen::VectorXd>(ptr, ordered_vals.size());
+
+    }
+
 
 }
 
@@ -75,7 +86,7 @@ std::vector<int> AuxSigDecoder::map_indices(std::vector<T> input_v1, std::vector
     return indices_map;
 }
 
-int AuxSigDecoder::aux_type_encoder(std::string msg_type)
+int AuxSigDecoder::get_aux_type_code(std::string msg_type)
 {
     /**
     Computes the code ID associated with a given message type and saves this code to the .mat file,
@@ -98,7 +109,7 @@ int AuxSigDecoder::aux_type_encoder(std::string msg_type)
     return msg_code;
 }
 
-std::tuple<std::vector<int>, std::vector<float>> AuxSigDecoder::aux_mapper(const xbot_msgs::CustomState& aux_sig)
+std::tuple<std::vector<int>, std::vector<double>> AuxSigDecoder::aux_mapper(const xbot_msgs::CustomState& aux_sig)
 {
 
     /**
@@ -108,23 +119,32 @@ std::tuple<std::vector<int>, std::vector<float>> AuxSigDecoder::aux_mapper(const
     @return A vector of signal IDs with dimension (number of chains)*(number of joints)
     */
 
-    int n_names = aux_sig.name.size(); // number of joints
+    int n_jnts = aux_sig.name.size(); // number of joints
 
-    std::vector<float> msg_value_remapped(n_names, -1); // output vector for msg values
-    std::vector<int> msg_type_remapped(n_names, -1); // output vector for msg types
+    std::vector<double> msg_value_remapped(n_jnts, -1.0); // output vector for msg values
+    std::vector<int> msg_type_remapped(n_jnts, -1.0); // output vector for msg types
 
     if (_is_first_aux_sig)
-    {
-        _indices = map_indices(_jnt_names, aux_sig.name); // this runs only the first time an aux message is received (joint mapping is assumed to be constant throughout a session)
+    { // this runs only the first time an aux message is received
+      // (joint mapping is assumed to be constant throughout the life of this
+      // object)
+
+        _indices = map_indices(_jnt_names, aux_sig.name);
 
         _is_first_aux_sig = false; // mapping not needed anymore
     }
 
-    for (int i = 0; i < n_names; i++) // mapping
+    for (int i = 0; i < n_jnts; i++) // mapping
     {
-        int encoded_type = aux_type_encoder(aux_sig.type[i]);
-        msg_type_remapped[_indices[i]] = encoded_type;
-        msg_value_remapped[_indices[i]] = aux_sig.value[i];
+        if (aux_sig.type[i].find(_iq_sig_basename) != std::string::npos)
+        { // we are reading the iq aux type
+
+            int encoded_type = get_aux_type_code(aux_sig.type[i]);
+            msg_type_remapped[_indices[i]] = encoded_type;
+            msg_value_remapped[_indices[i]] = aux_sig.value[i];
+
+        }
+
     }
 
     return make_tuple(msg_type_remapped, msg_value_remapped);

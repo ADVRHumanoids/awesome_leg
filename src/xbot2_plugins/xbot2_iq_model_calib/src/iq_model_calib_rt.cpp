@@ -133,6 +133,11 @@ void IqModelCalibRt::init_nrt_ros_bridge()
                                 1,  // queue size
                                 &_queue);
 
+    _js_signals_sub = _ros->subscribe("xbotcore/joint_states",
+                                &CalibUtils::AuxSigDecoder::on_js_signal_received,
+                                &_aux_sig_decoder,
+                                1,  // queue size
+                                &_queue);
 
 }
 

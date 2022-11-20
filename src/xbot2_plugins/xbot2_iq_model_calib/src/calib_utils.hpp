@@ -17,6 +17,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
 #include <xbot_msgs/CustomState.h>
+#include <xbot_msgs/JointState.h>
 
 #include <map>
 #include <vector>
@@ -32,9 +33,14 @@ namespace CalibUtils{
 
         void on_aux_signal_received(const xbot_msgs::CustomState& aux_sig);
 
+        void on_js_signal_received(const xbot_msgs::JointState& js_sig);
+
       private:
 
-        bool _was_aux_msg_received = false, _is_first_aux_sig = true;
+        bool _was_aux_msg_received = false, _is_first_aux_sig = true,
+             _was_js_msg_receuved = false, _is_first_js_sig = true;
+
+        std::string _iq_sig_basename = "iq_out_fb";
 
         int _aux_types_encode_number = 0; // global counter used to assign incremental values to aux signal types
 
@@ -43,15 +49,17 @@ namespace CalibUtils{
         std::map<std::string, int> _aux_msg_type_map;
         std::vector<std::string> _jnt_names; // auxiliary vector where the joint names (as visible in the js message) are saved.
 
+        Eigen::VectorXd _iq_out_fb;
+
         template <typename T, typename t_v >
         int find_index(std::vector<T> input_v, t_v value);
 
         template <typename T>
         std::vector<int> map_indices(std::vector<T> input_v1, std::vector<T> input_v2);
 
-        int aux_type_encoder(std::string msg_type);
+        int get_aux_type_code(std::string msg_type);
 
-        std::tuple<std::vector<int>, std::vector<float>> aux_mapper(const xbot_msgs::CustomState& aux_sig);
+        std::tuple<std::vector<int>, std::vector<double>> aux_mapper(const xbot_msgs::CustomState& aux_sig);
 
     };
 

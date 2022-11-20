@@ -100,6 +100,7 @@ private:
     CallbackQueue _queue;
 
     SubscriberPtr<xbot_msgs::CustomState> _aux_signals_sub;
+    SubscriberPtr<xbot_msgs::JointState> _js_signals_sub;
 
     AuxSigDecoder _aux_sig_decoder;
 
