@@ -26,19 +26,32 @@ using namespace XBot;
 
 namespace CalibUtils{
 
-    class AuxSigDecoder
+    class IqRosGetter
     {
 
       public:
+
+        IqRosGetter(bool verbose = false);
 
         void on_aux_signal_received(const xbot_msgs::CustomState& aux_sig);
 
         void on_js_signal_received(const xbot_msgs::JointState& js_sig);
 
+        void get_last_iq_out(Eigen::VectorXd& iq_out_fb);
+
+        void get_last_iq_out_stamps(Eigen::VectorXd& timestamps);
+
+        void get_time_reference(double& t_ref);
+
+        void set_jnt_names(std::vector<std::string> jnt_names);
+
       private:
 
         bool _was_aux_msg_received = false, _is_first_aux_sig = true,
-             _was_js_msg_receuved = false, _is_first_js_sig = true;
+             _were_jnt_names_set = false, _set_jnt_names_from_ros = true,
+             _verbose = false;
+
+        double _time_ref = 0.0;
 
         std::string _iq_sig_basename = "iq_out_fb";
 
@@ -49,7 +62,7 @@ namespace CalibUtils{
         std::map<std::string, int> _aux_msg_type_map;
         std::vector<std::string> _jnt_names; // auxiliary vector where the joint names (as visible in the js message) are saved.
 
-        Eigen::VectorXd _iq_out_fb;
+        Eigen::VectorXd _iq_out_fb, _timestamps;
 
         template <typename T, typename t_v >
         int find_index(std::vector<T> input_v, t_v value);
@@ -63,6 +76,64 @@ namespace CalibUtils{
 
     };
 
+
+    class IqEstimator
+    {
+
+      public:
+
+        IqEstimator(Eigen::VectorXd K_t,
+                    Eigen::VectorXd K_d0, Eigen::VectorXd K_d1,
+                    Eigen::VectorXd rot_MoI,
+                    Eigen::VectorXd red_ratio,
+                    double tanh_coeff = 10.0);
+
+        IqEstimator();
+
+        IqEstimator(Eigen::VectorXd K_t);
+
+        void set_current_state(Eigen::VectorXd q_dot, Eigen::VectorXd q_ddot, Eigen::VectorXd tau);
+
+        void get_iq_estimate(std::vector<float>& iq_est);
+        void get_iq_estimate(Eigen::VectorXd& iq_est);
+
+      private:
+
+        Eigen::VectorXd _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
+                        _iq_est;
+
+        Eigen::VectorXd _q_dot, _q_ddot, _tau;
+
+        double _tanh_coeff = 0.0;
+
+        int _n_jnts;
+
+        void compute_iq_estimates();
+
+    };
+
+    class NumDiff
+    {
+      public:
+
+        NumDiff();
+
+        NumDiff(int n_jnts, int order = 1);
+
+        void add_sample(Eigen::VectorXd sample, double dt);
+
+        void dot(Eigen::VectorXd& sample_dot); // get an estimate of derivative
+        // of the current sample
+
+      private:
+
+        Eigen::MatrixXd _window_data;
+
+        Eigen::VectorXd _Dt;
+
+        int _n_jnts, _order;
+
+    };
 }
 
 namespace SignProcUtils{
@@ -71,7 +142,7 @@ namespace SignProcUtils{
   {
       public:
 
-          AcfImpl(); // default constructor of the implementation of the renowed Ad Cazzum Filter
+          AcfImpl(int window_size = 1); // default constructor of the implementation of the renowed Ad Cazzum Filter
 
           // S -> matrix of samples (nd x Ns), where Ns are the number of samples and nd is the number of dimensions
 

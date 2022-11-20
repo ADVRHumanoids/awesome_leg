@@ -21,6 +21,8 @@ add_service_files(
 add_message_files(
   FILES
   MatReplayerStatus.msg
+  IqEstStatus.msg
+
 )
 
 generate_messages(

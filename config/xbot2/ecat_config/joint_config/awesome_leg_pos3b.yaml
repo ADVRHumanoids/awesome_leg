@@ -3,12 +3,12 @@ zmq_setup:
 
 # motors
 
-hip_pitch1:
+hip_pitch_1:
   control_mode: 3B_motor_pos_ctrl
   pid:
     position: [220.0 , 0.0 , 5.0]
 
-knee_pitch1:
+knee_pitch_1:
   control_mode: 3B_motor_pos_ctrl
   pid:
     position: [220.0 , 0.0 , 5.0]

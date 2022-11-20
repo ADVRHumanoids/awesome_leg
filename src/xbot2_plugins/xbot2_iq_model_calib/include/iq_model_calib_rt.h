@@ -23,6 +23,7 @@
 
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
+#include <awesome_leg/IqEstStatus.h>
 
 using namespace XBot;
 using namespace CalibUtils;
@@ -89,7 +90,11 @@ private:
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _matlogger_buffer_size = 1e4;
 
-    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _tau_meas;
+    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _q_p_ddot_est, _tau_meas,
+                    _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio;
+
+    std::vector<float> _iq_est;
+    std::vector<std::string> _iq_jnt_names;
 
     MatLogger2::Ptr _dump_logger;
 
@@ -102,7 +107,11 @@ private:
     SubscriberPtr<xbot_msgs::CustomState> _aux_signals_sub;
     SubscriberPtr<xbot_msgs::JointState> _js_signals_sub;
 
-    AuxSigDecoder _aux_sig_decoder;
+    PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
+
+    IqRosGetter _iq_getter;
+    IqEstimator _iq_estimator;
+    NumDiff _num_diff;
 
     void get_params_from_config();
 
@@ -124,6 +133,8 @@ private:
     void init_nrt_ros_bridge();
 
     void is_sim(std::string sim_string);
+
+    void pub_iq_est();
                  
 };
 

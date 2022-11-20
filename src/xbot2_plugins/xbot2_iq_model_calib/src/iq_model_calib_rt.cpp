@@ -14,6 +14,11 @@ void IqModelCalibRt::init_vars()
     _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
 
+    _q_p_ddot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _iq_est.reserve(_n_jnts_robot);
+    _iq_jnt_names.reserve(_n_jnts_robot);
+
 }
 
 void IqModelCalibRt::reset_flags()
@@ -51,6 +56,12 @@ void IqModelCalibRt::get_params_from_config()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
+    _red_ratio = getParamOrThrow<Eigen::VectorXd>("~red_ratio");
+    _K_t = getParamOrThrow<Eigen::VectorXd>("~K_t");
+    _K_d0 = getParamOrThrow<Eigen::VectorXd>("~K_d0");
+    _K_d1 = getParamOrThrow<Eigen::VectorXd>("~K_d1");
+    _rot_MoI = getParamOrThrow<Eigen::VectorXd>("~rotor_axial_MoI");
+
 }
 
 void IqModelCalibRt::is_sim(std::string sim_string = "sim")
@@ -81,6 +92,10 @@ void IqModelCalibRt::update_state()
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);  
     _robot->getJointEffort(_tau_meas);
+
+    // Getting q_p_ddot via numerical differentiation
+    _num_diff.add_sample(_q_p_dot_meas, _plugin_dt);
+    _num_diff.dot(_q_p_ddot_est);
 
 }
 
@@ -128,16 +143,29 @@ void IqModelCalibRt::init_nrt_ros_bridge()
 
     /* Subscribers */
     _aux_signals_sub = _ros->subscribe("/xbotcore/aux",
-                                &CalibUtils::AuxSigDecoder::on_aux_signal_received,
-                                &_aux_sig_decoder,
+                                &CalibUtils::IqRosGetter::on_aux_signal_received,
+                                &_iq_getter,
                                 1,  // queue size
                                 &_queue);
 
-    _js_signals_sub = _ros->subscribe("xbotcore/joint_states",
-                                &CalibUtils::AuxSigDecoder::on_js_signal_received,
-                                &_aux_sig_decoder,
+    _js_signals_sub = _ros->subscribe("/xbotcore/joint_states",
+                                &CalibUtils::IqRosGetter::on_js_signal_received,
+                                &_iq_getter,
                                 1,  // queue size
                                 &_queue);
+
+
+    /* Publishers */
+    awesome_leg::IqEstStatus iq_status_prealloc;
+
+    std::vector<float> iq_est_prealloc(_n_jnts_robot);
+    std::vector<std::string> iq_jnt_names_prealloc(_n_jnts_robot);
+
+    iq_status_prealloc.iq_est = iq_est_prealloc;
+    iq_status_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
+
+    _iq_est_pub = _ros->advertise<awesome_leg::IqEstStatus>(
+        "iq_est_node", 1, iq_status_prealloc);
 
 }
 
@@ -157,6 +185,16 @@ void IqModelCalibRt::add_data2bedumped()
     
 }
 
+void IqModelCalibRt::pub_iq_est()
+{
+    auto iq_est_msg = _iq_est_pub->loanMessage();
+
+    iq_est_msg->msg().iq_est = _iq_est;
+    iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
+
+    _iq_est_pub->publishLoaned(std::move(iq_est_msg));
+}
+
 bool IqModelCalibRt::on_initialize()
 { 
     std::string sim_flagname = "sim";
@@ -173,7 +211,14 @@ bool IqModelCalibRt::on_initialize()
 
     init_nrt_ros_bridge();
 
-    _aux_sig_decoder = AuxSigDecoder();
+    _iq_getter = IqRosGetter(_verbose);
+
+    _iq_estimator = IqEstimator(_K_t,
+                                _K_d0, _K_d1,
+                                _rot_MoI,
+                                _red_ratio);
+
+    _num_diff = NumDiff(_n_jnts_robot);
 
     return true;
     
@@ -200,6 +245,12 @@ void IqModelCalibRt::run()
     update_state(); // update all necessary states
 
     _queue.run();
+
+    _iq_estimator.set_current_state(_q_p_dot_meas, _q_p_ddot_est, _tau_meas);
+
+    _iq_estimator.get_iq_estimate(_iq_est);
+
+    pub_iq_est(); // publish estimates to topic
 
 //    add_data2dump_logger(); // add data to the logger
 

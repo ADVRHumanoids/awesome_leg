@@ -62,7 +62,16 @@ xbotcore_plugins:
             dump_mat_suffix: {value: traj_replay, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            verbose: {value: false, type: bool}
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+
+            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+
+            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+
+            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+
+            verbose: {value: true, type: bool}
 
 #    mat_replayer_rt:
 #        thread: rt_main

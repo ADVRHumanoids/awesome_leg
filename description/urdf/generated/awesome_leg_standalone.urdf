@@ -184,7 +184,7 @@
       </geometry>
     </collision>
   </link>
-  <joint name="knee_pitch1" type="revolute">
+  <joint name="knee_pitch_1" type="revolute">
     <parent link="femur1"/>
     <child link="shin1"/>
     <origin rpy="0.0 0.0 0.0" xyz="0.0 -0.1182 -0.3"/>
@@ -211,7 +211,7 @@
       </geometry>
     </collision>
   </link>
-  <joint name="tip_joint1" type="fixed">
+  <joint name="tip_joint_1" type="fixed">
     <parent link="shin1"/>
     <child link="tip1"/>
     <origin xyz="0.0 0.0233 -0.451"/>

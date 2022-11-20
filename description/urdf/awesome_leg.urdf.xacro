@@ -10,7 +10,7 @@
 
         <xacro:unless value="${ base_link=='None' or base_link=='none'}">
             <!-- only add joint to base if argument is non-empty -->
-            <joint name="hip_pitch${id}" type="revolute">
+            <joint name="hip_pitch_${id}" type="revolute">
                 <parent link="${base_link}" />
                 <child link="femur${id}" />
                 <axis xyz="0 1 0"/>
@@ -42,7 +42,7 @@
             </collision>
         </link>
 
-        <joint name="knee_pitch${id}" type="revolute">
+        <joint name="knee_pitch_${id}" type="revolute">
             <parent link="femur${id}"/>
             <child link="shin${id}"/>
             <origin rpy="0.0 0.0 0.0" xyz="0.0 ${-118.2 * mmTom} ${-300.0 * mmTom}"/>
@@ -74,7 +74,7 @@
 
         <xacro:unless value="${ add_ft_sensor == True}"> 
 
-            <joint name="tip_joint${id}" type="fixed">
+            <joint name="tip_joint_${id}" type="fixed">
                 <parent link="shin${id}"/>
                 <child link="tip${id}"/>
                 <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom}"/>
@@ -86,7 +86,7 @@
 
         <xacro:if value="${ add_ft_sensor == True}"> 
 
-            <joint name="tip_joint${id}" type="prismatic">
+            <joint name="tip_joint_${id}" type="prismatic">
                 <parent link="shin${id}"/>
                 <child link="tip${id}"/>
                 <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom + fts_sphere_radius - fts_delta}"/>

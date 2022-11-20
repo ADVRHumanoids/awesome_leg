@@ -3,8 +3,8 @@ zmq_setup:
 
 # motors
 
-hip_pitch1:
+hip_pitch_1:
   control_mode: idle
 
-knee_pitch1:
+knee_pitch_1:
   control_mode: idle
