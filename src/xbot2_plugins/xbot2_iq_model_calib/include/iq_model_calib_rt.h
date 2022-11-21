@@ -81,7 +81,8 @@ private:
     int _n_jnts_model,
         _n_jnts_model_ft_est,
         _n_jnts_robot,
-        _sample_index = 0;
+        _sample_index = 0,
+        _der_est_order = 1;
 
     std::string _mat_path, _dump_mat_suffix,
                 _urdf_path, _srdf_path,

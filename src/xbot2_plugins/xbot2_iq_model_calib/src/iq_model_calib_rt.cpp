@@ -61,6 +61,8 @@ void IqModelCalibRt::get_params_from_config()
     _K_d1 = getParamOrThrow<Eigen::VectorXd>("~K_d1");
     _rot_MoI = getParamOrThrow<Eigen::VectorXd>("~rotor_axial_MoI");
 
+    _der_est_order = getParamOrThrow<int>("~der_est_order");
+
 }
 
 void IqModelCalibRt::is_sim(std::string sim_string = "sim")
@@ -93,8 +95,8 @@ void IqModelCalibRt::update_state()
     _robot->getJointEffort(_tau_meas);
 
     // Getting q_p_ddot via numerical differentiation
-    _num_diff.add_sample(_q_p_dot_meas, _plugin_dt);
-    _num_diff.dot(_q_p_ddot_est);
+    _num_diff.add_sample(_q_p_dot_meas);
+    _num_diff.dot(_q_p_ddot_est, true);
 
 }
 
@@ -132,6 +134,8 @@ void IqModelCalibRt::init_dump_logger()
     _dump_logger->create("q_p_ddot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
 
+    _dump_logger->create("iq_est", _n_jnts_robot, 1, _matlogger_buffer_size);
+
     _dump_logger->create("K_t", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("K_d0", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("K_d1", _n_jnts_robot, 1, _matlogger_buffer_size);
@@ -147,6 +151,8 @@ void IqModelCalibRt::add_data2dump_logger()
     _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
     _dump_logger->add("q_p_ddot_est", _q_p_ddot_est);
     _dump_logger->add("tau_meas", _tau_meas);
+
+    _dump_logger->add("iq_est", _iq_est);
 
     _dump_logger->add("K_t", _K_t);
     _dump_logger->add("K_d0", _K_d0);
@@ -237,7 +243,7 @@ bool IqModelCalibRt::on_initialize()
                                 _red_ratio); // object to compute the
     // iq estimate
 
-    _num_diff = NumDiff(_n_jnts_robot);
+    _num_diff = NumDiff(_n_jnts_robot, _plugin_dt, _der_est_order);
 
     return true;
     

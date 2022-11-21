@@ -21,6 +21,7 @@
 
 #include <map>
 #include <vector>
+#include "spline.h"
 
 using namespace XBot;
 
@@ -122,20 +123,35 @@ namespace CalibUtils{
 
         NumDiff();
 
-        NumDiff(int n_jnts, int order = 1);
+        NumDiff(int n_jnts, double dt, int order = 1);
 
-        void add_sample(Eigen::VectorXd sample, double dt);
+        void add_sample(Eigen::VectorXd sample);
 
-        void dot(Eigen::VectorXd& sample_dot); // get an estimate of derivative
+        void dot(Eigen::VectorXd& sample_dot, bool use_spline = false); // get an estimate of derivative
         // of the current sample
 
       private:
 
+        // coefficient from n-th order num. differentiation
+        // ordered from left to right, starting from the current sample
+
+        // depending on _order, the estimate for the derivative of the samples
+        // at the current time is given by the following backward differentiation equation:
+        // v_dot(k) = { sum_{i=0}^{_order + 1} [ v(k -i) * k_n(_order) ) / _dt
+
+        Eigen::VectorXd _k_n1, _k_n2, _k_n3,
+                        _k_n4, _k_n5, _k_n6;
+
+        Eigen::VectorXd _k_n; // assigned on the basis of the selected order of the estimate
+
         Eigen::MatrixXd _window_data;
 
-        Eigen::VectorXd _Dt;
+        double _dt = 0.0; // assuming evenly spaced samples
 
         int _n_jnts, _order;
+
+        std::vector<interp::spline> _spline_interp;
+        Eigen::VectorXd _aux_time_vect;
 
     };
 }

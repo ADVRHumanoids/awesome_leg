@@ -356,19 +356,65 @@ NumDiff::NumDiff()
 
 }
 
-NumDiff::NumDiff(int n_jnts, int order)
-  :_n_jnts{n_jnts}, _order{order}
+NumDiff::NumDiff(int n_jnts, double dt, int order)
+    :_n_jnts{n_jnts}, _order{order}, _dt{dt}
 {
 
-  _window_data = Eigen::MatrixXd::Zero(_n_jnts, _order + 1);
+    _spline_interp = std::vector<interp::spline>(_n_jnts);
+    _aux_time_vect = Eigen::VectorXd::Zero(_order + 1);
+    for (int i = 1; i < _aux_time_vect.size(); i++)
+    {
+        _aux_time_vect(i) = _aux_time_vect(i - 1) + _dt;
+    }
+    _k_n1 = Eigen::VectorXd::Zero(2); // 1st order
+    _k_n2 = Eigen::VectorXd::Zero(3); // 2nd order
+    _k_n3 = Eigen::VectorXd::Zero(4); // 3rd order
+    _k_n4 = Eigen::VectorXd::Zero(5); // 4th order
+    _k_n5 = Eigen::VectorXd::Zero(6); // 5th order
+    _k_n6 = Eigen::VectorXd::Zero(7); // 6th order
 
-  _Dt = Eigen::VectorXd::Zero(_order + 1); // first element always zero
-  // (dt only defined between two samples so, for the most remote sample,
-  // we set the dt to 0 to indicate that it is not defined on that node)
+    _k_n1 << 1.0,         -1.0; // 1st order
+    _k_n2 << 3.0/2.0,     -2.0,   1.0/2.0; // 2nd order
+    _k_n3 << 11.0/6.0,    -3.0,   3.0/2.0,   -1.0/3.0; //3rd order
+    _k_n4 << 25.0/12.0,   -4.0,       3.0,   -4.0/3.0,    1.0/4.0; //4th order
+    _k_n5 << 137.0/60.0,  -5.0,       5.0,  -10.0/3.0,  15.0/12.0,  -1.0/5.0; //5th order
+    _k_n6 << 147.0/60.0,  -6.0,  15.0/2.0,  -20.0/3.0,   15.0/4.0,  -6.0/5.0,  1.0/6.0; //6th order
+
+    _window_data = Eigen::MatrixXd::Zero(_n_jnts, _order + 1);
+
+    if(_order == 1)
+    {
+        _k_n = _k_n1;
+    }
+
+    if(_order == 2)
+    {
+        _k_n = _k_n2;
+    }
+
+    if(_order == 3)
+    {
+        _k_n = _k_n3;
+    }
+
+    if(_order == 4)
+    {
+        _k_n = _k_n4;
+    }
+
+    if(_order == 5)
+    {
+        _k_n = _k_n5;
+    }
+
+    if(_order == 6)
+    {
+        _k_n = _k_n6;
+    }
 
 }
 
-void NumDiff::add_sample(Eigen::VectorXd sample, double dt)
+void NumDiff::add_sample(Eigen::VectorXd sample)
 {
   int sample_size = sample.size();
 
@@ -381,38 +427,49 @@ void NumDiff::add_sample(Eigen::VectorXd sample, double dt)
       throw std::invalid_argument(exception);
   }
 
-  // shifting data to the left (discarting most remote sample)
-  for (int i = 0; i < _order; i++)
+  // shifting data to the right (discarting most remote sample, which is the
+  // one on the extreme right)
+  for (int i = _order - 1; i >= 0; i--)
   {
-     _window_data.block(0, i , _n_jnts, 1) = _window_data.block(0, i + 1 , _n_jnts, 1);
+     _window_data.block(0, i + 1 , _n_jnts, 1) = _window_data.block(0, i, _n_jnts, 1);
 
   }
 
-  // shifting dt values
-  for (int i = 0; i < _order - 1; i++)
-  {
-     _Dt(i + 1) = _Dt(i + 2); // (first element of Dt always zero)
-  }
-
-  _window_data.block(0, _order , _n_jnts, 1) = sample; // assign most recent sample
-
-  _Dt[_order] = dt;
+  _window_data.block(0, 0 , _n_jnts, 1) = sample; // assign most recent sample
 
 }
 
-void NumDiff::dot(Eigen::VectorXd& sample_dot)
+void NumDiff::dot(Eigen::VectorXd& sample_dot, bool use_spline)
 {
 
-  if(_order != 1)
+  if(_order > 6.0)
   {
-      std::string exception = std::string("NumDiff::dot(): order > 1 not supported yet!!\n");
+      std::string exception = std::string("NumDiff::dot(): order > 6 not supported!!\n");
 
       throw std::invalid_argument(exception);
   }
 
-  Eigen::VectorXd current_sample = _window_data.col(_order);
-  Eigen::VectorXd previous_sample = _window_data.col(_order - 1);
+  if (!use_spline)
+  {
+    sample_dot = (_window_data * _k_n) / _dt; // estimating derivative with backward method
+    // of order _order
+  }
+  else
+  {
 
-  sample_dot = (current_sample - previous_sample) / _Dt[_order]; // super simple num.
-  // diff
+      std::vector<double> x(_aux_time_vect.size());
+      std::vector<double> y(_window_data.rows());
+
+      Eigen::Map<Eigen::VectorXd>(&x[0], _aux_time_vect.size(), 1) = _aux_time_vect; // mapping to time vector (same
+      // for all dimensions)
+
+      for (int i = 0; i < _n_jnts; i++)
+      { // looping through dimensions
+
+          Eigen::Map<Eigen::VectorXd>(&y[0], _window_data.cols(), 1) = _window_data.row(i); // mapping to data vector y
+          _spline_interp[i] = interp::spline(x, y); // building spline
+          sample_dot(i) = _spline_interp[i].deriv(1, _aux_time_vect(_aux_time_vect.size() - 1)); // evaluating spline first derivative at
+          // the current sample
+      }
+  }
 }
