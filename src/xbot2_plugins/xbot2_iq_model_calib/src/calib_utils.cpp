@@ -1,5 +1,7 @@
 #include "calib_utils.hpp"
 
+using std::tanh;
+
 using namespace CalibUtils;
 using namespace SignProcUtils;
 
@@ -33,6 +35,26 @@ void IqRosGetter::set_jnt_names(std::vector<std::string> jnt_names)
 
   _set_jnt_names_from_ros = false;
 
+}
+
+void IqRosGetter::get_jnt_names(std::vector<std::string>& jnt_names)
+{
+
+    jnt_names = _jnt_names;
+}
+
+bool IqRosGetter::is_iq_out_topic_active()
+{
+    if(!_is_first_aux_sig)
+    { // we have received at least one aux signal --> which means that at this point we know for sure
+      // the joint names associated with each message
+
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void IqRosGetter::on_js_signal_received(const xbot_msgs::JointState& js_sig)
@@ -206,8 +228,13 @@ IqEstimator::IqEstimator(Eigen::VectorXd K_t,
   :_K_t{K_t}, _K_d0{K_d0}, _K_d1{K_d1}, _rot_MoI{rot_MoI}, _red_ratio{red_ratio}, _tanh_coeff{tanh_coeff}
 {
 
-  _n_jnts = _K_t.size();
+    _n_jnts = _K_t.size();
 
+    _q_dot = Eigen::VectorXd::Zero(_n_jnts);
+    _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
+    _tau = Eigen::VectorXd::Zero(_n_jnts);
+
+    _iq_est = Eigen::VectorXd::Zero(_n_jnts);
 }
 
 IqEstimator::IqEstimator()
@@ -219,7 +246,7 @@ void IqEstimator::get_iq_estimate(std::vector<float>& iq_est)
 {
   compute_iq_estimates();
 
-  iq_est.reserve(_n_jnts);
+  iq_est = std::vector<float>(_n_jnts);
 
   for (int i = 0; i < _n_jnts; i++)
   {
@@ -231,39 +258,95 @@ void IqEstimator::get_iq_estimate(std::vector<float>& iq_est)
 void IqEstimator::get_iq_estimate(Eigen::VectorXd& iq_est)
 {
 
-  compute_iq_estimates();
+    int err = 0;
+    if(iq_est.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
 
-  iq_est = _iq_est;
+    if (err != 0)
+    {
+        std::string exception = std::string("IqEstimator::get_iq_estimate(): dimension mismatch of input data \n");
+    }
+
+    compute_iq_estimates();
+
+    iq_est = _iq_est;
 
 }
 
 void IqEstimator::compute_iq_estimates()
 {
-  Eigen::VectorXd aux = _tanh_coeff * _q_dot;
-  Eigen::VectorXd aux2 = aux.array().tanh();
 
-  Eigen::VectorXd static_friction_effort = _K_d0 * aux2;
-  Eigen::VectorXd dynamic_friction_effort = _K_d1 * _q_dot;
+// Eigen-style implementation (has segfault problems -> to be debugged)
+//  Eigen::VectorXd aux = _tanh_coeff * _q_dot;
+//  Eigen::VectorXd aux2 = tanh(aux.array());
 
-  Eigen::VectorXd total_torque_on_motor = _tau + static_friction_effort + dynamic_friction_effort;
+//  Eigen::VectorXd static_friction_effort = _K_d0 * aux2;
+//  Eigen::VectorXd dynamic_friction_effort = _K_d1 * _q_dot;
 
-  Eigen::VectorXd red_ratio_inv = _red_ratio.inverse();
+//  Eigen::VectorXd total_torque_on_motor = _tau + static_friction_effort + dynamic_friction_effort;
 
-  Eigen::VectorXd motor_omega_dot = _q_dot * red_ratio_inv;
+//  Eigen::VectorXd red_ratio_inv = _red_ratio.inverse();
 
-  Eigen::VectorXd required_motor_torque = _rot_MoI * motor_omega_dot + total_torque_on_motor * _red_ratio;
+//  Eigen::VectorXd motor_omega_dot = _q_dot * red_ratio_inv;
 
-  Eigen::VectorXd K_t_inv = _K_t.inverse();
+//  Eigen::VectorXd required_motor_torque = _rot_MoI * motor_omega_dot + total_torque_on_motor * _red_ratio;
 
-  _iq_est = required_motor_torque * K_t_inv;
+//  Eigen::VectorXd K_t_inv = _K_t.inverse();
+
+//  _iq_est = required_motor_torque * K_t_inv;
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+
+        double static_friction_effort = _K_d0(i) * tanh(_tanh_coeff * _q_dot(i));
+        double dynamic_friction_effort = _K_d1(i) * _q_dot(i);
+
+        double total_torque_on_motor = _tau(i) + static_friction_effort + dynamic_friction_effort;
+
+        double motor_omega_dot = _q_dot(i) / _red_ratio(i);
+
+        double required_motor_torque = _rot_MoI(i) * motor_omega_dot + total_torque_on_motor * _red_ratio(i);
+
+        _iq_est(i) = required_motor_torque / _K_t(i);
+    }
 
 }
 
 void IqEstimator::set_current_state(Eigen::VectorXd q_dot, Eigen::VectorXd q_ddot, Eigen::VectorXd tau)
 {
-  _q_dot = q_dot;
-  _q_ddot = q_ddot;
-  _tau = tau;
+  int err = 0;
+  if(q_dot.size() != _n_jnts)
+  {
+      err = err + 1;
+  }
+  if(q_ddot.size() != _n_jnts)
+  {
+      err = err + 1;
+  }
+  if(tau.size() != _n_jnts)
+  {
+      err = err + 1;
+  }
+
+  if (err != 0)
+  {
+      std::string exception = std::string("IqEstimator::set_current_state(): dimension mismatch of input data -> \n") +
+                              std::string("q_dot length: ") + std::to_string(q_dot.size()) + std::string("\n") +
+                              std::string("q_ddot length: ") + std::to_string(q_ddot.size()) + std::string("\n") +
+                              std::string("tau length: ") + std::to_string(tau.size()) + std::string("\n") +
+                              std::string("which do not match the required length of: ") + std::to_string(_n_jnts);
+
+      throw std::invalid_argument(exception);
+  }
+  else
+  {
+      _q_dot = q_dot;
+      _q_ddot = q_ddot;
+      _tau = tau;
+
+  }
 
 }
 
@@ -277,9 +360,9 @@ NumDiff::NumDiff(int n_jnts, int order)
   :_n_jnts{n_jnts}, _order{order}
 {
 
-  _window_data = Eigen::MatrixXd::Zero(n_jnts, order + 1);
+  _window_data = Eigen::MatrixXd::Zero(_n_jnts, _order + 1);
 
-  _Dt = Eigen::VectorXd::Zero(order + 1); // first element always zero
+  _Dt = Eigen::VectorXd::Zero(_order + 1); // first element always zero
   // (dt only defined between two samples so, for the most remote sample,
   // we set the dt to 0 to indicate that it is not defined on that node)
 

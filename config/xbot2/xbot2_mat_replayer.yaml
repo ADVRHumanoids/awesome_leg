@@ -71,7 +71,7 @@ xbotcore_plugins:
 
             rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
-            verbose: {value: true, type: bool}
+            verbose: {value: false, type: bool}
 
 #    mat_replayer_rt:
 #        thread: rt_main

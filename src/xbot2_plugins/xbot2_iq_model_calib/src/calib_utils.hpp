@@ -45,6 +45,10 @@ namespace CalibUtils{
 
         void set_jnt_names(std::vector<std::string> jnt_names);
 
+        bool is_iq_out_topic_active();
+
+        void get_jnt_names(std::vector<std::string>& jnt_names);
+
       private:
 
         bool _was_aux_msg_received = false, _is_first_aux_sig = true,
@@ -182,7 +186,7 @@ namespace SignProcUtils{
           // | S(j, .)     -  S(j, .)     |
           // | S(j, .)     -  S(j, .)     |
           // | S(j, Ns - 2) -  S(j, Ns - 3) |
-          // [ S(j, Ns - 1) -  S(j, Ns - 2) ]
+          // [ S(j, Ns - 1) -  S(j, Ns - 2) ]atanh
 
           // and DELTA is a matrix of dimension nd x Ns
           // DELTA :=

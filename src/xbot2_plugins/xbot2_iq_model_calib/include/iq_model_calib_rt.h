@@ -75,7 +75,8 @@ private:
         _rt_active, _nrt_exit,
         _is_sim = true,
         _reduce_dumped_sol_size = false,
-        _verbose = false;
+        _verbose = false,
+        _jnt_names_were_set = false;
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,

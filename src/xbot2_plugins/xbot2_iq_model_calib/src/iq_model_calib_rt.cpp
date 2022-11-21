@@ -16,8 +16,8 @@ void IqModelCalibRt::init_vars()
 
     _q_p_ddot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
 
-    _iq_est.reserve(_n_jnts_robot);
-    _iq_jnt_names.reserve(_n_jnts_robot);
+    _iq_est = std::vector<float>(_n_jnts_robot);
+    _iq_jnt_names = std::vector<std::string>(_n_jnts_robot);
 
 }
 
@@ -94,8 +94,8 @@ void IqModelCalibRt::update_state()
     _robot->getJointEffort(_tau_meas);
 
     // Getting q_p_ddot via numerical differentiation
-    _num_diff.add_sample(_q_p_dot_meas, _plugin_dt);
-    _num_diff.dot(_q_p_ddot_est);
+//    _num_diff.add_sample(_q_p_dot_meas, _plugin_dt);
+//    _num_diff.dot(_q_p_ddot_est);
 
 }
 
@@ -187,12 +187,23 @@ void IqModelCalibRt::add_data2bedumped()
 
 void IqModelCalibRt::pub_iq_est()
 {
-    auto iq_est_msg = _iq_est_pub->loanMessage();
+    if(_iq_getter.is_iq_out_topic_active() && !_jnt_names_were_set)
+    { // we can get the jnt names associated with the is signal names
+        _iq_getter.get_jnt_names(_iq_jnt_names);
 
-    iq_est_msg->msg().iq_est = _iq_est;
-    iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
+        _jnt_names_were_set = true; // get iq jnt names only one time
+    }
 
-    _iq_est_pub->publishLoaned(std::move(iq_est_msg));
+    if(_iq_getter.is_iq_out_topic_active() && _jnt_names_were_set)
+    { // we can publish the message
+        auto iq_est_msg = _iq_est_pub->loanMessage();
+
+        iq_est_msg->msg().iq_est = _iq_est;
+        iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
+
+        _iq_est_pub->publishLoaned(std::move(iq_est_msg));
+    }
+
 }
 
 bool IqModelCalibRt::on_initialize()
@@ -213,11 +224,11 @@ bool IqModelCalibRt::on_initialize()
 
     _iq_getter = IqRosGetter(_verbose);
 
+
     _iq_estimator = IqEstimator(_K_t,
                                 _K_d0, _K_d1,
                                 _rot_MoI,
                                 _red_ratio);
-
     _num_diff = NumDiff(_n_jnts_robot);
 
     return true;
