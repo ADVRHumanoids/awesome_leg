@@ -83,7 +83,7 @@ private:
         _n_jnts_robot,
         _sample_index = 0;
 
-    std::string _mat_path, _mat_name, _dump_mat_suffix,
+    std::string _mat_path, _dump_mat_suffix,
                 _urdf_path, _srdf_path,
                 _hw_type;
 

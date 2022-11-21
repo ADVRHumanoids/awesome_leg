@@ -50,7 +50,6 @@ void IqModelCalibRt::get_params_from_config()
     _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
-    _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
@@ -128,10 +127,32 @@ void IqModelCalibRt::init_dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("is_sim", int(_is_sim));
 
-
     _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_ddot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("K_t", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("K_d0", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("K_d1", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("rot_MoI", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("red_ratio", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+}
+
+void IqModelCalibRt::add_data2dump_logger()
+{
+
+    _dump_logger->add("q_p_meas", _q_p_meas);
+    _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+    _dump_logger->add("q_p_ddot_est", _q_p_ddot_est);
+    _dump_logger->add("tau_meas", _tau_meas);
+
+    _dump_logger->add("K_t", _K_t);
+    _dump_logger->add("K_d0", _K_d0);
+    _dump_logger->add("K_d1", _K_d1);
+    _dump_logger->add("rot_MoI", _rot_MoI);
+    _dump_logger->add("red_ratio", _red_ratio);
 
 }
 
@@ -166,15 +187,6 @@ void IqModelCalibRt::init_nrt_ros_bridge()
 
     _iq_est_pub = _ros->advertise<awesome_leg::IqEstStatus>(
         "iq_est_node", 1, iq_status_prealloc);
-
-}
-
-void IqModelCalibRt::add_data2dump_logger()
-{
-
-    _dump_logger->add("q_p_meas", _q_p_meas);
-    _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
-    _dump_logger->add("tau_meas", _tau_meas);
 
 }
 
@@ -234,7 +246,7 @@ bool IqModelCalibRt::on_initialize()
 void IqModelCalibRt::starting()
 {
 
-//    init_dump_logger(); // needs to be here
+    init_dump_logger(); // needs to be here
 
     reset_flags(); // reset flags, just in case
 
@@ -267,6 +279,9 @@ void IqModelCalibRt::run()
     { // next control loops are aware that it is not the first control loop
         _is_first_run = !_is_first_run;
     }
+
+    add_data2dump_logger();
+
 
 }
 

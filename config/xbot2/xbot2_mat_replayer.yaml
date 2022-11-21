@@ -57,9 +57,8 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
 
-            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
-            dump_mat_suffix: {value: traj_replay, type: string}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: iq_estimation, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
             red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
@@ -105,7 +104,7 @@ xbotcore_plugins:
             stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
 
             send_pos_ref: {value: true, type: bool}
-            send_vel_ref: {value: false, type: bool}
+            send_vel_ref: {value: true, type: bool}
             send_eff_ref: {value: false, type: bool}
 
             traj_pause_time: {value: 0.05, type: double} # don't go lower than the control plugin!!
