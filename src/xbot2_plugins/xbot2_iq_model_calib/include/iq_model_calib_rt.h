@@ -95,7 +95,7 @@ private:
                     _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio;
 
     std::vector<float> _iq_est;
-    std::vector<std::string> _iq_jnt_names;
+    std::vector<std::string> _jnt_names, _iq_jnt_names;
 
     MatLogger2::Ptr _dump_logger;
 

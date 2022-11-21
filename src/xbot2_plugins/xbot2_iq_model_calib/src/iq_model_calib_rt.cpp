@@ -94,8 +94,8 @@ void IqModelCalibRt::update_state()
     _robot->getJointEffort(_tau_meas);
 
     // Getting q_p_ddot via numerical differentiation
-//    _num_diff.add_sample(_q_p_dot_meas, _plugin_dt);
-//    _num_diff.dot(_q_p_ddot_est);
+    _num_diff.add_sample(_q_p_dot_meas, _plugin_dt);
+    _num_diff.dot(_q_p_ddot_est);
 
 }
 
@@ -187,22 +187,12 @@ void IqModelCalibRt::add_data2bedumped()
 
 void IqModelCalibRt::pub_iq_est()
 {
-    if(_iq_getter.is_iq_out_topic_active() && !_jnt_names_were_set)
-    { // we can get the jnt names associated with the is signal names
-        _iq_getter.get_jnt_names(_iq_jnt_names);
+    auto iq_est_msg = _iq_est_pub->loanMessage();
 
-        _jnt_names_were_set = true; // get iq jnt names only one time
-    }
+    iq_est_msg->msg().iq_est = _iq_est;
+    iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
 
-    if(_iq_getter.is_iq_out_topic_active() && _jnt_names_were_set)
-    { // we can publish the message
-        auto iq_est_msg = _iq_est_pub->loanMessage();
-
-        iq_est_msg->msg().iq_est = _iq_est;
-        iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
-
-        _iq_est_pub->publishLoaned(std::move(iq_est_msg));
-    }
+    _iq_est_pub->publishLoaned(std::move(iq_est_msg));
 
 }
 
@@ -217,18 +207,24 @@ bool IqModelCalibRt::on_initialize()
     _plugin_dt = getPeriodSec();
 
     _n_jnts_robot = _robot->getJointNum();
-
+    _jnt_names = _robot->getEnabledJointNames();;
     init_vars();
 
     init_nrt_ros_bridge();
 
-    _iq_getter = IqRosGetter(_verbose);
-
+    // using the order given by _jnt_names
+//    _iq_getter = IqRosGetter(_verbose); // object to get the
+    // quadrature current from XBot2 ROS topic (they need to be activated
+    // manually)
+    _iq_jnt_names = _jnt_names; // we will get (and estimate) the iq
+//    _iq_getter.set_jnt_names(_iq_jnt_names);
 
     _iq_estimator = IqEstimator(_K_t,
                                 _K_d0, _K_d1,
                                 _rot_MoI,
-                                _red_ratio);
+                                _red_ratio); // object to compute the
+    // iq estimate
+
     _num_diff = NumDiff(_n_jnts_robot);
 
     return true;
