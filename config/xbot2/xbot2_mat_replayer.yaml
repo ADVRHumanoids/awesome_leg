@@ -21,6 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     # rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    rt_iq_est:  {sched: fifo , prio: 60, period: 0.001, core_id: 3}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -50,7 +51,7 @@ xbotcore_plugins:
     ec_ros: {thread: nrt_main, type: ec_ros}
 
     iq_model_calib_rt:
-        thread: rt_main
+        thread: rt_iq_est
         type: iq_model_calib_rt
         params:
 
@@ -70,7 +71,7 @@ xbotcore_plugins:
 
             rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
-            der_est_order: {value: 10, type: int}
+            der_est_order: {value: 4, type: int}
 
             verbose: {value: false, type: bool}
 
