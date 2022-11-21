@@ -442,11 +442,11 @@ void NumDiff::add_sample(Eigen::VectorXd sample)
 void NumDiff::dot(Eigen::VectorXd& sample_dot, bool use_spline)
 {
 
-  if(_order > 6.0)
+  if(_order > 6)
   {
-      std::string exception = std::string("NumDiff::dot(): order > 6 not supported!!\n");
+      // forcing spline-based derivative estimation !!
 
-      throw std::invalid_argument(exception);
+      use_spline = true;
   }
 
   if (!use_spline)
@@ -468,6 +468,8 @@ void NumDiff::dot(Eigen::VectorXd& sample_dot, bool use_spline)
 
           Eigen::Map<Eigen::VectorXd>(&y[0], _window_data.cols(), 1) = _window_data.row(i); // mapping to data vector y
           _spline_interp[i] = interp::spline(x, y); // building spline
+
+          // ADD SPLINE CONTINUITY CONSTRAINTS !!!!!!!!!!!//
           sample_dot(i) = _spline_interp[i].deriv(1, _aux_time_vect(_aux_time_vect.size() - 1)); // evaluating spline first derivative at
           // the current sample
       }

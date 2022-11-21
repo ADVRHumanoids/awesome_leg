@@ -96,7 +96,7 @@ void IqModelCalibRt::update_state()
 
     // Getting q_p_ddot via numerical differentiation
     _num_diff.add_sample(_q_p_dot_meas);
-    _num_diff.dot(_q_p_ddot_est, true);
+    _num_diff.dot(_q_p_ddot_est);
 
 }
 
