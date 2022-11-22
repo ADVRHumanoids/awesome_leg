@@ -267,7 +267,7 @@ void IqModelCalibRt::pub_iq_est()
     iq_est_msg->msg().red_ratio = _red_ratio_vect;
     iq_est_msg->msg().tau_req = _tau_req_vect;
 
-    iq_est_msg->msg().der_est_order = _der_est_ord;
+    iq_est_msg->msg().der_est_order = _der_est_order;
 
     iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
 
