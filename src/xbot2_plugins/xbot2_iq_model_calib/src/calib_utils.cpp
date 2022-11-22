@@ -305,7 +305,7 @@ void IqEstimator::compute_iq_estimates()
 
         double total_torque_on_motor = _tau(i) + static_friction_effort + dynamic_friction_effort;
 
-        double motor_omega_dot = _q_dot(i) / _red_ratio(i);
+        double motor_omega_dot = _q_ddot(i) / _red_ratio(i);
 
         double required_motor_torque = _rot_MoI(i) * motor_omega_dot + total_torque_on_motor * _red_ratio(i);
 
