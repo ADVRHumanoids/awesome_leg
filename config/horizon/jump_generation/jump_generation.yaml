@@ -167,7 +167,7 @@ up2apex_gen:
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: 100 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 1 # maximize terminal com pos at the end of the horizon
 
       refinement:
 
