@@ -16,8 +16,22 @@ void IqModelCalibRt::init_vars()
 
     _q_p_ddot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
 
-    _iq_est = std::vector<float>(_n_jnts_robot);
+    _iq_est = Eigen::VectorXd::Zero(_n_jnts_robot);
     _iq_jnt_names = std::vector<std::string>(_n_jnts_robot);
+
+    _tau_req = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    // used to convert to ros messages-compatible types
+    _iq_est_vect = std::vector<double>(_n_jnts_robot);
+    _q_p_ddot_est_vect = std::vector<double>(_n_jnts_robot);
+    _q_p_dot_meas_vect = std::vector<double>(_n_jnts_robot);
+    _tau_meas_vect = std::vector<double>(_n_jnts_robot);
+    _K_t_vect = std::vector<double>(_n_jnts_robot);
+    _K_d0_vect = std::vector<double>(_n_jnts_robot);
+    _K_d1_vect = std::vector<double>(_n_jnts_robot);
+    _rot_MoI_vect = std::vector<double>(_n_jnts_robot);
+    _red_ratio_vect = std::vector<double>(_n_jnts_robot);
+    _tau_req_vect = std::vector<double>(_n_jnts_robot);
 
 }
 
@@ -131,7 +145,10 @@ void IqModelCalibRt::init_dump_logger()
 
     _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+
     _dump_logger->create("q_p_ddot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->add("_der_est_order", _der_est_order);
+
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("iq_est", _n_jnts_robot, 1, _matlogger_buffer_size);
@@ -185,10 +202,31 @@ void IqModelCalibRt::init_nrt_ros_bridge()
     /* Publishers */
     awesome_leg::IqEstStatus iq_status_prealloc;
 
-    std::vector<float> iq_est_prealloc(_n_jnts_robot);
+    std::vector<double> iq_est_prealloc(_n_jnts_robot);
+    std::vector<double> q_p_ddot_est_prealloc(_n_jnts_robot);
+    std::vector<double> q_p_dot_meas_prealloc(_n_jnts_robot);
+    std::vector<double> tau_meas_prealloc(_n_jnts_robot);
+    std::vector<double> Kt_prealloc(_n_jnts_robot);
+    std::vector<double> Kd0_prealloc(_n_jnts_robot);
+    std::vector<double> Kd1_prealloc(_n_jnts_robot);
+    std::vector<double> rot_MoI_prealloc(_n_jnts_robot);
+    std::vector<double> red_ratio_prealloc(_n_jnts_robot);
+    std::vector<double> tau_req_prealloc(_n_jnts_robot);
+
     std::vector<std::string> iq_jnt_names_prealloc(_n_jnts_robot);
 
     iq_status_prealloc.iq_est = iq_est_prealloc;
+    iq_status_prealloc.q_p_ddot_est = q_p_ddot_est_prealloc;
+    iq_status_prealloc.q_p_dot_meas = q_p_dot_meas_prealloc;
+    iq_status_prealloc.tau_meas = tau_meas_prealloc;
+    iq_status_prealloc.K_t = Kt_prealloc;
+    iq_status_prealloc.K_d0 = Kd0_prealloc;
+    iq_status_prealloc.K_d1 = Kd1_prealloc;
+    iq_status_prealloc.rot_MoI = rot_MoI_prealloc;
+    iq_status_prealloc.red_ratio = red_ratio_prealloc;
+    iq_status_prealloc.tau_req = tau_req_prealloc;
+    iq_status_prealloc.der_est_order = _der_est_order;
+
     iq_status_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
 
     _iq_est_pub = _ros->advertise<awesome_leg::IqEstStatus>(
@@ -207,7 +245,30 @@ void IqModelCalibRt::pub_iq_est()
 {
     auto iq_est_msg = _iq_est_pub->loanMessage();
 
-    iq_est_msg->msg().iq_est = _iq_est;
+    Eigen::Map<Eigen::VectorXd>(&_iq_est_vect[0], _iq_est.size(), 1) = _iq_est;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_vect[0], _q_p_ddot_est.size(), 1) = _q_p_ddot_est;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_vect[0], _q_p_dot_meas.size(), 1) = _q_p_dot_meas;
+    Eigen::Map<Eigen::VectorXd>(&_tau_meas_vect[0], _tau_meas.size(), 1) = _tau_meas;
+    Eigen::Map<Eigen::VectorXd>(&_K_t_vect[0], _K_t.size(), 1) = _K_t;
+    Eigen::Map<Eigen::VectorXd>(&_K_d0_vect[0], _K_d0.size(), 1) = _K_d0;
+    Eigen::Map<Eigen::VectorXd>(&_K_d1_vect[0], _K_d1.size(), 1) = _K_d1;
+    Eigen::Map<Eigen::VectorXd>(&_rot_MoI_vect[0], _rot_MoI.size(), 1) = _rot_MoI;
+    Eigen::Map<Eigen::VectorXd>(&_red_ratio_vect[0], _red_ratio.size(), 1) = _red_ratio;
+    Eigen::Map<Eigen::VectorXd>(&_tau_req_vect[0], _tau_req.size(), 1) = _tau_req;
+
+    iq_est_msg->msg().iq_est = _iq_est_vect;
+    iq_est_msg->msg().q_p_ddot_est = _q_p_ddot_est_vect;
+    iq_est_msg->msg().q_p_dot_meas = _q_p_dot_meas_vect;
+    iq_est_msg->msg().tau_meas = _tau_meas_vect;
+    iq_est_msg->msg().K_t = _K_t_vect;
+    iq_est_msg->msg().K_d0 = _K_d0_vect;
+    iq_est_msg->msg().K_d1 = _K_d1_vect;
+    iq_est_msg->msg().rot_MoI = _rot_MoI_vect;
+    iq_est_msg->msg().red_ratio = _red_ratio_vect;
+    iq_est_msg->msg().tau_req = _tau_req_vect;
+
+    iq_est_msg->msg().der_est_order = _der_est_ord;
+
     iq_est_msg->msg().iq_jnt_names = _iq_jnt_names;
 
     _iq_est_pub->publishLoaned(std::move(iq_est_msg));

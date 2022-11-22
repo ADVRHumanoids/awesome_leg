@@ -93,9 +93,15 @@ private:
         _matlogger_buffer_size = 1e4;
 
     Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _q_p_ddot_est, _tau_meas,
-                    _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio;
+                    _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
+                    _tau_req,
+                    _iq_est;
 
-    std::vector<float> _iq_est;
+    std::vector<double> _iq_est_vect, _q_p_ddot_est_vect, _q_p_dot_meas_vect,
+                        _tau_meas_vect, _K_t_vect,
+                        _K_d0_vect, _K_d1_vect,
+                        _rot_MoI_vect, _red_ratio_vect, _tau_req_vect;
+
     std::vector<std::string> _jnt_names, _iq_jnt_names;
 
     MatLogger2::Ptr _dump_logger;

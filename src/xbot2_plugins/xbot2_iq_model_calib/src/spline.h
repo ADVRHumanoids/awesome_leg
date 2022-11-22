@@ -44,11 +44,6 @@
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
 
-// unnamed namespace only because the implementation is in this
-// header file and we don't want to export symbols to the obj files
-namespace
-{
-
 namespace interp
 {
 
@@ -939,8 +934,6 @@ std::vector<double> solve_cubic(double a, double b, double c, double d,
 
 } // namespace tk
 
-
-} // namespace
 
 #pragma GCC diagnostic pop
 

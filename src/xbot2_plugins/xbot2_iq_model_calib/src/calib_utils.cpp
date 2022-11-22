@@ -458,7 +458,7 @@ void NumDiff::dot(Eigen::VectorXd& sample_dot, bool use_spline)
   {
 
       std::vector<double> x(_aux_time_vect.size());
-      std::vector<double> y(_window_data.rows());
+      std::vector<double> y(_window_data.cols());
 
       Eigen::Map<Eigen::VectorXd>(&x[0], _aux_time_vect.size(), 1) = _aux_time_vect; // mapping to time vector (same
       // for all dimensions)
