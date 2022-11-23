@@ -11,12 +11,15 @@ void IqModelCalibRt::init_vars()
 {
 
     _q_p_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_p_dot_meas_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     _iq_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _iq_meas_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     _q_p_ddot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_ddot_est_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -39,6 +42,7 @@ void IqModelCalibRt::init_vars()
     _q_p_ddot_est_vect = std::vector<double>(_n_jnts_robot);
     _q_p_ddot_est_filt_vect = std::vector<double>(_n_jnts_robot);
     _q_p_dot_meas_vect = std::vector<double>(_n_jnts_robot);
+    _q_p_dot_meas_filt_vect = std::vector<double>(_n_jnts_robot);
     _tau_meas_vect = std::vector<double>(_n_jnts_robot);
     _K_t_vect = std::vector<double>(_n_jnts_robot);
     _K_d0_vect = std::vector<double>(_n_jnts_robot);
@@ -51,6 +55,8 @@ void IqModelCalibRt::init_vars()
     _alpha_f1_vect = std::vector<double>(_n_jnts_robot);
     _K_d0_cal_vect = std::vector<double>(_n_jnts_robot);
     _K_d1_cal_vect = std::vector<double>(_n_jnts_robot);
+    _iq_meas_vect = std::vector<double>(_n_jnts_robot);
+    _iq_meas_filt_vect = std::vector<double>(_n_jnts_robot);
 
     _iq_friction_torque_cal_vect =  std::vector<double>(_n_jnts_robot);
     _tau_rot_est_vect = std::vector<double>(_n_jnts_robot);
@@ -100,6 +106,8 @@ void IqModelCalibRt::get_params_from_config()
     _der_est_order = getParamOrThrow<int>("~der_est_order");
     _mov_avrg_cutoff_freq_iq = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq");
     _mov_avrg_cutoff_freq_tau = getParamOrThrow<double>("~mov_avrg_cutoff_freq_tau");
+    _mov_avrg_cutoff_freq_iq_meas = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq_meas");
+    _mov_avrg_cutoff_freq_q_dot = getParamOrThrow<double>("~mov_avrg_cutoff_freq_q_dot");
 
 }
 
@@ -136,6 +144,11 @@ void IqModelCalibRt::update_state()
     _num_diff.add_sample(_q_p_dot_meas);
     _num_diff.dot(_q_p_ddot_est);
 
+    // Removing noise from q_p_dot (mostly used for introducing a uniform lag
+    // w.r.t. other data)
+    _mov_avrg_filter_q_dot.add_sample(_q_p_dot_meas);
+    _mov_avrg_filter_q_dot.get(_q_p_dot_meas_filt);
+
     // Removing noise from q_p_ddot
     _mov_avrg_filter_iq.add_sample(_q_p_ddot_est);
     _mov_avrg_filter_iq.get(_q_p_ddot_est_filt);
@@ -146,6 +159,10 @@ void IqModelCalibRt::update_state()
 
     //getting iq measure
     _iq_getter.get_last_iq_out(_iq_meas);
+
+    // Removing noise from iq_meas
+    _mov_avrg_filter_iq_meas.add_sample(_iq_meas);
+    _mov_avrg_filter_iq_meas.get(_iq_meas_filt);
 }
 
 void IqModelCalibRt::init_dump_logger()
@@ -178,7 +195,9 @@ void IqModelCalibRt::init_dump_logger()
     _dump_logger->add("is_sim", int(_is_sim));
 
     _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
+
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_dot_meas_filt", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("q_p_ddot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->add("der_est_order", _der_est_order);
@@ -187,6 +206,9 @@ void IqModelCalibRt::init_dump_logger()
 
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas_filt", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("iq_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("iq_meas_filt", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("iq_est", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("iq_friction_torque", _n_jnts_robot, 1, _matlogger_buffer_size);
@@ -217,13 +239,18 @@ void IqModelCalibRt::add_data2dump_logger()
 {
 
     _dump_logger->add("q_p_meas", _q_p_meas);
+
     _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
+    _dump_logger->add("q_p_dot_meas_filt", _q_p_dot_meas_filt);
 
     _dump_logger->add("tau_meas", _tau_meas);
     _dump_logger->add("tau_meas_filt", _tau_meas_filt);
 
     _dump_logger->add("q_p_ddot_est", _q_p_ddot_est);
     _dump_logger->add("q_p_ddot_est_filt", _q_p_ddot_est_filt);
+
+    _dump_logger->add("iq_meas", _iq_meas);
+    _dump_logger->add("iq_meas_filt", _iq_meas_filt);
 
     _dump_logger->add("iq_est", _iq_est);
     _dump_logger->add("iq_friction_torque", _iq_friction_torque);
@@ -303,20 +330,26 @@ void IqModelCalibRt::init_nrt_ros_bridge()
     awesome_leg::IqCalStatus iq_cal_prealloc;
 
     std::vector<double> tau_linkside_prealloc(_n_jnts_robot);
+    std::vector<double> q_p_dot_filt_prealloc(_n_jnts_robot);
     std::vector<double> tau_total_prealloc(_n_jnts_robot);
     std::vector<double> tau_friction_meas(_n_jnts_robot);
     std::vector<double> alpha_f0_prealloc(_n_jnts_robot);
     std::vector<double> alpha_f1_prealloc(_n_jnts_robot);
     std::vector<double> K_d0_cal_prealloc(_n_jnts_robot);
     std::vector<double> K_d1_cal_prealloc(_n_jnts_robot);
+    std::vector<double> iq_meas_prealloc(_n_jnts_robot);
+    std::vector<double> iq_meas_filt_prealloc(_n_jnts_robot);
 
     iq_cal_prealloc.tau_linkside_filt = tau_linkside_prealloc;
+    iq_cal_prealloc.q_dot_filt = q_p_dot_filt_prealloc;
     iq_cal_prealloc.tau_total = tau_total_prealloc;
     iq_cal_prealloc.tau_friction_meas = tau_friction_meas;
     iq_cal_prealloc.alpha_f0 = alpha_f0_prealloc;
     iq_cal_prealloc.alpha_f1 = alpha_f1_prealloc;
     iq_cal_prealloc.K_d0_cal = K_d0_cal_prealloc;
     iq_cal_prealloc.K_d1_cal = K_d1_cal_prealloc;
+    iq_cal_prealloc.iq_meas = iq_meas_prealloc;
+    iq_cal_prealloc.iq_meas_filt = K_d1_cal_prealloc;
 
     iq_cal_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
 
@@ -377,21 +410,27 @@ void IqModelCalibRt::pub_iq_cal()
 
     // mapping EigenVectorXd data to std::vector, so that they can be published
     Eigen::Map<Eigen::VectorXd>(&_tau_meas_filt_vect[0], _tau_meas_filt.size(), 1) = _tau_meas_filt;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_filt_vect[0], _q_p_dot_meas_filt.size(), 1) = _q_p_dot_meas_filt;
     Eigen::Map<Eigen::VectorXd>(&_tau_rot_est_vect[0], _tau_rot_est.size(), 1) = _tau_rot_est;
     Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_cal_vect[0], _iq_friction_torque_cal.size(), 1) = _iq_friction_torque_cal;
     Eigen::Map<Eigen::VectorXd>(&_alpha_f0_vect[0], _alpha_f0.size(), 1) = _alpha_f0;
     Eigen::Map<Eigen::VectorXd>(&_alpha_f1_vect[0], _alpha_f1.size(), 1) = _alpha_f1;
     Eigen::Map<Eigen::VectorXd>(&_K_d0_cal_vect[0], _K_d0_cal.size(), 1) = _K_d0_cal;
     Eigen::Map<Eigen::VectorXd>(&_K_d1_cal_vect[0], _K_d1_cal.size(), 1) = _K_d1_cal;
+    Eigen::Map<Eigen::VectorXd>(&_iq_meas_vect[0], _iq_meas.size(), 1) = _iq_meas;
+    Eigen::Map<Eigen::VectorXd>(&_iq_meas_filt_vect[0], _iq_meas_filt.size(), 1) = _iq_meas_filt;
 
     // filling message
     iq_cal_msg->msg().tau_linkside_filt = _tau_meas_filt_vect;
+    iq_cal_msg->msg().q_dot_filt = _q_p_dot_meas_filt_vect;
     iq_cal_msg->msg().tau_total = _tau_rot_est_vect;
     iq_cal_msg->msg().tau_friction_meas = _iq_friction_torque_cal_vect;
     iq_cal_msg->msg().alpha_f0 = _alpha_f0_vect;
     iq_cal_msg->msg().alpha_f1 = _alpha_f1_vect;
     iq_cal_msg->msg().K_d0_cal = _K_d0_cal_vect;
     iq_cal_msg->msg().K_d1_cal = _K_d1_cal_vect;
+    iq_cal_msg->msg().iq_meas = _iq_meas_vect;
+    iq_cal_msg->msg().iq_meas_filt = _iq_meas_filt_vect;
 
     iq_cal_msg->msg().iq_jnt_names = _iq_jnt_names;
 
@@ -432,16 +471,27 @@ bool IqModelCalibRt::on_initialize()
     // numerical differentiation
     _num_diff = NumDiff(_n_jnts_robot, _plugin_dt, _der_est_order);
 
+    //* filtering --> we should filter everything, also the q_dot (which is not so noisy)
+    // so that we get the same delay for each data necessary for the iq model calibration
+    // (this means we should filter with the same cutoff frequency or window length)*//
+
     // filter for iq(estimate)
     _mov_avrg_filter_iq = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);
     _mov_avrg_filter_iq.get_window_size(_mov_avrg_window_size_iq); // get computed window size
 
+    // filter for iq(measurement)
+    _mov_avrg_filter_iq_meas = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq_meas);
+    _mov_avrg_filter_iq_meas.get_window_size(_mov_avrg_window_size_iq_meas); // get computed window size
+
     //filter for tau_meas
     _mov_avrg_filter_tau = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);
-    _mov_avrg_filter_tau.get_window_size(_mov_avrg_window_size_iq); // get computed window size
+    _mov_avrg_filter_tau.get_window_size(_mov_avrg_window_size_tau); // get computed window size
+
+    //filter for q_dot
+    _mov_avrg_filter_q_dot = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);
+    _mov_avrg_filter_tau.get_window_size(_mov_avrg_window_size_q_dot); // get computed window size
 
     // iq model calibration object
-
 
     return true;
     

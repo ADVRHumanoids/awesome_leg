@@ -53,6 +53,7 @@ namespace CalibUtils{
       private:
 
         bool _is_first_aux_sig = true,
+             _vars_were_initialized = false,
              _were_jnt_names_set = false, _set_jnt_names_from_ros = true,
              _verbose = false;
 

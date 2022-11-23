@@ -23,7 +23,11 @@ void IqRosGetter::init_vars()
 
 void IqRosGetter::get_last_iq_out(Eigen::VectorXd& iq_out_fb)
 {
-    iq_out_fb = _iq_out_fb;
+    if(_vars_were_initialized)
+    { // only assign output if _iq_out_fb has a nonzero dimension
+      // (guaranteed after init_vars is called)
+        iq_out_fb = _iq_out_fb;
+    }
 }
 
 void IqRosGetter::get_last_iq_out_stamps(Eigen::VectorXd& timestamps)
@@ -98,6 +102,8 @@ void IqRosGetter::on_aux_signal_received(const xbot_msgs::CustomState& aux_sig)
     if(_is_first_aux_sig)
     {
         init_vars();
+
+        _vars_were_initialized = true;
     }
 
     auto remapped_aux_tuple = aux_mapper(aux_sig); // remapping aux types

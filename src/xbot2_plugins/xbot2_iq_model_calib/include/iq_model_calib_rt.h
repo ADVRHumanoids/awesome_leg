@@ -93,9 +93,10 @@ private:
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _matlogger_buffer_size = 1e4;
 
-    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _q_p_ddot_est, _q_p_ddot_est_filt,
+    Eigen::VectorXd _q_p_meas,
+                    _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
                     _tau_meas, _tau_meas_filt,
-                    _iq_meas,
+                    _iq_meas, _iq_meas_filt,
                     _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
                     _tau_req,
                     _iq_est, _iq_friction_torque,
@@ -104,7 +105,7 @@ private:
                     _K_d0_cal, _K_d1_cal;
 
     std::vector<double> _iq_est_vect, _q_p_ddot_est_vect, _q_p_ddot_est_filt_vect,
-                        _q_p_dot_meas_vect,
+                        _q_p_dot_meas_vect, _q_p_dot_meas_filt_vect,
                         _tau_meas_vect, _tau_meas_filt_vect,
                         _K_t_vect,
                         _K_d0_vect, _K_d1_vect,
@@ -112,7 +113,9 @@ private:
                         _iq_friction_torque_cal_vect,
                         _tau_rot_est_vect,
                         _alpha_f0_vect, _alpha_f1_vect,
-                        _K_d0_cal_vect, _K_d1_cal_vect;
+                        _K_d0_cal_vect, _K_d1_cal_vect,
+                        _iq_meas_vect,
+                        _iq_meas_filt_vect;
 
     std::vector<std::string> _jnt_names, _iq_jnt_names;
 
@@ -132,13 +135,21 @@ private:
 
     IqRosGetter _iq_getter;
     IqEstimator _iq_estimator;
+
     NumDiff _num_diff;
+
     MovAvrgFilt _mov_avrg_filter_iq;
     MovAvrgFilt _mov_avrg_filter_tau;
+    MovAvrgFilt _mov_avrg_filter_iq_meas;
+    MovAvrgFilt _mov_avrg_filter_q_dot;
     int _mov_avrg_window_size_iq = 10;
     double _mov_avrg_cutoff_freq_iq = 15.0;
     int _mov_avrg_window_size_tau = 10;
     double _mov_avrg_cutoff_freq_tau = 15.0;
+    int _mov_avrg_window_size_iq_meas = 10;
+    double _mov_avrg_cutoff_freq_iq_meas = 15.0;
+    int _mov_avrg_window_size_q_dot= 10;
+    double _mov_avrg_cutoff_freq_q_dot = 15.0;
 
     void get_params_from_config();
 
