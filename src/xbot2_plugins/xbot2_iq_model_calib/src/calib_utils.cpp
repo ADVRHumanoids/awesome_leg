@@ -13,27 +13,37 @@ IqRosGetter::IqRosGetter(bool verbose)
 
 }
 
+void IqRosGetter::init_vars()
+{
+    _n_active_jnts = _jnt_names.size();
+
+    _iq_out_fb = Eigen::VectorXd::Zero(_n_active_jnts);
+    _timestamps = Eigen::VectorXd::Zero(_n_active_jnts);
+}
+
 void IqRosGetter::get_last_iq_out(Eigen::VectorXd& iq_out_fb)
 {
-  iq_out_fb = _iq_out_fb;
+    iq_out_fb = _iq_out_fb;
 }
 
 void IqRosGetter::get_last_iq_out_stamps(Eigen::VectorXd& timestamps)
 {
-  timestamps = _timestamps;
+    timestamps = _timestamps;
 }
 
 void IqRosGetter::get_time_reference(double& t_ref)
 {
-  t_ref = _time_ref;
+    t_ref = _time_ref;
 }
 
 void IqRosGetter::set_jnt_names(std::vector<std::string> jnt_names)
 {
 
-  _jnt_names = jnt_names;
+    _jnt_names = jnt_names;
 
-  _set_jnt_names_from_ros = false;
+    _set_jnt_names_from_ros = false;
+
+    _were_jnt_names_set = true;
 
 }
 
@@ -41,10 +51,12 @@ void IqRosGetter::get_jnt_names(std::vector<std::string>& jnt_names)
 {
 
     jnt_names = _jnt_names;
+
 }
 
 bool IqRosGetter::is_iq_out_topic_active()
 {
+
     if(!_is_first_aux_sig)
     { // we have received at least one aux signal --> which means that at this point we know for sure
       // the joint names associated with each message
@@ -55,22 +67,23 @@ bool IqRosGetter::is_iq_out_topic_active()
     {
         return false;
     }
+
 }
 
 void IqRosGetter::on_js_signal_received(const xbot_msgs::JointState& js_sig)
 {
 
-  if(_set_jnt_names_from_ros)
-  {
-      _jnt_names = js_sig.name;
+    if(_set_jnt_names_from_ros && !_were_jnt_names_set)
+    {
+        _jnt_names = js_sig.name;
 
-      _were_jnt_names_set = true; // to signal that we now have read the joint names
-  }
+        _were_jnt_names_set = true; // to signal that we now have read the joint names
+    }
 
-  if (_verbose)
-  {
-      fprintf( stderr, "\n js message received \n");
-  }
+    if (_verbose)
+    {
+        fprintf( stderr, "\n js message received \n");
+    }
 
 }
 
@@ -82,19 +95,17 @@ void IqRosGetter::on_aux_signal_received(const xbot_msgs::CustomState& aux_sig)
         fprintf( stderr, "\n aux message received \n");
     }
 
-    if (!_were_jnt_names_set)
+    if(_is_first_aux_sig)
     {
-
-        auto remapped_aux_tuple = aux_mapper(aux_sig); // remapping aux types
-
-        std::vector<double> ordered_vals = std::get<1>(remapped_aux_tuple); // ordered as _jnt_names
-
-        double* ptr = &ordered_vals[0];
-
-        _iq_out_fb = Eigen::Map<Eigen::VectorXd>(ptr, ordered_vals.size());
-
+        init_vars();
     }
 
+    auto remapped_aux_tuple = aux_mapper(aux_sig); // remapping aux types
+
+    std::vector<double> ordered_vals = std::get<1>(remapped_aux_tuple); // ordered as _jnt_names
+    double* ptr = &ordered_vals[0];
+
+    _iq_out_fb = Eigen::Map<Eigen::VectorXd>(ptr, ordered_vals.size());
 
 }
 

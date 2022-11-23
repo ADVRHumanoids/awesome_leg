@@ -95,6 +95,7 @@ private:
 
     Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _q_p_ddot_est, _q_p_ddot_est_filt,
                     _tau_meas, _tau_meas_filt,
+                    _iq_meas,
                     _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
                     _tau_req,
                     _iq_est, _iq_friction_torque,

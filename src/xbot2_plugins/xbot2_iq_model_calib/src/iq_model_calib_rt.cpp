@@ -16,6 +16,8 @@ void IqModelCalibRt::init_vars()
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
 
+    _iq_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     _q_p_ddot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_ddot_est_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
 
@@ -141,6 +143,9 @@ void IqModelCalibRt::update_state()
     // Removing noise from tau_meas
     _mov_avrg_filter_tau.add_sample(_tau_meas);
     _mov_avrg_filter_tau.get(_tau_meas_filt);
+
+    //getting iq measure
+    _iq_getter.get_last_iq_out(_iq_meas);
 }
 
 void IqModelCalibRt::init_dump_logger()
@@ -412,11 +417,11 @@ bool IqModelCalibRt::on_initialize()
     init_nrt_ros_bridge();
 
     // using the order given by _jnt_names
-//    _iq_getter = IqRosGetter(_verbose); // object to get the
+    _iq_getter = IqRosGetter(); // object to get the
     // quadrature current from XBot2 ROS topic (they need to be activated
     // manually)
     _iq_jnt_names = _jnt_names; // we will get (and estimate) the iq
-//    _iq_getter.set_jnt_names(_iq_jnt_names);
+    _iq_getter.set_jnt_names(_iq_jnt_names);
 
     // iq estimation model
     _iq_estimator = IqEstimator(_K_t,

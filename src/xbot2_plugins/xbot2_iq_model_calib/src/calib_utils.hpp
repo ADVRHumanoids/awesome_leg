@@ -52,7 +52,7 @@ namespace CalibUtils{
 
       private:
 
-        bool _was_aux_msg_received = false, _is_first_aux_sig = true,
+        bool _is_first_aux_sig = true,
              _were_jnt_names_set = false, _set_jnt_names_from_ros = true,
              _verbose = false;
 
@@ -62,12 +62,16 @@ namespace CalibUtils{
 
         int _aux_types_encode_number = 0; // global counter used to assign incremental values to aux signal types
 
+        int _n_active_jnts = 0;
+
         std::vector<int> _indices; // for holding the joint mapping
 
         std::map<std::string, int> _aux_msg_type_map;
         std::vector<std::string> _jnt_names; // auxiliary vector where the joint names (as visible in the js message) are saved.
 
         Eigen::VectorXd _iq_out_fb, _timestamps;
+
+        void init_vars();
 
         template <typename T, typename t_v >
         int find_index(std::vector<T> input_v, t_v value);
