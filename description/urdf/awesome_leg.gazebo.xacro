@@ -111,11 +111,11 @@
                 <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
                     <updateRate>200.0</updateRate>
                     <topicName>awesome_leg/ft_sensor_tip</topicName>
-                    <jointName>tip_joint${id}</jointName>
+                    <jointName>tip_joint_${id}</jointName>
                 </plugin>
             </gazebo>
 
-            <gazebo reference="tip_joint${id}">
+            <gazebo reference="tip_joint_${id}">
                 <provideFeedback>true</provideFeedback>
                 <sensor type="force_torque" name="tip${id}_fts">
                     <force_torque>
