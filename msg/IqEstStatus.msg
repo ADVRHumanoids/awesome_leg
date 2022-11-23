@@ -1,5 +1,6 @@
 float64[] iq_est
 float64[] q_p_ddot_est
+float64[] q_p_ddot_est_filt
 float64[] q_p_dot_meas
 float64[] tau_meas
 float64[] K_t

@@ -24,6 +24,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
 #include <awesome_leg/IqEstStatus.h>
+#include <awesome_leg/IqCalStatus.h>
 
 using namespace XBot;
 using namespace CalibUtils;
@@ -92,15 +93,25 @@ private:
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _matlogger_buffer_size = 1e4;
 
-    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _q_p_ddot_est, _tau_meas,
+    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _q_p_ddot_est, _q_p_ddot_est_filt,
+                    _tau_meas, _tau_meas_filt,
                     _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
                     _tau_req,
-                    _iq_est;
+                    _iq_est, _iq_friction_torque,
+                    _iq_friction_torque_cal, _tau_rot_est,
+                    _alpha_f0, _alpha_f1,
+                    _K_d0_cal, _K_d1_cal;
 
-    std::vector<double> _iq_est_vect, _q_p_ddot_est_vect, _q_p_dot_meas_vect,
-                        _tau_meas_vect, _K_t_vect,
+    std::vector<double> _iq_est_vect, _q_p_ddot_est_vect, _q_p_ddot_est_filt_vect,
+                        _q_p_dot_meas_vect,
+                        _tau_meas_vect, _tau_meas_filt_vect,
+                        _K_t_vect,
                         _K_d0_vect, _K_d1_vect,
-                        _rot_MoI_vect, _red_ratio_vect, _tau_req_vect;
+                        _rot_MoI_vect, _red_ratio_vect, _tau_req_vect,
+                        _iq_friction_torque_cal_vect,
+                        _tau_rot_est_vect,
+                        _alpha_f0_vect, _alpha_f1_vect,
+                        _K_d0_cal_vect, _K_d1_cal_vect;
 
     std::vector<std::string> _jnt_names, _iq_jnt_names;
 
@@ -116,10 +127,17 @@ private:
     SubscriberPtr<xbot_msgs::JointState> _js_signals_sub;
 
     PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
+    PublisherPtr<awesome_leg::IqCalStatus> _iq_cal_pub;
 
     IqRosGetter _iq_getter;
     IqEstimator _iq_estimator;
     NumDiff _num_diff;
+    MovAvrgFilt _mov_avrg_filter_iq;
+    MovAvrgFilt _mov_avrg_filter_tau;
+    int _mov_avrg_window_size_iq = 10;
+    double _mov_avrg_cutoff_freq_iq = 15.0;
+    int _mov_avrg_window_size_tau = 10;
+    double _mov_avrg_cutoff_freq_tau = 15.0;
 
     void get_params_from_config();
 
@@ -143,6 +161,7 @@ private:
     void is_sim(std::string sim_string);
 
     void pub_iq_est();
+    void pub_iq_cal();
                  
 };
 

@@ -22,6 +22,7 @@ add_message_files(
   FILES
   MatReplayerStatus.msg
   IqEstStatus.msg
+  IqCalStatus.msg
 
 )
 

@@ -233,25 +233,37 @@ IqEstimator::IqEstimator(Eigen::VectorXd K_t,
     _q_dot = Eigen::VectorXd::Zero(_n_jnts);
     _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
     _tau = Eigen::VectorXd::Zero(_n_jnts);
+    _tau_friction = Eigen::VectorXd::Zero(_n_jnts);
 
     _iq_est = Eigen::VectorXd::Zero(_n_jnts);
 }
 
 IqEstimator::IqEstimator()
 {
-  _iq_est = Eigen::VectorXd::Zero(_K_t.size());
+
 }
 
 void IqEstimator::get_iq_estimate(std::vector<float>& iq_est)
 {
-  compute_iq_estimates();
+    int err = 0;
+    if(iq_est.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
 
-  iq_est = std::vector<float>(_n_jnts);
+    if (err != 0)
+    {
+        std::string exception = std::string("IqEstimator::get_iq_estimate(): dimension mismatch of input data \n");
+    }
 
-  for (int i = 0; i < _n_jnts; i++)
-  {
-     iq_est[i] = _iq_est[i]; // mapping Eigen Vector to std::vector
-  }
+    compute_iq_estimates();
+
+    iq_est = std::vector<float>(_n_jnts);
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+     iq_est[i] = _iq_est[i]; // mapping Eigen Vector to std::vector(brutal way)
+    }
 
 }
 
@@ -275,27 +287,100 @@ void IqEstimator::get_iq_estimate(Eigen::VectorXd& iq_est)
 
 }
 
+void IqEstimator::get_iq_estimate(std::vector<float>& iq_est,
+                                  Eigen::VectorXd K_d0, Eigen::VectorXd K_d1)
+{
+    int err = 0;
+    if(K_d0.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
+    if(K_d1.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
+
+    if (err != 0)
+    {
+        std::string exception = std::string("IqEstimator::compute_iq_estimates(): dimension mismatch of input data -> \n") +
+                                std::string("K_d0 length: ") + std::to_string(K_d0.size()) + std::string("\n") +
+                                std::string("K_d1 length: ") + std::to_string(K_d1.size()) + std::string("\n") +
+                                std::string("which do not match the required length of: ") + std::to_string(_n_jnts);
+
+        throw std::invalid_argument(exception);
+    }
+    else
+    {
+        // update K_d0 and K_d1 with the provided values
+        _K_d0 = K_d0;
+        _K_d1 = K_d1;
+
+        compute_iq_estimates(); // compute iq estimate with the runtime set gains
+
+        iq_est = std::vector<float>(_n_jnts);
+
+        for (int i = 0; i < _n_jnts; i++)
+        {
+           iq_est[i] = _iq_est[i]; // mapping Eigen Vector to std::vector (brutal way)
+        }
+
+    }
+
+}
+
+void IqEstimator::get_iq_estimate(Eigen::VectorXd& iq_est,
+                                  Eigen::VectorXd K_d0, Eigen::VectorXd K_d1)
+{
+    int err = 0;
+    if(K_d0.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
+    if(K_d1.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
+
+    if (err != 0)
+    {
+        std::string exception = std::string("IqEstimator::compute_iq_estimates(): dimension mismatch of input data -> \n") +
+                                std::string("K_d0 length: ") + std::to_string(K_d0.size()) + std::string("\n") +
+                                std::string("K_d1 length: ") + std::to_string(K_d1.size()) + std::string("\n") +
+                                std::string("which do not match the required length of: ") + std::to_string(_n_jnts);
+
+        throw std::invalid_argument(exception);
+    }
+    else
+    {
+        // update K_d0 and K_d1 with the provided values
+        _K_d0 = K_d0;
+        _K_d1 = K_d1;
+
+        compute_iq_estimates(); // compute iq estimate with the runtime set gains
+
+        iq_est = _iq_est;
+
+    }
+
+}
+
+void IqEstimator::get_tau_link(Eigen::VectorXd& tau)
+{
+    tau = _tau;
+}
+
+void IqEstimator::get_tau_friction(Eigen::VectorXd& tau_friction)
+{
+    tau_friction = _tau_friction;
+}
+
+void IqEstimator::get_q_ddot(Eigen::VectorXd& q_ddot)
+{
+    q_ddot = _q_ddot;
+}
+
 void IqEstimator::compute_iq_estimates()
 {
-
-// Eigen-style implementation (has segfault problems -> to be debugged)
-//  Eigen::VectorXd aux = _tanh_coeff * _q_dot;
-//  Eigen::VectorXd aux2 = tanh(aux.array());
-
-//  Eigen::VectorXd static_friction_effort = _K_d0 * aux2;
-//  Eigen::VectorXd dynamic_friction_effort = _K_d1 * _q_dot;
-
-//  Eigen::VectorXd total_torque_on_motor = _tau + static_friction_effort + dynamic_friction_effort;
-
-//  Eigen::VectorXd red_ratio_inv = _red_ratio.inverse();
-
-//  Eigen::VectorXd motor_omega_dot = _q_dot * red_ratio_inv;
-
-//  Eigen::VectorXd required_motor_torque = _rot_MoI * motor_omega_dot + total_torque_on_motor * _red_ratio;
-
-//  Eigen::VectorXd K_t_inv = _K_t.inverse();
-
-//  _iq_est = required_motor_torque * K_t_inv;
 
     for (int i = 0; i < _n_jnts; i++)
     {
@@ -303,7 +388,9 @@ void IqEstimator::compute_iq_estimates()
         double static_friction_effort = _K_d0(i) * tanh(_tanh_coeff * _q_dot(i));
         double dynamic_friction_effort = _K_d1(i) * _q_dot(i);
 
-        double total_torque_on_motor = _tau(i) + static_friction_effort + dynamic_friction_effort;
+        _tau_friction(i) = static_friction_effort + dynamic_friction_effort;
+
+        double total_torque_on_motor = _tau(i) + _tau_friction(i);
 
         double motor_omega_dot = _q_ddot(i) / _red_ratio(i);
 
@@ -351,6 +438,7 @@ void IqEstimator::set_current_state(Eigen::VectorXd q_dot, Eigen::VectorXd q_ddo
 }
 
 //************* NumDiff *************//
+
 NumDiff::NumDiff()
 {
 
@@ -474,4 +562,100 @@ void NumDiff::dot(Eigen::VectorXd& sample_dot, bool use_spline)
           // the current sample
       }
   }
+}
+
+//************* MovAvrgFilt *************//
+
+MovAvrgFilt::MovAvrgFilt()
+{
+
+}
+
+MovAvrgFilt::MovAvrgFilt(int n_jnts, double dt, int window_size)
+    :_n_jnts{n_jnts}, _window_size{window_size}, _samples_dt{dt}
+{
+
+    if (_window_size <= 1)
+    {
+        _window_size = 2;
+    }
+
+    _cutoff_freq = _magic_number/_samples_dt * 1.0 / std::sqrt(std::pow(_window_size, 2) - 1);
+
+    _window_data = Eigen::MatrixXd::Zero(_n_jnts, _window_size);
+
+}
+
+MovAvrgFilt::MovAvrgFilt(int n_jnts, double dt, double cutoff_freq)
+    :_n_jnts{n_jnts}, _cutoff_freq{cutoff_freq}, _samples_dt{dt}
+{
+
+    double nominal_window_size = std::sqrt(std::pow(_magic_number / (_samples_dt * _cutoff_freq), 2) + 1);
+    _window_size = std::round(nominal_window_size);
+    if (_window_size <= 1)
+    {
+        _window_size = 2;
+    }
+    _window_data = Eigen::MatrixXd::Zero(_n_jnts, _window_size);
+
+}
+
+void MovAvrgFilt::add_sample(Eigen::VectorXd sample)
+{
+
+  int sample_size = sample.size();
+
+  if(sample_size != _n_jnts)
+  {
+      std::string exception = std::string("MovAvrgFilt::add_sample(): Trying to add a sample of size ") +
+                              std::to_string(sample_size) + std::string(", which is different from ") +
+                              std::to_string(_n_jnts) + std::string(", (number of joints) \n");
+
+      throw std::invalid_argument(exception);
+  }
+
+  // shifting data to the right (discarting most remote sample, which is the
+  // one on the extreme right)
+  for (int i = _window_size - 2; i >= 0; i--)
+  {
+     _window_data.block(0, i + 1 , _n_jnts, 1) = _window_data.block(0, i, _n_jnts, 1);
+
+  }
+
+  _window_data.block(0, 0 , _n_jnts, 1) = sample; // assign most recent sample
+
+  if (_is_first_run)
+  { // if it's the first time we add a sample
+    // we fill the empty part of the window with
+    // replicae of the added sample.
+    // after _window_size samples, the filter is at
+    // regime.
+
+    for (int i = 1; i < _window_data.cols(); i++)
+    {
+        _window_data.block(0, i, _n_jnts, 1) = sample;
+    }
+
+    _is_first_run = false;
+
+  }
+
+
+}
+
+void MovAvrgFilt::get(Eigen::VectorXd& filt_sample)
+{
+
+    filt_sample = 1.0 / _window_size * _window_data.rowwise().sum();
+
+}
+
+void MovAvrgFilt::get_cutoff_freq(double& cutoff_f)
+{
+    cutoff_f = _cutoff_freq;
+}
+
+void MovAvrgFilt::get_window_size(int& window_size)
+{
+    window_size = _window_size;
 }

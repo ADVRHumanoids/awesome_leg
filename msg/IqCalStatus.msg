@@ -1,0 +1,9 @@
+float64[] tau_linkside_filt
+float64[] tau_total
+float64[] tau_friction_meas
+float64[] alpha_f0
+float64[] alpha_f1
+float64[] K_d0_cal
+float64[] K_d1_cal
+
+string[] iq_jnt_names

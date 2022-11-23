@@ -101,21 +101,34 @@ namespace CalibUtils{
 
         void get_iq_estimate(std::vector<float>& iq_est);
         void get_iq_estimate(Eigen::VectorXd& iq_est);
+        void get_iq_estimate(std::vector<float>& iq_est,
+                             Eigen::VectorXd K_d0, Eigen::VectorXd K_d1);
+        void get_iq_estimate(Eigen::VectorXd& iq_est,
+                             Eigen::VectorXd K_d0, Eigen::VectorXd K_d1);
+
+        void get_tau_link(Eigen::VectorXd& tau);
+        void get_tau_friction(Eigen::VectorXd& tau_friction);
+        void get_q_ddot(Eigen::VectorXd& q_ddot);
 
       private:
 
         Eigen::VectorXd _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
-                        _iq_est;
+                        _iq_est, _tau_l, _tau_friction;
 
         Eigen::VectorXd _q_dot, _q_ddot, _tau;
 
-        double _tanh_coeff = 0.0;
+        double _tanh_coeff = 10.0;
 
         int _n_jnts;
 
         void compute_iq_estimates();
 
+
     };
+
+}
+
+namespace SignProcUtils{
 
     class NumDiff
     {
@@ -154,11 +167,41 @@ namespace CalibUtils{
         Eigen::VectorXd _aux_time_vect;
 
     };
-}
 
-namespace SignProcUtils{
+    class MovAvrgFilt
+    {
+      public:
 
-  class AcfImpl
+        MovAvrgFilt();
+
+        MovAvrgFilt(int n_jnts, double dt, int window_size = 10);
+        MovAvrgFilt(int n_jnts, double dt, double cutoff_freq = 15);
+
+        void add_sample(Eigen::VectorXd sample);
+
+        void get(Eigen::VectorXd& filt_sample);
+
+        void get_cutoff_freq(double& cutoff_f);
+        void get_window_size(int& window_size);
+
+      private:
+
+        Eigen::MatrixXd _window_data;
+
+        double _magic_number = 0.442946470689452340308369; // reference
+        // @ https://dsp.stackexchange.com/questions/9966/what-is-the-cut-off-frequency-of-a-moving-average-filter
+
+        int _n_jnts, _window_size;
+
+        double _cutoff_freq = -1.0;
+
+        double _samples_dt = -1.0;
+
+        bool _is_first_run = true;
+
+    };
+
+    class AcfImpl
   {
       public:
 
