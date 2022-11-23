@@ -147,7 +147,7 @@ void IqModelCalibRt::init_dump_logger()
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("q_p_ddot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->add("_der_est_order", _der_est_order);
+    _dump_logger->add("der_est_order", _der_est_order);
 
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
 
