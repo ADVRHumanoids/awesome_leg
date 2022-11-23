@@ -676,3 +676,80 @@ void MovAvrgFilt::get_window_size(int& window_size)
 {
     window_size = _window_size;
 }
+
+//************* IqCalib *************//
+
+IqCalib::IqCalib()
+{
+
+}
+
+IqCalib::IqCalib(int window_size,
+                 Eigen::VectorXd K_t,
+                 Eigen::VectorXd rot_MoI,
+                 Eigen::VectorXd red_ratio,
+                 double tanh_coeff)
+  :_window_size{window_size},
+    _K_t{K_t}, _rot_MoI{rot_MoI},
+    _red_ratio{red_ratio},
+    _tanh_coeff{tanh_coeff}
+{
+
+  // the linear regression problem (for a single joint) is written as
+  // A * Kd = tau_fricton_measured
+  // where A is obtained as [alpha_d0, alpha_d1]
+  // and tau_friction_measured is the "measurement" of the fictitious additional
+  // friction torque
+  // The (unconstrained) optimization problem to be solved is
+  // min_{Kd} ||(A * Kd - tau_friction_measured)||^2
+  // which is solved by Kd_opt = A_+ * tau_friction_measured
+  // This least squared problem can be easily solved employing the builtin
+  // utilities of Eigen library (@ https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html)
+
+  _n_jnts = K_t.size();
+
+  int err = 0;
+  if(rot_MoI.size() != _n_jnts)
+  {
+      err = err + 1;
+  }
+  if(red_ratio.size() != _n_jnts)
+  {
+      err = err + 1;
+  }
+
+  if (err != 0)
+  {
+      std::string exception = std::string("IqCalib::IqCalib(): dimension mismatch in one or more of the input data -> \n") +
+                              std::string("K_t length: ") + std::to_string(_K_t.size()) + std::string("\n") +
+                              std::string("rot_MoI length: ") + std::to_string(_rot_MoI.size()) + std::string("\n") +
+                              std::string("red_ratio length: ") + std::to_string(_red_ratio.size()) + std::string("\n") +
+                              std::string("which do not match the required length of: ") + std::to_string(_n_jnts);
+
+      throw std::invalid_argument(exception);
+  }
+  else
+  {
+      _A = Eigen::MatrixXd::Zero(_window_size * _n_jnts, 2);
+      _tau_friction = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+
+      _Kd0 = Eigen::VectorXd::Zero(_n_jnts);
+      _Kd1 = Eigen::VectorXd::Zero(_n_jnts);
+
+      _Kd = Eigen::VectorXd::Zero(2);
+
+      _alpha_d0 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+      _alpha_d1 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+
+      _K_t = Eigen::VectorXd::Zero(_n_jnts);
+      _rot_MoI = Eigen::VectorXd::Zero(_n_jnts);
+      _red_ratio = Eigen::VectorXd::Zero(_n_jnts);
+      _tanh_coeff = Eigen::VectorXd::Zero(_n_jnts);
+
+      _q_dot = Eigen::VectorXd::Zero(_n_jnts);
+      _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
+      _iq = Eigen::VectorXd::Zero(_n_jnts);
+      _tau = Eigen::VectorXd::Zero(_n_jnts);
+  }
+
+}

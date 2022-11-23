@@ -109,6 +109,7 @@ void IqModelCalibRt::get_params_from_config()
     _mov_avrg_cutoff_freq_iq_meas = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq_meas");
     _mov_avrg_cutoff_freq_q_dot = getParamOrThrow<double>("~mov_avrg_cutoff_freq_q_dot");
 
+    _iq_calib_window_size = getParamOrThrow<int>("~iq_calib_window_size");
 }
 
 void IqModelCalibRt::is_sim(std::string sim_string = "sim")
@@ -471,6 +472,12 @@ bool IqModelCalibRt::on_initialize()
     // numerical differentiation
     _num_diff = NumDiff(_n_jnts_robot, _plugin_dt, _der_est_order);
 
+    // iq model calibration object
+    _iq_calib = IqCalib(_iq_calib_window_size,
+                        _K_t,
+                        _rot_MoI,
+                        _red_ratio);
+
     //* filtering --> we should filter everything, also the q_dot (which is not so noisy)
     // so that we get the same delay for each data necessary for the iq model calibration
     // (this means we should filter with the same cutoff frequency or window length)*//
@@ -490,8 +497,6 @@ bool IqModelCalibRt::on_initialize()
     //filter for q_dot
     _mov_avrg_filter_q_dot = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);
     _mov_avrg_filter_tau.get_window_size(_mov_avrg_window_size_q_dot); // get computed window size
-
-    // iq model calibration object
 
     return true;
     

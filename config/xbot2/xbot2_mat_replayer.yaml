@@ -78,6 +78,8 @@ xbotcore_plugins:
             mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
             mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
 
+            iq_calib_window_size: {value: 1000, type: int}
+
             verbose: {value: false, type: bool}
 
     mat_replayer_rt:

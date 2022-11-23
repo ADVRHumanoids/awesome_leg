@@ -83,7 +83,8 @@ private:
         _n_jnts_model_ft_est,
         _n_jnts_robot,
         _sample_index = 0,
-        _der_est_order = 1;
+        _der_est_order = 1,
+        _iq_calib_window_size = 1000;
 
     std::string _mat_path, _dump_mat_suffix,
                 _urdf_path, _srdf_path,
@@ -135,6 +136,7 @@ private:
 
     IqRosGetter _iq_getter;
     IqEstimator _iq_estimator;
+    IqCalib _iq_calib;
 
     NumDiff _num_diff;
 

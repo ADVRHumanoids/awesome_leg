@@ -86,7 +86,6 @@ namespace CalibUtils{
 
     };
 
-
     class IqEstimator
     {
 
@@ -131,6 +130,51 @@ namespace CalibUtils{
 
     };
 
+    class IqCalib
+    {
+      public:
+
+        IqCalib();
+
+        IqCalib(int window_size,
+                Eigen::VectorXd K_t,
+                Eigen::VectorXd rot_MoI,
+                Eigen::VectorXd red_ratio,
+                double tanh_coeff = 10.0);
+
+        void add_sample(Eigen::VectorXd q_dot,
+                   Eigen::VectorXd q_ddot,
+                   Eigen::VectorXd iq,
+                   Eigen::VectorXd tau);
+
+        void get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,
+                               Eigen::VectorXd& Kd1_opt);
+
+      private:
+
+        int _window_size = 300;
+        int _n_jnts = - 1;
+
+        Eigen::MatrixXd _A;
+        Eigen::VectorXd _tau_friction;
+
+        Eigen::VectorXd _Kd0, _Kd1, _Kd;
+        Eigen::VectorXd _alpha_d0, _alpha_d1;
+
+        Eigen::VectorXd _q_dot, _q_ddot, _iq, _tau;
+
+        Eigen::VectorXd _K_t,
+                        _rot_MoI,
+                        _red_ratio,
+                        _tanh_coeff;
+
+        void shift_data(Eigen::VectorXd& data); // shift data towards the
+        // back of the data qeue
+        void shift_data(Eigen::MatrixXd& data);
+
+        void solve_iq_cal_QP();
+
+    };
 }
 
 namespace SignProcUtils{
