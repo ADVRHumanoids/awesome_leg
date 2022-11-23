@@ -97,6 +97,9 @@ class up2ApexGen:
         self.n_actuators = len(self.act_yaml_file["K_d0"])
 
         self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
+
+        self.sliding_guide_kd = self.yaml_file[self.yaml_tag]["sliding_guide_friction"]["kd"]
+        self.is_sliding_guide_friction = self.yaml_file[self.yaml_tag]["problem"]["is_sliding_guide_friction"]
         
         self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
 
@@ -257,10 +260,20 @@ class up2ApexGen:
 
     def __set_constraints(self):
         
+
         # constraints
-        self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau)  # torque limits
-        self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
-        # self.tau_limits.setBounds(-np.array([0, cs.inf, cs.inf]), np.array([0, cs.inf, cs.inf]))  # setting input limits
+        if self.is_sliding_guide_friction:
+            # limits only on active joints and friction constraint on the sliding guide
+            self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau[1:])  # torque limits
+            self.tau_limits.setBounds(- self.tau_lim[1:], self.tau_lim[1:])  # setting input limits
+
+            self.friction_torque_sliding_guide_cnstrnt = self.prb.createIntermediateConstraint("friction_torque_sliding_guide",\
+                self.tau[0] - self.sliding_guide_friction_torque) 
+
+        else:
+
+            self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau)  # torque limits
+            self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
 
         if not self.acc_based_formulation: # creating constraint just to have q_p_ddot in the dumped solution
 
@@ -616,6 +629,10 @@ class up2ApexGen:
 
         self.lbs = self.urdf_kin_dyn.q_min() + jnt_lim_margin_array
         self.ubs = self.urdf_kin_dyn.q_max() - jnt_lim_margin_array
+
+        if self.is_sliding_guide_friction:
+            
+            self.sliding_guide_friction_torque = - self.sliding_guide_kd * self.q_p_dot[0]
 
         self.tau_lim = np.array([0] + self.act_yaml_file["tau_peak_ar"])  # effort limits (0 on the passive d.o.f.)
         
