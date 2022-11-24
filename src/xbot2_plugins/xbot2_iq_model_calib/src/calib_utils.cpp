@@ -733,6 +733,8 @@ IqCalib::IqCalib(int window_size,
   else
   {
       _Alpha = Eigen::MatrixXd::Zero(_window_size * _n_jnts, 2);
+
+      _tau_total = Eigen::VectorXd::Zero(_n_jnts);
       _tau_friction = Eigen::VectorXd::Zero(_window_size * _n_jnts);
 
       _Kd0 = Eigen::VectorXd::Zero(_n_jnts);
@@ -745,6 +747,7 @@ IqCalib::IqCalib(int window_size,
       _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
       _iq = Eigen::VectorXd::Zero(_n_jnts);
       _tau = Eigen::VectorXd::Zero(_n_jnts);
+
   }
 
 }
