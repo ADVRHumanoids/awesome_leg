@@ -142,7 +142,8 @@ namespace CalibUtils{
                 Eigen::VectorXd rot_MoI,
                 Eigen::VectorXd red_ratio,
                 double tanh_coeff = 10.0,
-                bool verbose = false);
+                bool verbose = false,
+                double lambda = 2.0);
 
         void add_sample(Eigen::VectorXd q_dot,
                    Eigen::VectorXd q_ddot,
@@ -170,6 +171,8 @@ namespace CalibUtils{
                             // ideal sign() function with a C^{inf} hyperbolic tangent function.
                             // The higher tanh_coeff, the steeper the transition from -1 to 1 is.
 
+        double _lambda = 2.0; // regularization gain for the least square problem
+
         Eigen::VectorXd _alpha_d0, _alpha_d1; // we choose to model the tau_friction
                                               // (choice dictated by the observations
                                               // on the measured mismatch between tau_total and tau)
@@ -178,13 +181,19 @@ namespace CalibUtils{
                                               // which is a friction torque made of a static component (Kd0 * sign(q_dot))
                                               // and a dynamic component ( Kd1 * q_dot)
 
-        Eigen::MatrixXd _Alpha; // least square problem matrix (for all joints)
+        Eigen::MatrixXd _I_lambda; // regularization identity matrix for
+        // the least square calibration problem
+        Eigen::VectorXd _b_lambda; // regularization vector(normally a vector of 0s)
+
+        Eigen::MatrixXd _Alpha; // least square problem TOTAL matrix (for all joints)
                                 // _Alpha_i * _Kd_i = _tau_friction_i, where i is the i-th joint
                                 // _Alpha is obtained stacking up [_alpha_d0, _alpha_d1]
+        Eigen::MatrixXd _A; // least square problem actual matrix (single joint + regularization)
 
         Eigen::VectorXd _tau_friction; // tau_friction is equal to the model mismatch
                                         // between tau_total and tau(measured torque). Ideally, these two quantities
                                         // coincide
+        Eigen::VectorXd _b; // least square problem actual meas. vector (single joint + regularization)
 
         Eigen::VectorXd _tau_total; // total torque on the rotor (reported to
                                     // the link-side) which is computed (with measurements) as

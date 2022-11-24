@@ -689,12 +689,14 @@ IqCalib::IqCalib(int window_size,
                  Eigen::VectorXd rot_MoI,
                  Eigen::VectorXd red_ratio,
                  double tanh_coeff,
-                 bool verbose)
+                 bool verbose,
+                 double lambda)
   :_window_size{window_size},
     _K_t{K_t}, _rot_MoI{rot_MoI},
     _red_ratio{red_ratio},
     _tanh_coeff{tanh_coeff},
-    _verbose{verbose}
+    _verbose{verbose},
+    _lambda{lambda}
 {
 
   // the linear regression problem (for a single joint) is written as
@@ -733,6 +735,12 @@ IqCalib::IqCalib(int window_size,
   else
   {
       _Alpha = Eigen::MatrixXd::Zero(_window_size * _n_jnts, 2);
+
+      _I_lambda = std::sqrt(_lambda) * Eigen::MatrixXd::Identity(2, 2);
+      _b_lambda = Eigen::VectorXd::Zero(_I_lambda.rows());
+
+      _A = Eigen::MatrixXd::Zero(_window_size + _I_lambda.rows(), 2);
+      _b = Eigen::VectorXd::Zero(_window_size + _I_lambda.rows());
 
       _tau_total = Eigen::VectorXd::Zero(_n_jnts);
       _tau_friction = Eigen::VectorXd::Zero(_window_size * _n_jnts);
@@ -827,11 +835,14 @@ void IqCalib::solve_iq_cal_QP(int jnt_index)
     // jnt_index -> 0-based indexing
 
     // extracting data of joint jnt_index
-    Eigen::MatrixXd A = _Alpha.block(_window_size * jnt_index, 0, _window_size, _Alpha.cols());
-    Eigen::VectorXd b = _tau_friction.segment(_window_size * jnt_index, _window_size);
+    _A.block(0, 0, _window_size, _A.cols()) = _Alpha.block(_window_size * jnt_index, 0, _window_size, _Alpha.cols());
+    _A.block(_window_size, 0, _I_lambda.rows(), _I_lambda.cols()) = _I_lambda;
+
+    _b.segment(0, _window_size) = _tau_friction.segment(_window_size * jnt_index, _window_size);
+    _b.segment(_window_size, _I_lambda.rows()) = _b_lambda;
 
     // solving unconstrained linear regression problem with Eigen builtin method
-    Eigen::VectorXd opt_Kd = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+    Eigen::VectorXd opt_Kd = _A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(_b);
 
     _Kd0(jnt_index) = opt_Kd(0);
     _Kd1(jnt_index) = opt_Kd(1);
