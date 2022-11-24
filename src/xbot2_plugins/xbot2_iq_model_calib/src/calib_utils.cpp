@@ -689,7 +689,7 @@ IqCalib::IqCalib(int window_size,
                  Eigen::VectorXd rot_MoI,
                  Eigen::VectorXd red_ratio,
                  double tanh_coeff,
-                 bool verbose = false)
+                 bool verbose)
   :_window_size{window_size},
     _K_t{K_t}, _rot_MoI{rot_MoI},
     _red_ratio{red_ratio},
@@ -738,8 +738,6 @@ IqCalib::IqCalib(int window_size,
       _Kd0 = Eigen::VectorXd::Zero(_n_jnts);
       _Kd1 = Eigen::VectorXd::Zero(_n_jnts);
 
-      _Kd = Eigen::VectorXd::Zero(2);
-
       _alpha_d0 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
       _alpha_d1 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
 
@@ -767,14 +765,14 @@ void IqCalib::shift_data(Eigen::VectorXd& data,
     {
         for (int i = last_sample_index - 1; i >= 0; i--)
         {
-            data[i + 1] = data[i];
+            data(i + 1) = data(i);
         }
     }
     else
     {
         for (int i = 1; i <= last_sample_index; i++)
         {
-            data[i - 1] = data[i];
+            data(i - 1) = data(i);
         }
     }
 }
@@ -827,5 +825,140 @@ void IqCalib::shift_data(Eigen::MatrixXd& data,
 
 void IqCalib::solve_iq_cal_QP(int jnt_index)
 {
+    // jnt_index -> 0-based indexing
+
+    // extracting data of joint jnt_index
+    Eigen::MatrixXd A = _Alpha.block(_window_size * jnt_index, 0, _window_size, _Alpha.cols());
+    Eigen::VectorXd b = _tau_friction.segment(_window_size * jnt_index, _window_size);
+
+    // solving unconstrained linear regression problem with Eigen builtin method
+    Eigen::VectorXd opt_Kd = A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(b);
+
+    _Kd0(jnt_index) = opt_Kd(0);
+    _Kd1(jnt_index) = opt_Kd(1);
+}
+
+void IqCalib::get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,
+                                     Eigen::VectorXd& Kd1_opt)
+
+{
+    // just in case the user provides uninitialized vector
+    // or vector of wrong dimension
+
+    Kd0_opt = Eigen::VectorXd::Zero(_n_jnts);
+    Kd1_opt = Eigen::VectorXd::Zero(_n_jnts);
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        solve_iq_cal_QP(i);
+    }
+
+    Kd0_opt = _Kd0;
+    Kd1_opt = _Kd1;
+
+}
+
+void IqCalib::add_sample(Eigen::VectorXd q_dot,
+                         Eigen::VectorXd q_ddot,
+                         Eigen::VectorXd iq,
+                         Eigen::VectorXd tau)
+{
+
+    _q_dot = q_dot;
+    _q_ddot = q_ddot;
+    _iq = iq;
+    _tau = tau;
+
+    // shift data one sample behind
+    shift_data(_alpha_d0);
+    shift_data(_alpha_d1);
+    shift_data(_tau_friction);
+
+    // assign current sample values
+    compute_alphad0();
+    compute_alphad1();
+    assemble_Alpha();
+    compute_tau_friction();
+
+}
+
+void IqCalib::compute_alphad0()
+{
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        _alpha_d0(i * _window_size) =  tanh(_tanh_coeff * _q_dot(i)); // assign last sample
+    }
+}
+
+void IqCalib::compute_alphad1()
+{
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        _alpha_d1(i * _window_size) = _q_dot(i); // assign last sample
+    }
+}
+
+void IqCalib::assemble_Alpha()
+{
+    _Alpha.block(0, 0, _Alpha.rows(), 1) = _alpha_d0;
+    _Alpha.block(0, 1, _Alpha.rows(), 1) = _alpha_d1;
+}
+
+void IqCalib::compute_tau_friction()
+{
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        // assign last samples
+
+        _tau_total(i * _window_size) = 1.0 / _red_ratio(i) *
+              ( _rot_MoI(i) * _q_ddot(i) / _red_ratio(i) - _K_t(i) * _iq(i));
+
+        _tau_friction(i * _window_size) = _tau_total(i * _window_size) - _tau(i);
+    }
+}
+
+void IqCalib::get_current_tau_total(Eigen::VectorXd& tau_total)
+{
+    // just in case the user provides uninitialized vector
+    // or vector of wrong dimension
+
+    tau_total = Eigen::VectorXd::Zero(_n_jnts);
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        tau_total(i) = _tau_total(i * _window_size);
+    }
+
+}
+
+void IqCalib::get_current_tau_friction(Eigen::VectorXd& tau_friction)
+{
+    // just in case the user provides uninitialized vector
+    // or vector of wrong dimension
+
+    tau_friction = Eigen::VectorXd::Zero(_n_jnts);
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        tau_friction(i) = _tau_friction(i * _window_size);
+    }
+
+}
+
+void IqCalib::get_current_alpha(Eigen::VectorXd& alpha_d0, Eigen::VectorXd& alpha_d1)
+{
+
+    // just in case the user provides uninitialized vector
+    // or vector of wrong dimension
+
+    alpha_d0 = Eigen::VectorXd::Zero(_n_jnts);
+    alpha_d1 = Eigen::VectorXd::Zero(_n_jnts);
+
+    for (int i = 0; i < _n_jnts; i++)
+    {
+        alpha_d0(i) = _alpha_d0(i * _window_size);
+        alpha_d1(i) = _alpha_d1(i * _window_size);
+    }
 
 }

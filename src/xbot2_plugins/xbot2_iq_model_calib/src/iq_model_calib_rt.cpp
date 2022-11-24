@@ -164,6 +164,8 @@ void IqModelCalibRt::update_state()
     // Removing noise from iq_meas
     _mov_avrg_filter_iq_meas.add_sample(_iq_meas);
     _mov_avrg_filter_iq_meas.get(_iq_meas_filt);
+
+    //
 }
 
 void IqModelCalibRt::init_dump_logger()
@@ -524,13 +526,24 @@ void IqModelCalibRt::run()
 
     _queue.run();
 
-    // updating iq model
-    _iq_estimator.set_current_state(_q_p_dot_meas, _q_p_ddot_est_filt, _tau_meas_filt);
+    // calibrate iq model
+    _iq_calib.add_sample(_q_p_dot_meas_filt,
+                         _q_p_ddot_est_filt,
+                         _iq_meas_filt,
+                         _tau_meas_filt);
+    _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
+    _iq_calib.get_current_tau_total(_tau_rot_est);
+    _iq_calib.get_current_tau_friction(_iq_friction_torque);
+    _iq_calib.get_current_alpha(_alpha_f0, _alpha_f1);
+
+    // computing and updating iq estimates
+    _iq_estimator.set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
 
     _iq_estimator.get_iq_estimate(_iq_est);
 
     _iq_estimator.get_tau_friction(_iq_friction_torque);
 
+    // publish info
     pub_iq_est(); // publish estimates to topic
 
     pub_iq_cal(); // publish results of iq model calibration to topic

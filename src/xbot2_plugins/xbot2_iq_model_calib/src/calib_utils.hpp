@@ -132,6 +132,7 @@ namespace CalibUtils{
 
     class IqCalib
     {
+
       public:
 
         IqCalib();
@@ -140,7 +141,8 @@ namespace CalibUtils{
                 Eigen::VectorXd K_t,
                 Eigen::VectorXd rot_MoI,
                 Eigen::VectorXd red_ratio,
-                double tanh_coeff = 10.0);
+                double tanh_coeff = 10.0,
+                bool verbose = false);
 
         void add_sample(Eigen::VectorXd q_dot,
                    Eigen::VectorXd q_ddot,
@@ -150,36 +152,71 @@ namespace CalibUtils{
         void get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,
                                Eigen::VectorXd& Kd1_opt);
 
+        void get_current_tau_total(Eigen::VectorXd& tau_total);
+        void get_current_tau_friction(Eigen::VectorXd& tau_friction);
+        void get_current_alpha(Eigen::VectorXd& alpha_d0, Eigen::VectorXd& alpha_d1);
+
       private:
 
-        bool _verbose = false;
-        int _window_size = 300;
-        int _n_jnts = - 1;
+        bool _verbose = false; // whether to print info messages
 
-        double _tanh_coeff;
+        int _window_size = 300; // number of samples which will be retained
+                                // and used to solve the calibration problem
 
-        Eigen::VectorXd _alpha_d0, _alpha_d1;
+        int _n_jnts = - 1; // dimension of the input signal ( = number of joints
+                           // on which calibration is run)
+
+        double _tanh_coeff; // handtuned coefficient used to approximate the
+                            // ideal sign() function with a C^{inf} hyperbolic tangent function.
+                            // The higher tanh_coeff, the steeper the transition from -1 to 1 is.
+
+        Eigen::VectorXd _alpha_d0, _alpha_d1; // we choose to model the tau_friction
+                                              // (choice dictated by the observations
+                                              // on the measured mismatch between tau_total and tau)
+                                              // as
+                                              // tau_friction = Kd0 * sign(q_dot) + Kd1 * q_dot
+                                              // which is a friction torque made of a static component (Kd0 * sign(q_dot))
+                                              // and a dynamic component ( Kd1 * q_dot)
+
         Eigen::MatrixXd _Alpha; // least square problem matrix (for all joints)
-        // _Alpha_i * _Kd_i = _tau_friction_i, where i is the i-th joint
-        // _Alpha is obtained stacking up [_alpha_d0, _alpha_d1]
-        Eigen::VectorXd _tau_friction;
+                                // _Alpha_i * _Kd_i = _tau_friction_i, where i is the i-th joint
+                                // _Alpha is obtained stacking up [_alpha_d0, _alpha_d1]
 
-        Eigen::VectorXd _Kd0, _Kd1, _Kd;
+        Eigen::VectorXd _tau_friction; // tau_friction is equal to the model mismatch
+                                        // between tau_total and tau(measured torque). Ideally, these two quantities
+                                        // coincide
 
-        Eigen::VectorXd _q_dot, _q_ddot, _iq, _tau;
+        Eigen::VectorXd _tau_total; // total torque on the rotor (reported to
+                                    // the link-side) which is computed (with measurements) as
+                                    // tau_total = 1/red_ratio * (rot_MoI * q_ddot / red_ratio - K_t * iq)
+
+        Eigen::VectorXd _Kd0, _Kd1; // current optimical iq model calibration coefficient
+                                    // Kd0 -> static friction component
+                                    // Kd1 -> dynamic friction component
+
+        Eigen::VectorXd _q_dot, _q_ddot, _iq, _tau; // measurements necessary for the computation
+                                                    // of the calibration coefficients
 
         Eigen::VectorXd _K_t,
                         _rot_MoI,
-                        _red_ratio;
+                        _red_ratio; // actuator paramters (supposed to be perfectly known in
+                                    // advance)
 
         void shift_data(Eigen::VectorXd& data,
-                        bool towards_back = true); // shift data towards the
-        // back of the data qeue
+                        bool towards_back = true); // shift vector data towards the
+                                                   // back of the data qeue
         void shift_data(Eigen::MatrixXd& data,
                         bool rowwise = true,
-                        bool towards_back = true);
+                        bool towards_back = true); // shift vector data towards the
+                                                   // back of the data qeue
 
         void solve_iq_cal_QP(int jnt_index); // solve the calibration QP for a single joint
+
+        void compute_alphad0();
+        void compute_alphad1();
+        void assemble_Alpha();
+
+        void compute_tau_friction();
 
     };
 }
