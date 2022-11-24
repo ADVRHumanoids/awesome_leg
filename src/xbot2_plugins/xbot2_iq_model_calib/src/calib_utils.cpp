@@ -688,11 +688,13 @@ IqCalib::IqCalib(int window_size,
                  Eigen::VectorXd K_t,
                  Eigen::VectorXd rot_MoI,
                  Eigen::VectorXd red_ratio,
-                 double tanh_coeff)
+                 double tanh_coeff,
+                 bool verbose = false)
   :_window_size{window_size},
     _K_t{K_t}, _rot_MoI{rot_MoI},
     _red_ratio{red_ratio},
-    _tanh_coeff{tanh_coeff}
+    _tanh_coeff{tanh_coeff},
+    _verbose{verbose}
 {
 
   // the linear regression problem (for a single joint) is written as
@@ -730,7 +732,7 @@ IqCalib::IqCalib(int window_size,
   }
   else
   {
-      _A = Eigen::MatrixXd::Zero(_window_size * _n_jnts, 2);
+      _Alpha = Eigen::MatrixXd::Zero(_window_size * _n_jnts, 2);
       _tau_friction = Eigen::VectorXd::Zero(_window_size * _n_jnts);
 
       _Kd0 = Eigen::VectorXd::Zero(_n_jnts);
@@ -750,5 +752,80 @@ IqCalib::IqCalib(int window_size,
       _iq = Eigen::VectorXd::Zero(_n_jnts);
       _tau = Eigen::VectorXd::Zero(_n_jnts);
   }
+
+}
+
+void IqCalib::shift_data(Eigen::VectorXd& data,
+                         bool towards_back)
+{
+    // shifting data towards the back of the qeue
+    // (starting from the penultimate sample)
+
+    int last_sample_index = _window_size - 1;
+
+    if (towards_back)
+    {
+        for (int i = last_sample_index - 1; i >= 0; i--)
+        {
+            data[i + 1] = data[i];
+        }
+    }
+    else
+    {
+        for (int i = 1; i <= last_sample_index; i++)
+        {
+            data[i - 1] = data[i];
+        }
+    }
+}
+
+void IqCalib::shift_data(Eigen::MatrixXd& data,
+                         bool rowwise,
+                         bool towards_back)
+{
+
+    // shifting data towards the back of the qeue
+    // (starting from the penultimate sample)
+    // by default, shift rows towards bottom
+
+    int last_sample_index = _window_size - 1;
+
+    if (towards_back)
+    {
+        for (int i = last_sample_index - 1; i >= 0; i--)
+        {
+
+            if (rowwise)
+            {
+                data.block(i + 1, 0, 1, data.cols()) = data.block(i, 0, 1, data.cols());
+            }
+            else
+            {
+                data.block(0, i + 1 , data.rows(), 1) = data.block(0, i, data.rows(), 1);
+            }
+
+        }
+    }
+    else
+    {
+        for (int i = 1; i <= last_sample_index; i++)
+        {
+
+            if (rowwise)
+            {
+                data.block(i - 1, 0, 1, data.cols()) = data.block(i, 0, 1, data.cols());
+            }
+            else
+            {
+                data.block(0, i - 1 , data.rows(), 1) = data.block(0, i, data.rows(), 1);
+            }
+
+        }
+    }
+
+}
+
+void IqCalib::solve_iq_cal_QP(int jnt_index)
+{
 
 }

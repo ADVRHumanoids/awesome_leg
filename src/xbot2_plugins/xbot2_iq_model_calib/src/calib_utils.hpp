@@ -152,16 +152,19 @@ namespace CalibUtils{
 
       private:
 
+        bool _verbose = false;
         int _window_size = 300;
         int _n_jnts = - 1;
 
         double _tanh_coeff;
 
-        Eigen::MatrixXd _A;
+        Eigen::VectorXd _alpha_d0, _alpha_d1;
+        Eigen::MatrixXd _Alpha; // least square problem matrix (for all joints)
+        // _Alpha_i * _Kd_i = _tau_friction_i, where i is the i-th joint
+        // _Alpha is obtained stacking up [_alpha_d0, _alpha_d1]
         Eigen::VectorXd _tau_friction;
 
         Eigen::VectorXd _Kd0, _Kd1, _Kd;
-        Eigen::VectorXd _alpha_d0, _alpha_d1;
 
         Eigen::VectorXd _q_dot, _q_ddot, _iq, _tau;
 
@@ -169,11 +172,14 @@ namespace CalibUtils{
                         _rot_MoI,
                         _red_ratio;
 
-        void shift_data(Eigen::VectorXd& data); // shift data towards the
+        void shift_data(Eigen::VectorXd& data,
+                        bool towards_back = true); // shift data towards the
         // back of the data qeue
-        void shift_data(Eigen::MatrixXd& data);
+        void shift_data(Eigen::MatrixXd& data,
+                        bool rowwise = true,
+                        bool towards_back = true);
 
-        void solve_iq_cal_QP();
+        void solve_iq_cal_QP(int jnt_index); // solve the calibration QP for a single joint
 
     };
 }
