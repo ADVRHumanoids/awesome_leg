@@ -155,6 +155,8 @@ namespace CalibUtils{
         int _window_size = 300;
         int _n_jnts = - 1;
 
+        double _tanh_coeff;
+
         Eigen::MatrixXd _A;
         Eigen::VectorXd _tau_friction;
 
@@ -165,8 +167,7 @@ namespace CalibUtils{
 
         Eigen::VectorXd _K_t,
                         _rot_MoI,
-                        _red_ratio,
-                        _tanh_coeff;
+                        _red_ratio;
 
         void shift_data(Eigen::VectorXd& data); // shift data towards the
         // back of the data qeue

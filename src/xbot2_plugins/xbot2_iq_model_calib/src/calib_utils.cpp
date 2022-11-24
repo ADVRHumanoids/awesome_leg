@@ -744,7 +744,6 @@ IqCalib::IqCalib(int window_size,
       _K_t = Eigen::VectorXd::Zero(_n_jnts);
       _rot_MoI = Eigen::VectorXd::Zero(_n_jnts);
       _red_ratio = Eigen::VectorXd::Zero(_n_jnts);
-      _tanh_coeff = Eigen::VectorXd::Zero(_n_jnts);
 
       _q_dot = Eigen::VectorXd::Zero(_n_jnts);
       _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
