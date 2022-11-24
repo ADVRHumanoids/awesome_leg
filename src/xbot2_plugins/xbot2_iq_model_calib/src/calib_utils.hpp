@@ -95,7 +95,7 @@ namespace CalibUtils{
                     Eigen::VectorXd K_d0, Eigen::VectorXd K_d1,
                     Eigen::VectorXd rot_MoI,
                     Eigen::VectorXd red_ratio,
-                    double tanh_coeff = 10.0);
+                    double tanh_coeff = 30.0);
 
         IqEstimator();
 
@@ -141,7 +141,7 @@ namespace CalibUtils{
                 Eigen::VectorXd K_t,
                 Eigen::VectorXd rot_MoI,
                 Eigen::VectorXd red_ratio,
-                double tanh_coeff = 10.0,
+                double tanh_coeff = 30.0,
                 bool verbose = false,
                 double lambda = 2.0);
 
