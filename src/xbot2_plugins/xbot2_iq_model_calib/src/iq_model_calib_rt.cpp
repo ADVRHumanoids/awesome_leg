@@ -532,6 +532,8 @@ void IqModelCalibRt::run()
                          _iq_meas_filt,
                          _tau_meas_filt);
     _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
+    _K_d0 = _K_d0_cal;
+    _K_d1 = _K_d1_cal;
     _iq_calib.get_current_tau_total(_tau_rot_est);
     _iq_calib.get_current_tau_friction(_iq_friction_torque);
     _iq_calib.get_current_alpha(_alpha_f0, _alpha_f1);
@@ -539,7 +541,7 @@ void IqModelCalibRt::run()
     // computing and updating iq estimates
     _iq_estimator.set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
 
-    _iq_estimator.get_iq_estimate(_iq_est, _K_d0_cal, _K_d1_cal);
+    _iq_estimator.get_iq_estimate(_iq_est, _K_d0, _K_d1);
 
     _iq_estimator.get_tau_friction(_iq_friction_torque);
 
