@@ -812,24 +812,32 @@ void IqCalib::shift_data(Eigen::VectorXd& data,
                          bool towards_back)
 {
     // shifting data towards the back of the qeue
-    // (starting from the penultimate sample)
+    // (starting from the penultimate sample) of EACH JOINT
+    // (recall data from each joint is attached AFTER the data of the previous one)
 
-    int last_sample_index = _window_size - 1;
+    int last_sample_index = _window_size - 1; // index of last sample WITHIN each
+    // joint
 
-    if (towards_back)
-    {
-        for (int i = last_sample_index - 1; i >= 0; i--)
+    for (int jnt = 0; jnt < _n_jnts; jnt++)
+    { // shifting data for each joint
+        if (towards_back)
         {
-            data(i + 1) = data(i);
+            int last_sample_index = _window_size - 1;
+
+            for (int i = last_sample_index - 1; i >= 0; i--)
+            {
+                data(i + 1 + _window_size * jnt) = data(i + _window_size * jnt);
+            }
+        }
+        else
+        {
+            for (int i = 1; i <= last_sample_index; i++)
+            {
+                data(i - 1 + _window_size * jnt) = data(i + _window_size * jnt);
+            }
         }
     }
-    else
-    {
-        for (int i = 1; i <= last_sample_index; i++)
-        {
-            data(i - 1) = data(i);
-        }
-    }
+
 }
 
 void IqCalib::shift_data(Eigen::MatrixXd& data,
@@ -843,39 +851,40 @@ void IqCalib::shift_data(Eigen::MatrixXd& data,
 
     int last_sample_index = _window_size - 1;
 
-    if (towards_back)
-    {
-        for (int i = last_sample_index - 1; i >= 0; i--)
+    for (int jnt = 0; jnt < _n_jnts; jnt++)
+    { // shifting data for each joint
+
+        if (towards_back)
         {
-
-            if (rowwise)
+            for (int i = last_sample_index - 1; i >= 0; i--)
             {
-                data.block(i + 1, 0, 1, data.cols()) = data.block(i, 0, 1, data.cols());
-            }
-            else
-            {
-                data.block(0, i + 1 , data.rows(), 1) = data.block(0, i, data.rows(), 1);
-            }
 
+                if (rowwise)
+                {
+                    data.block(i + 1 + _window_size * jnt, 0, 1, data.cols()) = data.block(i + _window_size * jnt, 0, 1, data.cols());
+                }
+                else
+                {
+                    data.block(0, i + 1 + _window_size * jnt, data.rows(), 1) = data.block(0, i + _window_size * jnt, data.rows(), 1);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 1; i <= last_sample_index; i++)
+            {
+
+                if (rowwise)
+                {
+                    data.block(i - 1 + _window_size * jnt, 0, 1, data.cols()) = data.block(i + _window_size * jnt, 0, 1, data.cols());
+                }
+                else
+                {
+                    data.block(0, i - 1 + _window_size * jnt, data.rows(), 1) = data.block(0, i + _window_size * jnt, data.rows(), 1);
+                }
+            }
         }
     }
-    else
-    {
-        for (int i = 1; i <= last_sample_index; i++)
-        {
-
-            if (rowwise)
-            {
-                data.block(i - 1, 0, 1, data.cols()) = data.block(i, 0, 1, data.cols());
-            }
-            else
-            {
-                data.block(0, i - 1 , data.rows(), 1) = data.block(0, i, data.rows(), 1);
-            }
-
-        }
-    }
-
 }
 
 void IqCalib::solve_iq_cal_QP(int jnt_index)
@@ -884,7 +893,7 @@ void IqCalib::solve_iq_cal_QP(int jnt_index)
 
     // extracting data of joint jnt_index
     _A.block(0, 0, _window_size, _A.cols()) = _Alpha.block(_window_size * jnt_index, 0, _window_size, _Alpha.cols());
-    _A.block(_window_size, 0, _I_lambda.rows(), _I_lambda.cols()) = std::sqrt(_lambda) * _I_lambda;
+    _A.block(_window_size, 0, _I_lambda.rows(), _I_lambda.cols()) = std::sqrt(_lambda) * _I_lambda; // adding regularization
 
     _b.segment(0, _window_size) = _tau_friction.segment(_window_size * jnt_index, _window_size);
     _b_lambda = _ig_Kd; // the regularization is done around _ig_Kd
@@ -1002,12 +1011,11 @@ void IqCalib::compute_tau_friction()
 {
     for (int i = 0; i < _n_jnts; i++)
     {
-        // assign last samples
 
-        _tau_total(i * _window_size) = 1.0 / _red_ratio(i) *
+        _tau_total(i) = 1.0 / _red_ratio(i) *
               ( _rot_MoI(i) * _q_ddot(i) / _red_ratio(i) - _K_t(i) * _iq(i));
 
-        _tau_friction(i * _window_size) = _tau_total(i * _window_size) - _tau(i);
+        _tau_friction(i * _window_size) = _tau_total(i) - _tau(i); // assign to last sample
     }
 }
 
@@ -1020,7 +1028,7 @@ void IqCalib::get_current_tau_total(Eigen::VectorXd& tau_total)
 
     for (int i = 0; i < _n_jnts; i++)
     {
-        tau_total(i) = _tau_total(i * _window_size);
+        tau_total(i) = _tau_total(i);
     }
 
 }
