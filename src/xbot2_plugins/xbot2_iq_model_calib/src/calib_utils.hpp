@@ -127,6 +127,10 @@ namespace CalibUtils{
 
         int _n_jnts;
 
+        double sign_threshold = 0.05; // value below which the output is set to the previous value
+        int _previous_sign = 1;
+        int sign_with_memory(double value);
+
         void compute_iq_estimates();
 
 
@@ -224,6 +228,10 @@ namespace CalibUtils{
                         _rot_MoI,
                         _red_ratio; // actuator paramters (supposed to be perfectly known in
                                     // advance)
+
+        double sign_threshold = 0.05; // value below which the output is set to the previous value
+        int _previous_sign = 1;
+        int sign_with_memory(double value);
 
         void shift_data(Eigen::VectorXd& data,
                         bool towards_back = true); // shift vector data towards the

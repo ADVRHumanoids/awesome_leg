@@ -83,7 +83,7 @@ xbotcore_plugins:
             verbose: {value: false, type: bool}
 
             lambda_qp_reg: {value: 1.0, type: double}
-            tanh_coeff: {value: 50.0, type: double}
+            tanh_coeff: {value: 10.0, type: double}
 
     mat_replayer_rt:
         thread: rt_main

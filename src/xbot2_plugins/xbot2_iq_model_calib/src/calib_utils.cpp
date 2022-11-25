@@ -402,7 +402,7 @@ void IqEstimator::compute_iq_estimates()
     for (int i = 0; i < _n_jnts; i++)
     {
 
-        double static_friction_effort = _K_d0(i) * tanh(_tanh_coeff * _q_dot(i));
+        double static_friction_effort = _K_d0(i) * sign_with_memory(_q_dot(i));
         double dynamic_friction_effort = _K_d1(i) * _q_dot(i);
 
         _tau_friction(i) = static_friction_effort + dynamic_friction_effort;
@@ -984,12 +984,38 @@ void IqCalib::add_sample(Eigen::VectorXd q_dot,
 
 }
 
+int IqCalib::sign_with_memory(double value)
+{
+    int window = 10;
+    int sign = 0;
+
+    double approx_sign = tanh(_tanh_coeff * value);
+
+    if (approx_sign > sign_threshold)
+    {
+        sign = 1;
+    }
+    if (approx_sign <= sign_threshold && approx_sign >= -sign_threshold)
+    { // uncertainty region --> retain previous value
+
+        sign = _previous_sign;
+    }
+    if (approx_sign < -sign_threshold)
+    {
+        sign = -1;
+    }
+
+    _previous_sign = sign;
+
+    return sign;
+}
+
 void IqCalib::compute_alphad0()
 {
 
     for (int i = 0; i < _n_jnts; i++)
     {
-        _alpha_d0(i * _window_size) =  tanh(_tanh_coeff * _q_dot(i)); // assign last sample
+        _alpha_d0(i * _window_size) =  (double) sign_with_memory(_q_dot(i)); // assign last sample
     }
 }
 
