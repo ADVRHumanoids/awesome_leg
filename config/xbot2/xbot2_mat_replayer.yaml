@@ -84,6 +84,9 @@ xbotcore_plugins:
 
             lambda_qp_reg: {value: 1.0, type: double}
             tanh_coeff: {value: 10.0, type: double}
+            q_dot_3sigma: {value: 0.001, type: double} # max amplitute of the noise contained in the velocity signal
+            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
+
 
     mat_replayer_rt:
         thread: rt_main

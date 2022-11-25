@@ -241,8 +241,14 @@ IqEstimator::IqEstimator(Eigen::VectorXd K_t,
                          Eigen::VectorXd K_d0, Eigen::VectorXd K_d1,
                          Eigen::VectorXd rot_MoI,
                          Eigen::VectorXd red_ratio,
-                         double tanh_coeff)
-  :_K_t{K_t}, _K_d0{K_d0}, _K_d1{K_d1}, _rot_MoI{rot_MoI}, _red_ratio{red_ratio}, _tanh_coeff{tanh_coeff}
+                         double tanh_coeff,
+                         double q_dot_3sigma)
+  :_K_t{K_t},
+   _K_d0{K_d0}, _K_d1{K_d1},
+   _rot_MoI{rot_MoI},
+   _red_ratio{red_ratio},
+   _tanh_coeff{tanh_coeff},
+   _q_dot_3sigma{q_dot_3sigma}
 {
 
     _n_jnts = _K_t.size();
@@ -253,6 +259,9 @@ IqEstimator::IqEstimator(Eigen::VectorXd K_t,
     _tau_friction = Eigen::VectorXd::Zero(_n_jnts);
 
     _iq_est = Eigen::VectorXd::Zero(_n_jnts);
+
+    // initialize the awesome sign function
+    _sign_with_memory = SignProcUtils::SignWithMem(_q_dot_3sigma, _tanh_coeff);
 }
 
 IqEstimator::IqEstimator()
@@ -402,7 +411,7 @@ void IqEstimator::compute_iq_estimates()
     for (int i = 0; i < _n_jnts; i++)
     {
 
-        double static_friction_effort = _K_d0(i) * sign_with_memory(_q_dot(i));
+        double static_friction_effort = _K_d0(i) * _sign_with_memory.sign(_q_dot(i));
         double dynamic_friction_effort = _K_d1(i) * _q_dot(i);
 
         _tau_friction(i) = static_friction_effort + dynamic_friction_effort;
@@ -691,12 +700,14 @@ IqCalib::IqCalib(int window_size,
                  Eigen::VectorXd ig_Kd0,
                  Eigen::VectorXd ig_Kd1,
                  double tanh_coeff,
+                 double q_dot_3sigma,
                  double lambda,
                  bool verbose)
   :_window_size{window_size},
     _K_t{K_t}, _rot_MoI{rot_MoI},
     _red_ratio{red_ratio},
     _tanh_coeff{tanh_coeff},
+    _q_dot_3sigma{q_dot_3sigma},
     _verbose{verbose},
     _lambda{lambda},
     _ig_Kd0{ig_Kd0},
@@ -803,6 +814,9 @@ IqCalib::IqCalib(int window_size,
     _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
     _iq = Eigen::VectorXd::Zero(_n_jnts);
     _tau = Eigen::VectorXd::Zero(_n_jnts);
+
+    // initialize the awesome sign function
+    _sign_with_memory = SignProcUtils::SignWithMem(_q_dot_3sigma, _tanh_coeff);
 
   }
 
@@ -984,38 +998,13 @@ void IqCalib::add_sample(Eigen::VectorXd q_dot,
 
 }
 
-int IqCalib::sign_with_memory(double value)
-{
-    int window = 10;
-    int sign = 0;
-
-    double approx_sign = tanh(_tanh_coeff * value);
-
-    if (approx_sign > sign_threshold)
-    {
-        sign = 1;
-    }
-    if (approx_sign <= sign_threshold && approx_sign >= -sign_threshold)
-    { // uncertainty region --> retain previous value
-
-        sign = _previous_sign;
-    }
-    if (approx_sign < -sign_threshold)
-    {
-        sign = -1;
-    }
-
-    _previous_sign = sign;
-
-    return sign;
-}
 
 void IqCalib::compute_alphad0()
 {
 
     for (int i = 0; i < _n_jnts; i++)
     {
-        _alpha_d0(i * _window_size) =  (double) sign_with_memory(_q_dot(i)); // assign last sample
+        _alpha_d0(i * _window_size) =  (double) _sign_with_memory.sign(_q_dot(i)); // assign last sample
     }
 }
 
@@ -1087,5 +1076,60 @@ void IqCalib::get_current_alpha(Eigen::VectorXd& alpha_d0, Eigen::VectorXd& alph
         alpha_d0(i) = _alpha_d0(i * _window_size);
         alpha_d1(i) = _alpha_d1(i * _window_size);
     }
+
+}
+
+//************* SignWithMem *************//
+
+SignWithMem::SignWithMem()
+{
+
+}
+
+SignWithMem::SignWithMem(double signal_3sigma,
+                         double tanh_coeff)
+    :_signal_3sigma{signal_3sigma}, _tanh_coeff{tanh_coeff}
+{
+
+    _tanh_thresh = tanh(_tanh_coeff * signal_3sigma);
+
+}
+
+double SignWithMem::approx_sign(double value)
+{
+    double approx_sign = tanh(_tanh_coeff * value);
+
+    return approx_sign;
+}
+
+void SignWithMem::sign_with_memory()
+{
+
+    double sign_approximation = approx_sign(_value);
+
+    if (sign_approximation > _tanh_thresh)
+    {
+        _sign = 1;
+    }
+    if (sign_approximation <= _tanh_thresh && sign_approximation >= -_tanh_thresh)
+    { // uncertainty region --> retain previous value
+
+        _sign = _previous_sign;
+    }
+    if (sign_approximation < -_tanh_thresh)
+    {
+        _sign = -1;
+    }
+
+    _previous_sign = _sign;
+}
+
+int SignWithMem::sign(double value)
+{
+    _value = value; // assign value
+
+    sign_with_memory(); // compute sign
+
+    return _sign;
 
 }
