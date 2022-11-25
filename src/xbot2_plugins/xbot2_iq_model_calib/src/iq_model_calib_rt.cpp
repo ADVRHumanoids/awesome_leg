@@ -36,6 +36,9 @@ void IqModelCalibRt::init_vars()
     _alpha_f1 = Eigen::VectorXd::Zero(_n_jnts_robot);
     _K_d0_cal = Eigen::VectorXd::Zero(_n_jnts_robot);
     _K_d1_cal = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _K_d0 = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _K_d1 = Eigen::VectorXd::Zero(_n_jnts_robot);
+
 
     // used to convert to ros messages-compatible types
     _iq_est_vect = std::vector<double>(_n_jnts_robot);
@@ -99,8 +102,8 @@ void IqModelCalibRt::get_params_from_config()
 
     _red_ratio = getParamOrThrow<Eigen::VectorXd>("~red_ratio");
     _K_t = getParamOrThrow<Eigen::VectorXd>("~K_t");
-    _K_d0 = getParamOrThrow<Eigen::VectorXd>("~K_d0");
-    _K_d1 = getParamOrThrow<Eigen::VectorXd>("~K_d1");
+    _K_d0_ig = getParamOrThrow<Eigen::VectorXd>("~K_d0_ig");
+    _K_d1_ig = getParamOrThrow<Eigen::VectorXd>("~K_d1_ig");
     _rot_MoI = getParamOrThrow<Eigen::VectorXd>("~rotor_axial_MoI");
 
     _der_est_order = getParamOrThrow<int>("~der_est_order");
@@ -110,6 +113,10 @@ void IqModelCalibRt::get_params_from_config()
     _mov_avrg_cutoff_freq_q_dot = getParamOrThrow<double>("~mov_avrg_cutoff_freq_q_dot");
 
     _iq_calib_window_size = getParamOrThrow<int>("~iq_calib_window_size");
+
+    _lambda_qp_reg = getParamOrThrow<double>("~lambda_qp_reg");
+    _tanh_coeff = getParamOrThrow<double>("~tanh_coeff");
+
 }
 
 void IqModelCalibRt::is_sim(std::string sim_string = "sim")
@@ -467,7 +474,7 @@ bool IqModelCalibRt::on_initialize()
 
     // iq estimation model
     _iq_estimator = IqEstimator(_K_t,
-                                _K_d0, _K_d1,
+                                _K_d0_ig, _K_d1_ig,
                                 _rot_MoI,
                                 _red_ratio); // object to compute iq estimate
 
@@ -478,7 +485,11 @@ bool IqModelCalibRt::on_initialize()
     _iq_calib = IqCalib(_iq_calib_window_size,
                         _K_t,
                         _rot_MoI,
-                        _red_ratio);
+                        _red_ratio,
+                        _K_d0_ig,
+                        _K_d1_ig,
+                        _tanh_coeff,
+                        _lambda_qp_reg);
 
     //* filtering --> we should filter everything, also the q_dot (which is not so noisy)
     // so that we get the same delay for each data necessary for the iq model calibration
@@ -531,6 +542,8 @@ void IqModelCalibRt::run()
                          _q_p_ddot_est_filt,
                          _iq_meas_filt,
                          _tau_meas_filt);
+    _iq_calib.set_ig(_K_d0_cal, _K_d1_cal); // ig set to previous solution value
+    // to regularize the solution values across time
     _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
     _K_d0 = _K_d0_cal;
     _K_d1 = _K_d1_cal;

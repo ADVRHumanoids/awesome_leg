@@ -92,13 +92,15 @@ private:
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-        _matlogger_buffer_size = 1e4;
+        _matlogger_buffer_size = 1e4,
+        _lambda_qp_reg = 1.0,
+        _tanh_coeff = 10.0;
 
     Eigen::VectorXd _q_p_meas,
                     _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
                     _tau_meas, _tau_meas_filt,
                     _iq_meas, _iq_meas_filt,
-                    _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
+                    _K_t, _K_d0_ig, _K_d1_ig, _K_d0, _K_d1, _rot_MoI, _red_ratio,
                     _tau_req,
                     _iq_est, _iq_friction_torque,
                     _iq_friction_torque_cal, _tau_rot_est,

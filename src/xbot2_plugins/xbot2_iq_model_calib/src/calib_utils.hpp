@@ -23,6 +23,8 @@
 #include <vector>
 #include "spline.h"
 
+//#include <OsqpEigen/OsqpEigen.h>
+
 using namespace XBot;
 
 namespace CalibUtils{
@@ -141,14 +143,20 @@ namespace CalibUtils{
                 Eigen::VectorXd K_t,
                 Eigen::VectorXd rot_MoI,
                 Eigen::VectorXd red_ratio,
+                Eigen::VectorXd ig_Kd0,
+                Eigen::VectorXd ig_Kd1,
                 double tanh_coeff = 30.0,
-                bool verbose = false,
-                double lambda = 2.0);
+                double lambda = 2.0,
+                bool verbose = false
+                );
 
         void add_sample(Eigen::VectorXd q_dot,
                    Eigen::VectorXd q_ddot,
                    Eigen::VectorXd iq,
                    Eigen::VectorXd tau);
+
+        void set_ig(Eigen::VectorXd ig_Kd0,
+                    Eigen::VectorXd ig_Kd1);
 
         void get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,
                                Eigen::VectorXd& Kd1_opt);
@@ -166,6 +174,8 @@ namespace CalibUtils{
 
         int _n_jnts = - 1; // dimension of the input signal ( = number of joints
                            // on which calibration is run)
+
+        int _n_opt_vars = 2;
 
         double _tanh_coeff; // handtuned coefficient used to approximate the
                             // ideal sign() function with a C^{inf} hyperbolic tangent function.
@@ -202,6 +212,10 @@ namespace CalibUtils{
         Eigen::VectorXd _Kd0, _Kd1; // current optimical iq model calibration coefficient
                                     // Kd0 -> static friction component
                                     // Kd1 -> dynamic friction component
+        Eigen::VectorXd _lb_Kd, _ub_Kd; // upper and lower bound for the coefficients of the friction torque model
+        Eigen::VectorXd _ig_Kd,
+                        _ig_Kd0, _ig_Kd1; // initial guess for the optimal params to be used in the QP
+        // (the QP is regularized not around 0 but around _ig_Kd)
 
         Eigen::VectorXd _q_dot, _q_ddot, _iq, _tau; // measurements necessary for the computation
                                                     // of the calibration coefficients

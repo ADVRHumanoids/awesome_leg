@@ -688,15 +688,19 @@ IqCalib::IqCalib(int window_size,
                  Eigen::VectorXd K_t,
                  Eigen::VectorXd rot_MoI,
                  Eigen::VectorXd red_ratio,
+                 Eigen::VectorXd ig_Kd0,
+                 Eigen::VectorXd ig_Kd1,
                  double tanh_coeff,
-                 bool verbose,
-                 double lambda)
+                 double lambda,
+                 bool verbose)
   :_window_size{window_size},
     _K_t{K_t}, _rot_MoI{rot_MoI},
     _red_ratio{red_ratio},
     _tanh_coeff{tanh_coeff},
     _verbose{verbose},
-    _lambda{lambda}
+    _lambda{lambda},
+    _ig_Kd0{ig_Kd0},
+    _ig_Kd1{ig_Kd1}
 {
 
   // the linear regression problem (for a single joint) is written as
@@ -710,9 +714,12 @@ IqCalib::IqCalib(int window_size,
   // This least squared problem can be easily solved employing the builtin
   // utilities of Eigen library (@ https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html)
 
-  _n_jnts = K_t.size();
-
   int err = 0;
+//  int err2 = 0;
+  int err3 = 0;
+
+  // collecting errors in input dimensions(if any)
+  _n_jnts = K_t.size();
   if(rot_MoI.size() != _n_jnts)
   {
       err = err + 1;
@@ -722,6 +729,25 @@ IqCalib::IqCalib(int window_size,
       err = err + 1;
   }
 
+//  if(_lb_Kd.size() != _n_opt_vars)
+//  {
+//      err2 = err2 + 1;
+//  }
+//  if(_ub_Kd.size() != _n_opt_vars)
+//  {
+//      err2 = err2 + 1;
+//  }
+
+  if(_ig_Kd0.size() != _n_jnts)
+  {
+      err3 = err3 + 1;
+  }
+  if(_ig_Kd1.size() != _n_jnts)
+  {
+      err3 = err3 + 1;
+  }
+
+  // throwing err. in case an error occurred
   if (err != 0)
   {
       std::string exception = std::string("IqCalib::IqCalib(): dimension mismatch in one or more of the input data -> \n") +
@@ -732,29 +758,51 @@ IqCalib::IqCalib(int window_size,
 
       throw std::invalid_argument(exception);
   }
+//  if (err2 != 0)
+//  {
+//      std::string exception = std::string("IqCalib::IqCalib(): dimension mismatch in one or more of the input data -> \n") +
+//                              std::string("lb_Kd length: ") + std::to_string(_lb_Kd.size()) + std::string("\n") +
+//                              std::string("ub_Kd length: ") + std::to_string(_ub_Kd.size()) + std::string("\n") +
+//                              std::string("which do not match the required length of: ") + std::to_string(_n_opt_vars);
+
+//      throw std::invalid_argument(exception);
+//  }
+  if (err3 != 0)
+  {
+      std::string exception = std::string("IqCalib::IqCalib(): dimension mismatch in one or more of the input data -> \n") +
+                              std::string("ig_Kd0 length: ") + std::to_string(_ig_Kd0.size()) + std::string("\n") +
+                              std::string("ig_Kd1 length: ") + std::to_string(_ig_Kd1.size()) + std::string("\n") +
+                              std::string("which do not match the required length of: ") + std::to_string(_n_jnts);
+
+      throw std::invalid_argument(exception);
+  }
   else
   {
-      _Alpha = Eigen::MatrixXd::Zero(_window_size * _n_jnts, 2);
+    _Alpha = Eigen::MatrixXd::Zero(_window_size * _n_jnts, _n_opt_vars);
 
-      _I_lambda = std::sqrt(_lambda) * Eigen::MatrixXd::Identity(2, 2);
-      _b_lambda = Eigen::VectorXd::Zero(_I_lambda.rows());
+    _I_lambda = Eigen::MatrixXd::Identity(_n_opt_vars, _n_opt_vars);
+    _b_lambda = Eigen::VectorXd::Zero(_I_lambda.rows());
 
-      _A = Eigen::MatrixXd::Zero(_window_size + _I_lambda.rows(), 2);
-      _b = Eigen::VectorXd::Zero(_window_size + _I_lambda.rows());
+    _A = Eigen::MatrixXd::Zero(_window_size + _I_lambda.rows(), _n_opt_vars);
+    _b = Eigen::VectorXd::Zero(_window_size + _I_lambda.rows());
 
-      _tau_total = Eigen::VectorXd::Zero(_n_jnts);
-      _tau_friction = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+    _tau_total = Eigen::VectorXd::Zero(_n_jnts);
+    _tau_friction = Eigen::VectorXd::Zero(_window_size * _n_jnts);
 
-      _Kd0 = Eigen::VectorXd::Zero(_n_jnts);
-      _Kd1 = Eigen::VectorXd::Zero(_n_jnts);
+    _Kd0 = Eigen::VectorXd::Zero(_n_jnts);
+    _Kd1 = Eigen::VectorXd::Zero(_n_jnts);
 
-      _alpha_d0 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
-      _alpha_d1 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+    _ig_Kd = Eigen::VectorXd::Zero(_n_opt_vars);
+    _lb_Kd = Eigen::VectorXd::Zero(_n_opt_vars);
+    _ub_Kd = Eigen::VectorXd::Zero(_n_opt_vars);
 
-      _q_dot = Eigen::VectorXd::Zero(_n_jnts);
-      _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
-      _iq = Eigen::VectorXd::Zero(_n_jnts);
-      _tau = Eigen::VectorXd::Zero(_n_jnts);
+    _alpha_d0 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+    _alpha_d1 = Eigen::VectorXd::Zero(_window_size * _n_jnts);
+
+    _q_dot = Eigen::VectorXd::Zero(_n_jnts);
+    _q_ddot = Eigen::VectorXd::Zero(_n_jnts);
+    _iq = Eigen::VectorXd::Zero(_n_jnts);
+    _tau = Eigen::VectorXd::Zero(_n_jnts);
 
   }
 
@@ -836,16 +884,49 @@ void IqCalib::solve_iq_cal_QP(int jnt_index)
 
     // extracting data of joint jnt_index
     _A.block(0, 0, _window_size, _A.cols()) = _Alpha.block(_window_size * jnt_index, 0, _window_size, _Alpha.cols());
-    _A.block(_window_size, 0, _I_lambda.rows(), _I_lambda.cols()) = _I_lambda;
+    _A.block(_window_size, 0, _I_lambda.rows(), _I_lambda.cols()) = std::sqrt(_lambda) * _I_lambda;
 
     _b.segment(0, _window_size) = _tau_friction.segment(_window_size * jnt_index, _window_size);
-    _b.segment(_window_size, _I_lambda.rows()) = _b_lambda;
+    _b_lambda = _ig_Kd; // the regularization is done around _ig_Kd
+    _b.segment(_window_size, _I_lambda.rows()) = std::sqrt(_lambda) * _b_lambda;
 
     // solving unconstrained linear regression problem with Eigen builtin method
     Eigen::VectorXd opt_Kd = _A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(_b);
 
     _Kd0(jnt_index) = opt_Kd(0);
     _Kd1(jnt_index) = opt_Kd(1);
+}
+
+void IqCalib::set_ig(Eigen::VectorXd ig_Kd0,
+                     Eigen::VectorXd ig_Kd1)
+{
+    // check on ig dimensions
+    int err = 0;
+    if (ig_Kd0.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
+    if (ig_Kd1.size() != _n_jnts)
+    {
+        err = err + 1;
+    }
+    if (err == 0)
+    { // all ok --> set igs
+
+        _ig_Kd0 = ig_Kd0;
+        _ig_Kd1 = ig_Kd1;
+
+    }
+    else
+    {
+        std::string exception = std::string("IqCalib::get_current_optimal_Kd(): dimension mismatch in one or more of the input data -> \n") +
+                                std::string("ig_Kd0 length: ") + std::to_string(ig_Kd0.size()) + std::string("\n") +
+                                std::string("ig_Kd1 length: ") + std::to_string(ig_Kd1.size()) + std::string("\n") +
+                                std::string("which do not match the required length of: ") + std::to_string(_n_jnts);
+
+        throw std::invalid_argument(exception);
+    }
+
 }
 
 void IqCalib::get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,
@@ -860,9 +941,11 @@ void IqCalib::get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,
 
     for (int i = 0; i < _n_jnts; i++)
     {
+        _ig_Kd << _ig_Kd0(i), _ig_Kd1(i); // using the last set ig for Kd
         solve_iq_cal_QP(i);
     }
 
+    // assign output
     Kd0_opt = _Kd0;
     Kd1_opt = _Kd1;
 
