@@ -288,7 +288,7 @@ void IqEstimator::get_iq_estimate(std::vector<float>& iq_est)
 
     for (int i = 0; i < _n_jnts; i++)
     {
-     iq_est[i] = _iq_est[i]; // mapping Eigen Vector to std::vector(brutal way)
+      iq_est[i] = _iq_est[i]; // mapping Eigen Vector to std::vector(brutal way)
     }
 
 }

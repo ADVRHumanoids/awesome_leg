@@ -69,32 +69,32 @@ namespace SignProcUtils{
 
     class MovAvrgFilt
     {
-      public:
+        public:
 
-        MovAvrgFilt();
+          MovAvrgFilt();
 
-        MovAvrgFilt(int n_jnts, double dt, int window_size = 10);
-        MovAvrgFilt(int n_jnts, double dt, double cutoff_freq = 15);
+          MovAvrgFilt(int n_jnts, double dt, int window_size = 10);
+          MovAvrgFilt(int n_jnts, double dt, double cutoff_freq = 15);
 
-        void add_sample(Eigen::VectorXd sample);
+          void add_sample(Eigen::VectorXd sample);
 
-        void get(Eigen::VectorXd& filt_sample);
+          void get(Eigen::VectorXd& filt_sample);
 
-        void get_cutoff_freq(double& cutoff_f);
-        void get_window_size(int& window_size);
+          void get_cutoff_freq(double& cutoff_f);
+          void get_window_size(int& window_size);
 
-      private:
+        private:
 
-        Eigen::MatrixXd _window_data;
+          Eigen::MatrixXd _window_data;
 
-        double _magic_number = 0.442946470689452340308369; // reference
-        // @ https://dsp.stackexchange.com/questions/9966/what-is-the-cut-off-frequency-of-a-moving-average-filter
+          double _magic_number = 0.442946470689452340308369; // reference
+          // @ https://dsp.stackexchange.com/questions/9966/what-is-the-cut-off-frequency-of-a-moving-average-filter
 
-        int _n_jnts, _window_size;
+          int _n_jnts, _window_size;
 
-        double _cutoff_freq = -1.0;
+          double _cutoff_freq = -1.0;
 
-        double _samples_dt = -1.0;
+          double _samples_dt = -1.0;
 
         bool _is_first_run = true;
 
@@ -106,8 +106,8 @@ namespace SignProcUtils{
 
             SignWithMem();
 
-            SignWithMem(double signal_3sigma = 0.001,
-                        double tanh_coeff = 10.0);
+            SignWithMem(double signal_3sigma,
+                        double tanh_coeff);
 
             int sign(double value);
 
@@ -133,7 +133,7 @@ namespace SignProcUtils{
     };
 
     class AcfImpl
-  {
+    {
       public:
 
           AcfImpl(int window_size = 1); // default constructor of the implementation of the renowed Ad Cazzum Filter
@@ -352,10 +352,6 @@ namespace CalibUtils{
 
         int _n_jnts;
 
-        double sign_threshold = 0.05; // value below which the output is set to the previous value
-        int _previous_sign = 1;
-        int sign_with_memory(double value);
-
         void compute_iq_estimates();
 
         SignProcUtils::SignWithMem _sign_with_memory;
@@ -408,7 +404,7 @@ namespace CalibUtils{
 
         int _n_opt_vars = 2;
 
-        double _tanh_coeff; // handtuned coefficient used to approximate the
+        double _tanh_coeff = 10.0; // handtuned coefficient used to approximate the
                             // ideal sign() function with a C^{inf} hyperbolic tangent function.
                             // The higher tanh_coeff, the steeper the transition from -1 to 1 is.
         double _q_dot_3sigma = 0.001; // max amplitute of the noise contained in the velocity signal
