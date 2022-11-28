@@ -547,7 +547,7 @@ void IqModelCalibRt::run()
                          _q_p_ddot_est_filt,
                          _iq_meas_filt,
                          _tau_meas_filt);
-    _iq_calib.set_ig(_K_d0_ig, _K_d1_ig); // ig set to previous solution value
+    _iq_calib.set_ig(_K_d0_cal, _K_d1_cal); // ig set to previous solution value
     // to regularize the solution values across time
     _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
     _K_d0 = _K_d0_cal;
