@@ -60,6 +60,9 @@ install(PROGRAMS
         src/awesome_leg_utils/robot_state_log_plotter.py
         src/awesome_leg_utils/logger_utilities.py
         src/awesome_leg_utils/param_identification_utilities.py
+        src/xbot_cyclic_pos_pub.py
+        src/xbot_initial_pos_pub.py
+        src/gravity_compensation.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 install(DIRECTORY src/horizon_code/jump_utils  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
