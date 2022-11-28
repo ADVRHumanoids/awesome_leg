@@ -23,8 +23,6 @@
 #include <vector>
 #include "spline.h"
 
-//#include <OsqpEigen/OsqpEigen.h>
-
 using namespace XBot;
 
 namespace SignProcUtils{

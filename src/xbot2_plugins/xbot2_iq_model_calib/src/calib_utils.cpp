@@ -715,7 +715,7 @@ IqCalib::IqCalib(int window_size,
 {
 
   // the linear regression problem (for a single joint) is written as
-  // A * Kd = tau_fricton_measured
+  // A * Kd = tau_friction_measured
   // where A is obtained as [alpha_d0, alpha_d1]
   // and tau_friction_measured is the "measurement" of the fictitious additional
   // friction torque
