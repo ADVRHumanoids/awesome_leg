@@ -44,6 +44,12 @@ xbotcore_plugins:
         params:
             qhome: {value: [0.8, 0.9], type: Eigen::VectorXd}
 
+    homing_iq_calibration:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [1.57, -1.57], type: Eigen::VectorXd}
+
     ros_io: {thread: nrt_main, type: ros_io}
 
     ros_control: {thread: nrt_main, type: ros_control}
@@ -62,12 +68,12 @@ xbotcore_plugins:
             dump_mat_suffix: {value: iq_estimation, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+            red_ratio: {value: [0.02, .02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
 
             K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
 
-#            K_d0_ig: {value: [3.24, 10.72], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-#            K_d1_ig: {value: [1.45, 1.77], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+#            K_d0_ig: {value: [2.5, 7.3], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+#            K_d1_ig: {value: [1.17, 1.72], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
 
             K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
             K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
