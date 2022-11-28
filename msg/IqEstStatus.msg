@@ -8,7 +8,7 @@ float64[] K_d0
 float64[] K_d1
 float64[] rot_MoI
 float64[] red_ratio
-float64[] tau_req
+float64[] tau_friction
 
 uint8 der_est_order
 

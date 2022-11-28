@@ -27,7 +27,7 @@ void IqModelCalibRt::init_vars()
     _iq_est = Eigen::VectorXd::Zero(_n_jnts_robot);
     _iq_jnt_names = std::vector<std::string>(_n_jnts_robot);
 
-    _tau_req = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _iq_friction_torque = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     _iq_friction_torque_cal = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_rot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -52,7 +52,7 @@ void IqModelCalibRt::init_vars()
     _K_d1_vect = std::vector<double>(_n_jnts_robot);
     _rot_MoI_vect = std::vector<double>(_n_jnts_robot);
     _red_ratio_vect = std::vector<double>(_n_jnts_robot);
-    _tau_req_vect = std::vector<double>(_n_jnts_robot);
+    _iq_friction_torque_vect = std::vector<double>(_n_jnts_robot);
     _tau_meas_filt_vect = std::vector<double>(_n_jnts_robot);
     _alpha_f0_vect = std::vector<double>(_n_jnts_robot);
     _alpha_f1_vect = std::vector<double>(_n_jnts_robot);
@@ -318,7 +318,7 @@ void IqModelCalibRt::init_nrt_ros_bridge()
     std::vector<double> Kd1_prealloc(_n_jnts_robot);
     std::vector<double> rot_MoI_prealloc(_n_jnts_robot);
     std::vector<double> red_ratio_prealloc(_n_jnts_robot);
-    std::vector<double> tau_req_prealloc(_n_jnts_robot);
+    std::vector<double> iq_friction_torque_prealloc(_n_jnts_robot);
 
     iq_status_prealloc.iq_est = iq_est_prealloc;
     iq_status_prealloc.q_p_ddot_est = q_p_ddot_est_prealloc;
@@ -330,7 +330,7 @@ void IqModelCalibRt::init_nrt_ros_bridge()
     iq_status_prealloc.K_d1 = Kd1_prealloc;
     iq_status_prealloc.rot_MoI = rot_MoI_prealloc;
     iq_status_prealloc.red_ratio = red_ratio_prealloc;
-    iq_status_prealloc.tau_req = tau_req_prealloc;
+    iq_status_prealloc.tau_friction = iq_friction_torque_prealloc;
     iq_status_prealloc.der_est_order = _der_est_order;
 
     iq_status_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
@@ -392,7 +392,7 @@ void IqModelCalibRt::pub_iq_est()
     Eigen::Map<Eigen::VectorXd>(&_K_d1_vect[0], _K_d1.size(), 1) = _K_d1;
     Eigen::Map<Eigen::VectorXd>(&_rot_MoI_vect[0], _rot_MoI.size(), 1) = _rot_MoI;
     Eigen::Map<Eigen::VectorXd>(&_red_ratio_vect[0], _red_ratio.size(), 1) = _red_ratio;
-    Eigen::Map<Eigen::VectorXd>(&_tau_req_vect[0], _tau_req.size(), 1) = _tau_req;
+    Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_vect[0], _iq_friction_torque.size(), 1) = _iq_friction_torque;
 
     // filling message
     iq_est_msg->msg().iq_est = _iq_est_vect;
@@ -405,7 +405,7 @@ void IqModelCalibRt::pub_iq_est()
     iq_est_msg->msg().K_d1 = _K_d1_vect;
     iq_est_msg->msg().rot_MoI = _rot_MoI_vect;
     iq_est_msg->msg().red_ratio = _red_ratio_vect;
-    iq_est_msg->msg().tau_req = _tau_req_vect;
+    iq_est_msg->msg().tau_friction = _iq_friction_torque_vect;
 
     iq_est_msg->msg().der_est_order = _der_est_order;
 
