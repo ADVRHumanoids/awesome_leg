@@ -420,7 +420,7 @@ void IqEstimator::compute_iq_estimates()
 
         double motor_omega_dot = _q_ddot(i) / _red_ratio(i);
 
-        double required_motor_torque = _rot_MoI(i) * motor_omega_dot + total_torque_on_motor * _red_ratio(i);
+        double required_motor_torque = _rot_MoI(i) * motor_omega_dot - total_torque_on_motor * _red_ratio(i);
 
         _iq_est(i) = required_motor_torque / _K_t(i);
     }
@@ -1028,7 +1028,13 @@ void IqCalib::compute_tau_friction()
     {
 
         _tau_total(i) = 1.0 / _red_ratio(i) *
-              ( _rot_MoI(i) * _q_ddot(i) / _red_ratio(i) - _K_t(i) * _iq(i));
+              ( _rot_MoI(i) * _q_ddot(i) / _red_ratio(i) - _K_t(i) * _iq(i)); // total torque acting
+        // on the motor rotor estimated using the iq measurement and the estimate on the motor axis acceleration.
+        // The difference between this component and the torque measured on the link side gives the cumulative unmodeled
+        // effort on the rotor caused by dissipative actions present between the link and the rotor itself. Ideally,
+        // this difference should be zero.
+        // To model this dissipative effects, we use a simple static friction + dynamic friction model:
+        // tau_friction = Kd0 * sign(q_dot) * Kd1 * q_dot
 
         _tau_friction(i * _window_size) = _tau_total(i) - _tau(i); // assign to last sample
     }
