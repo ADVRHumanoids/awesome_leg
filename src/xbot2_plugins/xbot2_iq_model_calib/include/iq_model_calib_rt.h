@@ -95,7 +95,8 @@ private:
         _matlogger_buffer_size = 1e4,
         _lambda_qp_reg = 1.0,
         _tanh_coeff = 10.0,
-        _q_dot_3sigma = 0.001;
+        _q_dot_3sigma = 0.001,
+        _iq_cal_sol_millis = -1.0;
 
     Eigen::VectorXd _q_p_meas,
                     _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,

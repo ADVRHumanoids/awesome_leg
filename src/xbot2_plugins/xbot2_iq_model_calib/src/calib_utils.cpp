@@ -4,6 +4,7 @@ using std::tanh;
 
 using namespace CalibUtils;
 using namespace SignProcUtils;
+using namespace std::chrono;
 
 //************* IqRosGetter *************//
 
@@ -913,8 +914,14 @@ void IqCalib::solve_iq_cal_QP(int jnt_index)
     _b_lambda = _ig_Kd; // the regularization is done around _ig_Kd
     _b.segment(_window_size, _I_lambda.rows()) = std::sqrt(_lambda) * _b_lambda;
 
+    _sol_start = high_resolution_clock::now(); // profiling solution time
+
     // solving unconstrained linear regression problem with Eigen builtin method
     Eigen::VectorXd opt_Kd = _A.bdcSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(_b);
+
+    _sol_stop = high_resolution_clock::now(); // profiling solution time
+
+    _sol_time = duration_cast<milliseconds>(_sol_stop - _sol_start).count();
 
     _Kd0(jnt_index) = opt_Kd(0);
     _Kd1(jnt_index) = opt_Kd(1);
@@ -950,6 +957,11 @@ void IqCalib::set_ig(Eigen::VectorXd ig_Kd0,
         throw std::invalid_argument(exception);
     }
 
+}
+
+void IqCalib::get_sol_millis(double& millis)
+{
+    millis = _sol_time;
 }
 
 void IqCalib::get_current_optimal_Kd(Eigen::VectorXd& Kd0_opt,

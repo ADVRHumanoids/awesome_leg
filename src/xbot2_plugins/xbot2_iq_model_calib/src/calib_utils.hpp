@@ -23,6 +23,9 @@
 #include <vector>
 #include "spline.h"
 
+#include <algorithm>
+#include <chrono>
+
 using namespace XBot;
 
 namespace SignProcUtils{
@@ -390,6 +393,8 @@ namespace CalibUtils{
         void get_current_tau_friction(Eigen::VectorXd& tau_friction);
         void get_current_alpha(Eigen::VectorXd& alpha_d0, Eigen::VectorXd& alpha_d1);
 
+        void get_sol_millis(double& millis);
+
       private:
 
         bool _verbose = false; // whether to print info messages
@@ -409,6 +414,9 @@ namespace CalibUtils{
         // (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
         double _lambda = 2.0; // regularization gain for the least square problem
+
+        double _sol_time = -1.0; // current solution time for the regression problem
+        std::chrono::time_point<std::chrono::high_resolution_clock> _sol_start, _sol_stop;
 
         Eigen::VectorXd _alpha_d0, _alpha_d1; // we choose to model the tau_friction
                                               // (choice dictated by the observations

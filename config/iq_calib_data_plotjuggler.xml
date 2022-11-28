@@ -1,20 +1,20 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
  <tabbed_widget parent="main_window" name="Main Window">
-  <Tab containers="1" tab_name="tab1">
+  <Tab tab_name="tab1" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.104381" bottom="0.042626" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.105479" right="33.646000" bottom="0.042334"/>
        <limitY/>
        <curve color="#ff7f0e" name="/iq_model_calib_rt/iq_cal_node/K_d0_cal.0"/>
        <curve color="#f14cc1" name="/iq_model_calib_rt/iq_cal_node/K_d0_cal.1"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.102811" bottom="-10.736052" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.211924" right="33.646000" bottom="-10.593971"/>
        <limitY/>
        <curve color="#9467bd" name="/iq_model_calib_rt/iq_cal_node/K_d1_cal.0"/>
        <curve color="#17becf" name="/iq_model_calib_rt/iq_cal_node/K_d1_cal.1"/>
@@ -23,37 +23,37 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab2">
+  <Tab tab_name="tab2" containers="1">
    <Container>
-    <DockSplitter sizes="1" orientation="-" count="1">
-     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
-      <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="1" orientation="-" sizes="1">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
+      <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
        <DockArea name="...">
-        <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-         <range top="0.044123" bottom="0.044095" left="4.313000" right="24.312000"/>
+        <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+         <range left="13.650000" top="0.043876" right="33.646000" bottom="0.043836"/>
          <limitY/>
          <curve color="#ff7f0e" name="/iq_model_calib_rt/iq_cal_node/K_d0_cal.0"/>
         </plot>
        </DockArea>
        <DockArea name="...">
-        <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-         <range top="0.102917" bottom="0.102654" left="4.313000" right="24.312000"/>
+        <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+         <range left="13.650000" top="0.103978" right="33.646000" bottom="0.103864"/>
          <limitY/>
          <curve color="#f14cc1" name="/iq_model_calib_rt/iq_cal_node/K_d0_cal.1"/>
         </plot>
        </DockArea>
       </DockSplitter>
-      <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+      <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
        <DockArea name="...">
-        <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-         <range top="-0.154987" bottom="-0.166353" left="4.313000" right="24.312000"/>
+        <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+         <range left="13.650000" top="-0.045092" right="33.646000" bottom="-0.056344"/>
          <limitY/>
          <curve color="#9467bd" name="/iq_model_calib_rt/iq_cal_node/K_d1_cal.0"/>
         </plot>
        </DockArea>
        <DockArea name="...">
-        <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-         <range top="-10.397651" bottom="-10.479944" left="4.313000" right="24.312000"/>
+        <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+         <range left="13.650000" top="-10.302943" right="33.646000" bottom="-10.337511"/>
          <limitY/>
          <curve color="#17becf" name="/iq_model_calib_rt/iq_cal_node/K_d1_cal.1"/>
         </plot>
@@ -63,20 +63,20 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab3">
+  <Tab tab_name="tab3" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="1.025000" bottom="-0.024995" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="1.025000" right="33.646000" bottom="-0.024996"/>
        <limitY/>
        <curve color="#bcbd22" name="/iq_model_calib_rt/iq_cal_node/alpha_f0.0"/>
        <curve color="#d62728" name="/iq_model_calib_rt/iq_cal_node/alpha_f1.0"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="1.024996" bottom="-0.024836" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="1.024996" right="33.646000" bottom="-0.024833"/>
        <limitY/>
        <curve color="#1f77b4" name="/iq_model_calib_rt/iq_cal_node/alpha_f0.1"/>
        <curve color="#1ac938" name="/iq_model_calib_rt/iq_cal_node/alpha_f1.1"/>
@@ -85,20 +85,20 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab8">
+  <Tab tab_name="tab8" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.000385" bottom="-0.000461" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.000398" right="33.646000" bottom="-0.000461"/>
        <limitY/>
        <curve color="#ff7f0e" name="/iq_model_calib_rt/iq_est_node/iq_est.0"/>
        <curve color="#9467bd" name="/iq_model_calib_rt/iq_cal_node/iq_meas.0"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.010751" bottom="-0.011885" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.011342" right="33.646000" bottom="-0.011220"/>
        <limitY/>
        <curve color="#f14cc1" name="/iq_model_calib_rt/iq_est_node/iq_est.1"/>
        <curve color="#17becf" name="/iq_model_calib_rt/iq_cal_node/iq_meas.1"/>
@@ -107,20 +107,33 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab4">
+  <Tab tab_name="tab7" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="1" orientation="-" sizes="1">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.045141" bottom="0.043219" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="4.100000" right="33.646000" bottom="-0.100000"/>
+       <limitY/>
+       <curve color="#1f77b4" name="/iq_model_calib_rt/iq_cal_node/sol_millis"/>
+      </plot>
+     </DockArea>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="tab4" containers="1">
+   <Container>
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
+     <DockArea name="...">
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.044891" right="33.646000" bottom="0.042939"/>
        <limitY/>
        <curve color="#ff7f0e" name="/iq_model_calib_rt/iq_cal_node/tau_friction_meas.0"/>
        <curve color="#1f77b4" name="/iq_model_calib_rt/iq_est_node/tau_friction.0"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.114074" bottom="0.050967" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.113966" right="33.646000" bottom="0.050903"/>
        <limitY/>
        <curve color="#f14cc1" name="/iq_model_calib_rt/iq_cal_node/tau_friction_meas.1"/>
        <curve color="#d62728" name="/iq_model_calib_rt/iq_est_node/tau_friction.1"/>
@@ -129,20 +142,20 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab5">
+  <Tab tab_name="tab5" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.001678" bottom="-0.045739" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.001675" right="33.646000" bottom="-0.045482"/>
        <limitY/>
        <curve color="#9467bd" name="/iq_model_calib_rt/iq_cal_node/tau_total.0"/>
        <curve color="#bcbd22" name="/iq_model_calib_rt/iq_cal_node/tau_linkside_filt.0"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.023439" bottom="-0.094765" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.023489" right="33.646000" bottom="-0.094780"/>
        <limitY/>
        <curve color="#17becf" name="/iq_model_calib_rt/iq_cal_node/tau_total.1"/>
        <curve color="#1f77b4" name="/iq_model_calib_rt/iq_cal_node/tau_linkside_filt.1"/>
@@ -151,19 +164,19 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab9">
+  <Tab tab_name="tab9" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.045141" bottom="0.043219" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.044891" right="33.646000" bottom="0.042939"/>
        <limitY/>
        <curve color="#ff7f0e" name="/iq_model_calib_rt/iq_cal_node/tau_friction_meas.0"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="0.114074" bottom="0.050967" left="4.313000" right="24.312000"/>
+      <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+       <range left="13.650000" top="0.113966" right="33.646000" bottom="0.050903"/>
        <limitY/>
        <curve color="#f14cc1" name="/iq_model_calib_rt/iq_cal_node/tau_friction_meas.1"/>
       </plot>
@@ -171,39 +184,39 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab6">
+  <Tab tab_name="tab6" containers="1">
    <Container>
-    <DockSplitter sizes="0.500561;0.499439" orientation="-" count="2">
-     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
+    <DockSplitter count="2" orientation="-" sizes="0.500561;0.499439">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.131440" bottom="-0.131251" left="4.313000" right="24.312000"/>
+       <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+        <range left="13.650000" top="0.131352" right="33.646000" bottom="-0.131551"/>
         <limitY/>
         <curve color="#d62728" name="/iq_model_calib_rt/iq_est_node/q_p_ddot_est_filt.0"/>
         <curve color="#1ac938" name="/iq_model_calib_rt/iq_est_node/q_p_ddot_est_filt.1"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.004056" bottom="-0.000094" left="4.313000" right="24.312000"/>
+       <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+        <range left="13.650000" top="0.004053" right="33.646000" bottom="-0.000095"/>
         <limitY/>
         <curve color="#bcbd22" name="/iq_model_calib_rt/iq_cal_node/q_dot_filt.0"/>
         <curve color="#1f77b4" name="/iq_model_calib_rt/iq_cal_node/q_dot_filt.1"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" orientation="|" count="2">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.100000" bottom="-0.100000" left="4.313000" right="24.312000"/>
+       <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+        <range left="13.650000" top="0.100000" right="33.646000" bottom="-0.100000"/>
         <limitY/>
         <curve color="#9467bd" name="/iq_model_calib_rt/iq_cal_node/iq_meas.0"/>
         <curve color="#17becf" name="/iq_model_calib_rt/iq_cal_node/iq_meas.1"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="-0.042563" bottom="-0.093282" left="4.313000" right="24.312000"/>
+       <plot flip_x="false" style="Lines" mode="TimeSeries" flip_y="false">
+        <range left="13.650000" top="-0.042288" right="33.646000" bottom="-0.093278"/>
         <limitY/>
         <curve color="#d62728" name="/iq_model_calib_rt/iq_est_node/tau_meas.0"/>
         <curve color="#1ac938" name="/iq_model_calib_rt/iq_est_node/tau_meas.1"/>
@@ -213,19 +226,7 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab7">
-   <Container>
-    <DockSplitter sizes="1" orientation="-" count="1">
-     <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="1.000000" bottom="0.000000" left="0.000000" right="1.000000"/>
-       <limitY/>
-      </plot>
-     </DockArea>
-    </DockSplitter>
-   </Container>
-  </Tab>
-  <currentTabIndex index="7"/>
+  <currentTabIndex index="8"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="1"/>
  <!-- - - - - - - - - - - - - - - -->
