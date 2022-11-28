@@ -100,13 +100,10 @@
       <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
     </inertial>
   </link>
-  <joint name="test_rig2base" type="prismatic">
+  <joint name="test_rig2base" type="fixed">
     <parent link="test_rig"/>
     <child link="base_link"/>
     <origin rpy="0.0 0.0 -1.57079632679" xyz="0.18 0 0.25"/>
-    <axis xyz="0 0 1"/>
-    <dynamics damping="50.0" friction="0.0"/>
-    <limit effort="500" lower="-10" upper="10.0" velocity="50.0"/>
   </joint>
   <link name="base_link">
     <visual name="base_link_visual">

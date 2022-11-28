@@ -19,14 +19,16 @@ class CyclicPosTester:
 
         self.xbot_cmd_pub = rospy.Publisher('/xbotcore/command', JointCommand, queue_size=10) # publish on xbotcore/command
         self.xbot_state_sub = rospy.Subscriber('/xbotcore/joint_states', JointState, self.current_q_p_assigner) # subscribe at xbotcore/joint_states
-        
+
         self.urdf_path = rospy.get_param("cyclic_test/urdf_path")
+
         self.urdf = open(self.urdf_path, "r").read() # read the URDF
         self.pin_model = pin.buildModelFromXML(self.urdf)
         self.pin_model_data = self.pin_model.createData()
         self.n_jnts = self.pin_model.nq
         self.joint_names = []
         [self.joint_names.append((self.pin_model.names[i])) for i in range(1, self.n_jnts + 1)]
+
 
         self.PI = []
         [self.PI.append( self.pin_model.inertias[i].toDynamicParameters() ) for i in range(1, self.n_jnts + 1)] # reading inertial parameters from the provided URDF (used to compute torques)
@@ -93,7 +95,7 @@ class CyclicPosTester:
 
             self.joint_command.position = np.ndarray.tolist(position_command) # tolist necessary, since the joint command field requires a list
             self.joint_command.velocity = np.ndarray.tolist(velocity_command)
-            self.joint_command.effort = np.ndarray.tolist(effort_command)  
+            self.joint_command.effort = np.ndarray.tolist(effort_command)
             
             rospy.loginfo("Publishing command sample n.:\t" + str(self.pub_iterator + 1) + "," + "\n") # print a simple debug message
             rospy.loginfo("with a rate of :\t" + str(1/self.dt) + "Hz \n") # print a simple debug message
