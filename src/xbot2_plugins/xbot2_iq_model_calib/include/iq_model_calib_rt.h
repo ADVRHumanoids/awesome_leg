@@ -9,7 +9,8 @@
 
 #include <thread>
 
-#include "calib_utils.hpp"
+#include <awesome_utils/calib_utils.hpp>
+#include <awesome_utils/sign_proc_utils.hpp>
 
 #include <std_msgs/Bool.h>
 

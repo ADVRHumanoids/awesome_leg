@@ -23,7 +23,6 @@ add_message_files(
   MatReplayerStatus.msg
   IqEstStatus.msg
   IqCalStatus.msg
-
 )
 
 generate_messages(
