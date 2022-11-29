@@ -48,7 +48,7 @@ xbotcore_plugins:
         thread: rt_main
         type: homing_example
         params:
-            qhome: {value: [1.57, -1.57], type: Eigen::VectorXd}
+            qhome: {value: [1.57, -2.16], type: Eigen::VectorXd}
 
     ros_io: {thread: nrt_main, type: ros_io}
 
@@ -91,7 +91,7 @@ xbotcore_plugins:
 
             verbose: {value: false, type: bool}
 
-            lambda_qp_reg: {value: 10, type: double}
+            lambda_qp_reg: {value: 0.000001, type: double}
             tanh_coeff: {value: 10.0, type: double} # coefficient used for approximating the sign function with the tanh
             q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)

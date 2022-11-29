@@ -11,11 +11,11 @@ cyclic_test:
         # simple impedance (pos+kp+kd) code: -> 25
 
         n_intervals: 200 # number of intervals of the generated forward trajectory
-        T_execution: 2.0 # desired execution time (forward trajectory)
+        T_execution: 1.0 # desired execution time (forward trajectory)
         standby_time: 0.0 # time delay between the finished approach maneouver and the start of the real trajectory
 
-        q_p_target: [-1.57, 1.57] # target joint pose 
+        q_p_target: [-1.57, 2.16] # target joint pose
         
         ctrl_mode: [25, 25]
-        stiffness: [500, 50]
+        stiffness: [500, 500]
         damping:  [5, 5]
