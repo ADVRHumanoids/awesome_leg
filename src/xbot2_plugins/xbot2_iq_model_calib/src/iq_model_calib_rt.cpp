@@ -39,6 +39,7 @@ void IqModelCalibRt::init_vars()
     _K_d0 = Eigen::VectorXd::Zero(_n_jnts_robot);
     _K_d1 = Eigen::VectorXd::Zero(_n_jnts_robot);
 
+    _iq_cal_sol_millis = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     // used to convert to ros messages-compatible types
     _iq_est_vect = std::vector<double>(_n_jnts_robot);
@@ -61,8 +62,10 @@ void IqModelCalibRt::init_vars()
     _iq_meas_vect = std::vector<double>(_n_jnts_robot);
     _iq_meas_filt_vect = std::vector<double>(_n_jnts_robot);
 
-    _iq_friction_torque_cal_vect =  std::vector<double>(_n_jnts_robot);
+    _iq_friction_torque_cal_vect = std::vector<double>(_n_jnts_robot);
     _tau_rot_est_vect = std::vector<double>(_n_jnts_robot);
+
+    _iq_cal_sol_millis_vect = std::vector<double>(_n_jnts_robot);
 
 }
 
@@ -205,7 +208,7 @@ void IqModelCalibRt::init_dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("is_sim", int(_is_sim));
 
-    _dump_logger->create("sol_milliseconds", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("sol_milliseconds", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("q_p_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
 
@@ -354,7 +357,7 @@ void IqModelCalibRt::init_nrt_ros_bridge()
     std::vector<double> K_d1_cal_prealloc(_n_jnts_robot);
     std::vector<double> iq_meas_prealloc(_n_jnts_robot);
     std::vector<double> iq_meas_filt_prealloc(_n_jnts_robot);
-    double sol_millis_prealloc = -1.0;
+    std::vector<double> sol_millis_prealloc(_n_jnts_robot);
 
     iq_cal_prealloc.tau_linkside_filt = tau_linkside_prealloc;
     iq_cal_prealloc.q_dot_filt = q_p_dot_filt_prealloc;
@@ -437,6 +440,7 @@ void IqModelCalibRt::pub_iq_cal()
     Eigen::Map<Eigen::VectorXd>(&_K_d1_cal_vect[0], _K_d1_cal.size(), 1) = _K_d1_cal;
     Eigen::Map<Eigen::VectorXd>(&_iq_meas_vect[0], _iq_meas.size(), 1) = _iq_meas;
     Eigen::Map<Eigen::VectorXd>(&_iq_meas_filt_vect[0], _iq_meas_filt.size(), 1) = _iq_meas_filt;
+    Eigen::Map<Eigen::VectorXd>(&_iq_cal_sol_millis_vect[0], _iq_cal_sol_millis.size(), 1) = _iq_cal_sol_millis;
 
     // filling message
     iq_cal_msg->msg().tau_linkside_filt = _tau_meas_filt_vect;
@@ -452,9 +456,60 @@ void IqModelCalibRt::pub_iq_cal()
 
     iq_cal_msg->msg().iq_jnt_names = _iq_jnt_names;
 
-    iq_cal_msg->msg().sol_millis = _iq_cal_sol_millis;
+    iq_cal_msg->msg().sol_millis = _iq_cal_sol_millis_vect;
 
     _iq_cal_pub->publishLoaned(std::move(iq_cal_msg));
+
+}
+
+void IqModelCalibRt::run_iq_calib()
+{
+
+    // we update the calibration oject with fresh
+    // states (we filter every input, so that we get the same delay).
+    // Note that we don't really care about the
+    // delay introduced here.
+    _iq_calib.add_sample(_q_p_dot_meas_filt,
+                         _q_p_ddot_est_filt,
+                         _iq_meas_filt,
+                         _tau_meas_filt);
+
+    _iq_calib.set_ig(_K_d0_ig, _K_d1_ig);
+
+    // we solve the calibration problem and get the current
+    // optimal values
+    _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
+
+    // we set the ig to the new solution to
+    // promote convergence (which is also controlled by
+    // the chosen regularization gain)
+    _K_d0_ig = _K_d0_cal;
+    _K_d1_ig = _K_d1_cal;
+
+    // we also set the gains for the iq estimaton to the just obtained
+    // optimal values
+    _K_d0 = _K_d0_cal;
+    _K_d1 = _K_d1_cal;
+
+    // getting useful additional data for debbugging
+    _iq_calib.get_current_tau_total(_tau_rot_est);
+    _iq_calib.get_current_tau_friction(_iq_friction_torque_cal);
+    _iq_calib.get_current_alpha(_alpha_f0, _alpha_f1);
+    _iq_calib.get_sol_millis(_iq_cal_sol_millis);
+
+}
+
+void IqModelCalibRt::run_iq_estimation()
+{
+
+    // we update the state of the iq estimator with the most recent ones (filtered)
+    _iq_estimator.set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
+
+    // we compute and get the iq estimate using the (possibly) updated K_d0 and K_d1 gains
+    _iq_estimator.get_iq_estimate(_iq_est, _K_d0, _K_d1);
+
+    // we also get other useful quantities from the estimator
+    _iq_estimator.get_tau_friction(_iq_friction_torque);
 
 }
 
@@ -551,26 +606,10 @@ void IqModelCalibRt::run()
     _queue.run();
 
     // calibrate iq model
-    _iq_calib.add_sample(_q_p_dot_meas_filt,
-                         _q_p_ddot_est_filt,
-                         _iq_meas_filt,
-                         _tau_meas_filt);
-    _iq_calib.set_ig(_K_d0_cal, _K_d1_cal); // ig set to previous solution value
-    // to regularize the solution values across time
-    _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
-    _K_d0 = _K_d0_cal;
-    _K_d1 = _K_d1_cal;
-    _iq_calib.get_current_tau_total(_tau_rot_est);
-    _iq_calib.get_current_tau_friction(_iq_friction_torque_cal);
-    _iq_calib.get_current_alpha(_alpha_f0, _alpha_f1);
-    _iq_calib.get_sol_millis(_iq_cal_sol_millis);
+    run_iq_calib();
 
     // computing and updating iq estimates
-    _iq_estimator.set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
-
-    _iq_estimator.get_iq_estimate(_iq_est, _K_d0, _K_d1);
-
-    _iq_estimator.get_tau_friction(_iq_friction_torque);
+    run_iq_estimation();
 
     // publish info
     pub_iq_est(); // publish estimates to topic

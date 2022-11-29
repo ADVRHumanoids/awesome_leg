@@ -8,6 +8,6 @@ float64[] alpha_f0
 float64[] alpha_f1
 float64[] K_d0_cal
 float64[] K_d1_cal
-float64 sol_millis
+float64[] sol_millis
 
 string[] iq_jnt_names

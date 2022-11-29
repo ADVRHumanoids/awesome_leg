@@ -816,8 +816,11 @@ IqCalib::IqCalib(int window_size,
     _iq = Eigen::VectorXd::Zero(_n_jnts);
     _tau = Eigen::VectorXd::Zero(_n_jnts);
 
-    // initialize the awesome sign function
+    _sol_time = Eigen::VectorXd::Zero(_n_jnts);
+
+    // initialize the awesome sign-with-memory function
     _sign_with_memory = SignProcUtils::SignWithMem(_q_dot_3sigma, _tanh_coeff);
+
 
   }
 
@@ -921,7 +924,7 @@ void IqCalib::solve_iq_cal_QP(int jnt_index)
 
     _sol_stop = high_resolution_clock::now(); // profiling solution time
 
-    _sol_time = duration_cast<milliseconds>(_sol_stop - _sol_start).count();
+    _sol_time(jnt_index) = duration_cast<milliseconds>(_sol_stop - _sol_start).count();
 
     _Kd0(jnt_index) = opt_Kd(0);
     _Kd1(jnt_index) = opt_Kd(1);
@@ -959,7 +962,7 @@ void IqCalib::set_ig(Eigen::VectorXd ig_Kd0,
 
 }
 
-void IqCalib::get_sol_millis(double& millis)
+void IqCalib::get_sol_millis(Eigen::VectorXd& millis)
 {
     millis = _sol_time;
 }
