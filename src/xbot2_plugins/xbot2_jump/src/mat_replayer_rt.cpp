@@ -777,7 +777,7 @@ void MatReplayerRt::on_base_link_twist_received(const geometry_msgs::TwistStampe
 void MatReplayerRt::load_opt_data()
 {   
 
-    _traj = plugin_utils::TrajLoader(_mat_path + _mat_name, true, 0.0001, false);
+    _traj = TrajLoader(_mat_path + _mat_name, true, 0.0001, false);
 
     int n_traj_jnts = _traj.get_n_jnts();
 
@@ -1137,7 +1137,7 @@ bool MatReplayerRt::on_initialize()
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 
-    _peisekah_utils = plugin_utils::PeisekahTrans();
+    _peisekah_utils = PeisekahTrans();
 
     init_ft_sensor();
 

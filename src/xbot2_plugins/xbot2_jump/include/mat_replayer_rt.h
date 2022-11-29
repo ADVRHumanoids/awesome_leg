@@ -9,9 +9,9 @@
 
 #include <thread>
 
-#include "plugin_utils.hpp"
-
 #include "contact_est_utils.hpp"
+
+#include <awesome_utils/traj_utils.hpp>
 
 #include <xbot2/ros/ros_support.h>
 
@@ -34,6 +34,7 @@
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace ContactEstUtils;
+using namespace TrajUtils;
 
 typedef Eigen::Array<bool, Eigen::Dynamic, 1> VectorXb;
 
@@ -163,8 +164,8 @@ private:
 
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref;
 
-    plugin_utils::PeisekahTrans _peisekah_utils;
-    plugin_utils::TrajLoader _traj;
+    PeisekahTrans _peisekah_utils;
+    TrajLoader _traj;
 
     MatLogger2::Ptr _dump_logger;
 
