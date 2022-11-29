@@ -11,11 +11,6 @@
 #include <map>
 
 #include <xbot2/ros/ros_support.h>
-
-#include <cartesian_interface/ros/RosServerClass.h>
-
-#include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
-
 #include <xbot_msgs/CustomState.h>
 #include <xbot_msgs/JointState.h>
 
@@ -65,6 +60,31 @@ namespace SignProcUtils{
 
         std::vector<interp::spline> _spline_interp;
         Eigen::VectorXd _aux_time_vect;
+
+    };
+
+    class NumInt
+    {
+      public:
+
+        NumInt();
+
+        NumInt(int n_jnts, double dt, double T_horizon);
+
+        void add_sample(Eigen::VectorXd sample);
+
+        void get(Eigen::VectorXd& _int_sample); // get an estimate of integral
+        // of the variable along the specified T_horizon (from 0 to T_horizon)
+        // (assuming constant dt)
+
+      private:
+
+        Eigen::MatrixXd _window_data;
+
+        double _dt = 0.0; // assuming evenly spaced samples
+        double _T_horizon = 0.0;
+
+        int _n_jnts = -1, _n_intervals = -1, _n_samples = -1;
 
     };
 
