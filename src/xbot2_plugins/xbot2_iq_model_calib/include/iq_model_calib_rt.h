@@ -11,6 +11,7 @@
 
 #include <awesome_utils/calib_utils.hpp>
 #include <awesome_utils/sign_proc_utils.hpp>
+#include <awesome_utils/xbot2_utils.hpp>
 
 #include <std_msgs/Bool.h>
 
@@ -20,6 +21,9 @@
 #include <xbot2/hal/dev_ft.h>
 
 #include <xbot2/ros/ros_support.h>
+#include <xbot_msgs/CustomState.h>
+#include <xbot_msgs/JointState.h>
+
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
@@ -30,6 +34,7 @@
 using namespace XBot;
 using namespace CalibUtils;
 using namespace SignProcUtils;
+using namespace Xbot2Utils;
 
 //typedef Eigen::Array<bool, Eigen::Dynamic, 1> VectorXb;
 

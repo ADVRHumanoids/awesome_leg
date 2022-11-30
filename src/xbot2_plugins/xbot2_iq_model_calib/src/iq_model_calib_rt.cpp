@@ -296,13 +296,13 @@ void IqModelCalibRt::init_nrt_ros_bridge()
 
     /* Subscribers */
     _aux_signals_sub = _ros->subscribe("/xbotcore/aux",
-                                &CalibUtils::IqRosGetter::on_aux_signal_received,
+                                &Xbot2Utils::IqRosGetter::on_aux_signal_received,
                                 &_iq_getter,
                                 1,  // queue size
                                 &_queue);
 
     _js_signals_sub = _ros->subscribe("/xbotcore/joint_states",
-                                &CalibUtils::IqRosGetter::on_js_signal_received,
+                                &Xbot2Utils::IqRosGetter::on_js_signal_received,
                                 &_iq_getter,
                                 1,  // queue size
                                 &_queue);

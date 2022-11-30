@@ -15,12 +15,22 @@ add_service_files(
   EllTrajRt.srv
   SinJointTraj.srv
   BypassDspRt.srv
-  JumpNow.srv
 )
 
 add_message_files(
   FILES
   MatReplayerStatus.msg
+#  IqEstStatus.msg
+#  IqCalStatus.msg
+)
+
+add_service_files(
+  FILES
+  JumpNow.srv
+)
+
+add_message_files(
+  FILES
   IqEstStatus.msg
   IqCalStatus.msg
 )
@@ -63,5 +73,6 @@ install(PROGRAMS
         src/xbot_initial_pos_pub.py
         src/gravity_compensation.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 install(DIRECTORY src/horizon_code/jump_utils  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
