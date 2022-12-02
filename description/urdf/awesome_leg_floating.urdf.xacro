@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+
+<robot name="awesome_leg" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find awesome_leg)/description/urdf/utils.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.xbot.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/awesome_leg.urdf.xacro"/>
+    <xacro:include filename="$(find awesome_leg)/description/urdf/test_rig.gazebo.xacro"/>
+
+    <xacro:arg name="add_ft_sensor" default="false" />
+
+    <xacro:arg name="dump_video_frames" default="false" />
+
+    <xacro:property name="test_rig_base_ext" value="0.1" />
+    <xacro:property name="test_rig_height" value="1.0" />
+    <xacro:property name="hip_mounting_offset" value="0.08" />
+
+    <xacro:property name="pelvis_mounting_height" value="0.25" />
+
+    <!-- <xacro:if value="$(arg dump_video_frames)">
+
+        <joint name="test_rig_2camera_link" type="fixed">
+        <parent link="test_rig" />
+        <child link="camera_link" />
+        <origin xyz="0 ${camera_depth} ${camera_height}" rpy="0 0 0" />
+        </joint>
+
+        <link name="camera_link">
+            <visual name="visual">
+            <geometry>
+            <box>
+            <size>0.1 0.1 0.1</size>
+            </box>
+            </geometry>
+            </visual>
+
+        </link>
+
+    </xacro:if> -->
+
+    <link name="world" />
+
+    <joint name="world_test_rig" type="floating">
+        <parent link="world" />
+        <child link="base_link" />
+        <origin xyz="${test_rig_base_ext + hip_mounting_offset} 0 ${test_rig_height / 2 + pelvis_mounting_height}" rpy="0.0 0.0 ${-PI_2}" />
+    </joint>
+
+    <link name="base_link">
+        <visual name="base_link_visual">
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://awesome_leg/description/new_meshes/visual/base.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <geometry>
+                <mesh filename="package://awesome_leg/description/new_meshes/collision/base.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="${4.5477704 + payload_mass}" />
+            <inertia ixx="${4.4624842e+04 * kgmm2_2_kgm2}" iyy="${2.6977590e+04 * kgmm2_2_kgm2}" izz="${2.7956754e+04 * kgmm2_2_kgm2}"
+                    ixy="${-1.4644878e+01 * kgmm2_2_kgm2}" ixz="${3.0225947e+01 * kgmm2_2_kgm2}" iyz="${9.6636358e+03 * kgmm2_2_kgm2}" />
+        </inertial>
+    </link>
+
+    <xacro:awesome_leg id="1" base_link="base_link" add_ft_sensor="$(arg add_ft_sensor)"/>
+
+</robot>
