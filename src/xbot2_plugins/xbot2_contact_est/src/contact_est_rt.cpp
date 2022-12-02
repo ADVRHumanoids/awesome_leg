@@ -177,18 +177,18 @@ void ContactEstRt::update_state_estimates()
 
     get_passive_jnt_est(passive_jnt_pos, passive_jnt_vel);
 
-    _q_p_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_meas; // assign actuated dofs with meas.
+    _q_p_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_meas; // assign actuated dofs with meas.
     // from encoders
     _q_p_ft_est(0) = passive_jnt_pos; // assign passive dofs
 
-    _q_p_dot_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
+    _q_p_dot_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
     // from encoders
     _q_p_dot_ft_est(0) = passive_jnt_vel; // assign passive dofs
 
     _num_diff.add_sample(_q_p_dot_ft_est); // update differentiation
     _num_diff.dot(_q_p_ddot_ft_est); // getting differentiated state acceleration
 
-    _tau_ft_est.block(_n_jnts_model_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs with meas.
+    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs with meas.
     // from encoders
     _tau_ft_est(0) = 0; // no effort on passive joints
 }

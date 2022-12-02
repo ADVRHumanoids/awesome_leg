@@ -80,9 +80,7 @@ private:
         _verbose = false,
         _ft_tip_sensor_found = false;
 
-    int _n_jnts_model,
-        _n_jnts_model_ft_est,
-        _n_jnts_robot,
+    int _n_jnts_robot,
         _nv_ft_est, _nq_ft_est;
 
     std::string _mat_path, _mat_name, _dump_mat_suffix,
