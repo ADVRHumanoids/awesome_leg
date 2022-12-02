@@ -9,6 +9,8 @@
 
 #include <xbot2/xbot2.h>
 
+#include <cartesian_interface/CartesianInterfaceImpl.h>
+
 #include <thread>
 
 #include <xbot2/ros/ros_support.h>
@@ -20,6 +22,7 @@
 
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/TwistStamped.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
