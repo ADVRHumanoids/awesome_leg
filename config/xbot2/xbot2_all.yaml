@@ -22,7 +22,7 @@ xbotcore_device_configs:
 xbotcore_threads:
     rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 4}
     rt_iq_est:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    contact_est_rt: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+    contact_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -98,7 +98,7 @@ xbotcore_plugins:
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
     contact_est_rt:
-        thread: rt_main
+        thread: contact_est
         type: contact_est_rt
         params:
 

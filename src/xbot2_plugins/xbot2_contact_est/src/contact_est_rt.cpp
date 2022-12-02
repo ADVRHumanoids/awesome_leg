@@ -65,8 +65,6 @@ void ContactEstRt::get_params_from_config()
     _tip_link_name = getParamOrThrow<std::string>("~tip_link_name"); 
     _base_link_name = getParamOrThrow<std::string>("~base_link_name");
 
-    _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
-
     _verbose = getParamOrThrow<bool>("~verbose");
 
     _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
