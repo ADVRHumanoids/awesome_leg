@@ -120,8 +120,8 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            ft_est_lambda: {value: 1.0, type: double}
-            ft_est_bw: {value: 10.0, type: double}
+            ft_est_lambda: {value: 0.0001, type: double}
+            ft_est_bw: {value: 100.0, type: double}
 
 
     mat_replayer_rt:
