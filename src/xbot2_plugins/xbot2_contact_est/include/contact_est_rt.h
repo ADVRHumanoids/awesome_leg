@@ -2,6 +2,7 @@
 #define CONTACT_EST_RT
 
 #include <awesome_utils/contact_est_utils.hpp>
+#include <awesome_utils/sign_proc_utils.hpp>
 
 #include <awesome_leg/ContactEstStatus.h>
 
@@ -32,6 +33,7 @@
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace ContactEstUtils;
+using namespace SignProcUtils;
 
 /**
  * @brief
@@ -80,11 +82,12 @@ private:
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,
-        _n_jnts_robot;
+        _n_jnts_robot,
+        _nv_ft_est, _nq_ft_est;
 
     std::string _mat_path, _mat_name, _dump_mat_suffix,
                 _urdf_path, _srdf_path,
-                _urdf_path_ft_est, _srdf_path_ft_est,
+                _urdf_path_ft_est,
                 _tip_link_name, _base_link_name,
                 _hw_type,
                 _tip_fts_name,
@@ -93,28 +96,32 @@ private:
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-           _matlogger_buffer_size = 1e4;
+           _matlogger_buffer_size = 1e4,
+           _ft_est_lambda = 1.0, _ft_est_bw = 10.0;
 
     std::vector<int> _contact_dofs{0, 1, 2};
 
-    Eigen::Vector3d _meas_tip_f_loc, _tip_f_est_loc,
-                    _meas_tip_t_loc, _tip_t_est_loc,
-                    _meas_tip_f_abs, _tip_f_est_abs,
+    std::vector<double> _tau_c_vect, _w_c_vect,
+                        _tip_f_est_abs_vect, _tip_t_est_abs_vect,
+                        _f_meas_vect, _w_meas_vect,
+                        _meas_tip_f_abs_vect,
+                        _meas_tip_t_abs_vect;
+
+    Eigen::VectorXd _meas_tip_f_abs, _tip_f_est_abs,
                     _meas_tip_t_abs, _tip_t_est_abs,
+                    _meas_tip_f_loc, _meas_tip_t_loc,
+                    _base_link_pos,
                     _base_link_vel, _base_link_omega;
 
-    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
-                    _f_contact_ref,
+    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _tau_meas,
                     _tip_abs_position,
-                    _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est, _f_cont_est,
-                    _q_p_dot_ft_est_prev;
+                    _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
+                    _tau_c, _w_c;
 
     Eigen::Affine3d _test_rig_pose, _test_rig_pose_inv,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
                     _base_link_abs_est, _tip_pose_abs_est,
                     _base_link_pos_rel_test_rig;
-
-    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref;
 
     MatLogger2::Ptr _dump_logger;
 
@@ -124,22 +131,23 @@ private:
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
-    XBot::ModelInterface::Ptr _model, _model_ft_est;
-
     std::shared_ptr<XBot::Hal::ForceTorque >_ft_sensor;
 
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
     SubscriberPtr<geometry_msgs::TwistStamped> _base_link_twist_sub;
 
-//    ContactEstimation::UniquePtr _ft_estimator;
+    PublisherPtr<awesome_leg::ContactEstStatus> _cont_est_status_pub;
+
+    Model::Ptr _ft_est_model_ptr;
+    MomentumBasedFObs::UniquePtr _ft_estimator;
+    NumDiff _num_diff;
 
     void get_params_from_config();
 
     void get_passive_jnt_est(double& pssv_jnt_pos,
-                             double& pssv_jnt_vel,
-                             double& pssv_jnt_acc);
+                             double& pssv_jnt_vel);
 
-    void init_model_interface();
+    void init_model_interfaces();
     void init_vars();
     void init_clocks();
     void init_nrt_ros_bridge();
@@ -167,7 +175,9 @@ private:
 
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
     void on_base_link_twist_received(const geometry_msgs::TwistStamped& msg);
-                 
+
+    void pub_contact_est_status();
+
 };
 
 #endif // CONTACT_EST_RT

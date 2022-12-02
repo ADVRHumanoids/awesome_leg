@@ -9,7 +9,7 @@
 
 #include <thread>
 
-#include "contact_est_utils.hpp"
+#include "contact_est.hpp"
 
 #include <awesome_utils/traj_utils.hpp>
 

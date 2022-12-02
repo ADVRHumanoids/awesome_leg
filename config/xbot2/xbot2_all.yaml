@@ -102,11 +102,9 @@ xbotcore_plugins:
         type: contact_est_rt
         params:
 
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
 
             urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-            srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
             mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
             mat_name: {value: apex_awesome_jump_ref.mat, type: string}
@@ -121,6 +119,10 @@ xbotcore_plugins:
             test_rig_linkname: {value: "test_rig", type: string}
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
+
+            ft_est_lambda: {value: 1.0, type: double}
+            ft_est_bw: {value: 10.0, type: double}
+
 
     mat_replayer_rt:
         thread: rt_main
