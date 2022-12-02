@@ -10,11 +10,13 @@ find_package(awesome_utils REQUIRED)
 add_xbot2_plugin(contact_est_rt
     src/contact_est_rt.cpp)
 
-add_dependencies(contact_est_rt ${PROJECT_NAME}_generate_messages contact_est_utils)
+add_dependencies(contact_est_rt ${PROJECT_NAME}_generate_messages)
 
 target_include_directories(contact_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
 
-target_link_libraries(contact_est_rt PRIVATE awesome_utils::awesome_utils xbot2::xbot2_ros_support contact_est_utils)
+target_link_libraries(contact_est_rt PRIVATE awesome_utils::awesome_utils
+                                             xbot2::xbot2_ros_support
+                                             matlogger2::matlogger2)
 
 install(
     TARGETS contact_est_rt DESTINATION lib

@@ -20,9 +20,7 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    # rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
-    rt_iq_est:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    contact_est_rt: {sched: fifo , prio: 60, period: 0.01, core_id: 4}
+    rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -39,118 +37,11 @@ xbotcore_plugins:
         params:
             qhome: {value: [-1.0, -1.57], type: Eigen::VectorXd}
 
-    homing_landing:
-        thread: rt_main
-        type: homing_example
-        params:
-            qhome: {value: [0.8, 0.9], type: Eigen::VectorXd}
-
-    homing_iq_calibration:
-        thread: rt_main
-        type: homing_example
-        params:
-            qhome: {value: [1.57, -2.16], type: Eigen::VectorXd}
-
     ros_io: {thread: nrt_main, type: ros_io}
 
     ros_control: {thread: nrt_main, type: ros_control}
     
     ec_ros: {thread: nrt_main, type: ec_ros}
-
-    iq_model_calib_rt:
-        thread: rt_iq_est
-        type: iq_model_calib_rt
-        params:
-
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
-
-            mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: iq_estimation, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
-
-            red_ratio: {value: [0.02, .02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
-
-            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
-
-#            K_d0_ig: {value: [2.5, 7.3], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-#            K_d1_ig: {value: [1.17, 1.72], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
-
-            K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-            K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
-
-            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
-
-            der_est_order: {value: 1, type: int}
-
-            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-
-            iq_calib_window_size: {value: 10000, type: int}
-
-            verbose: {value: false, type: bool}
-
-            lambda_qp_reg: {value: 0.000001, type: double}
-            tanh_coeff: {value: 10.0, type: double} # coefficient used for approximating the sign function with the tanh
-            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
-            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
-
-    contact_est_rt:
-        thread: rt_main
-        type: contact_est_rt
-        params:
-
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
-
-            urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-            srdf_path_ft_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
-
-            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
-            dump_mat_suffix: {value: traj_replay, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
-
-            is_first_jnt_passive : {value: true, type: bool}
-            resample: {value: false, type: bool}
-
-            delta_effort_lim: {value: 1e-6, type: double}
-            # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
-
-            replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
-            replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
-            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
-            # touchdown_stiffness: {value: [2500.0, 2500.0], type: Eigen::VectorXd}
-            # touchdown_damping: {value: [40.0, 40.0], type: Eigen::VectorXd}
-            stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
-            stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
-
-            send_pos_ref: {value: true, type: bool}
-            send_vel_ref: {value: true, type: bool}
-            send_eff_ref: {value: false, type: bool}
-
-            traj_pause_time: {value: 0.05, type: double} # don't go lower than the control plugin!!
-
-            tip_link_name: {value: tip1, type: string}
-            base_link_name: {value: base_link, type: string}
-
-            approach_traj_exec_time: {value: 5.0, type: double}
-            imp_ramp_time: {value: 5.0, type: double}
-
-            reduce_dumped_sol_size: {value: false, type: bool}
-
-            send_whole_traj: {value: true, type: bool}
-
-            verbose: {value: false, type: bool}
-
-            test_rig_linkname: {value: "test_rig", type: string}
-            tip_fts_name: {value: "tip1_fts", type: string}
-            contact_linkname: {value: "tip1", type: string}
-
-            driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
 
     mat_replayer_rt:
         thread: rt_main
