@@ -216,9 +216,14 @@ void ContactEstRt::update_state()
     update_state_estimates(); // updates state estimates
     // (q, q_dot, q_ddot) and efforts
 
-    _ft_est_model_ptr->update(_q_p_ft_est, _q_p_dot_ft_est, _tau_ft_est, _q_p_ddot_ft_est);
+    _ft_est_model_ptr->set_q(_q_p_ft_est);
+    _ft_est_model_ptr->set_v(_q_p_dot_ft_est);
+    _ft_est_model_ptr->set_a(_q_p_ddot_ft_est);
+    _ft_est_model_ptr->set_tau(_tau_ft_est);
 
-    _ft_estimator->update(_contact_linkname, _use_rnea_torque); // we can now update the
+    _ft_est_model_ptr->update();
+
+    _ft_estimator->update(_contact_linkname); // we can now update the
     // force estimation
     _ft_estimator->get_tau_obs(_tau_c);
     _ft_estimator->get_w_est(_w_c);
