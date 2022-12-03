@@ -20,9 +20,9 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 4}
+    rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
     rt_iq_est:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    contact_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+    contact_est: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -120,8 +120,8 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            ft_est_lambda: {value: 0.0001, type: double}
-            ft_est_bw: {value: 100.0, type: double}
+            ft_est_lambda: {value: 0.001, type: double}
+            ft_est_bw: {value: 1000.0, type: double}
 
 
     mat_replayer_rt:
