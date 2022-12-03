@@ -79,7 +79,8 @@ private:
         _reduce_dumped_sol_size = false,
         _verbose = false,
         _ft_tip_sensor_found = false,
-        _select_est_bw_manually = false;
+        _select_est_bw_manually = false,
+        _use_rnea_torque = false;
 
     int _n_jnts_robot,
         _nv_ft_est, _nq_ft_est;

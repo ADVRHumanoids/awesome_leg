@@ -89,6 +89,7 @@ void ContactEstRt::get_params_from_config()
     _select_est_bw_manually = getParamOrThrow<bool>("~select_est_bw_manually");
 
     _ft_est_bw = getParamOrThrow<double>("~ft_est_bw");
+    _use_rnea_torque = getParamOrThrow<bool>("~use_rnea_torque");
 
 }
 
@@ -217,7 +218,7 @@ void ContactEstRt::update_state()
 
     _ft_est_model_ptr->update(_q_p_ft_est, _q_p_dot_ft_est, _tau_ft_est, _q_p_ddot_ft_est);
 
-    _ft_estimator->update(_contact_linkname); // we can now update the
+    _ft_estimator->update(_contact_linkname, _use_rnea_torque); // we can now update the
     // force estimation
     _ft_estimator->get_tau_obs(_tau_c);
     _ft_estimator->get_w_est(_w_c);
