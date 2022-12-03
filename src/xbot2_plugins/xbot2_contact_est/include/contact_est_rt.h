@@ -97,7 +97,7 @@ private:
            _matlogger_buffer_size = 1e4,
            _ft_est_lambda = 1.0, _ft_est_bw = 10.0;
 
-    std::vector<int> _contact_dofs{0, 1, 2};
+    std::vector<int> _selector{0, 1, 2};
 
     std::vector<double> _tau_c_vect, _w_c_vect,
                         _tip_f_est_abs_vect, _tip_t_est_abs_vect,

@@ -86,7 +86,7 @@ void ContactEstRt::get_params_from_config()
     _test_rig_linkname = getParamOrThrow<std::string>("~test_rig_linkname");
 
     _ft_est_lambda = getParamOrThrow<double>("~ft_est_lambda");
-    _ft_est_bw = getParamOrThrow<double>("~ft_est_bw");
+//    _ft_est_bw = getParamOrThrow<double>("~ft_est_bw");
 
 }
 
@@ -138,7 +138,10 @@ void ContactEstRt::init_ft_sensor()
 void ContactEstRt::init_ft_estimator()
 {
 
-    _ft_estimator.reset(new MomentumBasedFObs(_ft_est_model_ptr, _plugin_dt, _ft_est_bw, _ft_est_lambda, true));
+    _ft_estimator.reset(new MomentumBasedFObs(_ft_est_model_ptr,
+                                              _plugin_dt, 1/_plugin_dt,
+                                              _ft_est_lambda, true,
+                                              _selector));
 
 }
 
