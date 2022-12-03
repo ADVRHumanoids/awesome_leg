@@ -14,7 +14,8 @@
 <xacro:property name="DEG2RAD" value="${PI/180.0}" />
 
 <xacro:property name="sliding_guide_static_friction" value="0.0" />
-<xacro:property name="sliding_guide_dyn_friction" value="50.0" />
+<xacro:property name="sliding_guide_dyn_friction" value="0.0" />
+<!--<xacro:property name="sliding_guide_dyn_friction" value="50.0" />-->
 
 <xacro:property name="base_link_mass_compensation" value="2.0" />
 <xacro:property name="payload_mass" value="${0.0 + base_link_mass_compensation}" />
