@@ -22,7 +22,7 @@ xbotcore_device_configs:
 xbotcore_threads:
     rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
     rt_iq_est:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    contact_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+    contact_est: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -121,7 +121,8 @@ xbotcore_plugins:
             contact_linkname: {value: "tip1", type: string}
 
             ft_est_lambda: {value: 10.0, type: double} # regularization of the estimated contact wrench
-#            ft_est_bw: {value: 100.0, type: double}
+            ft_est_bw: {value: 100.0, type: double}
+            select_est_bw_manually: {value: false, type: bool}
 
 
     mat_replayer_rt:
