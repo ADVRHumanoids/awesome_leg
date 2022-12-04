@@ -33,6 +33,8 @@ void ContactEstRt::init_vars()
     _meas_tip_f_loc = Eigen::VectorXd::Zero(3);
     _meas_tip_t_loc = Eigen::VectorXd::Zero(3);
 
+    _w_c = Eigen::VectorXd::Zero(6);
+
     // used to convert to ros messages-compatible types
     _tau_c_vect = std::vector<double>(_nv_ft_est);
     _w_c_vect = std::vector<double>(6);
@@ -223,18 +225,18 @@ void ContactEstRt::update_state()
 
     _ft_est_model_ptr->update();
 
+    // getting link poses from model
+    _ft_est_model_ptr->get_frame_pose(_tip_link_name,
+                              _tip_pose_abs_est);
+    _ft_est_model_ptr->get_frame_pose(_base_link_name,
+                              _base_link_abs_est);
+
     _ft_estimator->update(_contact_linkname); // we can now update the
     // force estimation
     _ft_estimator->get_tau_obs(_tau_c);
     _ft_estimator->get_w_est(_w_c);
     _ft_estimator->get_f_est(_tip_f_est_abs);
     _ft_estimator->get_t_est(_tip_t_est_abs);
-
-    // getting estimates of the tip and hip position
-    // based on the reconstructed state used to update
-    // the force estimation model
-//    _ft_est_model_ptr->getPose(_tip_link_name, _tip_pose_abs_est);
-//    _ft_est_model_ptr->getPose(_base_link_name, _base_link_abs_est);
 
 }
 
@@ -253,7 +255,8 @@ void ContactEstRt::get_fts_force()
   // rotating the force into world frame
   // then from base to world orientation
 
-//  _meas_tip_f_abs = _tip_pose_abs * _meas_tip_f_loc;
+  auto prova = _tip_pose_abs_est.linear();
+  _meas_tip_f_abs = _tip_pose_abs_est.linear() * _meas_tip_f_loc;
 
 }
 
