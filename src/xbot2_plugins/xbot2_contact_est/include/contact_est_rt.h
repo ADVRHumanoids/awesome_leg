@@ -107,16 +107,20 @@ private:
                         _meas_tip_f_abs_vect,
                         _meas_tip_t_abs_vect;
 
-    Eigen::VectorXd _meas_tip_f_abs, _tip_f_est_abs,
-                    _meas_tip_t_abs, _tip_t_est_abs,
-                    _meas_tip_f_loc, _meas_tip_t_loc,
+    Eigen::VectorXd _meas_tip_f_loc, _meas_tip_t_loc,
                     _base_link_pos,
                     _base_link_vel, _base_link_omega;
 
     Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _tau_meas,
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
-                    _tau_c, _w_c;
+                    _tau_c;
+
+    Model::Wrench _w_c;
+
+    Model::Force3D _meas_tip_f_abs, _tip_f_est_abs;
+
+    Model::Torque3D _meas_tip_t_abs, _tip_t_est_abs;
 
     Eigen::Affine3d _test_rig_pose, _test_rig_pose_inv,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,

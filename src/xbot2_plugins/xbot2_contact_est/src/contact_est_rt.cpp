@@ -396,11 +396,11 @@ void ContactEstRt::pub_contact_est_status()
 
     // mapping EigenVectorXd data to std::vector, so that they can be published
     Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
-    Eigen::Map<Eigen::VectorXd>(&_w_c_vect[0], _w_c.size(), 1) = _w_c;
-    Eigen::Map<Eigen::VectorXd>(&_tip_f_est_abs_vect[0], _tip_f_est_abs.size(), 1) = _tip_f_est_abs;
-    Eigen::Map<Eigen::VectorXd>(&_tip_t_est_abs_vect[0], _tip_t_est_abs.size(), 1) = _tip_t_est_abs;
-    Eigen::Map<Eigen::VectorXd>(&_meas_tip_f_abs_vect[0], _meas_tip_f_abs.size(), 1) = _meas_tip_f_abs;
-    Eigen::Map<Eigen::VectorXd>(&_meas_tip_t_abs_vect[0], _meas_tip_t_abs.size(), 1) = _meas_tip_t_abs;
+    Eigen::Map<Model::Wrench>(&_w_c_vect[0], _w_c.size(), 1) = _w_c;
+    Eigen::Map<Model::Force3D>(&_tip_f_est_abs_vect[0], _tip_f_est_abs.size(), 1) = _tip_f_est_abs;
+    Eigen::Map<Model::Torque3D>(&_tip_t_est_abs_vect[0], _tip_t_est_abs.size(), 1) = _tip_t_est_abs;
+    Eigen::Map<Model::Force3D>(&_meas_tip_f_abs_vect[0], _meas_tip_f_abs.size(), 1) = _meas_tip_f_abs;
+    Eigen::Map<Model::Torque3D>(&_meas_tip_t_abs_vect[0], _meas_tip_t_abs.size(), 1) = _meas_tip_t_abs;
 
     // filling message
 
