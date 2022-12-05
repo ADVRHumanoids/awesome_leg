@@ -189,7 +189,7 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
     { // for now, estimates only available in simulation
 
     _base_link_trans_wrt_test_rig = _test_rig_pose_inv * _base_link_abs.translation(); // rototranslation from world to base link
-    pssv_jnt_pos = _base_link_trans_wrt_test_rig.translation()[2];
+    pssv_jnt_pos = _base_link_trans_wrt_test_rig[2];
 
     _base_link_vel_wrt_test_rig = _test_rig_pose_inv.rotation() * _base_link_vel; // pure rotation from world to test rig
 

@@ -134,14 +134,11 @@ private:
                     _meas_tip_t_abs;
 
     Model::Affine3D _tip_pose_abs_est, _base_link_abs_est,
-                    _test_rig_pose, _test_rig_pose_inv;
+                    _test_rig_pose, _test_rig_pose_inv,
+                    _base_link_abs;
 
     Model::PosVec3D _base_link_trans_wrt_test_rig;
     Model::LinVel _base_link_vel_wrt_test_rig;
-
-    Eigen::Affine3d , _test_rig_pose_inv,
-                    _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
-                    _base_link_pos_rel_test_rig;
 
     MatLogger2::Ptr _dump_logger;
 
