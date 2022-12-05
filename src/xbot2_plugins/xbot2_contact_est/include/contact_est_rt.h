@@ -133,9 +133,10 @@ private:
     Model::Torque3D _tip_t_est_abs, _meas_tip_t_loc,
                     _meas_tip_t_abs;
 
-    Model::Affine3D _tip_pose_abs_est, _base_link_abs_est,
-                    _test_rig_pose, _test_rig_pose_inv,
-                    _base_link_abs;
+    Model::Affine3D _M_world_from_tip, _M_world_from_base_link_est,
+                    _M_test_rig_from_world, _M_world_from_test_rig,
+                    _M_world_from_base_link,
+                    _M_test_rig_from_base_link;
 
     Model::PosVec3D _base_link_trans_wrt_test_rig;
     Model::LinVel _base_link_vel_wrt_test_rig;

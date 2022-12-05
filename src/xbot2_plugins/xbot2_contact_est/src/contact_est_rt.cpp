@@ -188,11 +188,10 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
     if(_is_sim)
     { // for now, estimates only available in simulation
 
-    _base_link_trans_wrt_test_rig = _test_rig_pose_inv * _base_link_abs.translation(); // rototranslation from world to base link
-    pssv_jnt_pos = _base_link_trans_wrt_test_rig[2];
+    _M_test_rig_from_base_link = _M_test_rig_from_world * _M_world_from_base_link; // from base link to test rig
+    pssv_jnt_pos = _M_test_rig_from_base_link.translation()[2]; // sliding guide position
 
-    _base_link_vel_wrt_test_rig = _test_rig_pose_inv.rotation() * _base_link_vel; // pure rotation from world to test rig
-
+    _base_link_vel_wrt_test_rig = _M_test_rig_from_world.rotation() * _base_link_vel; // pure rotation from world to test rig
     pssv_jnt_vel = _base_link_vel_wrt_test_rig[2]; // extracting vertical component (== prismatic joint velocity)
 
     }
@@ -255,9 +254,9 @@ void ContactEstRt::update_state()
 
     // getting link poses from model
     _ft_est_model_ptr->get_frame_pose(_tip_link_name,
-                              _tip_pose_abs_est);
+                              _M_world_from_tip);
     _ft_est_model_ptr->get_frame_pose(_base_link_name,
-                              _base_link_abs_est);
+                              _M_world_from_base_link);
 
     // getting other quantities which are useful for debugging the estimator
     _ft_est_model_ptr->get_C(_C);
@@ -293,8 +292,8 @@ void ContactEstRt::get_fts_force()
   // rotating the force into world frame
   // then from base to world orientation
 
-  _meas_tip_f_abs = _tip_pose_abs_est.rotation() * _meas_tip_f_loc;
-  _meas_tip_t_abs = _tip_pose_abs_est.rotation() * _meas_tip_t_loc;
+  _meas_tip_f_abs = _M_world_from_tip.rotation() * _meas_tip_f_loc; // from tip local to world
+  _meas_tip_t_abs = _M_world_from_tip.rotation() * _meas_tip_t_loc; // from tip local to world
 
 }
 
@@ -384,8 +383,8 @@ void ContactEstRt::add_data2dump_logger()
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
-        _dump_logger->add("base_link_abs", _base_link_abs.translation());
-        _dump_logger->add("base_link_abs_est", _base_link_abs_est.translation());
+        _dump_logger->add("base_link_abs", _M_world_from_base_link.translation());
+        _dump_logger->add("base_link_abs_est", _M_world_from_base_link.translation());
         _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
         _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
         _dump_logger->add("base_link_vel", _base_link_vel);
@@ -456,7 +455,7 @@ void ContactEstRt::get_tau_cmd()
 void ContactEstRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
 {   
 
-    tf::poseMsgToEigen(msg.pose, _base_link_abs);
+    tf::poseMsgToEigen(msg.pose, _M_world_from_base_link);
 
 }
 
@@ -513,10 +512,6 @@ bool ContactEstRt::on_initialize()
 
     _n_jnts_robot = _robot->getJointNum();
 
-    _ft_est_model_ptr->get_frame_pose(_test_rig_linkname,
-                              _test_rig_pose);
-    _test_rig_pose_inv = _test_rig_pose.inverse(); // from world to test rig
-
     init_vars();
 
     init_nrt_ros_bridge();
@@ -529,6 +524,10 @@ bool ContactEstRt::on_initialize()
 
     _num_diff_v = NumDiff(_nv_ft_est, _plugin_dt);
     _num_diff_p = NumDiff(_nv_ft_est, _plugin_dt);
+
+    _ft_est_model_ptr->get_frame_pose(_test_rig_linkname,
+                              _M_test_rig_from_world);
+    _M_world_from_test_rig = _M_test_rig_from_world.inverse(); // from world to test rig
 
     return true;
     
