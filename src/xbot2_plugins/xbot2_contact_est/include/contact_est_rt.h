@@ -80,7 +80,8 @@ private:
         _verbose = false,
         _ft_tip_sensor_found = false,
         _select_est_bw_manually = false,
-        _use_rnea_torque = false;
+        _use_rnea_torque = false,
+        _estimate_full_wrench = true;
 
     int _n_jnts_robot,
         _nv_ft_est, _nq_ft_est;
@@ -99,7 +100,7 @@ private:
            _matlogger_buffer_size = 1e4,
            _ft_est_lambda = 1.0, _ft_est_bw = 10.0;
 
-    std::vector<int> _selector{0, 1, 2};
+    std::vector<int> _selector{0, 1, 2, 3, 4, 5};
 
     std::vector<double> _tau_c_vect, _w_c_vect,
                         _tip_f_est_abs_vect, _tip_t_est_abs_vect,
@@ -118,9 +119,11 @@ private:
                     _tau_meas,
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
-                    _tau_c;
+                    _tau_c,
+                    _CT_v, _g, _tau_c_raw, _p, _p_dot;
 
-    Eigen::MatrixXd _K_p, _K_d;
+    Eigen::MatrixXd _C,
+                    _K_p, _K_d;
 
     Model::Wrench _w_c;
 
@@ -130,8 +133,13 @@ private:
     Model::Torque3D _tip_t_est_abs, _meas_tip_t_loc,
                     _meas_tip_t_abs;
 
-    Model::Affine3D _tip_pose_abs_est, _base_link_abs_est;
-    Eigen::Affine3d _test_rig_pose, _test_rig_pose_inv,
+    Model::Affine3D _tip_pose_abs_est, _base_link_abs_est,
+                    _test_rig_pose, _test_rig_pose_inv;
+
+    Model::PosVec3D _base_link_trans_wrt_test_rig;
+    Model::LinVel _base_link_vel_wrt_test_rig;
+
+    Eigen::Affine3d , _test_rig_pose_inv,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
                     _base_link_pos_rel_test_rig;
 
@@ -152,7 +160,7 @@ private:
 
     Model::Ptr _ft_est_model_ptr;
     MomentumBasedFObs::UniquePtr _ft_estimator;
-    NumDiff _num_diff;
+    NumDiff _num_diff_v, _num_diff_p;
 
     void get_params_from_config();
 

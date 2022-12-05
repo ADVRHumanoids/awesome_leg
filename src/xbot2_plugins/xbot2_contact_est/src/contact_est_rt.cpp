@@ -30,6 +30,12 @@ void ContactEstRt::init_vars()
     _q_p_ddot_ft_est = Eigen::VectorXd::Zero(_nv_ft_est);
     _tau_ft_est = Eigen::VectorXd::Zero(_nv_ft_est);
     _tau_c = Eigen::VectorXd::Zero(_nv_ft_est);
+    _CT_v = Eigen::VectorXd::Zero(_nv_ft_est);
+    _g = Eigen::VectorXd::Zero(_nv_ft_est);
+    _tau_c_raw = Eigen::VectorXd::Zero(_nv_ft_est);
+    _p = Eigen::VectorXd::Zero(_nv_ft_est);
+    _p_dot = Eigen::VectorXd::Zero(_nv_ft_est);
+    _C = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
 
     _meas_tip_f_abs = Eigen::VectorXd::Zero(3);
     _tip_f_est_abs = Eigen::VectorXd::Zero(3);
@@ -53,6 +59,11 @@ void ContactEstRt::init_vars()
     _w_meas_vect = std::vector<double>(3);
     _meas_tip_f_abs_vect = std::vector<double>(3);
     _meas_tip_t_abs_vect = std::vector<double>(3);
+
+    if(!_estimate_full_wrench)
+    {
+        _selector = std::vector<int>{0, 1, 2};
+    }
 
 }
 
@@ -101,6 +112,8 @@ void ContactEstRt::get_params_from_config()
 
     _ft_est_bw = getParamOrThrow<double>("~ft_est_bw");
     _use_rnea_torque = getParamOrThrow<bool>("~use_rnea_torque");
+
+    _estimate_full_wrench = getParamOrThrow<bool>("~estimate_full_wrench");
 
 }
 
@@ -175,9 +188,12 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
     if(_is_sim)
     { // for now, estimates only available in simulation
 
-    pssv_jnt_pos = _base_link_abs.translation()[2];
+    _base_link_trans_wrt_test_rig = _test_rig_pose_inv * _base_link_abs.translation(); // rototranslation from world to base link
+    pssv_jnt_pos = _base_link_trans_wrt_test_rig.translation()[2];
 
-    pssv_jnt_vel = _base_link_vel[2];
+    _base_link_vel_wrt_test_rig = _test_rig_pose_inv.rotation() * _base_link_vel; // pure rotation from world to test rig
+
+    pssv_jnt_vel = _base_link_vel_wrt_test_rig[2]; // extracting vertical component (== prismatic joint velocity)
 
     }
 
@@ -197,12 +213,13 @@ void ContactEstRt::update_state_estimates()
     // from encoders
     _q_p_dot_ft_est(0) = passive_jnt_vel; // assign passive dofs
 
-    _num_diff.add_sample(_q_p_dot_ft_est); // update differentiation
-    _num_diff.dot(_q_p_ddot_ft_est); // getting differentiated state acceleration
+    _num_diff_v.add_sample(_q_p_dot_ft_est); // update differentiation
+    _num_diff_v.dot(_q_p_ddot_ft_est); // getting differentiated state acceleration
 
 //    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs
     _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_cmd; // assign actuated dofs
     _tau_ft_est(0) = 0; // no effort on passive joints
+
 }
 
 void ContactEstRt::update_state()
@@ -221,6 +238,9 @@ void ContactEstRt::update_state()
     _robot->getStiffness(_meas_stiff);
     _robot->getDamping(_meas_damp);
 
+    get_tau_cmd(); // computes the joint-level impedance control
+    // torque (used by the ft estimator)
+
     get_fts_force();
 
     update_state_estimates(); // updates state estimates
@@ -238,6 +258,16 @@ void ContactEstRt::update_state()
                               _tip_pose_abs_est);
     _ft_est_model_ptr->get_frame_pose(_base_link_name,
                               _base_link_abs_est);
+
+    // getting other quantities which are useful for debugging the estimator
+    _ft_est_model_ptr->get_C(_C);
+    _ft_est_model_ptr->get_g(_g);
+    _ft_est_model_ptr->get_p(_p);
+    _num_diff_p.add_sample(_p); // differentiating the generalized momentum
+    _num_diff_p.dot(_p_dot);
+    _CT_v = _C * _q_p_dot_ft_est;
+    _tau_c_raw = _p_dot - _CT_v + _g - _tau_ft_est; // raw disturbance torques (not filtered
+    // and without observer)
 
     _ft_estimator->update(_contact_linkname); // we can now update the
     // force estimation
@@ -263,9 +293,8 @@ void ContactEstRt::get_fts_force()
   // rotating the force into world frame
   // then from base to world orientation
 
-  auto prova = _tip_pose_abs_est.linear();
-  _meas_tip_f_abs = _tip_pose_abs_est.linear() * _meas_tip_f_loc;
-  _meas_tip_t_abs = _tip_pose_abs_est.linear() * _meas_tip_t_loc;
+  _meas_tip_f_abs = _tip_pose_abs_est.rotation() * _meas_tip_f_loc;
+  _meas_tip_t_abs = _tip_pose_abs_est.rotation() * _meas_tip_t_loc;
 
 }
 
@@ -298,13 +327,23 @@ void ContactEstRt::init_dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("is_sim", int(_is_sim));
 
-    _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
+    _dump_logger->create("q_p_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("q_p_ref", _n_jnts_robot), 1, _matlogger_buffer_size;
-    _dump_logger->create("q_p_dot_ref", _n_jnts_robot), 1, _matlogger_buffer_size;
-    _dump_logger->create("tau_ff", _n_jnts_robot), 1, _matlogger_buffer_size;
-    _dump_logger->create("tau_cmd", _n_jnts_robot), 1, _matlogger_buffer_size;
+    _dump_logger->create("q_p_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_dot_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_ff", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("tip_f_est_abs", _nv_ft_est, 1, _matlogger_buffer_size);
+    _dump_logger->create("tip_t_est_abs", _nv_ft_est, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("C", _nv_ft_est, _nv_ft_est, _matlogger_buffer_size);
+    _dump_logger->create("g", _nv_ft_est, 1, _matlogger_buffer_size);
+    _dump_logger->create("p", _nv_ft_est, 1, _matlogger_buffer_size);
+    _dump_logger->create("p_dot", _nv_ft_est, 1, _matlogger_buffer_size);
+    _dump_logger->create("CT_v", _nv_ft_est, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_c_raw", _nv_ft_est, 1, _matlogger_buffer_size);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -332,6 +371,16 @@ void ContactEstRt::add_data2dump_logger()
     _dump_logger->add("q_p_dot_ref", _q_p_dot_ref);
     _dump_logger->add("tau_ff", _tau_ff);
     _dump_logger->add("tau_cmd", _tau_cmd);
+
+    _dump_logger->add("C", _C);
+    _dump_logger->add("g", _g);
+    _dump_logger->add("p", _p);
+    _dump_logger->add("p_dot", _p_dot);
+    _dump_logger->add("CT_v", _CT_v);
+    _dump_logger->add("tau_c_raw", _tau_c_raw);
+
+    _dump_logger->add("tip_f_est_abs", _tip_t_est_abs);
+    _dump_logger->add("tip_t_est_abs", _tip_t_est_abs);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -464,6 +513,10 @@ bool ContactEstRt::on_initialize()
 
     _n_jnts_robot = _robot->getJointNum();
 
+    _ft_est_model_ptr->get_frame_pose(_test_rig_linkname,
+                              _test_rig_pose);
+    _test_rig_pose_inv = _test_rig_pose.inverse(); // from world to test rig
+
     init_vars();
 
     init_nrt_ros_bridge();
@@ -474,7 +527,8 @@ bool ContactEstRt::on_initialize()
 
     init_ft_estimator();
 
-    _num_diff = NumDiff(_nv_ft_est, _plugin_dt);
+    _num_diff_v = NumDiff(_nv_ft_est, _plugin_dt);
+    _num_diff_p = NumDiff(_nv_ft_est, _plugin_dt);
 
     return true;
     
