@@ -110,10 +110,17 @@ private:
     Eigen::VectorXd _base_link_pos,
                     _base_link_vel, _base_link_omega;
 
-    Eigen::VectorXd _q_p_meas, _q_p_dot_meas, _tau_meas,
+    Eigen::VectorXd _q_p_meas, _q_p_dot_meas,
+                    _meas_stiff, _meas_damp,
+                    _q_p_ref, _q_p_dot_ref,
+                    _tau_ff,
+                    _tau_cmd,
+                    _tau_meas,
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
                     _tau_c;
+
+    Eigen::MatrixXd _K_p, _K_d;
 
     Model::Wrench _w_c;
 
@@ -151,6 +158,8 @@ private:
 
     void get_passive_jnt_est(double& pssv_jnt_pos,
                              double& pssv_jnt_vel);
+
+    void get_tau_cmd();
 
     void init_model_interfaces();
     void init_vars();

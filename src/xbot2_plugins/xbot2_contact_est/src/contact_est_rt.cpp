@@ -12,6 +12,15 @@ void ContactEstRt::init_vars()
     _q_p_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_p_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_p_dot_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _tau_ff = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _meas_stiff = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _meas_damp = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _K_p = Eigen::MatrixXd::Zero(_n_jnts_robot, _n_jnts_robot);
+    _K_d = Eigen::MatrixXd::Zero(_n_jnts_robot, _n_jnts_robot);
 
     _tip_abs_position = Eigen::VectorXd::Zero(3);
 
@@ -165,16 +174,10 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
 
     if(_is_sim)
     { // for now, estimates only available in simulation
-//    _base_link_pos_rel_test_rig = _base_link_abs * _test_rig_pose_inv; // base link pos
-    // wrt test rig link
 
-//    Eigen::VectorXd base_link_pos_est = _base_link_pos_rel_test_rig.translation(); // test rig joint position
+    pssv_jnt_pos = _base_link_abs.translation()[2];
 
-    Eigen::VectorXd base_link_vel_est = _base_link_vel;
-
-    pssv_jnt_pos = 0; // position doen't matter for now
-
-    pssv_jnt_vel = base_link_vel_est(base_link_vel_est.size() - 1);
+    pssv_jnt_vel = _base_link_vel[2];
 
     }
 
@@ -197,8 +200,8 @@ void ContactEstRt::update_state_estimates()
     _num_diff.add_sample(_q_p_dot_ft_est); // update differentiation
     _num_diff.dot(_q_p_ddot_ft_est); // getting differentiated state acceleration
 
-    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs with meas.
-    // from encoders
+//    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs
+    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_cmd; // assign actuated dofs
     _tau_ft_est(0) = 0; // no effort on passive joints
 }
 
@@ -212,6 +215,11 @@ void ContactEstRt::update_state()
     _robot->getJointPosition(_q_p_meas);
     _robot->getMotorVelocity(_q_p_dot_meas);  
     _robot->getJointEffort(_tau_meas);
+    _robot->getPositionReference(_q_p_ref);
+    _robot->getVelocityReference(_q_p_dot_ref);
+    _robot->getEffortReference(_tau_ff);
+    _robot->getStiffness(_meas_stiff);
+    _robot->getDamping(_meas_damp);
 
     get_fts_force();
 
@@ -257,6 +265,7 @@ void ContactEstRt::get_fts_force()
 
   auto prova = _tip_pose_abs_est.linear();
   _meas_tip_f_abs = _tip_pose_abs_est.linear() * _meas_tip_f_loc;
+  _meas_tip_t_abs = _tip_pose_abs_est.linear() * _meas_tip_t_loc;
 
 }
 
@@ -292,7 +301,10 @@ void ContactEstRt::init_dump_logger()
     _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
-
+    _dump_logger->create("q_p_ref", _n_jnts_robot), 1, _matlogger_buffer_size;
+    _dump_logger->create("q_p_dot_ref", _n_jnts_robot), 1, _matlogger_buffer_size;
+    _dump_logger->create("tau_ff", _n_jnts_robot), 1, _matlogger_buffer_size;
+    _dump_logger->create("tau_cmd", _n_jnts_robot), 1, _matlogger_buffer_size;
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -316,6 +328,10 @@ void ContactEstRt::add_data2dump_logger()
     _dump_logger->add("q_p_meas", _q_p_meas);
     _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
     _dump_logger->add("tau_meas", _tau_meas);
+    _dump_logger->add("q_p_ref", _q_p_ref);
+    _dump_logger->add("q_p_dot_ref", _q_p_dot_ref);
+    _dump_logger->add("tau_ff", _tau_ff);
+    _dump_logger->add("tau_cmd", _tau_cmd);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -372,6 +388,19 @@ void ContactEstRt::init_nrt_ros_bridge()
 
     _cont_est_status_pub = _ros->advertise<awesome_leg::ContactEstStatus>(
         "contact_est_node", 1, contact_est_prealloc);
+
+}
+
+void ContactEstRt::get_tau_cmd()
+{
+    // assign stiffness and damping matrices
+    for (int i = 0; i < _q_p_meas.size(); i++)
+    {
+        _K_p(i, i) = _meas_stiff(i);
+        _K_d(i, i) = _meas_damp(i);
+    }
+
+    _tau_cmd = _tau_ff - _K_p * (_q_p_meas - _q_p_ref) - _K_d * (_q_p_dot_meas - _q_p_dot_ref);
 
 }
 

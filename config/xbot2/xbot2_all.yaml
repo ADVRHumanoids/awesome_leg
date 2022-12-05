@@ -120,8 +120,8 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            ft_est_lambda: {value: 50.0, type: double} # regularization of the estimated contact wrench
-            ft_est_bw: {value: 100.0, type: double}
+            ft_est_lambda: {value: 1.0, type: double} # regularization of the estimated contact wrench
+            ft_est_bw: {value: 1000.0, type: double}
             select_est_bw_manually: {value: true, type: bool}
             use_rnea_torque: {value: true, type: bool}
 
