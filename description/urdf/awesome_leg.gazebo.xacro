@@ -106,10 +106,13 @@
         </xacro:if> -->
 
         <xacro:if value="${ add_ft_sensor == True}"> 
-
+            <!-- from the Gazebo API: returns "the wrench applied by the child
+            Link on the Joint specified in the child Link frame.
+            Note that this sign convention is opposite of the reaction forces
+            of the Joint on the Links" -->
             <gazebo>
                 <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-                    <updateRate>200.0</updateRate>
+                    <updateRate>0.0</updateRate> <!-- 0.0 is as fast as possible -->
                     <topicName>awesome_leg/ft_sensor_tip</topicName>
                     <jointName>tip_joint_${id}</jointName>
                 </plugin>
@@ -124,7 +127,7 @@
                     </force_torque>
                     <always_on>true</always_on>
                     <visualize>true</visualize>
-                    <update_rate>200</update_rate>
+                    <update_rate>0.0</update_rate>
                     <pose>0.0 0.0 0.0 0.0 0.0 0.0</pose> 
               </sensor>
         

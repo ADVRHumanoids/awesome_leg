@@ -64,15 +64,19 @@
                 </geometry>
                 <material name="grey"/>
             </visual>
-            <collision>
-                <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
-                <geometry>
-                    <mesh filename="package://awesome_leg/description/new_meshes/collision/shin.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
-                </geometry>
-            </collision>
+
+            <xacro:unless value="${ add_ft_sensor == True}">
+                <collision>
+                    <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                    <geometry>
+                        <mesh filename="package://awesome_leg/description/new_meshes/collision/shin.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
+                    </geometry>
+                </collision>
+            </xacro:unless>
+
         </link>
 
-        <xacro:unless value="${ add_ft_sensor == True}"> 
+        <xacro:unless value="${ add_ft_sensor == True}">
 
             <joint name="tip_joint_${id}" type="fixed">
                 <parent link="shin${id}"/>
@@ -80,7 +84,7 @@
                 <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom}"/>
             </joint>
 
-            <link name="tip${id}"/> 
+            <link name="tip${id}"/>
             
         </xacro:unless>
 
@@ -89,11 +93,11 @@
             <joint name="tip_joint_${id}" type="prismatic">
                 <parent link="shin${id}"/>
                 <child link="tip${id}"/>
-                <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom + fts_sphere_radius - fts_delta}"/>
+                <origin xyz="0.0 ${23.3000 * mmTom} ${-451 * mmTom}"/>
                 <limit effort="0" lower="0.0" upper="0.0" velocity="0.0"/>
                 <axis  xyz="0 0 1"/>
             </joint>
-            <link name="tip${id}"> 
+            <link name="tip${id}">
                     <origin xyz="0.0 0.0 0.0"/>
                     <inertial>  
                         <origin xyz="0.0 0.0 0.0"/>
@@ -102,7 +106,7 @@
                             ixy="0" ixz="0" iyz="0" />
                     </inertial>
                     <collision>
-                        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 0.0"/>
+                        <origin rpy="0.0 0.0 0.0" xyz="0.0 0.0 ${fts_sphere_radius - fts_delta}"/>
                         <geometry>
                             <sphere radius="${fts_sphere_radius}"/>
                         </geometry> 

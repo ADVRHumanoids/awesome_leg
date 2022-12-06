@@ -17,7 +17,7 @@
           <contact>
              <!--<collide_bitmask>0xffff</collide_bitmask>-->
              <ode>
-                <kp>1000000</kp> <!-- default 1000000000000 -->
+                <kp>10000000</kp> <!-- default 1000000000000 -->
                 <kd>1</kd>
                 <!--<min_depth> </min_depth>-->
                 <!--<max_vel>0.01</max_vel>-->

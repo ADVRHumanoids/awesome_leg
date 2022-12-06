@@ -239,8 +239,6 @@ void ContactEstRt::update_state()
     get_tau_cmd(); // computes the joint-level impedance control
     // torque (used by the ft estimator)
 
-    get_fts_force();
-
     update_state_estimates(); // updates state estimates
     // (q, q_dot, q_ddot) and efforts
 
@@ -256,6 +254,11 @@ void ContactEstRt::update_state()
                               _M_world_from_tip);
     _ft_est_model_ptr->get_frame_pose(_base_link_name,
                               _M_world_from_base_link);
+
+    _R_world_from_tip = _M_world_from_tip.rotation();
+
+    get_fts_force(); // after update tip pose, we get the local force and
+    // rotate it to the world
 
     // getting other quantities which are useful for debugging the estimator
     _ft_est_model_ptr->get_C(_C);
@@ -291,8 +294,8 @@ void ContactEstRt::get_fts_force()
   // rotating the force into world frame
   // then from base to world orientation
 
-  _meas_tip_f_abs = _M_world_from_tip.rotation() * _meas_tip_f_loc; // from tip local to world
-  _meas_tip_t_abs = _M_world_from_tip.rotation() * _meas_tip_t_loc; // from tip local to world
+  _meas_tip_f_abs = _R_world_from_tip * _meas_tip_f_loc; // from tip local to world
+  _meas_tip_t_abs = _R_world_from_tip * _meas_tip_t_loc; // from tip local to world
 
 }
 
@@ -337,6 +340,8 @@ void ContactEstRt::init_dump_logger()
     _dump_logger->create("tip_t_est_abs", _nv_ft_est, 1, _matlogger_buffer_size);
 
     _dump_logger->create("C", _nv_ft_est, _nv_ft_est, _matlogger_buffer_size);
+    _dump_logger->create("R_world_from_tip", 3, 3, _matlogger_buffer_size);
+
     _dump_logger->create("g", _nv_ft_est, 1, _matlogger_buffer_size);
     _dump_logger->create("p", _nv_ft_est, 1, _matlogger_buffer_size);
     _dump_logger->create("p_dot", _nv_ft_est, 1, _matlogger_buffer_size);
@@ -371,6 +376,7 @@ void ContactEstRt::add_data2dump_logger()
     _dump_logger->add("tau_cmd", _tau_cmd);
 
     _dump_logger->add("C", _C);
+    _dump_logger->add("R_world_from_tip", _R_world_from_tip);
     _dump_logger->add("g", _g);
     _dump_logger->add("p", _p);
     _dump_logger->add("p_dot", _p_dot);

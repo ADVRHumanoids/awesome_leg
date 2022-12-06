@@ -125,6 +125,8 @@ private:
     Eigen::MatrixXd _C,
                     _K_p, _K_d;
 
+    Model::RotMat3D _R_world_from_tip;
+
     Model::Wrench _w_c;
 
     Model::Force3D _tip_f_est_abs, _meas_tip_f_loc,
