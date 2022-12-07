@@ -151,7 +151,7 @@ private:
 
     Model::Affine3D _M_world_from_tip, _M_world_from_base_link_est,
                     _M_test_rig_from_world, _M_world_from_test_rig,
-                    _M_world_from_base_link,
+                    _M_world_from_base_link, _M_world_from_base_link_ref, _M_base_link_ref_from_base_link,
                     _M_test_rig_from_base_link;
 
     Model::PosVec3D _base_link_trans_wrt_test_rig;

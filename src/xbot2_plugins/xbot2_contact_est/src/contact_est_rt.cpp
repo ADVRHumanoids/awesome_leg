@@ -205,7 +205,9 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
     if(_is_sim)
     { // for now, estimates only available in simulation
 
-    pssv_jnt_pos = 0; // TBimplemented
+    _M_base_link_ref_from_base_link = _M_world_from_base_link_ref.inverse() * _M_world_from_base_link;
+
+    pssv_jnt_pos = _M_base_link_ref_from_base_link.translation()[2]; // TBimplemented
 
     _base_link_vel_wrt_test_rig = _M_test_rig_from_world.rotation() * _base_link_vel; // pure rotation from world to test rig
     pssv_jnt_vel = _base_link_vel_wrt_test_rig[2]; // extracting vertical component (== prismatic joint velocity)
@@ -621,6 +623,15 @@ bool ContactEstRt::on_initialize()
     _num_diff_p = NumDiff(_nv_ft_est, _plugin_dt);
 
     _ft_meas_filt = MovAvrgFilt(_w_c_est.size(), _plugin_dt, _ft_meas_cutoff_freq);
+
+    // setting model position to zero to get the reference base link
+    // height wrt the passive dof is defined
+    _ft_est_model_ptr->set_q(Eigen::VectorXd::Zero(_nq_ft_est));
+    _ft_est_model_ptr->update();
+
+    // getting link poses from model
+    _ft_est_model_ptr->get_frame_pose(_base_link_name,
+                              _M_world_from_base_link_ref);
 
     _ft_est_model_ptr->get_frame_pose(_test_rig_linkname,
                               _M_test_rig_from_world);
