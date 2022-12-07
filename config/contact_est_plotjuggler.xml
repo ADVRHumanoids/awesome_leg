@@ -3,55 +3,55 @@
  <tabbed_widget name="Main Window" parent="main_window">
   <Tab tab_name="tab1" containers="1">
    <Container>
-    <DockSplitter sizes="0.332968;0.334064;0.332968" count="3" orientation="-">
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+    <DockSplitter count="3" orientation="-" sizes="0.332584;0.334831;0.332584">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000137" top="0.000003" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.013622" top="0.558483" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/f_c.0" color="#bcbd22"/>
         <curve name="/contact_est_rt/contact_est_node/f_meas_filt.0" color="#d62728"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000000" top="0.000000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000000" top="0.000000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/t_c.0" color="#17becf"/>
         <curve name="/contact_est_rt/contact_est_node/t_meas_filt.0" color="#f14cc1"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.013640" top="0.558551" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000041" top="-0.000038" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/f_c.1" color="#1f77b4"/>
         <curve name="/contact_est_rt/contact_est_node/f_meas_filt.1" color="#ff7f0e"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000000" top="0.000000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000000" top="0.000000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/t_c.1" color="#bcbd22"/>
         <curve name="/contact_est_rt/contact_est_node/t_meas_filt.1" color="#9467bd"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="110.163028" top="110.179938" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="110.163028" top="110.179938" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/f_c.2" color="#d62728"/>
         <curve name="/contact_est_rt/contact_est_node/f_meas_filt.2" color="#9467bd"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000000" top="0.000000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000000" top="0.000000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/t_c.2" color="#1f77b4"/>
         <curve name="/contact_est_rt/contact_est_node/t_meas_filt.2" color="#17becf"/>
@@ -63,55 +63,55 @@
   </Tab>
   <Tab tab_name="tab3" containers="1">
    <Container>
-    <DockSplitter sizes="0.332968;0.334064;0.332968" count="3" orientation="-">
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+    <DockSplitter count="3" orientation="-" sizes="0.332584;0.334831;0.332584">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.013760" top="0.558554" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.544855" top="0.544862" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/f_meas.0" color="#1f77b4"/>
         <curve name="/contact_est_rt/contact_est_node/f_meas_filt.0" color="#d62728"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000000" top="-0.000000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000000" top="-0.000000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/t_meas.0" color="#d62728"/>
         <curve name="/contact_est_rt/contact_est_node/t_meas_filt.0" color="#f14cc1"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.013640" top="0.558551" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000040" top="-0.000038" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/f_meas.1" color="#1ac938"/>
         <curve name="/contact_est_rt/contact_est_node/f_meas_filt.1" color="#ff7f0e"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000000" top="0.000000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000000" top="0.000000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/t_meas.1" color="#1ac938"/>
         <curve name="/contact_est_rt/contact_est_node/t_meas_filt.1" color="#9467bd"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.5;0.5" count="2" orientation="|">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="110.079535" top="110.279535" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="110.179535" top="110.179535" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/f_meas.2" color="#f14cc1"/>
         <curve name="/contact_est_rt/contact_est_node/f_meas_filt.2" color="#9467bd"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000000" top="0.000000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000000" top="0.000000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/t_meas.2" color="#ff7f0e"/>
         <curve name="/contact_est_rt/contact_est_node/t_meas_filt.2" color="#17becf"/>
@@ -123,48 +123,48 @@
   </Tab>
   <Tab tab_name="tab2" containers="1">
    <Container>
-    <DockSplitter sizes="0.501094;0.498906" count="2" orientation="-">
-     <DockSplitter sizes="0.333794;0.332412;0.333794" count="3" orientation="|">
+    <DockSplitter count="2" orientation="-" sizes="0.501684;0.498316">
+     <DockSplitter count="3" orientation="|" sizes="0.333591;0.332819;0.333591">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.100000" top="0.100000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/w_c.0" color="#f14cc1"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.000016" top="-0.000014" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000041" top="-0.000038" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/w_c.1" color="#9467bd"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="110.163431" top="110.163431" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="110.163431" top="110.163431" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/w_c.2" color="#17becf"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter sizes="0.334485;0.33103;0.334485" count="3" orientation="|">
+     <DockSplitter count="3" orientation="|" sizes="0.334363;0.331274;0.334363">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.100000" top="0.100000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/w_c.3" color="#bcbd22"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.100000" top="0.100000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/w_c.4" color="#1f77b4"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="7.625500" bottom="-0.100000" top="0.100000" right="27.625100"/>
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
         <limitY/>
         <curve name="/contact_est_rt/contact_est_node/w_c.5" color="#d62728"/>
        </plot>
@@ -175,37 +175,64 @@
   </Tab>
   <Tab tab_name="tab2" containers="1">
    <Container>
-    <DockSplitter sizes="0.334064;0.331873;0.334064" count="3" orientation="-">
-     <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-       <range left="7.625500" bottom="110.163431" top="110.163431" right="27.625100"/>
-       <limitY/>
-       <curve name="/contact_est_rt/contact_est_node/tau_c.0" color="#1f77b4"/>
-      </plot>
-     </DockArea>
-     <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-       <range left="7.625500" bottom="0.000069" top="0.000080" right="27.625100"/>
-       <limitY/>
-       <curve name="/contact_est_rt/contact_est_node/tau_c.1" color="#d62728"/>
-      </plot>
-     </DockArea>
-     <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-       <range left="7.625500" bottom="-0.000060" top="-0.000052" right="27.625100"/>
-       <limitY/>
-       <curve name="/contact_est_rt/contact_est_node/tau_c.2" color="#1ac938"/>
-      </plot>
-     </DockArea>
+    <DockSplitter count="3" orientation="-" sizes="0.334831;0.330337;0.334831">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="110.163431" top="110.163431" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_c.0" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="110.163431" top="110.163431" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_c_raw.0" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000177" top="0.000189" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_c.1" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000177" top="0.000189" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_c_raw.1" color="#d62728"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000141" top="-0.000133" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_c.2" color="#1ac938"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000141" top="-0.000133" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_c_raw.2" color="#1ac938"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
     </DockSplitter>
    </Container>
   </Tab>
   <Tab tab_name="tab2" containers="1">
    <Container>
-    <DockSplitter sizes="1" count="1" orientation="-">
+    <DockSplitter count="1" orientation="-" sizes="1">
      <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-       <range left="7.625500" bottom="-0.013623" top="0.558551" right="27.625100"/>
+      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+       <range bottom="-0.013622" top="0.558483" left="0.881800" right="20.880700"/>
        <limitY/>
        <curve name="/contact_est_rt/contact_est_node/f_c.0" color="#1f77b4"/>
        <curve name="/contact_est_rt/contact_est_node/f_meas.0" color="#d62728"/>
@@ -216,10 +243,10 @@
   </Tab>
   <Tab tab_name="tab3" containers="1">
    <Container>
-    <DockSplitter sizes="1" count="1" orientation="-">
+    <DockSplitter count="1" orientation="-" sizes="1">
      <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-       <range left="7.625500" bottom="-0.000016" top="-0.000014" right="27.625100"/>
+      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+       <range bottom="-0.000041" top="-0.000038" left="0.881800" right="20.880700"/>
        <limitY/>
        <curve name="/contact_est_rt/contact_est_node/f_c.1" color="#1ac938"/>
        <curve name="/contact_est_rt/contact_est_node/f_meas.1" color="#ff7f0e"/>
@@ -230,10 +257,10 @@
   </Tab>
   <Tab tab_name="tab4" containers="1">
    <Container>
-    <DockSplitter sizes="1" count="1" orientation="-">
+    <DockSplitter count="1" orientation="-" sizes="1">
      <DockArea name="...">
-      <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-       <range left="7.625500" bottom="110.163028" top="110.179938" right="27.625100"/>
+      <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+       <range bottom="110.163028" top="110.179938" left="0.881800" right="20.880700"/>
        <limitY/>
        <curve name="/contact_est_rt/contact_est_node/f_c.2" color="#f14cc1"/>
        <curve name="/contact_est_rt/contact_est_node/f_meas.2" color="#9467bd"/>
@@ -242,14 +269,164 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <currentTabIndex index="1"/>
+  <Tab tab_name="tab2" containers="1">
+   <Container>
+    <DockSplitter count="3" orientation="-" sizes="0.333708;0.332584;0.333708">
+     <DockSplitter count="4" orientation="|" sizes="0.250386;0.249614;0.250386;0.249614">
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/CT_v.0" color="#ff7f0e"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="110.163431" top="110.163431" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/g.0" color="#17becf"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000093" top="0.000093" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/p.0" color="#d62728"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_cmd.0" color="#bcbd22"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="4" orientation="|" sizes="0.251159;0.248841;0.251159;0.248841">
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/CT_v.1" color="#f14cc1"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000007" top="0.000007" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/g.1" color="#bcbd22"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000000" top="0.000000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/p.1" color="#9467bd"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000182" top="-0.000171" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_cmd.1" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+     <DockSplitter count="4" orientation="|" sizes="0.251159;0.248841;0.251159;0.248841">
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/CT_v.2" color="#9467bd"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/g.2" color="#1f77b4"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="-0.000000" top="-0.000000" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/p.2" color="#17becf"/>
+       </plot>
+      </DockArea>
+      <DockArea name="...">
+       <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+        <range bottom="0.000133" top="0.000141" left="0.881800" right="20.880700"/>
+        <limitY/>
+        <curve name="/contact_est_rt/contact_est_node/tau_cmd.2" color="#d62728"/>
+       </plot>
+      </DockArea>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="tab2" containers="1">
+   <Container>
+    <DockSplitter count="1" orientation="-" sizes="1">
+     <DockSplitter count="2" orientation="|" sizes="0.5;0.5">
+      <DockSplitter count="3" orientation="-" sizes="0.333708;0.332584;0.333708">
+       <DockArea name="...">
+        <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+         <range bottom="-0.100000" top="0.100000" left="0.881800" right="20.880700"/>
+         <limitY/>
+         <curve name="/contact_est_rt/contact_est_node/q.0" color="#1f77b4"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+         <range bottom="0.000002" top="0.000002" left="0.881800" right="20.880700"/>
+         <limitY/>
+         <curve name="/contact_est_rt/contact_est_node/q.1" color="#d62728"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+         <range bottom="-0.000001" top="-0.000001" left="0.881800" right="20.880700"/>
+         <limitY/>
+         <curve name="/contact_est_rt/contact_est_node/q.2" color="#1ac938"/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+      <DockSplitter count="3" orientation="-" sizes="0.333708;0.332584;0.333708">
+       <DockArea name="...">
+        <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+         <range bottom="0.000008" top="0.000008" left="0.881800" right="20.880700"/>
+         <limitY/>
+         <curve name="/contact_est_rt/contact_est_node/v.0" color="#ff7f0e"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+         <range bottom="0.000000" top="0.000000" left="0.881800" right="20.880700"/>
+         <limitY/>
+         <curve name="/contact_est_rt/contact_est_node/v.1" color="#f14cc1"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" flip_y="false" mode="TimeSeries" flip_x="false">
+         <range bottom="0.000000" top="0.000000" left="0.881800" right="20.880700"/>
+         <limitY/>
+         <curve name="/contact_est_rt/contact_est_node/v.2" color="#9467bd"/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+     </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="7"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="1"/>
  <!-- - - - - - - - - - - - - - - -->
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <default delimiter="0" time_axis=""/>
+   <default time_axis="" delimiter="0"/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS bags">
