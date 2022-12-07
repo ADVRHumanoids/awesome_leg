@@ -15,29 +15,30 @@
         <surface>
             
           <contact>
-             <!--<collide_bitmask>0xffff</collide_bitmask>-->
              <ode>
-                <kp>10000000</kp> <!-- default 1000000000000 -->
+                <kp>1000000000</kp>
                 <kd>1</kd>
-                <!--<min_depth> </min_depth>-->
-                <!--<max_vel>0.01</max_vel>-->
+                <!-- <min_depth> 0 </min_depth>
+                <max_vel>0.01</max_vel>- -->
+                <soft_cfm> 0.00001 </soft_cfm>
+                <!--<soft_erp> 0.2 </soft_erp> -->
              </ode>
              <bullet>
-                <kp>1000000000000</kp>
-                <kd>1</kd>
+                <!-- <kp>1000000000000</kp>
+                <kd>1</kd> -->
                 <!--<split_impulse_penetration_threshold>  </split_impulse_penetration_threshold>--> <!-- default -0.01 -->
              </bullet>
           </contact>
 
           <friction>
-            <ode>
+            <!-- <ode>
               <mu>1</mu>
               <mu2>1</mu2>
-            </ode>
-            <bullet>
+            </ode> -->
+            <!-- <bullet>
               <friction>1</friction>
               <friction2>1</friction2>
-            </bullet>
+            </bullet> -->
           </friction>
         </surface>
 
