@@ -571,7 +571,7 @@ void ContactEstRt::pub_contact_est_status()
 
     status_msg->msg().tau_c_raw = _tau_c_raw_vect;
     status_msg->msg().g = _g_vect;
-    status_msg->msg().p = _g_vect;
+    status_msg->msg().p = _p_vect;
     status_msg->msg().p_dot = _p_dot_vect;
     status_msg->msg().CT_v = _CT_v_vect;
     status_msg->msg().q = _q_p_ft_est_vect;
