@@ -60,7 +60,7 @@ void ContactEstRt::init_vars()
     _p_dot_vect = std::vector<double>(_nv_ft_est);
     _q_p_ft_est_vect = std::vector<double>(_nq_ft_est);
     _q_p_dot_ft_est_vect = std::vector<double>(_nv_ft_est);
-
+    _tau_cmd_vect = std::vector<double>(_nv_ft_est);
     _w_c_est_vect = std::vector<double>(6);
     _tip_f_est_abs_vect = std::vector<double>(3);
     _tip_t_est_abs_vect = std::vector<double>(3);
@@ -477,6 +477,7 @@ void ContactEstRt::init_nrt_ros_bridge()
     std::vector<double> p_dot_prealloc(_nv_ft_est);
     std::vector<double> q_p_ft_est_prealloc(_nv_ft_est);
     std::vector<double> q_p_dot_ft_est_prealloc(_nv_ft_est);
+    std::vector<double> tau_cmd_prealloc(_nv_ft_est);
 
     std::vector<double> f_c_prealloc(3);
     std::vector<double> t_c_prealloc(3);
@@ -486,6 +487,7 @@ void ContactEstRt::init_nrt_ros_bridge()
     std::vector<double> t_meas_filt_prealloc(3);
 
     contact_est_prealloc.tau_c = tau_c_prealloc;
+    contact_est_prealloc.tau_cmd = tau_cmd_prealloc;
 
     contact_est_prealloc.tau_c_raw = tau_c_raw_prealloc;
     contact_est_prealloc.g = g_prealloc;
@@ -546,6 +548,7 @@ void ContactEstRt::pub_contact_est_status()
     // mapping EigenVectorXd data to std::vector, so that they can be published
     Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
 
+    Eigen::Map<Eigen::VectorXd>(&_tau_cmd_vect[0], _tau_ft_est.size(), 1) = _tau_ft_est;
     Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
     Eigen::Map<Eigen::VectorXd>(&_g_vect[0], _g.size(), 1) = _g;
     Eigen::Map<Eigen::VectorXd>(&_p_vect[0], _p.size(), 1) = _p;
@@ -570,6 +573,8 @@ void ContactEstRt::pub_contact_est_status()
     status_msg->msg().t_c = _tip_t_est_abs_vect;
 
     status_msg->msg().tau_c_raw = _tau_c_raw_vect;
+    status_msg->msg().tau_cmd = _tau_cmd_vect;
+
     status_msg->msg().g = _g_vect;
     status_msg->msg().p = _p_vect;
     status_msg->msg().p_dot = _p_dot_vect;

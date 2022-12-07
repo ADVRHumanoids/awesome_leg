@@ -114,7 +114,8 @@ private:
                         _meas_tip_t_abs_filt_vect,
                         _tau_c_raw_vect, _CT_v_vect, _g_vect,
                         _p_vect, _p_dot_vect,
-                        _q_p_ft_est_vect, _q_p_dot_ft_est_vect;
+                        _q_p_ft_est_vect, _q_p_dot_ft_est_vect,
+                        _tau_cmd_vect;
 
     MomentumBasedFObs::Reg6D _ft_est_lambda;
 

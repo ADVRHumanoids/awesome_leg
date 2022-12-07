@@ -1,6 +1,8 @@
 float64[] tau_c
 float64[] tau_c_raw
 
+float64[] tau_cmd
+
 float64[] g
 float64[] p
 float64[] p_dot
