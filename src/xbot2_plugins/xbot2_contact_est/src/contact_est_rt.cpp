@@ -48,17 +48,19 @@ void ContactEstRt::init_vars()
     _meas_tip_f_loc = Eigen::VectorXd::Zero(3);
     _meas_tip_t_loc = Eigen::VectorXd::Zero(3);
 
-    _w_c = Eigen::VectorXd::Zero(6);
+    _w_c_est = Eigen::VectorXd::Zero(6);
 
     // used to convert to ros messages-compatible types
     _tau_c_vect = std::vector<double>(_nv_ft_est);
-    _w_c_vect = std::vector<double>(6);
+    _w_c_est_vect = std::vector<double>(6);
     _tip_f_est_abs_vect = std::vector<double>(3);
     _tip_t_est_abs_vect = std::vector<double>(3);
     _f_meas_vect = std::vector<double>(3);
     _w_meas_vect = std::vector<double>(3);
     _meas_tip_f_abs_vect = std::vector<double>(3);
     _meas_tip_t_abs_vect = std::vector<double>(3);
+    _meas_tip_f_abs_filt_vect= std::vector<double>(3);
+    _meas_tip_t_abs_filt_vect = std::vector<double>(3);
 
     if(!_estimate_full_wrench)
     {
@@ -115,6 +117,8 @@ void ContactEstRt::get_params_from_config()
     _contacts.push_back(_contact_linkname);
 
     _estimate_full_wrench = getParamOrThrow<bool>("~estimate_full_wrench");
+
+    _ft_meas_cutoff_freq = getParamOrThrow<double>("~meas_w_filt_bw");
 
 }
 
@@ -277,7 +281,7 @@ void ContactEstRt::update_state()
     _ft_estimator->update(); // we can now update the
     // force estimation
     _ft_estimator->get_tau_obs(_tau_c);
-    _ft_estimator->get_w_est_at(_contacts[0], _w_c);
+    _ft_estimator->get_w_est_at(_contacts[0], _w_c_est);
     _ft_estimator->get_f_est_at(_contacts[0], _tip_f_est_abs);
     _ft_estimator->get_t_est_at(_contacts[0], _tip_t_est_abs);
 
@@ -288,10 +292,10 @@ void ContactEstRt::get_fts_force()
   if(_is_sim && _ft_tip_sensor_found)
   { // fts only available in simulation (for now)
 
-    Eigen::Vector6d wrench = _ft_sensor->getWrench();
+    _meas_w_loc = _ft_sensor->getWrench();
 
-    _meas_tip_f_loc = wrench.head(3);
-    _meas_tip_t_loc = wrench.tail(3);
+    _meas_tip_f_loc = _meas_w_loc.head(3);
+    _meas_tip_t_loc = _meas_w_loc.tail(3);
 
   }
 
@@ -300,6 +304,17 @@ void ContactEstRt::get_fts_force()
 
   _meas_tip_f_abs = _R_world_from_tip * _meas_tip_f_loc; // from tip local to world
   _meas_tip_t_abs = _R_world_from_tip * _meas_tip_t_loc; // from tip local to world
+
+  _meas_w_abs.segment(0, 3) = _meas_tip_f_abs;
+  _meas_w_abs.segment(3, 3) = _meas_tip_t_abs;
+
+  // filtering measured wrench (in world frame)
+  _ft_meas_filt.add_sample(_meas_w_abs);
+  _ft_meas_filt.get(_meas_w_filt);
+
+  _meas_tip_f_abs_filt = _meas_w_filt.head(3);
+
+  _meas_tip_t_abs_filt = _meas_w_filt.tail(3);
 
 }
 
@@ -340,8 +355,8 @@ void ContactEstRt::init_dump_logger()
     _dump_logger->create("tau_ff", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
-    _dump_logger->create("tip_f_est_abs", _nv_ft_est, 1, _matlogger_buffer_size);
-    _dump_logger->create("tip_t_est_abs", _nv_ft_est, 1, _matlogger_buffer_size);
+    _dump_logger->create("tip_f_est_abs", _meas_tip_f_abs.size(), 1, _matlogger_buffer_size);
+    _dump_logger->create("tip_t_est_abs", _meas_tip_f_abs.size(), 1, _matlogger_buffer_size);
 
     _dump_logger->create("C", _nv_ft_est, _nv_ft_est, _matlogger_buffer_size);
     _dump_logger->create("R_world_from_tip", 3, 3, _matlogger_buffer_size);
@@ -356,8 +371,15 @@ void ContactEstRt::init_dump_logger()
     { // no estimate of base link abs position on the real robot (for now)
       _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("base_link_abs_est", 3, 1, _matlogger_buffer_size);
+
       _dump_logger->create("meas_tip_f_loc", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("meas_tip_f_abs", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("meas_tip_t_loc", 3, 1, _matlogger_buffer_size);
+      _dump_logger->create("meas_tip_t_abs", 3, 1, _matlogger_buffer_size);
+
+      _dump_logger->create("meas_tip_f_abs_filt", _meas_tip_f_abs.size(), 1, _matlogger_buffer_size);
+      _dump_logger->create("meas_tip_t_abs_filt", _meas_tip_f_abs.size(), 1, _matlogger_buffer_size);
+
       _dump_logger->create("base_link_vel", 3, 1, _matlogger_buffer_size);
       _dump_logger->create("base_link_omega", 3, 1, _matlogger_buffer_size);
 
@@ -394,8 +416,15 @@ void ContactEstRt::add_data2dump_logger()
     { // no estimate of base link abs position on the real robot (for now)
         _dump_logger->add("base_link_abs", _M_world_from_base_link.translation());
         _dump_logger->add("base_link_abs_est", _M_world_from_base_link.translation());
+
         _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
         _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
+        _dump_logger->add("meas_tip_t_loc", _meas_tip_t_loc);
+        _dump_logger->add("meas_tip_t_abs", _meas_tip_t_abs);
+
+        _dump_logger->add("meas_tip_f_abs_filt", _meas_tip_f_abs_filt);
+        _dump_logger->add("meas_tip_t_abs_filt", _meas_tip_t_abs_filt);
+
         _dump_logger->add("base_link_vel", _base_link_vel);
         _dump_logger->add("base_link_omega", _base_link_omega);
 
@@ -435,6 +464,8 @@ void ContactEstRt::init_nrt_ros_bridge()
     std::vector<double> t_c_prealloc(3);
     std::vector<double> f_meas_prealloc(3);
     std::vector<double> t_meas_prealloc(3);
+    std::vector<double> f_meas_filt_prealloc(3);
+    std::vector<double> t_meas_filt_prealloc(3);
 
     contact_est_prealloc.tau_c = tau_c_prealloc;
     contact_est_prealloc.f_c = f_c_prealloc;
@@ -442,6 +473,8 @@ void ContactEstRt::init_nrt_ros_bridge()
 
     contact_est_prealloc.f_meas = f_meas_prealloc;
     contact_est_prealloc.t_meas = t_meas_prealloc;
+    contact_est_prealloc.f_meas_filt = f_meas_filt_prealloc;
+    contact_est_prealloc.t_meas_filt = t_meas_filt_prealloc;
 
     _cont_est_status_pub = _ros->advertise<awesome_leg::ContactEstStatus>(
         "contact_est_node", 1, contact_est_prealloc);
@@ -485,23 +518,27 @@ void ContactEstRt::pub_contact_est_status()
 
     // mapping EigenVectorXd data to std::vector, so that they can be published
     Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
-    Eigen::Map<Model::Wrench>(&_w_c_vect[0], _w_c.size(), 1) = _w_c;
+    Eigen::Map<Model::Wrench>(&_w_c_est_vect[0], _w_c_est.size(), 1) = _w_c_est;
     Eigen::Map<Model::Force3D>(&_tip_f_est_abs_vect[0], _tip_f_est_abs.size(), 1) = _tip_f_est_abs;
     Eigen::Map<Model::Torque3D>(&_tip_t_est_abs_vect[0], _tip_t_est_abs.size(), 1) = _tip_t_est_abs;
     Eigen::Map<Model::Force3D>(&_meas_tip_f_abs_vect[0], _meas_tip_f_abs.size(), 1) = _meas_tip_f_abs;
     Eigen::Map<Model::Torque3D>(&_meas_tip_t_abs_vect[0], _meas_tip_t_abs.size(), 1) = _meas_tip_t_abs;
+    Eigen::Map<Model::Force3D>(&_meas_tip_f_abs_filt_vect[0], _meas_tip_f_abs_filt.size(), 1) = _meas_tip_f_abs_filt;
+    Eigen::Map<Model::Torque3D>(&_meas_tip_t_abs_filt_vect[0], _meas_tip_t_abs_filt.size(), 1) = _meas_tip_t_abs_filt;
 
     // filling message
 
     status_msg->msg().tau_c = _tau_c_vect;
-    status_msg->msg().w_c = _w_c_vect;
+    status_msg->msg().w_c = _w_c_est_vect;
     status_msg->msg().f_c = _tip_f_est_abs_vect;
     status_msg->msg().t_c = _tip_t_est_abs_vect;
 
     status_msg->msg().f_meas = _meas_tip_f_abs_vect;
     status_msg->msg().t_meas = _meas_tip_t_abs_vect;
+    status_msg->msg().f_meas_filt = _meas_tip_f_abs_filt_vect;
+    status_msg->msg().t_meas_filt = _meas_tip_t_abs_filt_vect;
 
-    status_msg->msg().contact_frame = _contact_linkname;
+    status_msg->msg().contact_frames = _contacts;
 
     _cont_est_status_pub->publishLoaned(std::move(status_msg));
 }
@@ -533,6 +570,8 @@ bool ContactEstRt::on_initialize()
 
     _num_diff_v = NumDiff(_nv_ft_est, _plugin_dt);
     _num_diff_p = NumDiff(_nv_ft_est, _plugin_dt);
+
+    _ft_meas_filt = MovAvrgFilt(_w_c_est.size(), _plugin_dt, _ft_meas_cutoff_freq);
 
     _ft_est_model_ptr->get_frame_pose(_test_rig_linkname,
                               _M_test_rig_from_world);

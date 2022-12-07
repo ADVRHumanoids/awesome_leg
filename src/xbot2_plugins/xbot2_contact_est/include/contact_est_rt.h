@@ -98,17 +98,20 @@ private:
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4,
-           _ft_est_bw = 10.0;
+           _ft_est_bw = 10.0,
+           _ft_meas_cutoff_freq = 20.0;
 
     std::vector<int> _selector{0, 1, 2, 3, 4, 5};
 
     std::vector<std::string> _contacts;
 
-    std::vector<double> _tau_c_vect, _w_c_vect,
+    std::vector<double> _tau_c_vect, _w_c_est_vect,
                         _tip_f_est_abs_vect, _tip_t_est_abs_vect,
                         _f_meas_vect, _w_meas_vect,
                         _meas_tip_f_abs_vect,
-                        _meas_tip_t_abs_vect;
+                        _meas_tip_t_abs_vect,
+                        _meas_tip_f_abs_filt_vect,
+                        _meas_tip_t_abs_filt_vect;
 
     MomentumBasedFObs::Reg6D _ft_est_lambda;
 
@@ -124,20 +127,23 @@ private:
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
                     _tau_c,
-                    _CT_v, _g, _tau_c_raw, _p, _p_dot;
+                    _CT_v, _g, _tau_c_raw, _p, _p_dot,
+                    _meas_w_filt;
 
     Eigen::MatrixXd _C,
                     _K_p, _K_d;
 
     Model::RotMat3D _R_world_from_tip;
 
-    Model::Wrench _w_c;
+    Model::Wrench _w_c_est, _meas_w_loc, _meas_w_abs;
 
     Model::Force3D _tip_f_est_abs, _meas_tip_f_loc,
-                   _meas_tip_f_abs;
+                   _meas_tip_f_abs,
+                   _meas_tip_f_abs_filt;
 
     Model::Torque3D _tip_t_est_abs, _meas_tip_t_loc,
-                    _meas_tip_t_abs;
+                    _meas_tip_t_abs,
+                    _meas_tip_t_abs_filt;
 
     Model::Affine3D _M_world_from_tip, _M_world_from_base_link_est,
                     _M_test_rig_from_world, _M_world_from_test_rig,
@@ -165,6 +171,7 @@ private:
     Model::Ptr _ft_est_model_ptr;
     MomentumBasedFObs::UniquePtr _ft_estimator;
     NumDiff _num_diff_v, _num_diff_p;
+    MovAvrgFilt _ft_meas_filt;
 
     void get_params_from_config();
 
