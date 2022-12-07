@@ -107,11 +107,12 @@ void ContactEstRt::get_params_from_config()
     _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
     _test_rig_linkname = getParamOrThrow<std::string>("~test_rig_linkname");
 
-    _ft_est_lambda = getParamOrThrow<double>("~ft_est_lambda");
+    _ft_est_lambda = getParamOrThrow<Eigen::VectorXd>("~ft_est_lambda");
     _select_est_bw_manually = getParamOrThrow<bool>("~select_est_bw_manually");
 
     _ft_est_bw = getParamOrThrow<double>("~ft_est_bw");
     _use_rnea_torque = getParamOrThrow<bool>("~use_rnea_torque");
+    _contacts.push_back(_contact_linkname);
 
     _estimate_full_wrench = getParamOrThrow<bool>("~estimate_full_wrench");
 
@@ -166,8 +167,11 @@ void ContactEstRt::init_ft_estimator()
 {
     double bw = (_select_est_bw_manually) ? _ft_est_bw :  1/_plugin_dt;
 
+
     _ft_estimator.reset(new MomentumBasedFObs(_ft_est_model_ptr,
-                                              _plugin_dt, bw,
+                                              _plugin_dt,
+                                              _contacts,
+                                              bw,
                                               _ft_est_lambda, true,
                                               _selector));
 
@@ -270,12 +274,12 @@ void ContactEstRt::update_state()
     _tau_c_raw = _p_dot - _CT_v + _g - _tau_ft_est; // raw disturbance torques (not filtered
     // and without observer)
 
-    _ft_estimator->update(_contact_linkname); // we can now update the
+    _ft_estimator->update(); // we can now update the
     // force estimation
     _ft_estimator->get_tau_obs(_tau_c);
-    _ft_estimator->get_w_est(_w_c);
-    _ft_estimator->get_f_est(_tip_f_est_abs);
-    _ft_estimator->get_t_est(_tip_t_est_abs);
+    _ft_estimator->get_w_est_at(_contacts[0], _w_c);
+    _ft_estimator->get_f_est_at(_contacts[0], _tip_f_est_abs);
+    _ft_estimator->get_t_est_at(_contacts[0], _tip_t_est_abs);
 
 }
 

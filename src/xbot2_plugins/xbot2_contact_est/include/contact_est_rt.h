@@ -98,15 +98,19 @@ private:
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4,
-           _ft_est_lambda = 1.0, _ft_est_bw = 10.0;
+           _ft_est_bw = 10.0;
 
     std::vector<int> _selector{0, 1, 2, 3, 4, 5};
+
+    std::vector<std::string> _contacts;
 
     std::vector<double> _tau_c_vect, _w_c_vect,
                         _tip_f_est_abs_vect, _tip_t_est_abs_vect,
                         _f_meas_vect, _w_meas_vect,
                         _meas_tip_f_abs_vect,
                         _meas_tip_t_abs_vect;
+
+    MomentumBasedFObs::Reg6D _ft_est_lambda;
 
     Eigen::VectorXd _base_link_pos,
                     _base_link_vel, _base_link_omega;
