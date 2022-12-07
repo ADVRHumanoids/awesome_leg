@@ -121,7 +121,7 @@ xbotcore_plugins:
             contact_linkname: {value: "tip1", type: string}
 
             ft_est_lambda: {value: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0], type: Eigen::VectorXd} # regularization of the estimated contact wrench
-            ft_est_bw: {value: 500.0, type: double}
+            ft_est_bw: {value: 100.0, type: double}
             select_est_bw_manually: {value: true, type: bool}
             use_rnea_torque: {value: true, type: bool}
             estimate_full_wrench: {value: false, type: bool}
