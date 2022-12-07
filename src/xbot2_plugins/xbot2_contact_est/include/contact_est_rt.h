@@ -111,7 +111,10 @@ private:
                         _meas_tip_f_abs_vect,
                         _meas_tip_t_abs_vect,
                         _meas_tip_f_abs_filt_vect,
-                        _meas_tip_t_abs_filt_vect;
+                        _meas_tip_t_abs_filt_vect,
+                        _tau_c_raw_vect, _CT_v_vect, _g_vect,
+                        _p_vect, _p_dot_vect,
+                        _q_p_ft_est_vect, _q_p_dot_ft_est_vect;
 
     MomentumBasedFObs::Reg6D _ft_est_lambda;
 
@@ -126,8 +129,8 @@ private:
                     _tau_meas,
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
-                    _tau_c,
-                    _CT_v, _g, _tau_c_raw, _p, _p_dot,
+                    _tau_c, _tau_c_raw,
+                    _CT_v, _g, _p, _p_dot,
                     _meas_w_filt;
 
     Eigen::MatrixXd _C,
