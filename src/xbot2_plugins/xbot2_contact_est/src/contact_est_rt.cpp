@@ -581,14 +581,14 @@ void ContactEstRt::pub_contact_est_status()
     status_msg->msg().t_c = _tip_t_est_abs_vect;
 
     status_msg->msg().tau_c_raw = _tau_c_raw_vect;
-    status_msg->msg().tau_cmd = _tau;
+    status_msg->msg().tau_cmd = _tau_cmd_vect;
 
     status_msg->msg().g = _g_vect;
     status_msg->msg().p = _p_vect;
     status_msg->msg().p_dot = _p_dot_vect;
     status_msg->msg().CT_v = _CT_v_vect;
-    status_msg->msg().q = _q;
-    status_msg->msg().v = _v;
+    status_msg->msg().q = _q_p_ft_est_vect;
+    status_msg->msg().v = _q_p_dot_ft_est_vect;
 
     status_msg->msg().f_meas = _meas_tip_f_abs_vect;
     status_msg->msg().t_meas = _meas_tip_t_abs_vect;
