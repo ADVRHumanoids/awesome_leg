@@ -285,7 +285,7 @@ void ContactEstRt::update_state()
     _ft_est_model_ptr->get_p(_p);
     _num_diff_p.add_sample(_p); // differentiating the generalized momentum
     _num_diff_p.dot(_p_dot);
-    _CT_v = _C * _q_p_dot_ft_est;
+    _CT_v = _C.transpose() * _q_p_dot_ft_est;
     _tau_c_raw = _p_dot - _CT_v + _g - _tau_ft_est; // raw disturbance torques (not filtered
     // and without observer)
 
