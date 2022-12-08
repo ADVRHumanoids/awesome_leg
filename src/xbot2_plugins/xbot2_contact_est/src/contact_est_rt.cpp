@@ -210,7 +210,7 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
 
     _M_base_link_ref_from_base_link = _M_world_from_base_link_ref.inverse() * _M_world_from_base_link;
 
-    pssv_jnt_pos = _M_base_link_ref_from_base_link.translation()[2]; // TBimplemented
+    pssv_jnt_pos = _M_base_link_ref_from_base_link.translation()[2];
 
     _base_link_vel_wrt_test_rig = _M_test_rig_from_world.rotation() * _base_link_vel; // pure rotation from world to test rig
     pssv_jnt_vel = _base_link_vel_wrt_test_rig[2]; // extracting vertical component (== prismatic joint velocity)
