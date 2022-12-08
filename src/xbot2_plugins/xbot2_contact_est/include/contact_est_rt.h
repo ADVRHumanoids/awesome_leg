@@ -131,7 +131,7 @@ private:
                     _tip_abs_position,
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
                     _tau_c, _tau_c_raw,
-                    _CT_v, _g, _p, _p_dot,
+                    _CT_v, _g, _p, _p_dot, _q, _v, _tau,
                     _meas_w_filt;
 
     Eigen::MatrixXd _C,

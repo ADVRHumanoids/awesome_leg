@@ -36,6 +36,9 @@ void ContactEstRt::init_vars()
     _p = Eigen::VectorXd::Zero(_nv_ft_est);
     _p_dot = Eigen::VectorXd::Zero(_nv_ft_est);
     _C = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
+    _v = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
+    _q = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
+    _tau = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
 
     _meas_tip_f_abs = Eigen::VectorXd::Zero(3);
     _tip_f_est_abs = Eigen::VectorXd::Zero(3);
@@ -281,12 +284,15 @@ void ContactEstRt::update_state()
 
     // getting other quantities which are useful for debugging the estimator
     _ft_est_model_ptr->get_C(_C);
+    _ft_est_model_ptr->get_v(_v);
     _ft_est_model_ptr->get_g(_g);
     _ft_est_model_ptr->get_p(_p);
+    _ft_est_model_ptr->get_tau(_tau);
+
     _num_diff_p.add_sample(_p); // differentiating the generalized momentum
     _num_diff_p.dot(_p_dot);
-    _CT_v = _C.transpose() * _q_p_dot_ft_est;
-    _tau_c_raw = _p_dot - _CT_v + _g - _tau_ft_est; // raw disturbance torques (not filtered
+    _CT_v = _C.transpose() * _v;
+    _tau_c_raw = _p_dot - _CT_v + _g - _tau; // raw disturbance torques (not filtered
     // and without observer)
 
     _ft_estimator->update(); // we can now update the
