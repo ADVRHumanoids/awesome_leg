@@ -556,14 +556,14 @@ void ContactEstRt::pub_contact_est_status()
     // mapping EigenVectorXd data to std::vector, so that they can be published
     Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
 
-    Eigen::Map<Eigen::VectorXd>(&_tau_cmd_vect[0], _tau_ft_est.size(), 1) = _tau_ft_est;
+    Eigen::Map<Eigen::VectorXd>(&_tau_cmd_vect[0], _tau.size(), 1) = _tau;
     Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
     Eigen::Map<Eigen::VectorXd>(&_g_vect[0], _g.size(), 1) = _g;
     Eigen::Map<Eigen::VectorXd>(&_p_vect[0], _p.size(), 1) = _p;
     Eigen::Map<Eigen::VectorXd>(&_p_dot_vect[0], _p_dot.size(), 1) = _p_dot;
     Eigen::Map<Eigen::VectorXd>(&_CT_v_vect[0], _CT_v.size(), 1) = _CT_v;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_ft_est_vect[0], _q_p_ft_est.size(), 1) = _q_p_ft_est;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_ft_est_vect[0], _q_p_dot_ft_est.size(), 1) = _q_p_dot_ft_est;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_ft_est_vect[0], _q.size(), 1) = _q;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_ft_est_vect[0], _v.size(), 1) = _v;
 
     Eigen::Map<Model::Wrench>(&_w_c_est_vect[0], _w_c_est.size(), 1) = _w_c_est;
     Eigen::Map<Model::Force3D>(&_tip_f_est_abs_vect[0], _tip_f_est_abs.size(), 1) = _tip_f_est_abs;
@@ -581,14 +581,14 @@ void ContactEstRt::pub_contact_est_status()
     status_msg->msg().t_c = _tip_t_est_abs_vect;
 
     status_msg->msg().tau_c_raw = _tau_c_raw_vect;
-    status_msg->msg().tau_cmd = _tau_cmd_vect;
+    status_msg->msg().tau_cmd = _tau;
 
     status_msg->msg().g = _g_vect;
     status_msg->msg().p = _p_vect;
     status_msg->msg().p_dot = _p_dot_vect;
     status_msg->msg().CT_v = _CT_v_vect;
-    status_msg->msg().q = _q_p_ft_est_vect;
-    status_msg->msg().v = _q_p_dot_ft_est_vect;
+    status_msg->msg().q = _q;
+    status_msg->msg().v = _v;
 
     status_msg->msg().f_meas = _meas_tip_f_abs_vect;
     status_msg->msg().t_meas = _meas_tip_t_abs_vect;
