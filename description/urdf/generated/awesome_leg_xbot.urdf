@@ -7,6 +7,7 @@
     Leg urdf for use with Cartesio (added world link) and RBDL
 -->
 <robot name="awesome_leg">
+  <!--<xacro:property name="sliding_guide_dyn_friction" value="50.0" />-->
   <!-- <xacro:property name="payload_mass" value="7.38" /> -->
   <!-- color -->
   <material name="darkblue">

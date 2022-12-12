@@ -7,6 +7,7 @@
     Leg base URDF (no external links). Variant of the URDF adapted for use with Pinocchio and for performing inertial parameter identification 
 -->
 <robot name="awesome_leg">
+  <!--<xacro:property name="sliding_guide_dyn_friction" value="50.0" />-->
   <!-- <xacro:property name="payload_mass" value="7.38" /> -->
   <!-- color -->
   <material name="darkblue">
@@ -27,6 +28,7 @@
   <material name="brown">
     <color rgba="0.59 0.29 0.0 1"/>
   </material>
+  <!--<xacro:property name="sliding_guide_dyn_friction" value="50.0" />-->
   <!-- <xacro:property name="payload_mass" value="7.38" /> -->
   <!-- color -->
   <material name="darkblue">

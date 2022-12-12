@@ -188,7 +188,8 @@ void ContactEstRt::init_ft_estimator()
                                               _plugin_dt,
                                               _contacts,
                                               bw,
-                                              _ft_est_lambda, true,
+                                              _ft_est_lambda,
+                                              true,
                                               _selector));
 
 }
