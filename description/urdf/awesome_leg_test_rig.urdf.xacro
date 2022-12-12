@@ -55,12 +55,12 @@
             </geometry>
             <material name="brown"/>
         </visual>
-        <collision>
+        <!--<collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
                 <box size="${test_rig_base_ext} ${test_rig_base_ext} ${test_rig_height}" />
             </geometry>
-        </collision>
+        </collision>-->
         
         <inertial>
             <mass value="1000.0" />
