@@ -21,8 +21,8 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_mat_replayer: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
-    rt_iq_est:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    contact_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+    rt_iq_est:  {sched: fifo , prio: 60, period: 0.001, core_id: 3}
+    contact_est: {sched: fifo , prio: 60, period: 0.01, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -69,7 +69,7 @@ xbotcore_plugins:
             dump_mat_suffix: {value: iq_estimation, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            red_ratio: {value: [0.02, .02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
 
             K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
 
@@ -121,9 +121,8 @@ xbotcore_plugins:
             contact_linkname: {value: "tip1", type: string}
 
             ft_est_lambda: {value: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01], type: Eigen::VectorXd} # regularization of the estimated contact wrench
-            ft_est_bw: {value: 500.0, type: double}
+            ft_est_bw: {value: 100.0, type: double}
             select_est_bw_manually: {value: false,  type: bool}
-            use_rnea_torque: {value: true, type: bool}
             estimate_full_wrench: {value: false, type: bool}
 
             meas_w_filt_bw: {value: 1000.0, type: double}

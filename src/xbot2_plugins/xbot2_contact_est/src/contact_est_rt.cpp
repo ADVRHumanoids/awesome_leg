@@ -125,7 +125,6 @@ void ContactEstRt::get_params_from_config()
     _select_est_bw_manually = getParamOrThrow<bool>("~select_est_bw_manually");
 
     _ft_est_bw = getParamOrThrow<double>("~ft_est_bw");
-    _use_rnea_torque = getParamOrThrow<bool>("~use_rnea_torque");
     _contacts.push_back(_contact_linkname);
 
     _estimate_full_wrench = getParamOrThrow<bool>("~estimate_full_wrench");
