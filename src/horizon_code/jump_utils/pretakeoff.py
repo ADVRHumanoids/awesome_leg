@@ -111,7 +111,7 @@ class preTakeoffTO:
         self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact"] 
         self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_dot"] 
         self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot"] 
-        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot_diff"] 
+        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_jnt_input_diff"]
 
         self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_term_vel"] 
         self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel"] 
@@ -238,10 +238,10 @@ class preTakeoffTO:
         if self.is_friction_cone:
 
             # linearized friction cone (constraint need to be split in two because setBounds only takes numerical vals)
-            friction_cone_1 = self.prb.createConstraint("friction_cone_1",\
+            friction_cone_1 = self.prb.createIntermediateConstraint("friction_cone_1",\
                                                 self.f_contact[1] - (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_1.setBounds(-cs.inf, 0)
-            friction_cone_2 = self.prb.createConstraint("friction_cone_2",\
+            friction_cone_2 = self.prb.createIntermediateConstraint("friction_cone_2",\
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
 
