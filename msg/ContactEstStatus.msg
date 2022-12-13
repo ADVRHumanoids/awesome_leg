@@ -13,6 +13,7 @@ float64[] v
 float64[] w_c
 float64[] f_c
 float64[] t_c
+float64[] i_c
 
 float64[] f_meas
 float64[] t_meas
