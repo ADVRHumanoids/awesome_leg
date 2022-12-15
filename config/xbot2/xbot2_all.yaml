@@ -93,7 +93,7 @@ xbotcore_plugins:
             verbose: {value: false, type: bool}
 
             lambda_qp_reg: {value: 0.000001, type: double}
-            tanh_coeff: {value: 10.0, type: double} # coefficient used for approximating the sign function with the tanh
+            alpha: {value: 10, type: int}
             q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 

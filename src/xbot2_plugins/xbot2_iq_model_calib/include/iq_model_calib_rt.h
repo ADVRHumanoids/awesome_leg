@@ -90,7 +90,8 @@ private:
         _n_jnts_robot,
         _sample_index = 0,
         _der_est_order = 1,
-        _iq_calib_window_size = 1000;
+        _iq_calib_window_size = 1000,
+        _alpha = 10;
 
     std::string _mat_path, _dump_mat_suffix,
                 _urdf_path, _srdf_path,
@@ -100,7 +101,6 @@ private:
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _matlogger_buffer_size = 1e4,
         _lambda_qp_reg = 1.0,
-        _tanh_coeff = 10.0,
         _q_dot_3sigma = 0.001;
 
     Eigen::VectorXd _q_p_meas,

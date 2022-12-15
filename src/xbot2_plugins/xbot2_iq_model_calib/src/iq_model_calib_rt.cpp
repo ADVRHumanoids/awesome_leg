@@ -118,7 +118,7 @@ void IqModelCalibRt::get_params_from_config()
     _iq_calib_window_size = getParamOrThrow<int>("~iq_calib_window_size");
 
     _lambda_qp_reg = getParamOrThrow<double>("~lambda_qp_reg");
-    _tanh_coeff = getParamOrThrow<double>("~tanh_coeff");
+    _alpha = getParamOrThrow<int>("~alpha");
 
     _q_dot_3sigma = getParamOrThrow<double>("~q_dot_3sigma");
 
@@ -542,7 +542,7 @@ bool IqModelCalibRt::on_initialize()
                                 _K_d0_ig, _K_d1_ig,
                                 _rot_MoI,
                                 _red_ratio,
-                                _tanh_coeff,
+                                _alpha,
                                 _q_dot_3sigma); // object to compute iq estimate
 
     // numerical differentiation
@@ -555,7 +555,7 @@ bool IqModelCalibRt::on_initialize()
                         _red_ratio,
                         _K_d0_ig,
                         _K_d1_ig,
-                        _tanh_coeff,
+                        _alpha,
                         _q_dot_3sigma,
                         _lambda_qp_reg);
 
