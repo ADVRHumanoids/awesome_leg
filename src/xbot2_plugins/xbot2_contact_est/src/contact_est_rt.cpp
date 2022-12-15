@@ -236,8 +236,8 @@ void ContactEstRt::update_state_estimates()
     _num_diff_v.add_sample(_q_p_dot_ft_est); // update differentiation
     _num_diff_v.dot(_q_p_ddot_ft_est); // getting differentiated state acceleration
 
-//    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // assign actuated dofs
-    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_cmd; // assign actuated dofs
+    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
+//    _tau_ft_est.block(_nv_ft_est - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_cmd; // command torque
     _tau_ft_est(0) = 0; // no effort on passive joints
 
 }
