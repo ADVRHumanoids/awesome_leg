@@ -137,26 +137,26 @@ private:
     Eigen::MatrixXd _C,
                     _K_p, _K_d;
 
-    Model::RotMat3D _R_world_from_tip;
+    utils_defs::RotMat3D _R_world_from_tip;
 
-    Model::Wrench _w_c_est, _meas_w_loc, _meas_w_abs,
+    utils_defs::Wrench _w_c_est, _meas_w_loc, _meas_w_abs,
                   _i_c;
 
-    Model::Force3D _tip_f_est_abs, _meas_tip_f_loc,
+    utils_defs::Force3D _tip_f_est_abs, _meas_tip_f_loc,
                    _meas_tip_f_abs,
                    _meas_tip_f_abs_filt;
 
-    Model::Torque3D _tip_t_est_abs, _meas_tip_t_loc,
+    utils_defs::Torque3D _tip_t_est_abs, _meas_tip_t_loc,
                     _meas_tip_t_abs,
                     _meas_tip_t_abs_filt;
 
-    Model::Affine3D _M_world_from_tip, _M_world_from_base_link_est,
+    utils_defs::Affine3D _M_world_from_tip, _M_world_from_base_link_est,
                     _M_test_rig_from_world, _M_world_from_test_rig,
                     _M_world_from_base_link, _M_world_from_base_link_ref, _M_base_link_ref_from_base_link,
                     _M_test_rig_from_base_link;
 
-    Model::PosVec3D _base_link_trans_wrt_test_rig;
-    Model::LinVel _base_link_vel_wrt_test_rig;
+    utils_defs::PosVec3D _base_link_trans_wrt_test_rig;
+    utils_defs::LinVel _base_link_vel_wrt_test_rig;
 
     MatLogger2::Ptr _dump_logger;
 
