@@ -430,7 +430,9 @@ void ContactEstRt::add_data2dump_logger()
     _dump_logger->add("tau_c_raw", _tau_c_raw);
     _dump_logger->add("tau_c_raw", _tau_c_raw);
 
-    _dump_logger->add("tip_f_est_abs", _tip_t_est_abs);
+    _dump_logger->add("tip_f_est_abs", _tip_f_est_abs);
+    _dump_logger->add("tip_t_est_abs", _tip_t_est_abs);
+
     _dump_logger->add("i_c", _i_c);
 
     if (_is_sim)
