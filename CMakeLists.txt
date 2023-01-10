@@ -10,18 +10,16 @@ find_package(xbot2 QUIET)
 
 option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 
-add_service_files(
-  FILES
-  EllTrajRt.srv
-  SinJointTraj.srv
-  BypassDspRt.srv
-)
+#add_service_files(
+#  FILES
+#  EllTrajRt.srv
+#  SinJointTraj.srv
+#  BypassDspRt.srv
+#)
 
 add_message_files(
   FILES
   MatReplayerStatus.msg
-#  IqEstStatus.msg
-#  IqCalStatus.msg
 )
 
 add_service_files(
@@ -45,9 +43,10 @@ catkin_package(CATKIN_DEPENDS message_runtime)
 
 # add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
 # add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
-add_subdirectory(src/xbot2_plugins/xbot2_jump)
-add_subdirectory(src/xbot2_plugins/xbot2_iq_model_calib)
-add_subdirectory(src/xbot2_plugins/xbot2_contact_est)
+#add_subdirectory(src/xbot2_plugins/xbot2_jump)
+#add_subdirectory(src/xbot2_plugins/xbot2_iq_model_calib)
+#add_subdirectory(src/xbot2_plugins/xbot2_contact_est)
+add_subdirectory(src/xbot2_plugins/xbot2_energy_rec)
 
 add_executable(robot_state_logger src/awesome_leg_utils/robot_state_logger.cpp)
 target_link_libraries(robot_state_logger ${catkin_LIBRARIES} ${XBotInterface_LIBRARIES} matlogger2::matlogger2)

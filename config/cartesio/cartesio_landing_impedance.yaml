@@ -1,5 +1,3 @@
-# Tip CARTESIAN impedance control using CartesIO Acceleration Support Interaction extension
-
 # Interaction + postural task for making the control robust wrt singularities
 
 solver_options:
@@ -8,11 +6,11 @@ solver_options:
     # back_end: osqp
     # front_end: nhqp
     # nhqp_min_sv_ratio: 0.1
-  
+
 stack: # tasks
     - [tip, postural]
 
-constraints: # [JointLimits, VelocityLimits] # more robust without this constraints 
+constraints: # [JointLimits, VelocityLimits] # more robust without this constraints
 #(they can produce torque spikes and oscillations near the limits)
 
 tip:
@@ -41,6 +39,3 @@ VelocityLimits:
   lib_name: libcartesio_acceleration_support.so
   type: VelocityLimits
   bound_scaling: 1
-
-
-       
