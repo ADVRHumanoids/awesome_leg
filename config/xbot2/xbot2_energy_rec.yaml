@@ -102,6 +102,8 @@ xbotcore_plugins:
 
             urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
 
+            ik_problem_path: {value: $PWD/../../config/cartesio/awesome_leg_base_estimation.yaml, type: file}
+
             mat_path: {value: /tmp/, type: string}
             mat_name: {value: contact_est_rt.mat, type: string}
             dump_mat_suffix: {value: contact_est_rt, type: string}
@@ -116,12 +118,18 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            ft_est_lambda: {value: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01], type: Eigen::VectorXd} # regularization of the estimated contact wrench
+            ft_est_lambda: {value: [1e-2, 1e-2, 1e-2, 1e-6, 1e-6, 1e-6], type: Eigen::VectorXd} # regularization of the estimated contact wrench
             ft_est_bw: {value: 100.0, type: double}
             select_est_bw_manually: {value: false,  type: bool}
             estimate_full_wrench: {value: false, type: bool}
+            regularize_delta_f: {value: false, type: bool}
+
+            use_raw_tau_r: {value: false, type: bool} # whether to use the observed residual torques or not for the computation of contact forces
 
             meas_w_filt_bw: {value: 1000.0, type: double}
+
+            use_ground_truth_base_state: {value: true, type: bool} # whether to use the ground truth state from Gazebo (only available in simulation)
+
 
 
     jmp_replayer_rt:

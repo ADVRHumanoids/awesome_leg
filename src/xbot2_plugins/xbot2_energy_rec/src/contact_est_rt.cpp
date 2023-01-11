@@ -132,6 +132,14 @@ void ContactEstRt::get_params_from_config()
 
     _ft_meas_cutoff_freq = getParamOrThrow<double>("~meas_w_filt_bw");
 
+    _regularize_delta_f = getParamOrThrow<bool>("~regularize_delta_f");
+
+    _use_raw_tau_r = getParamOrThrow<bool>("~use_raw_tau_r");
+
+    _use_ground_truth_base_state = getParamOrThrow<bool>("~use_ground_truth_base_state");
+
+    _ik_problem_str = getParamOrThrow<std::string>("~ik_problem_path");
+
 }
 
 void ContactEstRt::is_sim(std::string sim_string = "sim")
@@ -159,6 +167,32 @@ void ContactEstRt::init_model_interfaces()
     _ft_est_model_ptr.reset(new Model(_urdf_path_ft_est));
     _nq_ft_est = _ft_est_model_ptr->get_nq();
     _nv_ft_est = _ft_est_model_ptr->get_nv();
+
+    XBot::ConfigOptions xbot_cfg;
+    xbot_cfg.set_urdf_path(_urdf_path);
+    xbot_cfg.set_srdf_path(_srdf_path);
+    xbot_cfg.generate_jidmap();
+    xbot_cfg.set_parameter("is_model_floating_base", false);
+    xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+
+    // Initializing XBot2 ModelInterface for the rt thread
+    _base_est_model = XBot::ModelInterface::getModel(xbot_cfg);
+
+}
+
+void ContactEstRt::init_base_estimator()
+{
+    _be_options.dt = _plugin_dt;
+    _be_otions.log_enabled = false;
+    _be_options.contact_release_thr = 10; // [N]
+    _be_options.contact_attach_thr = 5;
+
+    // load problem
+    std::string ik_problem_str;
+    auto ik_problem_yaml = YAML::Load(ik_problem_str);
+
+    // create estimator
+    _base_estimator = std::make_unique<BaseEstimation>(_base_est_model, ik_problem_yaml, _be_options);
 
 }
 
@@ -188,8 +222,9 @@ void ContactEstRt::init_ft_estimator()
                                               _contacts,
                                               bw,
                                               _ft_est_lambda,
-                                              true,
-                                              _selector));
+                                              _regularize_delta_f,
+                                              _selector,
+                                              _use_raw_tau_r));
 
 }
 
@@ -316,24 +351,24 @@ void ContactEstRt::get_fts_force()
     _meas_tip_f_loc = _meas_w_loc.head(3);
     _meas_tip_t_loc = _meas_w_loc.tail(3);
 
+    // rotating the force into world frame
+    // then from base to world orientation
+
+    _meas_tip_f_abs = _R_world_from_tip * _meas_tip_f_loc; // from tip local to world
+    _meas_tip_t_abs = _R_world_from_tip * _meas_tip_t_loc; // from tip local to world
+
+    _meas_w_abs.segment(0, 3) = _meas_tip_f_abs;
+    _meas_w_abs.segment(3, 3) = _meas_tip_t_abs;
+
+    // filtering measured wrench (in world frame)
+    _ft_meas_filt.add_sample(_meas_w_abs);
+    _ft_meas_filt.get(_meas_w_filt);
+
+    _meas_tip_f_abs_filt = _meas_w_filt.head(3);
+
+    _meas_tip_t_abs_filt = _meas_w_filt.tail(3);
+
   }
-
-  // rotating the force into world frame
-  // then from base to world orientation
-
-  _meas_tip_f_abs = _R_world_from_tip * _meas_tip_f_loc; // from tip local to world
-  _meas_tip_t_abs = _R_world_from_tip * _meas_tip_t_loc; // from tip local to world
-
-  _meas_w_abs.segment(0, 3) = _meas_tip_f_abs;
-  _meas_w_abs.segment(3, 3) = _meas_tip_t_abs;
-
-  // filtering measured wrench (in world frame)
-  _ft_meas_filt.add_sample(_meas_w_abs);
-  _ft_meas_filt.get(_meas_w_filt);
-
-  _meas_tip_f_abs_filt = _meas_w_filt.head(3);
-
-  _meas_tip_t_abs_filt = _meas_w_filt.tail(3);
 
 }
 
@@ -427,7 +462,6 @@ void ContactEstRt::add_data2dump_logger()
     _dump_logger->add("p", _p);
     _dump_logger->add("p_dot", _p_dot);
     _dump_logger->add("CT_v", _CT_v);
-    _dump_logger->add("tau_c_raw", _tau_c_raw);
     _dump_logger->add("tau_c_raw", _tau_c_raw);
 
     _dump_logger->add("tip_f_est_abs", _tip_f_est_abs);

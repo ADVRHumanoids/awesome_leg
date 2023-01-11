@@ -30,11 +30,17 @@
 
 #include <xbot2/hal/dev_ft.h>
 
+#include <base_estimation/base_estimation.h>
+#include <base_estimation/ContactsStatus.h>
+#include <cartesian_interface/utils/estimation/ForceEstimation.h>
+#include <base_estimation/contact_viz.h>
+
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace ContactEstUtils;
 using namespace SignProcUtils;
-
+using namespace ikbe;
 /**
  * @brief
  */
@@ -80,7 +86,10 @@ private:
         _verbose = false,
         _ft_tip_sensor_found = false,
         _select_est_bw_manually = false,
-        _estimate_full_wrench = true;
+        _estimate_full_wrench = true,
+        _regularize_delta_f = false,
+        _use_raw_tau_r = false,
+        _use_ground_truth_base_state = false;
 
     int _n_jnts_robot,
         _nv_ft_est, _nq_ft_est;
@@ -92,7 +101,8 @@ private:
                 _hw_type,
                 _tip_fts_name,
                 _contact_linkname = "tip1",
-                _test_rig_linkname = "test_rig";
+                _test_rig_linkname = "test_rig",
+                ik_problem_path = "";
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -177,6 +187,12 @@ private:
     MomentumBasedFObs::UniquePtr _ft_estimator;
     NumDiff _num_diff_v, _num_diff_p;
     MovAvrgFilt _ft_meas_filt;
+
+    XBot::ModelInterface::Ptr _base_est_model;
+    BaseEstimation::UniquePtr _est;
+    BaseEstimation::Options _be_options;
+    PublisherPtr<base_estimation::ContactsStatus> _contacts_state_pub;
+    std::map<std::string, ForceTorqueSensor::ConstPtr> _ft_map;
 
     void get_params_from_config();
 

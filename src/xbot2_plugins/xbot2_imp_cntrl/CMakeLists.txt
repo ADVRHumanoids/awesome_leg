@@ -20,6 +20,8 @@ include_directories(include ${matlogger2_INCLUDE_DIRS})
 
 target_link_libraries(cartesio_imp_cntrl_ros_rt PRIVATE ${cartesian_interface_LIBRARIES})
 
+message(STATUS "*************** ${cartesian_interface_LIBRARIES} ****************")
+
 target_link_libraries(cartesio_ell_rt PRIVATE ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
 
 target_link_libraries(bypass_dsp_rt PRIVATE ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
