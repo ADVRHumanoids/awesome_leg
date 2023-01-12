@@ -120,10 +120,12 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            ft_est_lambda: {value: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01], type: Eigen::VectorXd} # regularization of the estimated contact wrench
-            ft_est_bw: {value: 100.0, type: double}
+            ft_est_lambda: {value: [1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6], type: Eigen::VectorXd} # regularization of the estimated contact wrench
+            ft_est_bw: {value: 50.0, type: double}
             select_est_bw_manually: {value: false,  type: bool}
             estimate_full_wrench: {value: false, type: bool}
+
+            use_ground_truth_gz: {value: true, type: bool} # whether to use ground truth from Gazebo (if working in simulation)
 
             meas_w_filt_bw: {value: 1000.0, type: double}
 
