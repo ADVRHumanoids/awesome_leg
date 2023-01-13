@@ -21,7 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_iq_est:  {sched: fifo , prio: 60, period: 0.001, core_id: 3}
-    contact_est: {sched: fifo , prio: 60, period: 0.01, core_id: 2}
+    base_est: {sched: fifo , prio: 60, period: 0.01, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
@@ -56,81 +56,67 @@ xbotcore_plugins:
 
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-    iq_model_calib_rt:
-        thread: rt_iq_est
-        type: iq_model_calib_rt
+#    iq_model_calib_rt:
+#        thread: rt_iq_est
+#        type: iq_model_calib_rt
+#        params:
+
+#            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+
+#            mat_path: {value: /tmp/, type: string}
+#            dump_mat_suffix: {value: iq_estimation, type: string}
+#            matlogger_buffer_size: {value: 1e5, type: double}
+
+#            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+
+#            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+
+#            K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+#            K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+
+#            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+
+#            der_est_order: {value: 1, type: int}
+
+#            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+
+#            iq_calib_window_size: {value: 10000, type: int}
+
+#            verbose: {value: false, type: bool}
+
+#            lambda_qp_reg: {value: 0.000001, type: double}
+#            alpha: {value: 5, type: int}
+#            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
+#            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
+
+    base_est_rt:
+        thread: base_est
+        type: base_est_rt
         params:
 
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg_no_sliding.urdf, type: file} # used by the model interface
+            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+
+            ik_problem_path: {value: $PWD/../cartesio/awesome_leg_base_estimation.yaml, type: yamlfile}
 
             mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: iq_estimation, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
-
-            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
-
-            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
-
-            K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-            K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
-
-            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
-
-            der_est_order: {value: 1, type: int}
-
-            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-
-            iq_calib_window_size: {value: 10000, type: int}
-
-            verbose: {value: false, type: bool}
-
-            lambda_qp_reg: {value: 0.000001, type: double}
-            alpha: {value: 5, type: int}
-            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
-            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
-
-    contact_est_rt:
-        thread: contact_est
-        type: contact_est_rt
-        params:
-
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-
-            urdf_path_ft_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-
-            ik_problem_path: {value: $PWD/../../config/cartesio/awesome_leg_base_estimation.yaml, type: file}
-
-            mat_path: {value: /tmp/, type: string}
-            mat_name: {value: contact_est_rt.mat, type: string}
-            dump_mat_suffix: {value: contact_est_rt, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
             tip_link_name: {value: "tip1", type: string}
             base_link_name: {value: "base_link", type: string}
-
-            verbose: {value: false, type: bool}
-
             test_rig_linkname: {value: "test_rig", type: string}
+
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            ft_est_lambda: {value: [1e-2, 1e-2, 1e-2, 1e-6, 1e-6, 1e-6], type: Eigen::VectorXd} # regularization of the estimated contact wrench
-            ft_est_bw: {value: 100.0, type: double}
-            select_est_bw_manually: {value: false,  type: bool}
-            estimate_full_wrench: {value: false, type: bool}
-            regularize_delta_f: {value: false, type: bool}
+            contact_release_thr: {value: 10.0, type: double}
+            contact_attach_thr: {value: 5.0, type: double}
 
-            use_raw_tau_r: {value: false, type: bool} # whether to use the observed residual torques or not for the computation of contact forces
-
-            meas_w_filt_bw: {value: 1000.0, type: double}
-
-            use_ground_truth_base_state: {value: true, type: bool} # whether to use the ground truth state from Gazebo (only available in simulation)
-
-
+            mov_avrg_cutoff_freq: {value: 15.0, type: double}
 
     jmp_replayer_rt:
         thread: rt_main

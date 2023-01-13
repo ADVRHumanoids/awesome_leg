@@ -132,6 +132,8 @@ void ContactEstRt::get_params_from_config()
 
     _ft_meas_cutoff_freq = getParamOrThrow<double>("~meas_w_filt_bw");
 
+    _use_ground_truth_gz = getParamOrThrow<bool>("~use_ground_truth_gz");
+
 }
 
 void ContactEstRt::is_sim(std::string sim_string = "sim")
@@ -205,7 +207,7 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
                                         double& pssv_jnt_vel)
 {
 
-    if(_is_sim)
+    if(_is_sim && _use_ground_truth_gz)
     { // for now, estimates only available in simulation
 
     _M_base_link_ref_from_base_link = _M_world_from_base_link_ref.inverse() * _M_world_from_base_link;
@@ -215,6 +217,12 @@ void ContactEstRt::get_passive_jnt_est(double& pssv_jnt_pos,
     _base_link_vel_wrt_test_rig = _M_test_rig_from_world.rotation() * _base_link_vel; // pure rotation from world to test rig
     pssv_jnt_vel = _base_link_vel_wrt_test_rig[2]; // extracting vertical component (== prismatic joint velocity)
 
+    }
+    else
+    { // for now we simply set to zero
+        pssv_jnt_pos = 0.0;
+
+        pssv_jnt_vel = 0.0;
     }
 
 }
@@ -677,7 +685,6 @@ void ContactEstRt::starting()
 
 void ContactEstRt::run()
 {  
-    int i = 0;
 
     update_state(); // update all necessary states
 

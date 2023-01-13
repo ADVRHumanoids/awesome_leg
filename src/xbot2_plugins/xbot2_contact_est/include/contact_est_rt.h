@@ -80,7 +80,8 @@ private:
         _verbose = false,
         _ft_tip_sensor_found = false,
         _select_est_bw_manually = false,
-        _estimate_full_wrench = true;
+        _estimate_full_wrench = true,
+        _use_ground_truth_gz = true;
 
     int _n_jnts_robot,
         _nv_ft_est, _nq_ft_est;

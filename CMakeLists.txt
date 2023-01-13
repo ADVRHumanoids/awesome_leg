@@ -43,7 +43,7 @@ catkin_package(CATKIN_DEPENDS message_runtime)
 
 # add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
 # add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
-#add_subdirectory(src/xbot2_plugins/xbot2_jump)
+add_subdirectory(src/xbot2_plugins/xbot2_jump)
 #add_subdirectory(src/xbot2_plugins/xbot2_iq_model_calib)
 #add_subdirectory(src/xbot2_plugins/xbot2_contact_est)
 add_subdirectory(src/xbot2_plugins/xbot2_energy_rec)

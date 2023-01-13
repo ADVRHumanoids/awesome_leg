@@ -18,10 +18,10 @@ add_xbot2_plugin(jmp_replayer_rt
 target_include_directories(jmp_replayer_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
 target_link_libraries(jmp_replayer_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
-add_xbot2_plugin(contact_est_rt
-    src/contact_est_rt.cpp)
-target_include_directories(contact_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${base_estimation_INCLUDE_DIRS})
-target_link_libraries(contact_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support ${base_estimation_LIBRARIES})
+add_xbot2_plugin(base_est_rt
+    src/base_est_rt.cpp)
+target_include_directories(base_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${base_estimation_INCLUDE_DIRS})
+target_link_libraries(base_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support ${base_estimation_LIBRARIES})
 
 add_xbot2_plugin(iq_model_calib_rt
     src/iq_model_calib_rt.cpp)
@@ -29,7 +29,7 @@ target_include_directories(iq_model_calib_rt PRIVATE include src ${matlogger2_IN
 target_link_libraries(iq_model_calib_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 install(
-    TARGETS jmp_replayer_rt contact_est_rt DESTINATION lib
+    TARGETS jmp_replayer_rt base_est_rt DESTINATION lib
 )
 
 install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -94,7 +94,7 @@ private:
         _alpha = 10;
 
     std::string _mat_path, _dump_mat_suffix,
-                _urdf_path, _srdf_path,
+                _urdf_path,
                 _hw_type;
 
     double _plugin_dt,

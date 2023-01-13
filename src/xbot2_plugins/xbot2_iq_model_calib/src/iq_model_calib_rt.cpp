@@ -95,7 +95,6 @@ void IqModelCalibRt::get_params_from_config()
     // Reading some parameters from XBot2 config. YAML file
 
     _urdf_path = getParamOrThrow<std::string>("~urdf_path"); 
-    _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 

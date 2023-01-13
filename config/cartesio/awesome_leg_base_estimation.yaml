@@ -1,0 +1,27 @@
+solver_options:
+    regularization: 1e-12
+    back_end: qpoases
+    front_end: ihqp
+
+stack:
+     - [tip]
+
+constraints: [JointLimits, VelocityLimits]
+
+JointLimits:
+  lib_name: libcartesio_acceleration_support.so
+  type: JointLimits
+  bound_scaling: 1
+
+VelocityLimits:
+  lib_name: libcartesio_acceleration_support.so
+  type: VelocityLimits
+  bound_scaling: 1
+  
+tip:
+  lib_name: libcartesio_acceleration_support.so
+  type: Cartesian
+  lambda: 1
+  distal_link: tip1
+  indices: [0, 2]
+
