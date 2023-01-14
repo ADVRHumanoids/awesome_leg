@@ -483,7 +483,12 @@ bool JumpReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
 void JumpReplayerRt::load_opt_data()
 {   
 
-    _traj = TrajLoader(_mat_path + _mat_name, true, 0.0001, false);
+    std::string math_full_path = _mat_path + _mat_name;
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+        "\n ## Trying to load trajectory .mat file @ {}\n \n", math_full_path);
+
+    _traj = TrajLoader(math_full_path, true, 0.0001, false);
 
     int n_traj_jnts = _traj.get_n_jnts();
 
