@@ -1,6 +1,10 @@
 #ifndef BASE_EST_RT
 #define BASE_EST_RT
 
+#include <awesome_utils/typedefs.hpp>
+#include <awesome_utils/sign_proc_utils.hpp>
+#include <awesome_utils/model_interface.hpp>
+
 #include <matlogger2/matlogger2.h>
 
 #include <xbot2/xbot2.h>
@@ -25,9 +29,6 @@
 #include <base_estimation/ContactsStatus.h>
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
 #include <base_estimation/contact_viz.h>
-
-#include <awesome_utils/typedefs.hpp>
-#include <awesome_utils/sign_proc_utils.hpp>
 
 using namespace XBot;
 using namespace XBot::Cartesian;
@@ -75,10 +76,11 @@ private:
 
     bool _rt_active, _nrt_exit,
         _is_sim = true,
-        _ft_tip_sensor_found = false;
+        _ft_tip_sensor_found = false,
+        _use_ground_truth_gz = true;
 
     int _n_jnts_robot,
-        _nv_base_est, _nq_base_est;
+        _nv_be, _nq_be;
 
     std::string _mat_path, _dump_mat_suffix,
                 _srdf_path_base_est,
@@ -102,11 +104,17 @@ private:
 
     utils_defs::Wrench _meas_w_loc, _meas_w_abs;
 
+    utils_defs::PosVec3D _base_link_trans_wrt_test_rig;
+    utils_defs::LinVel _base_link_vel_wrt_test_rig;
+
     Eigen::VectorXd _q_p_meas, _q_p_dot_meas,
                     _tau_meas, _q_p_ref, _q_p_dot_ref,
                     _tau_ff, _meas_stiff, _meas_damp,
-                    _tau_cmd,
-                    _meas_w_filt,
+                    _tau_cmd;
+
+    Eigen::VectorXd _q_p_be, _q_p_dot_be, _q_p_ddot_be, _tau_be;
+
+    Eigen::VectorXd _meas_w_filt,
                     _base_link_vel, _base_link_omega;
 
     Eigen::MatrixXd _K_p, _K_d;
@@ -119,6 +127,7 @@ private:
                     _M_test_rig_from_base_link;
 
     MovAvrgFilt _ft_meas_filt;
+    NumDiff _num_diff_v;
 
     MatLogger2::Ptr _dump_logger;
 
@@ -132,6 +141,8 @@ private:
 
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
     SubscriberPtr<geometry_msgs::TwistStamped> _base_link_twist_sub;
+
+    ModelInterface::Model::Ptr _pin_model_ptr;
 
     XBot::ModelInterface::Ptr _base_est_model;
     BaseEstimation::UniquePtr _est;
@@ -151,11 +162,18 @@ private:
     void init_dump_logger();
     void init_base_estimator();
     void init_ft_sensor();
+    void init_transforms();
 
     void create_ros_api();
 
     void update_clocks();
-    void update_state();
+    void get_robot_state();
+    void get_base_est(double& pssv_jnt_pos,
+                      double& pssv_jnt_vel);
+    void update_base_estimates();
+    void update_be_model();
+    void update_pin_model();
+    void update_states();
 
     void add_data2dump_logger();
 
