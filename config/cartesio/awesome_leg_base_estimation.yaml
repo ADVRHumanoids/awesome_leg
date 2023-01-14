@@ -4,25 +4,29 @@ solver_options:
     front_end: ihqp
 
 stack:
-#     - ["tip"]
+     - ["tip"]
 
-#constraints:
-#    - "JointLimits"
-#    - "VelocityLimits"
+constraints: ["Postural", "JointLimits", "VelocityLimits"]
 
 JointLimits:
-  lib_name: libcartesio_acceleration_support.so
+#  lib_name: libcartesio_acceleration_support.so
   type: "JointLimits"
   bound_scaling: 1
 
-#VelocityLimits:
+VelocityLimits:
 #  lib_name: libcartesio_acceleration_support.so
-#  type: "VelocityLimits"
-#  bound_scaling: 1
-  
-#tip:
+  type: "VelocityLimits"
+  bound_scaling: 1
+
+Postural:
+    type: Postural
+    lambda: 0.
+    disabled_joints:
+        - "test_rig2base"
+
+tip:
 #  lib_name: libcartesio_acceleration_support.so
-#  type: "Cartesian"
-#  distal_link: tip1
-#  indices: [0, 2]
+  type: "Cartesian"
+  distal_link: tip1
+  indices: [0, 2]
 
