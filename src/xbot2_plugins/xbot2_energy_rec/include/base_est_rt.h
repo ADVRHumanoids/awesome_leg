@@ -146,6 +146,7 @@ private:
 
     XBot::ModelInterface::Ptr _base_est_model;
     BaseEstimation::UniquePtr _est;
+    XBot::ForceTorqueSensor::ConstPtr _ft_est;
     BaseEstimation::Options _be_options;
     std::map<std::string, ForceTorqueSensor::ConstPtr> _ft_map;
 

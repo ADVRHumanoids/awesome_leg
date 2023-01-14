@@ -140,6 +140,11 @@ void BaseEstRt::init_base_estimator()
 
     // create estimator
     _est = std::make_unique<BaseEstimation>(_base_est_model, ik_problem_yaml, _be_options);
+    _est->setFilterOmega(0.0);
+    _est->setFilterDamping(0.0);
+    _est->setFilterTs(getPeriodSec());
+
+    _ft_est = _est->createVirtualFt(_tip_fts_name, {0, 1, 2}); // estimating only force
 
 }
 
@@ -221,6 +226,16 @@ void BaseEstRt::get_base_est(double& pssv_jnt_pos,
     }
     else
     { // we employ estimates
+
+        /* Update estimate */
+        Eigen::Affine3d base_pose;
+        Eigen::Vector6d base_vel, raw_base_vel;
+        if(!_est->update(base_pose, base_vel, raw_base_vel))
+        {
+            jerror("unable to solve");
+            return;
+        }
+
         pssv_jnt_pos = 0.0;
 
         pssv_jnt_vel = 0.0;
@@ -497,6 +512,8 @@ void BaseEstRt::starting()
     reset_flags(); // reset flags, just in case
 
     init_clocks(); // initialize clocks timers
+
+    _est->reset();
 
     update_states(); // read current jnt positions and velocities
 
