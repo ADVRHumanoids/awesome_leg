@@ -118,6 +118,8 @@ xbotcore_plugins:
 
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
 
+            use_ground_truth_gz: {value: true, type: bool}
+
     jmp_replayer_rt:
         thread: rt_main
         type: jmp_replayer_rt
