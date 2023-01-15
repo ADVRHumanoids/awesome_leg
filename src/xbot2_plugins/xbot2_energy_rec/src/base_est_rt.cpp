@@ -74,6 +74,8 @@ void BaseEstRt::get_params_from_config()
     _mov_avrg_cutoff_freq = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
 
     _use_ground_truth_gz = getParamOrThrow<bool>("~use_ground_truth_gz");
+
+    _obs_bw = getParamOrThrow<double>("~obs_bw");
 }
 
 void BaseEstRt::is_sim(std::string sim_string = "sim")
@@ -140,11 +142,15 @@ void BaseEstRt::init_base_estimator()
 
     // create estimator
     _est = std::make_unique<BaseEstimation>(_base_est_model, ik_problem_yaml, _be_options);
-    _est->setFilterOmega(0.0);
-    _est->setFilterDamping(0.0);
-    _est->setFilterTs(getPeriodSec());
+//    _est->setFilterOmega(0.0);
+//    _est->setFilterDamping(0.0);
+//    _est->setFilterTs(getPeriodSec());
 
-    _ft_est = _est->createVirtualFt(_tip_fts_name, {0, 1, 2}); // estimating only force
+    bool use_momentum_obs = true;
+    _ft_est = _est->createVirtualFt(_tip_fts_name, {0, 1, 2}, use_momentum_obs, _obs_bw); // estimating only force
+
+    std::vector<std::string> vertex_frames = {_tip_link_name};
+    _est->addSurfaceContact(vertex_frames, _ft_est); // this will add a CartesianTask at the tip link
 
 }
 
@@ -208,6 +214,33 @@ void BaseEstRt::get_robot_state()
     _robot->getDamping(_meas_damp);
 }
 
+void BaseEstRt::get_fts_force()
+{
+  if(_is_sim && _ft_tip_sensor_found)
+  { // fts only available in simulation (for now)
+
+    _meas_w_loc = _ft_sensor->getWrench();
+
+    _meas_tip_f_loc = _meas_w_loc.head(3);
+    _meas_tip_t_loc = _meas_w_loc.tail(3);
+
+    // rotating the force into world frame
+    // then from base to world orientation
+
+    _meas_tip_f_abs = _R_world_from_tip * _meas_tip_f_loc; // from tip local to world
+    _meas_tip_t_abs = _R_world_from_tip * _meas_tip_t_loc; // from tip local to world
+
+    _meas_w_abs.segment(0, 3) = _meas_tip_f_abs;
+    _meas_w_abs.segment(3, 3) = _meas_tip_t_abs;
+
+    // filtering measured wrench (in world frame)
+    _ft_meas_filt.add_sample(_meas_w_abs);
+    _ft_meas_filt.get(_meas_w_filt);
+
+  }
+
+}
+
 void BaseEstRt::get_base_est(double& pssv_jnt_pos,
                                 double& pssv_jnt_vel)
 {
@@ -243,32 +276,7 @@ void BaseEstRt::get_base_est(double& pssv_jnt_pos,
 
 }
 
-void BaseEstRt::get_fts_force()
-{
-  if(_is_sim && _ft_tip_sensor_found)
-  { // fts only available in simulation (for now)
 
-    _meas_w_loc = _ft_sensor->getWrench();
-
-    _meas_tip_f_loc = _meas_w_loc.head(3);
-    _meas_tip_t_loc = _meas_w_loc.tail(3);
-
-    // rotating the force into world frame
-    // then from base to world orientation
-
-    _meas_tip_f_abs = _R_world_from_tip * _meas_tip_f_loc; // from tip local to world
-    _meas_tip_t_abs = _R_world_from_tip * _meas_tip_t_loc; // from tip local to world
-
-    _meas_w_abs.segment(0, 3) = _meas_tip_f_abs;
-    _meas_w_abs.segment(3, 3) = _meas_tip_t_abs;
-
-    // filtering measured wrench (in world frame)
-    _ft_meas_filt.add_sample(_meas_w_abs);
-    _ft_meas_filt.get(_meas_w_filt);
-
-  }
-
-}
 
 void BaseEstRt::update_base_estimates()
 {

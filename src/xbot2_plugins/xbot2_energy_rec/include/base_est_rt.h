@@ -94,7 +94,8 @@ private:
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4,
-           _mov_avrg_cutoff_freq = 15.0;
+           _mov_avrg_cutoff_freq = 15.0,
+           _obs_bw = 20.0;
 
     utils_defs::Force3D _meas_tip_f_loc,
                    _meas_tip_f_abs;
