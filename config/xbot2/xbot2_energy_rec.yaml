@@ -118,7 +118,7 @@ xbotcore_plugins:
 
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
 
-            use_ground_truth_gz: {value: true, type: bool}
+            use_ground_truth_gz: {value: false, type: bool}
 
             obs_bw: {value: 100.0, type: double}
 

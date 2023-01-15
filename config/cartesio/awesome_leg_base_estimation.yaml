@@ -4,29 +4,27 @@ solver_options:
     front_end: ihqp
 
 stack:
-#     - ["tip"]
+     - ["ground_contact"]
 
-constraints: ["Postural", "JointLimits", "VelocityLimits"]
+constraints: ["Postural"]
 
-JointLimits:
-#  lib_name: libcartesio_acceleration_support.so
-  type: "JointLimits"
-  bound_scaling: 1
+#JointLimits:
+#  type: "JointLimits"
+#  bound_scaling: 1
 
-VelocityLimits:
-#  lib_name: libcartesio_acceleration_support.so
-  type: "VelocityLimits"
-  bound_scaling: 1
+#VelocityLimits:
+#  type: "VelocityLimits"
+#  bound_scaling: 1
 
-Postural:
+Postural: # we want to track the measurements at the joint level and estimate the rest
     type: Postural
-    lambda: 0.
+    lambda: 0.0 # pos gain
+    lambda2: 0.05 # vel gain
     disabled_joints:
         - "test_rig2base"
 
-#tip:
-##  lib_name: libcartesio_acceleration_support.so
-#  type: "Cartesian"
-#  distal_link: tip1
-#  indices: [0, 2]
+ground_contact:
+  type: "Cartesian"
+  distal_link: tip1
+  indices: [0, 2]
 

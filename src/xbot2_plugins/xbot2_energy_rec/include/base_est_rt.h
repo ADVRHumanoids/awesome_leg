@@ -103,7 +103,8 @@ private:
     utils_defs::Torque3D _meas_tip_t_loc,
                    _meas_tip_t_abs;
 
-    utils_defs::Wrench _meas_w_loc, _meas_w_abs;
+    utils_defs::Wrench _meas_w_loc, _meas_w_abs,
+                       _est_w;
 
     utils_defs::PosVec3D _base_link_trans_wrt_test_rig;
     utils_defs::LinVel _base_link_vel_wrt_test_rig;
@@ -147,7 +148,7 @@ private:
 
     XBot::ModelInterface::Ptr _base_est_model;
     BaseEstimation::UniquePtr _est;
-    XBot::ForceTorqueSensor::ConstPtr _ft_est;
+    XBot::ForceTorqueSensor::ConstPtr _ft_virt_sensor;
     BaseEstimation::Options _be_options;
     std::map<std::string, ForceTorqueSensor::ConstPtr> _ft_map;
 

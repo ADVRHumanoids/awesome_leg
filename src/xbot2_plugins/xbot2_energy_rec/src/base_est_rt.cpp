@@ -131,8 +131,8 @@ void BaseEstRt::init_base_estimator()
 {
     _be_options.dt = _plugin_dt;
     _be_options.log_enabled = false;
-    _be_options.contact_release_thr = 10.0; // [N]
-    _be_options.contact_attach_thr = 5.0;
+    _be_options.contact_release_thr = 5.0; // [N]
+    _be_options.contact_attach_thr = 10.0;
 
     // load problem
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
@@ -147,10 +147,10 @@ void BaseEstRt::init_base_estimator()
 //    _est->setFilterTs(getPeriodSec());
 
     bool use_momentum_obs = true;
-    _ft_est = _est->createVirtualFt(_tip_fts_name, {0, 1, 2}, use_momentum_obs, _obs_bw); // estimating only force
+    _ft_virt_sensor = _est->createVirtualFt(_tip_link_name, {0, 1, 2}, use_momentum_obs, _obs_bw); // estimating only force
 
     std::vector<std::string> vertex_frames = {_tip_link_name};
-    _est->addSurfaceContact(vertex_frames, _ft_est); // this will add a CartesianTask at the tip link
+    _est->addSurfaceContact(vertex_frames, _ft_virt_sensor); // a task for each contact needs to be defined in the YAML config for the problem
 
 }
 
@@ -239,6 +239,9 @@ void BaseEstRt::get_fts_force()
 
   }
 
+  _ft_virt_sensor->getWrench(_est_w); // we get the force from the virtual ft sensor
+  // which is inside the base estimator
+
 }
 
 void BaseEstRt::get_base_est(double& pssv_jnt_pos,
@@ -258,45 +261,56 @@ void BaseEstRt::get_base_est(double& pssv_jnt_pos,
 
     }
     else
-    { // we employ estimates
+    { // we employ estimates from the virtual wrench sensor and ik base estimator
 
         /* Update estimate */
         Eigen::Affine3d base_pose;
         Eigen::Vector6d base_vel, raw_base_vel;
+
+        // will update the base estimator
+        // and update the model with the latest solution
+        // for the ik (both q and q_dot are updated)
         if(!_est->update(base_pose, base_vel, raw_base_vel))
         {
             jerror("unable to solve");
             return;
         }
 
-        pssv_jnt_pos = 0.0;
+        _base_est_model->getJointVelocity(_q_p_dot_be);
+        _base_est_model->getJointPosition(_q_p_be);
 
-        pssv_jnt_vel = 0.0;
+        pssv_jnt_vel = _q_p_dot_be(0);
+
+        pssv_jnt_pos = _q_p_be(0);
     }
 
 }
-
-
 
 void BaseEstRt::update_base_estimates()
 {
     double passive_jnt_pos = 0, passive_jnt_vel = 0;
 
-    get_base_est(passive_jnt_pos, passive_jnt_vel);
-
     _q_p_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_meas; // assign actuated dofs with meas.
     // from encoders
-    _q_p_be(0) = passive_jnt_pos; // assign passive dofs
 
     _q_p_dot_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
     // from encoders
+
+    _tau_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
+
+
+    update_be_model(); // update the model with the measurements (passive dof set to 0)
+
+    get_base_est(passive_jnt_pos, passive_jnt_vel); // get ground truth or computes estimates
+
+    _q_p_be(0) = passive_jnt_pos; // assign passive dofs
     _q_p_dot_be(0) = passive_jnt_vel; // assign passive dofs
+    _tau_be(0) = 0; // no effort on passive joints
+
+    update_pin_model(); // update pin model with estimates
 
     _num_diff_v.add_sample(_q_p_dot_be); // update differentiation
     _num_diff_v.dot(_q_p_ddot_be); // getting differentiated state acceleration
-
-    _tau_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
-    _tau_be(0) = 0; // no effort on passive joints
 
 }
 
@@ -330,15 +344,13 @@ void BaseEstRt::update_states()
 
     update_base_estimates();
 
-    update_be_model();
-    update_pin_model();
-
     _pin_model_ptr->get_frame_pose(_tip_link_name,
                               _M_world_from_tip);
     _R_world_from_tip = _M_world_from_tip.rotation();
 
     get_fts_force(); // after update tip pose, we get the local force and
-    // rotate it to the world
+    // rotate it to the world (errors on the position of the passive joint won't
+    // affect the correctness of the tip orientation)
 
 }
 
@@ -372,8 +384,7 @@ void BaseEstRt::init_dump_logger()
     _dump_logger->create("tau_ff", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
-    _dump_logger->create("tip_f_est_abs", _meas_tip_f_abs.size(), 1, _matlogger_buffer_size);
-    _dump_logger->create("tip_t_est_abs", _meas_tip_t_abs.size(), 1, _matlogger_buffer_size);
+    _dump_logger->create("tip_w_est_abs", _est_w.size(), 1, _matlogger_buffer_size);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -401,8 +412,7 @@ void BaseEstRt::add_data2dump_logger()
     _dump_logger->add("tau_ff", _tau_ff);
     _dump_logger->add("tau_cmd", _tau_cmd);
 
-    _dump_logger->add("tip_f_est_abs", _meas_tip_f_abs);
-    _dump_logger->add("tip_t_est_abs", _meas_tip_t_abs);
+    _dump_logger->add("tip_w_est_abs", _est_w);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -521,7 +531,7 @@ void BaseEstRt::starting()
 
     init_clocks(); // initialize clocks timers
 
-    _est->reset();
+    _est->reset(); // reset base estimator
 
     update_states(); // read current jnt positions and velocities
 
