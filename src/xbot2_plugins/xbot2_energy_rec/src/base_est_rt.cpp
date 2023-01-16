@@ -14,6 +14,7 @@ void BaseEstRt::init_vars()
     _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     _q_p_dot_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_ff = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -298,7 +299,6 @@ void BaseEstRt::update_base_estimates()
 
     _tau_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
 
-
     update_be_model(); // update the model with the measurements (passive dof set to 0)
 
     get_base_est(passive_jnt_pos, passive_jnt_vel); // get ground truth or computes estimates
@@ -384,6 +384,10 @@ void BaseEstRt::init_dump_logger()
     _dump_logger->create("tau_ff", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
+    _dump_logger->create("q_p_be", _nq_be, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_p_dot_be", _nv_be, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_be", _nv_be, 1, _matlogger_buffer_size);
+
     _dump_logger->create("tip_w_est_abs", _est_w.size(), 1, _matlogger_buffer_size);
 
     if (_is_sim)
@@ -413,6 +417,11 @@ void BaseEstRt::add_data2dump_logger()
     _dump_logger->add("tau_cmd", _tau_cmd);
 
     _dump_logger->add("tip_w_est_abs", _est_w);
+
+    _dump_logger->add("q_p_be", _q_p_be);
+    _dump_logger->add("q_p_dot_be", _q_p_dot_be);
+    _dump_logger->add("tau_be", _tau_be);
+
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
