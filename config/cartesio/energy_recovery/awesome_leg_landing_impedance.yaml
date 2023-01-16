@@ -1,0 +1,72 @@
+# Interaction + postural task for making the control robust wrt singularities
+
+solver_options:
+    regularization: 0.0
+    back_end: qpoases
+    # back_end: osqp
+    # front_end: nhqp
+    # nhqp_min_sv_ratio: 0.1
+
+stack: # tasks
+    - [ground_contact]
+    - [hip_impedance]
+#    - [reg_postural] # probably not necessary, since we won't land with straight legs
+
+constraints:
+    - [effort_limits]
+    - [ik]
+#    - [be_tracking]
+
+ground_contact: # tip is supposed in contact with the environment
+  lib_name: libcartesio_acceleration_support.so
+  type: "Cartesian"
+  distal_link: tip1
+  lambda: 0.0 # no pos feedback
+  lambda2: 1.0 # vel gain
+  weight: 1.0
+  indices: [0, 2]
+
+hip_impedance:
+  lib_name: libcartesio_acceleration_support.so
+  type: "Interaction" # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
+  lambda: 1 # if using Interaction, this is simply a scaling factor
+  stiffness: [0, 100, 100, 0, 10, 0]
+  damping: [0, 5, 5, 0, 1, 0]
+  distal_link: base_link
+  indices: [0, 2]
+
+#reg_postural: # postural used to prevent ill-conditioned QP matrices in singular positions
+#  lib_name: libcartesio_acceleration_support.so
+#  type: "Postural"
+#  use_inertia: true
+#  lambda: 1.0 # pos feedback gain
+#  lambda2: 1.0 # vel feedback gain
+#  weight: 1.0 # task weight (if use_inertia = true, then the task weight is weight * M)
+#  disabled_joints:
+#      - "test_rig2base"
+
+#be_tracking: # tracking of state coming from base estimation
+#  lib_name: libcartesio_acceleration_support.so
+#  type: "Postural"
+#  lambda: 1.0 # no pos feedback
+#  lambda2: 1.0 # vel gain
+#  disabled_joints:
+#      - "test_rig2base"
+
+ik: # we track joint measurements and leave the base free, so that it can be estimated via IK
+  lib_name: libcartesio_acceleration_support.so
+  type: "Postural"
+  lambda: 0.0 # no pos feedback
+  lambda2: 1.0 # vel gain
+  disabled_joints:
+      - "test_rig2base"
+
+#JointLimits:
+#  lib_name: libcartesio_acceleration_support.so
+#  type: JointLimits
+#  bound_scaling: 1
+
+#VelocityLimits:
+#  lib_name: libcartesio_acceleration_support.so
+#  type: VelocityLimits
+#  bound_scaling: 1

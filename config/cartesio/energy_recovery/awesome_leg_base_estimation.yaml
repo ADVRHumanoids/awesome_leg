@@ -1,0 +1,30 @@
+solver_options:
+    regularization: 1e-3
+    back_end: qpoases
+    front_end: ihqp
+
+stack:
+     - ["ground_contact"]
+
+constraints: ["Postural"]
+
+#JointLimits:
+#  type: "JointLimits"
+#  bound_scaling: 1
+
+#VelocityLimits:
+#  type: "VelocityLimits"
+#  bound_scaling: 1
+
+Postural: # we want to track the measurements at the joint level and estimate the rest
+    type: Postural
+    lambda: 0.0 # pos gain
+    lambda2: 0.05 # vel gain
+    disabled_joints:
+        - "test_rig2base"
+
+ground_contact:
+  type: "Cartesian"
+  distal_link: tip1
+  indices: [0, 2]
+
