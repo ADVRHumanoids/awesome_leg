@@ -14,7 +14,7 @@ stack: # tasks
 
 constraints:
     - [effort_limits]
-    - [ik]
+    - [actuated_jnt_tracking]
 #    - [be_tracking]
 
 ground_contact: # tip is supposed in contact with the environment
@@ -53,7 +53,7 @@ hip_impedance:
 #  disabled_joints:
 #      - "test_rig2base"
 
-ik: # we track joint measurements and leave the base free, so that it can be estimated via IK
+actuated_jnt_tracking: # we track joint measurements and leave the base free, so that it can be estimated via IK
   lib_name: libcartesio_acceleration_support.so
   type: "Postural"
   lambda: 0.0 # no pos feedback
