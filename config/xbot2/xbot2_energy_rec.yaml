@@ -97,7 +97,7 @@ xbotcore_plugins:
         type: base_est_rt
         params:
 
-            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg_no_sliding.urdf, type: file} # used by the model interface
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
             ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
