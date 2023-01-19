@@ -13,7 +13,7 @@
     <!--SUBGROUPS: Groups can also be formed by referencing to already defined group names-->
     
     <group name="leg">
-        <chain base_link="test_rig" tip_link="tip1"/>
+        <chain base_link="world" tip_link="tip1"/>
     </group>
     <group name="chains">
         <group name="leg"/>
