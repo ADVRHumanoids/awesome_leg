@@ -56,41 +56,41 @@ xbotcore_plugins:
 
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-#    iq_model_calib_rt:
-#        thread: rt_iq_est
-#        type: iq_model_calib_rt
-#        params:
+    iq_model_calib_rt:
+        thread: rt_iq_est
+        type: iq_model_calib_rt
+        params:
 
-#            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
 
-#            mat_path: {value: /tmp/, type: string}
-#            dump_mat_suffix: {value: iq_estimation, type: string}
-#            matlogger_buffer_size: {value: 1e5, type: double}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: iq_estimation, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
-#            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
 
-#            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
 
-#            K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-#            K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+            K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
 
-#            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
-#            der_est_order: {value: 1, type: int}
+            der_est_order: {value: 1, type: int}
 
-#            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-#            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-#            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-#            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
 
-#            iq_calib_window_size: {value: 10000, type: int}
+            iq_calib_window_size: {value: 10000, type: int}
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#            lambda_qp_reg: {value: 0.000001, type: double}
-#            alpha: {value: 5, type: int}
-#            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
-#            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
+            lambda_qp_reg: {value: 0.000001, type: double}
+            alpha: {value: 5, type: int}
+            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
+            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
     base_est_rt:
         thread: base_est
