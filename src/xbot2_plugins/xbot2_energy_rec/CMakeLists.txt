@@ -28,8 +28,13 @@ add_xbot2_plugin(iq_model_calib_rt
 target_include_directories(iq_model_calib_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
 target_link_libraries(iq_model_calib_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
+add_xbot2_plugin(bus_power_rt
+    src/bus_power_rt.cpp)
+target_include_directories(bus_power_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+target_link_libraries(bus_power_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
 install(
-    TARGETS jmp_replayer_rt base_est_rt DESTINATION lib
+    TARGETS jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt DESTINATION lib
 )
 
 install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
