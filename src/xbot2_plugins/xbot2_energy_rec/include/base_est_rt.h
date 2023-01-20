@@ -1,9 +1,9 @@
 #ifndef BASE_EST_RT
 #define BASE_EST_RT
 
-#include <awesome_utils/typedefs.hpp>
-#include <awesome_utils/sign_proc_utils.hpp>
-#include <awesome_utils/model_interface.hpp>
+#include <awesome_utils/awesome_utils/typedefs.hpp>
+#include <awesome_utils/awesome_utils/sign_proc_utils.hpp>
+#include <awesome_utils/awesome_utils/model_interface.hpp>
 
 #include <matlogger2/matlogger2.h>
 

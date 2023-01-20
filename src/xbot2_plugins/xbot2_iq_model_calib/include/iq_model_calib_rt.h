@@ -9,9 +9,9 @@
 
 #include <thread>
 
-#include <awesome_utils/calib_utils.hpp>
-#include <awesome_utils/sign_proc_utils.hpp>
-#include <awesome_utils/xbot2_utils.hpp>
+#include <awesome_utils/awesome_utils/calib_utils.hpp>
+#include <awesome_utils/awesome_utils/sign_proc_utils.hpp>
+#include <awesome_utils/xbot2_utils/xbot2_utils.hpp>
 
 #include <std_msgs/Bool.h>
 

@@ -9,7 +9,7 @@
 
 #include <thread>
 
-#include <awesome_utils/traj_utils.hpp>
+#include <awesome_utils/awesome_utils/traj_utils.hpp>
 
 #include <xbot2/ros/ros_support.h>
 

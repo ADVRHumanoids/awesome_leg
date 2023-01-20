@@ -1,8 +1,8 @@
 #ifndef CONTACT_EST_RT
 #define CONTACT_EST_RT
 
-#include <awesome_utils/contact_est_utils.hpp>
-#include <awesome_utils/sign_proc_utils.hpp>
+#include <awesome_utils/awesome_utils/contact_est_utils.hpp>
+#include <awesome_utils/awesome_utils/sign_proc_utils.hpp>
 
 #include <awesome_leg/ContactEstStatus.h>
 

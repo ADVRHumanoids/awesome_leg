@@ -16,21 +16,25 @@ target_link_libraries(start_jump_replayer PRIVATE ${catkin_LIBRARIES} ${cartesia
 add_xbot2_plugin(jmp_replayer_rt
     src/jump_replayer_rt.cpp)
 target_include_directories(jmp_replayer_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(jmp_replayer_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(jmp_replayer_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(base_est_rt
     src/base_est_rt.cpp)
 target_include_directories(base_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${base_estimation_INCLUDE_DIRS})
+add_dependencies(base_est_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(base_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support ${base_estimation_LIBRARIES})
 
 add_xbot2_plugin(iq_model_calib_rt
     src/iq_model_calib_rt.cpp)
 target_include_directories(iq_model_calib_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(iq_model_calib_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(iq_model_calib_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(bus_power_rt
     src/bus_power_rt.cpp)
 target_include_directories(bus_power_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(bus_power_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(bus_power_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 install(
