@@ -29,17 +29,7 @@ void BusPowerRt::init_vars()
 
     _iq_friction_torque = Eigen::VectorXd::Zero(_n_jnts_robot);
 
-    _iq_friction_torque_cal = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_rot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
-
-    _alpha_f0 = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _alpha_f1 = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _K_d0_cal = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _K_d1_cal = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _K_d0 = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _K_d1 = Eigen::VectorXd::Zero(_n_jnts_robot);
-
-    _iq_cal_sol_millis = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     // used to convert to ros messages-compatible types
     _iq_est_vect = std::vector<double>(_n_jnts_robot);
@@ -55,25 +45,16 @@ void BusPowerRt::init_vars()
     _red_ratio_vect = std::vector<double>(_n_jnts_robot);
     _iq_friction_torque_vect = std::vector<double>(_n_jnts_robot);
     _tau_meas_filt_vect = std::vector<double>(_n_jnts_robot);
-    _alpha_f0_vect = std::vector<double>(_n_jnts_robot);
-    _alpha_f1_vect = std::vector<double>(_n_jnts_robot);
-    _K_d0_cal_vect = std::vector<double>(_n_jnts_robot);
-    _K_d1_cal_vect = std::vector<double>(_n_jnts_robot);
+
     _iq_meas_vect = std::vector<double>(_n_jnts_robot);
     _iq_meas_filt_vect = std::vector<double>(_n_jnts_robot);
 
-    _iq_friction_torque_cal_vect = std::vector<double>(_n_jnts_robot);
     _tau_rot_est_vect = std::vector<double>(_n_jnts_robot);
-
-    _iq_cal_sol_millis_vect = std::vector<double>(_n_jnts_robot);
 
 }
 
 void BusPowerRt::reset_flags()
 {
-
-    _sample_index = 0.0; // resetting samples index, in case the plugin stopped and started again
-
 
 }
 
@@ -100,12 +81,10 @@ void BusPowerRt::get_params_from_config()
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _verbose = getParamOrThrow<bool>("~verbose");
-
     _red_ratio = getParamOrThrow<Eigen::VectorXd>("~red_ratio");
     _K_t = getParamOrThrow<Eigen::VectorXd>("~K_t");
-    _K_d0_ig = getParamOrThrow<Eigen::VectorXd>("~K_d0_ig");
-    _K_d1_ig = getParamOrThrow<Eigen::VectorXd>("~K_d1_ig");
+    _K_d0 = getParamOrThrow<Eigen::VectorXd>("~K_d0");
+    _K_d1 = getParamOrThrow<Eigen::VectorXd>("~K_d1");
     _rot_MoI = getParamOrThrow<Eigen::VectorXd>("~rotor_axial_MoI");
 
     _der_est_order = getParamOrThrow<int>("~der_est_order");
@@ -114,12 +93,15 @@ void BusPowerRt::get_params_from_config()
     _mov_avrg_cutoff_freq_iq_meas = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq_meas");
     _mov_avrg_cutoff_freq_q_dot = getParamOrThrow<double>("~mov_avrg_cutoff_freq_q_dot");
 
-    _iq_calib_window_size = getParamOrThrow<int>("~iq_calib_window_size");
-
-    _lambda_qp_reg = getParamOrThrow<double>("~lambda_qp_reg");
     _alpha = getParamOrThrow<int>("~alpha");
 
     _q_dot_3sigma = getParamOrThrow<double>("~q_dot_3sigma");
+
+    _R = getParamOrThrow<Eigen::VectorXd>("~R");
+    _L_m = getParamOrThrow<Eigen::VectorXd>("~L_m");
+    _L_leak = getParamOrThrow<Eigen::VectorXd>("~L_leak");
+
+    _use_iq_meas = getParamOrThrow<bool>("~use_iq_meas");
 
 }
 
@@ -170,7 +152,10 @@ void BusPowerRt::update_state()
     _mov_avrg_filter_tau.get(_tau_meas_filt);
 
     //getting iq measure
-    _iq_getter.get_last_iq_out(_iq_meas);
+    if(_use_iq_meas)
+    {
+        _iq_getter->get_last_iq_out(_iq_meas);
+    }
 
     // Removing noise from iq_meas
     _mov_avrg_filter_iq_meas.add_sample(_iq_meas);
@@ -207,10 +192,7 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->add("plugin_dt", _plugin_dt);
     _dump_logger->add("is_sim", int(_is_sim));
 
-    _dump_logger->create("sol_milliseconds", _n_jnts_robot, 1, _matlogger_buffer_size);
-
     _dump_logger->create("q_p_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
-
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_dot_meas_filt", _n_jnts_robot, 1, _matlogger_buffer_size);
 
@@ -235,12 +217,9 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->create("red_ratio", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("tau_total_rot", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("iq_friction_torque_cal", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_rot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("alpha_f0", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("alpha_f1", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("K_d0_cal", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("K_d1_cal", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->add("mov_avrg_window_size_iq", _mov_avrg_window_size_iq);
     _dump_logger->add("mov_avrg_cutoff_freq_iq", _mov_avrg_cutoff_freq_iq);
@@ -252,8 +231,6 @@ void BusPowerRt::init_dump_logger()
 
 void BusPowerRt::add_data2dump_logger()
 {
-
-    _dump_logger->add("sol_milliseconds", _iq_cal_sol_millis);
 
     _dump_logger->add("q_p_meas", _q_p_meas);
 
@@ -278,12 +255,7 @@ void BusPowerRt::add_data2dump_logger()
     _dump_logger->add("rot_MoI", _rot_MoI);
     _dump_logger->add("red_ratio", _red_ratio);
 
-    _dump_logger->add("iq_friction_torque_cal", _iq_friction_torque_cal);
     _dump_logger->add("tau_rot_est", _tau_rot_est);
-    _dump_logger->add("alpha_f0", _alpha_f0);
-    _dump_logger->add("alpha_f1", _alpha_f1);
-    _dump_logger->add("K_d0_cal", _K_d0_cal);
-    _dump_logger->add("K_d1_cal", _K_d1_cal);
 
 }
 
@@ -294,18 +266,20 @@ void BusPowerRt::init_nrt_ros_bridge()
     _ros = std::make_unique<RosSupport>(nh);
 
     /* Subscribers */
-    _aux_signals_sub = _ros->subscribe("/xbotcore/aux",
-                                &Xbot2Utils::IqRosGetter::on_aux_signal_received,
-                                &_iq_getter,
-                                1,  // queue size
-                                &_queue);
+    if(_use_iq_meas)
+    {
+        _aux_signals_sub = _ros->subscribe("/xbotcore/aux",
+                                    &Xbot2Utils::IqRosGetter::on_aux_signal_received,
+                                    _iq_getter.get(),
+                                    1,  // queue size
+                                    &_queue);
 
-    _js_signals_sub = _ros->subscribe("/xbotcore/joint_states",
-                                &Xbot2Utils::IqRosGetter::on_js_signal_received,
-                                &_iq_getter,
-                                1,  // queue size
-                                &_queue);
-
+        _js_signals_sub = _ros->subscribe("/xbotcore/joint_states",
+                                    &Xbot2Utils::IqRosGetter::on_js_signal_received,
+                                    _iq_getter.get(),
+                                    1,  // queue size
+                                    &_queue);
+    }
     /* Publishers */
 
     std::vector<std::string> iq_jnt_names_prealloc(_n_jnts_robot);
@@ -341,40 +315,7 @@ void BusPowerRt::init_nrt_ros_bridge()
     iq_status_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
 
     _iq_est_pub = _ros->advertise<awesome_leg::IqEstStatus>(
-        "iq_est_node", 1, iq_status_prealloc);
-
-    // iq model calibration status publisher
-    awesome_leg::IqCalStatus iq_cal_prealloc;
-
-    std::vector<double> tau_linkside_prealloc(_n_jnts_robot);
-    std::vector<double> q_p_dot_filt_prealloc(_n_jnts_robot);
-    std::vector<double> tau_total_prealloc(_n_jnts_robot);
-    std::vector<double> tau_friction_meas(_n_jnts_robot);
-    std::vector<double> alpha_f0_prealloc(_n_jnts_robot);
-    std::vector<double> alpha_f1_prealloc(_n_jnts_robot);
-    std::vector<double> K_d0_cal_prealloc(_n_jnts_robot);
-    std::vector<double> K_d1_cal_prealloc(_n_jnts_robot);
-    std::vector<double> iq_meas_prealloc(_n_jnts_robot);
-    std::vector<double> iq_meas_filt_prealloc(_n_jnts_robot);
-    std::vector<double> sol_millis_prealloc(_n_jnts_robot);
-
-    iq_cal_prealloc.tau_linkside_filt = tau_linkside_prealloc;
-    iq_cal_prealloc.q_dot_filt = q_p_dot_filt_prealloc;
-    iq_cal_prealloc.tau_total = tau_total_prealloc;
-    iq_cal_prealloc.tau_friction_meas = tau_friction_meas;
-    iq_cal_prealloc.alpha_f0 = alpha_f0_prealloc;
-    iq_cal_prealloc.alpha_f1 = alpha_f1_prealloc;
-    iq_cal_prealloc.K_d0_cal = K_d0_cal_prealloc;
-    iq_cal_prealloc.K_d1_cal = K_d1_cal_prealloc;
-    iq_cal_prealloc.iq_meas = iq_meas_prealloc;
-    iq_cal_prealloc.iq_meas_filt = K_d1_cal_prealloc;
-
-    iq_cal_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
-
-    iq_cal_prealloc.sol_millis = sol_millis_prealloc;
-
-    _iq_cal_pub = _ros->advertise<awesome_leg::IqCalStatus>(
-        "iq_cal_node", 1, iq_cal_prealloc);
+        "iq_est_node_pow", 1, iq_status_prealloc);
 
 }
 
@@ -382,6 +323,8 @@ void BusPowerRt::add_data2bedumped()
 {
 
     add_data2dump_logger();
+
+    _pow_monitor->add2log();
 
 }
 
@@ -423,92 +366,17 @@ void BusPowerRt::pub_iq_est()
 
 }
 
-void BusPowerRt::pub_iq_cal()
-{
-
-    auto iq_cal_msg = _iq_cal_pub->loanMessage();
-
-    // mapping EigenVectorXd data to std::vector, so that they can be published
-    Eigen::Map<Eigen::VectorXd>(&_tau_meas_filt_vect[0], _tau_meas_filt.size(), 1) = _tau_meas_filt;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_filt_vect[0], _q_p_dot_meas_filt.size(), 1) = _q_p_dot_meas_filt;
-    Eigen::Map<Eigen::VectorXd>(&_tau_rot_est_vect[0], _tau_rot_est.size(), 1) = _tau_rot_est;
-    Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_cal_vect[0], _iq_friction_torque_cal.size(), 1) = _iq_friction_torque_cal;
-    Eigen::Map<Eigen::VectorXd>(&_alpha_f0_vect[0], _alpha_f0.size(), 1) = _alpha_f0;
-    Eigen::Map<Eigen::VectorXd>(&_alpha_f1_vect[0], _alpha_f1.size(), 1) = _alpha_f1;
-    Eigen::Map<Eigen::VectorXd>(&_K_d0_cal_vect[0], _K_d0_cal.size(), 1) = _K_d0_cal;
-    Eigen::Map<Eigen::VectorXd>(&_K_d1_cal_vect[0], _K_d1_cal.size(), 1) = _K_d1_cal;
-    Eigen::Map<Eigen::VectorXd>(&_iq_meas_vect[0], _iq_meas.size(), 1) = _iq_meas;
-    Eigen::Map<Eigen::VectorXd>(&_iq_meas_filt_vect[0], _iq_meas_filt.size(), 1) = _iq_meas_filt;
-    Eigen::Map<Eigen::VectorXd>(&_iq_cal_sol_millis_vect[0], _iq_cal_sol_millis.size(), 1) = _iq_cal_sol_millis;
-
-    // filling message
-    iq_cal_msg->msg().tau_linkside_filt = _tau_meas_filt_vect;
-    iq_cal_msg->msg().q_dot_filt = _q_p_dot_meas_filt_vect;
-    iq_cal_msg->msg().tau_total = _tau_rot_est_vect;
-    iq_cal_msg->msg().tau_friction_meas = _iq_friction_torque_cal_vect;
-    iq_cal_msg->msg().alpha_f0 = _alpha_f0_vect;
-    iq_cal_msg->msg().alpha_f1 = _alpha_f1_vect;
-    iq_cal_msg->msg().K_d0_cal = _K_d0_cal_vect;
-    iq_cal_msg->msg().K_d1_cal = _K_d1_cal_vect;
-    iq_cal_msg->msg().iq_meas = _iq_meas_vect;
-    iq_cal_msg->msg().iq_meas_filt = _iq_meas_filt_vect;
-
-    iq_cal_msg->msg().iq_jnt_names = _iq_jnt_names;
-
-    iq_cal_msg->msg().sol_millis = _iq_cal_sol_millis_vect;
-
-    _iq_cal_pub->publishLoaned(std::move(iq_cal_msg));
-
-}
-
-void BusPowerRt::run_iq_calib()
-{
-
-    // we update the calibration oject with fresh
-    // states (we filter every input, so that we get the same delay).
-    // Note that we don't really care about the
-    // delay introduced here.
-    _iq_calib.add_sample(_q_p_dot_meas_filt,
-                         _q_p_ddot_est_filt,
-                         _iq_meas_filt,
-                         _tau_meas_filt);
-
-    _iq_calib.set_ig(_K_d0_ig, _K_d1_ig);
-
-    // we solve the calibration problem and get the current
-    // optimal values
-    _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
-
-    // we set the ig to the new solution to
-    // promote convergence (which is also controlled by
-    // the chosen regularization gain)
-    _K_d0_ig = _K_d0_cal;
-    _K_d1_ig = _K_d1_cal;
-
-    // we also set the gains for the iq estimaton to the just obtained
-    // optimal values
-    _K_d0 = _K_d0_cal;
-    _K_d1 = _K_d1_cal;
-
-    // getting useful additional data for debbugging
-    _iq_calib.get_current_tau_total(_tau_rot_est);
-    _iq_calib.get_current_tau_friction(_iq_friction_torque_cal);
-    _iq_calib.get_current_alpha(_alpha_f0, _alpha_f1);
-    _iq_calib.get_sol_millis(_iq_cal_sol_millis);
-
-}
-
 void BusPowerRt::run_iq_estimation()
 {
 
     // we update the state of the iq estimator with the most recent ones (filtered)
-    _iq_estimator.set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
+    _iq_estimator->set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
 
     // we compute and get the iq estimate using the (possibly) updated K_d0 and K_d1 gains
-    _iq_estimator.get_iq_estimate(_iq_est, _K_d0, _K_d1);
+    _iq_estimator->update(_K_d0, _K_d1);
 
     // we also get other useful quantities from the estimator
-    _iq_estimator.get_tau_friction(_iq_friction_torque);
+    _iq_estimator->get_tau_friction(_iq_friction_torque);
 
 }
 
@@ -530,33 +398,32 @@ bool BusPowerRt::on_initialize()
     init_nrt_ros_bridge();
 
     // using the order given by _jnt_names
-    _iq_getter = IqRosGetter(); // object to get the
+    _iq_getter.reset(new IqRosGetter());
+
     // quadrature current from XBot2 ROS topic (they need to be activated
     // manually)
     _iq_jnt_names = _jnt_names; // we will get (and estimate) the iq
-    _iq_getter.set_jnt_names(_iq_jnt_names);
+    _iq_getter->set_jnt_names(_iq_jnt_names);
 
     // iq estimation model
-    _iq_estimator = IqEstimator(_K_t,
-                                _K_d0_ig, _K_d1_ig,
-                                _rot_MoI,
-                                _red_ratio,
-                                _alpha,
-                                _q_dot_3sigma); // object to compute iq estimate
+    _iq_estimator.reset(new IqEstimator(_K_t,
+                                        _K_d0, _K_d1,
+                                        _rot_MoI,
+                                        _red_ratio,
+                                        _alpha,
+                                        _q_dot_3sigma));
+
+    // bus power estimator
+    _pow_monitor.reset(new RegEnergy(_iq_getter,
+                                     _iq_estimator,
+                                     _R,
+                                     _L_leak, _L_m,
+                                     _plugin_dt,
+                                     _use_iq_meas,
+                                     true));
 
     // numerical differentiation
     _num_diff = NumDiff(_n_jnts_robot, _plugin_dt, _der_est_order);
-
-    // iq model calibration object
-    _iq_calib = IqCalib(_iq_calib_window_size,
-                        _K_t,
-                        _rot_MoI,
-                        _red_ratio,
-                        _K_d0_ig,
-                        _K_d1_ig,
-                        _alpha,
-                        _q_dot_3sigma,
-                        _lambda_qp_reg);
 
     //* filtering --> we should filter everything, also the q_dot (which is not so noisy)
     // so that we get the same delay for each data necessary for the iq model calibration
@@ -604,21 +471,11 @@ void BusPowerRt::run()
 
     _queue.run();
 
-    // calibrate iq model
-    run_iq_calib();
-
     // computing and updating iq estimates
     run_iq_estimation();
 
     // publish info
     pub_iq_est(); // publish estimates to topic
-
-    pub_iq_cal(); // publish results of iq model calibration to topic
-
-    if (_is_first_run)
-    { // next control loops are aware that it is not the first control loop
-        _is_first_run = !_is_first_run;
-    }
 
     add_data2dump_logger();
 

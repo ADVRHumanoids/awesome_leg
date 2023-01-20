@@ -78,18 +78,10 @@ public:
 
 private:
 
-    bool _is_first_run = true,
-        _pause_started = false, _pause_finished = false,
-        _rt_active, _nrt_exit,
-        _is_sim = true,
-        _reduce_dumped_sol_size = false,
-        _verbose = false,
-        _jnt_names_were_set = false;
+    bool _is_sim = true,
+         _use_iq_meas = true;
 
-    int _n_jnts_model,
-        _n_jnts_model_ft_est,
-        _n_jnts_robot,
-        _sample_index = 0,
+    int _n_jnts_robot,
         _der_est_order = 1,
         _iq_calib_window_size = 1000,
         _alpha = 10;
@@ -108,13 +100,11 @@ private:
                     _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
                     _tau_meas, _tau_meas_filt,
                     _iq_meas, _iq_meas_filt,
-                    _K_t, _K_d0_ig, _K_d1_ig, _K_d0, _K_d1, _rot_MoI, _red_ratio,
-                    _tau_,
-                    _iq_est, _iq_friction_torque,
-                    _iq_friction_torque_cal, _tau_rot_est,
+                    _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
+                    _tau,
+                    _iq_est, _iq_friction_torque, _tau_rot_est,
                     _alpha_f0, _alpha_f1,
-                    _K_d0_cal, _K_d1_cal,
-                    _iq_cal_sol_millis;
+                    _R, _L_leak, _L_m;
 
     std::vector<double> _iq_est_vect, _q_p_ddot_est_vect, _q_p_ddot_est_filt_vect,
                         _q_p_dot_meas_vect, _q_p_dot_meas_filt_vect,
@@ -127,8 +117,7 @@ private:
                         _alpha_f0_vect, _alpha_f1_vect,
                         _K_d0_cal_vect, _K_d1_cal_vect,
                         _iq_meas_vect,
-                        _iq_meas_filt_vect,
-                        _iq_cal_sol_millis_vect;
+                        _iq_meas_filt_vect;
 
     std::vector<std::string> _jnt_names, _iq_jnt_names;
 
@@ -144,11 +133,11 @@ private:
     SubscriberPtr<xbot_msgs::JointState> _js_signals_sub;
 
     PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
-    PublisherPtr<awesome_leg::IqCalStatus> _iq_cal_pub;
 
-    IqRosGetter _iq_getter;
-    IqEstimator _iq_estimator;
-    IqCalib _iq_calib;
+    IqRosGetter::Ptr _iq_getter;
+    IqEstimator::Ptr _iq_estimator;
+
+    RegEnergy::Ptr _pow_monitor;
 
     NumDiff _num_diff;
 
@@ -156,6 +145,7 @@ private:
     MovAvrgFilt _mov_avrg_filter_tau;
     MovAvrgFilt _mov_avrg_filter_iq_meas;
     MovAvrgFilt _mov_avrg_filter_q_dot;
+
     int _mov_avrg_window_size_iq = 10;
     double _mov_avrg_cutoff_freq_iq = 15.0;
     int _mov_avrg_window_size_tau = 10;
@@ -187,9 +177,7 @@ private:
     void is_sim(std::string sim_string);
 
     void pub_iq_est();
-    void pub_iq_cal();
 
-    void run_iq_calib();
     void run_iq_estimation();
 
 };
