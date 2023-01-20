@@ -477,7 +477,9 @@ void BusPowerRt::run()
     // publish info
     pub_iq_est(); // publish estimates to topic
 
-    add_data2dump_logger();
+    _pow_monitor->update(); // update power and energy estimates
+
+    add_data2bedumped();
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
