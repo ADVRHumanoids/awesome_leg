@@ -1,4 +1,6 @@
 cmake_minimum_required(VERSION 3.1.3)
+set (CMAKE_CXX_STANDARD 17)
+
 project(awesome_leg)
 
 find_package(catkin REQUIRED roscpp rospy urdf sensor_msgs std_msgs message_generation)
