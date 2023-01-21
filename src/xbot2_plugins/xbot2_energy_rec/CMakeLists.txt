@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+set (CMAKE_CXX_STANDARD 17)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -8,6 +9,7 @@ find_package(Eigen3 REQUIRED)
 find_package(cartesian_interface REQUIRED)
 find_package(awesome_utils REQUIRED)
 find_package(base_estimation REQUIRED)
+find_package(behaviortree_cpp_v3 QUIET)
 
 add_executable(start_jump_replayer src/start_jump_replayer.cpp)
 add_dependencies(start_jump_replayer ${PROJECT_NAME}_generate_messages)
@@ -36,6 +38,20 @@ add_xbot2_plugin(bus_power_rt
 target_include_directories(bus_power_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
 add_dependencies(bus_power_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(bus_power_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
+if(behaviortree_cpp_v3_FOUND)
+    message("Will compile behaviour tree rt plugin")
+    add_xbot2_plugin(bt_rt
+        src/bt_rt.cpp)
+    target_include_directories(bt_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+    add_dependencies(bt_rt ${PROJECT_NAME}_generate_messages)
+    target_link_libraries(bt_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
+    install(
+        TARGETS bt_rt DESTINATION lib
+    )
+
+endif()
 
 install(
     TARGETS jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt DESTINATION lib

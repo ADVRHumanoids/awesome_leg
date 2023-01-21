@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <SequenceStar>
+            <ReactiveFallback>
+                <Condition ID="are_plugins_running" all_plugin_running="false" plugin_names=""/>
+                <Action ID="start_plugins" plugin_names=""/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="recov_energy" current_e_r="0.0"/>
+                <SequenceStar>
+                    <ReactiveFallback>
+                        <Condition ID="temperature_ok" temp_ok="false"/>
+                        <Action ID="wait_for_actuators_cooling" stop_robot="false"/>
+                    </ReactiveFallback>
+                    <Sequence>
+                        <Action ID="go2takeoff_config" jump_ready="false" trigger_approach_traj="false"/>
+                        <Action ID="perform_takeoff" takeoff_detected="false" trigger_takeoff="false"/>
+                    </Sequence>
+                </SequenceStar>
+            </ReactiveFallback>
+        </SequenceStar>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="are_plugins_running">
+            <input_port default="false" name="all_plugin_running">whether all the plugins are successfully running or not</input_port>
+            <input_port name="plugin_names">names of the plugins of which we need to check the running state before executing the main control tree</input_port>
+        </Condition>
+        <Action ID="go2takeoff_config">
+            <input_port default="false" name="jump_ready">if true, we are ready to move to next phase</input_port>
+            <output_port default="false" name="trigger_approach_traj">when true, will send a signal to the plugin for moving the robot to the inital configuration for the demo</output_port>
+        </Action>
+        <Action ID="perform_takeoff">
+            <input_port default="false" name="takeoff_detected">go to next phase if true</input_port>
+            <output_port default="false" name="trigger_takeoff">if true, trigger the plugin which performs the takeoff</output_port>
+        </Action>
+        <Action ID="power_monitor"/>
+        <Condition ID="recov_energy">
+            <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
+        </Condition>
+        <Action ID="start_plugins">
+            <input_port name="plugin_names">vector of plugin names,  which need to be started</input_port>
+        </Action>
+        <Condition ID="temperature_ok">
+            <input_port default="false" name="temp_ok">whether driver temperatures are BOTH ok</input_port>
+        </Condition>
+        <Action ID="wait_for_actuators_cooling">
+            <output_port default="false" name="stop_robot">If true, signal all plugins to stop the robot</output_port>
+        </Action>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>

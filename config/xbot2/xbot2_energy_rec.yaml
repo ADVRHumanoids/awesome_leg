@@ -24,6 +24,7 @@ xbotcore_threads:
 #    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
+    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
 
 # plugins
 xbotcore_plugins:
@@ -213,6 +214,18 @@ xbotcore_plugins:
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
             use_iq_meas: {value: false, type: bool}
+
+    bt_rt:
+        thread: rt_main
+        type: bt_rt
+        params:
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            bt_description_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+
 
 # global parameters
 xbotcore_param:
