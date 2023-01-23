@@ -373,6 +373,8 @@ void BusPowerRt::add_data2bedumped()
 
     _pow_monitor->add2log();
 
+    _iq_estimator->add2log();
+
 }
 
 void BusPowerRt::pub_iq_est()
@@ -513,7 +515,8 @@ bool BusPowerRt::on_initialize()
                                         _rot_MoI,
                                         _red_ratio,
                                         _alpha,
-                                        _q_dot_3sigma));
+                                        _q_dot_3sigma,
+                                        true));
 
     // bus power estimator
     _pow_monitor.reset(new RegEnergy(_iq_getter,
