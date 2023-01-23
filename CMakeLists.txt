@@ -34,6 +34,7 @@ add_message_files(
   IqEstStatus.msg
   IqCalStatus.msg
   ContactEstStatus.msg
+  RegPowStatus.msg
 )
 
 generate_messages(

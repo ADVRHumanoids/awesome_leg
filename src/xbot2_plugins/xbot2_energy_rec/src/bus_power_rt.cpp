@@ -51,6 +51,24 @@ void BusPowerRt::init_vars()
 
     _tau_rot_est_vect = std::vector<double>(_n_jnts_robot);
 
+    // regeneration stuff
+    _er_k = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _pr_k = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _pk_joule = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _pk_mech = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _pk_indct = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _ek_joule = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _ek_mech = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _ek_indct = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _er_k_vect = std::vector<double>(_n_jnts_robot);
+    _pr_k_vect = std::vector<double>(_n_jnts_robot);
+    _pk_joule_vect = std::vector<double>(_n_jnts_robot);
+    _pk_mech_vect = std::vector<double>(_n_jnts_robot);
+    _pk_indct_vect = std::vector<double>(_n_jnts_robot);
+    _ek_joule_vect = std::vector<double>(_n_jnts_robot);
+    _ek_mech_vect = std::vector<double>(_n_jnts_robot);
+    _ek_indct_vect = std::vector<double>(_n_jnts_robot);
 }
 
 void BusPowerRt::reset_flags()
@@ -317,6 +335,35 @@ void BusPowerRt::init_nrt_ros_bridge()
     _iq_est_pub = _ros->advertise<awesome_leg::IqEstStatus>(
         "iq_est_node_pow", 1, iq_status_prealloc);
 
+    // regenerative pow. status publisher
+
+    awesome_leg::RegPowStatus reg_pow_prealloc;
+
+    double er_prealloc = 0.0, pr_prealloc = 0.0;
+    std::vector<double> er_k_prealloc(_n_jnts_robot);
+    std::vector<double> pr_k_prealloc(_n_jnts_robot);
+    std::vector<double> pk_joule_prealloc(_n_jnts_robot);
+    std::vector<double> pk_mech_prealloc(_n_jnts_robot);
+    std::vector<double> pk_indct_prealloc(_n_jnts_robot);
+    std::vector<double> ek_joule_prealloc(_n_jnts_robot);
+    std::vector<double> ek_mech_prealloc(_n_jnts_robot);
+    std::vector<double> ek_indct_prealloc(_n_jnts_robot);
+
+    reg_pow_prealloc.er = er_prealloc;
+    reg_pow_prealloc.pr = pr_prealloc;
+    reg_pow_prealloc.er_k = er_k_prealloc;
+    reg_pow_prealloc.pr_k = pr_k_prealloc;
+    reg_pow_prealloc.pk_joule = pk_joule_prealloc;
+    reg_pow_prealloc.pk_mech = pk_mech_prealloc;
+    reg_pow_prealloc.pk_indct = pk_indct_prealloc;
+    reg_pow_prealloc.ek_joule = ek_joule_prealloc;
+    reg_pow_prealloc.ek_mech = ek_mech_prealloc;
+    reg_pow_prealloc.ek_indct = ek_indct_prealloc;
+
+    reg_pow_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
+
+    _reg_pow_pub = _ros->advertise<awesome_leg::RegPowStatus>("reg_pow_node", 1, reg_pow_prealloc);
+
 }
 
 void BusPowerRt::add_data2bedumped()
@@ -366,6 +413,40 @@ void BusPowerRt::pub_iq_est()
 
 }
 
+void BusPowerRt::pub_reg_pow()
+{
+
+    auto reg_pow_msg = _reg_pow_pub->loanMessage();
+
+    // mapping EigenVectorXd data to std::vector, so that they can be published
+    Eigen::Map<Eigen::VectorXd>(&_er_k_vect[0], _er_k.size(), 1) = _er_k;
+    Eigen::Map<Eigen::VectorXd>(&_pr_k_vect[0], _pr_k.size(), 1) = _pr_k;
+    Eigen::Map<Eigen::VectorXd>(&_pk_joule_vect[0], _pk_joule.size(), 1) = _pk_joule;
+    Eigen::Map<Eigen::VectorXd>(&_pk_mech_vect[0], _pk_mech.size(), 1) = _pk_mech;
+    Eigen::Map<Eigen::VectorXd>(&_pk_indct_vect[0], _pk_indct.size(), 1) = _pk_indct;
+    Eigen::Map<Eigen::VectorXd>(&_ek_joule_vect[0], _ek_joule.size(), 1) = _ek_joule;
+    Eigen::Map<Eigen::VectorXd>(&_ek_mech_vect[0], _ek_mech.size(), 1) = _ek_mech;
+    Eigen::Map<Eigen::VectorXd>(&_ek_indct_vect[0], _ek_indct.size(), 1) = _ek_indct;
+
+    // filling message
+    reg_pow_msg->msg().er = _er;
+    reg_pow_msg->msg().pr = _pr;
+
+    reg_pow_msg->msg().er_k = _er_k_vect;
+    reg_pow_msg->msg().pr_k = _pr_k_vect;
+    reg_pow_msg->msg().pk_joule = _pk_joule_vect;
+    reg_pow_msg->msg().pk_mech = _pk_mech_vect;
+    reg_pow_msg->msg().pk_indct = _pk_indct_vect;
+    reg_pow_msg->msg().ek_joule = _ek_joule_vect;
+    reg_pow_msg->msg().ek_mech = _ek_joule_vect;
+    reg_pow_msg->msg().ek_indct = _ek_joule_vect;
+
+    reg_pow_msg->msg().iq_jnt_names = _iq_jnt_names;
+
+    _reg_pow_pub->publishLoaned(std::move(reg_pow_msg));
+
+}
+
 void BusPowerRt::run_iq_estimation()
 {
 
@@ -377,6 +458,23 @@ void BusPowerRt::run_iq_estimation()
 
     // we also get other useful quantities from the estimator
     _iq_estimator->get_tau_friction(_iq_friction_torque);
+
+    _iq_estimator->get_iq_estimate(_iq_est);
+
+}
+
+void BusPowerRt::run_reg_pow_estimation()
+{
+     _pow_monitor->update(); // update power and energy estimates using current state
+     // and current estimates from iq estimator (or iq measurements if _use_iq_meas == true)
+
+     _er = _pow_monitor->get_e();
+     _pr = _pow_monitor->get_p();
+
+     _pow_monitor->get(_er_k, _pr_k);
+
+     _pow_monitor->get_p_terms(_pk_joule, _pk_mech, _pk_indct);
+     _pow_monitor->get_e_terms(_ek_joule, _ek_mech, _ek_indct);
 
 }
 
@@ -474,12 +572,16 @@ void BusPowerRt::run()
     // computing and updating iq estimates
     run_iq_estimation();
 
-    // publish info
+    // publish iq estimate info
     pub_iq_est(); // publish estimates to topic
 
-    _pow_monitor->update(); // update power and energy estimates
+    // computing and updating reg. power and energy estimates
+    run_reg_pow_estimation();
 
-    add_data2bedumped();
+    // publish reg. pow. info
+    pub_reg_pow();
+
+    add_data2bedumped(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
