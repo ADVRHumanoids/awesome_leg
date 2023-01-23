@@ -1,9 +1,13 @@
 <root>
     <TreeNodesModel>
+        <Action ID="CloseAllPlugins"/>
         <Condition ID="are_plugins_running">
             <input_port name="all_plugin_running" default="false">whether all the plugins are successfully running or not</input_port>
             <input_port name="plugin_names">names of the plugins of which we need to check the running state before executing the main control tree</input_port>
         </Condition>
+        <SubTree ID="energy_recov_demo">
+            <input_port name="__shared_blackboard" default="false">If false (default), the Subtree has an isolated blackboard and needs port remapping</input_port>
+        </SubTree>
         <Action ID="go2takeoff_config">
             <input_port name="jump_ready" default="false">if true, we are ready to move to next phase</input_port>
             <output_port name="trigger_approach_traj" default="false">when true, will send a signal to the plugin for moving the robot to the inital configuration for the demo</output_port>
