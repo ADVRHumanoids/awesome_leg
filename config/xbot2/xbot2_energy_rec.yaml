@@ -224,7 +224,7 @@ xbotcore_plugins:
             dump_mat_suffix: {value: "base_est_rt", type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            bt_description_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
 
 
 # global parameters
