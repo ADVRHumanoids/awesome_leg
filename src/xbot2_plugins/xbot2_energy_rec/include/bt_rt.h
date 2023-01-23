@@ -14,7 +14,7 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
-#include "behaviortree_cpp/bt_factory.h"
+#include <behaviortree_cpp_v3/bt_factory.h>
 
 using namespace XBot;
 using namespace XBot::Cartesian;
