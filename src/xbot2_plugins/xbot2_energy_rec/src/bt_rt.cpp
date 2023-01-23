@@ -121,6 +121,8 @@ bool BtRt::on_initialize()
 
     create_ros_api();
 
+    init_bt();
+
     return true;
 
 }

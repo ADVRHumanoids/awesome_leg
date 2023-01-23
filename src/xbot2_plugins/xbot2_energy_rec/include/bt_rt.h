@@ -15,6 +15,13 @@
 #include <Eigen/Geometry>
 
 #include <behaviortree_cpp_v3/bt_factory.h>
+#include <behaviortree_cpp_v3/tree_node.h>
+#include <behaviortree_cpp_v3/action_node.h>
+#include <behaviortree_cpp_v3/decorator_node.h>
+#include <behaviortree_cpp_v3/condition_node.h>
+
+#include <behaviortree_cpp_v3/behavior_tree.h>
+#include <behaviortree_cpp_v3/blackboard.h>
 
 using namespace XBot;
 using namespace XBot::Cartesian;
