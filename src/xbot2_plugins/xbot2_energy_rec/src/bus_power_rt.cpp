@@ -383,8 +383,8 @@ void BusPowerRt::pub_iq_est()
     Eigen::Map<Eigen::VectorXd>(&_iq_est_vect[0], _iq_est.size(), 1) = _iq_est;
     Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_vect[0], _q_p_ddot_est.size(), 1) = _q_p_ddot_est;
     Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_filt_vect[0], _q_p_ddot_est_filt.size(), 1) = _q_p_ddot_est_filt;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_vect[0], _q_p_dot_meas.size(), 1) = _q_p_dot_meas;
-    Eigen::Map<Eigen::VectorXd>(&_tau_meas_vect[0], _tau_meas.size(), 1) = _tau_meas;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_vect[0], _q_p_dot_meas.size(), 1) = _q_p_dot_meas_filt;
+    Eigen::Map<Eigen::VectorXd>(&_tau_meas_vect[0], _tau_meas_filt.size(), 1) = _tau_meas_filt;
     Eigen::Map<Eigen::VectorXd>(&_K_t_vect[0], _K_t.size(), 1) = _K_t;
     Eigen::Map<Eigen::VectorXd>(&_K_d0_vect[0], _K_d0.size(), 1) = _K_d0;
     Eigen::Map<Eigen::VectorXd>(&_K_d1_vect[0], _K_d1.size(), 1) = _K_d1;
@@ -419,14 +419,18 @@ void BusPowerRt::pub_reg_pow()
     auto reg_pow_msg = _reg_pow_pub->loanMessage();
 
     // mapping EigenVectorXd data to std::vector, so that they can be published
-    Eigen::Map<Eigen::VectorXd>(&_er_k_vect[0], _er_k.size(), 1) = _er_k;
-    Eigen::Map<Eigen::VectorXd>(&_pr_k_vect[0], _pr_k.size(), 1) = _pr_k;
-    Eigen::Map<Eigen::VectorXd>(&_pk_joule_vect[0], _pk_joule.size(), 1) = _pk_joule;
-    Eigen::Map<Eigen::VectorXd>(&_pk_mech_vect[0], _pk_mech.size(), 1) = _pk_mech;
-    Eigen::Map<Eigen::VectorXd>(&_pk_indct_vect[0], _pk_indct.size(), 1) = _pk_indct;
-    Eigen::Map<Eigen::VectorXd>(&_ek_joule_vect[0], _ek_joule.size(), 1) = _ek_joule;
-    Eigen::Map<Eigen::VectorXd>(&_ek_mech_vect[0], _ek_mech.size(), 1) = _ek_mech;
-    Eigen::Map<Eigen::VectorXd>(&_ek_indct_vect[0], _ek_indct.size(), 1) = _ek_indct;
+
+    for(int i = 0; i < _n_jnts_robot; i++)
+    {
+        _er_k_vect[i] = _er_k(i);
+        _pr_k_vect[i] = _pr_k(i);
+        _pk_joule_vect[i] = _pk_joule(i);
+        _pk_mech_vect[i] = _pk_mech(i);
+        _pk_indct_vect[i] = _pk_indct(i);
+        _ek_joule_vect[i] = _ek_joule(i);
+        _ek_mech_vect[i] = _ek_mech(i);
+        _ek_indct_vect[i] = _ek_indct(i);
+    }
 
     // filling message
     reg_pow_msg->msg().er = _er;
