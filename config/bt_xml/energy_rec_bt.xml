@@ -4,7 +4,7 @@
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
             <ReactiveFallback>
-                <Condition ID="are_plugins_running" all_plugin_running="false" plugin_names=""/>
+                <Condition ID="ArePluginsRunning" all_plugin_running="false" plugin_names=""/>
                 <Action ID="start_plugins" plugin_names=""/>
             </ReactiveFallback>
             <ReactiveFallback>
@@ -28,7 +28,7 @@
     <!-- ////////// -->
     <TreeNodesModel>
         <Action ID="CloseAllPlugins"/>
-        <Condition ID="are_plugins_running">
+        <Condition ID="ArePluginsRunning">
             <input_port default="false" name="all_plugin_running">whether all the plugins are successfully running or not</input_port>
             <input_port name="plugin_names">names of the plugins of which we need to check the running state before executing the main control tree</input_port>
         </Condition>
@@ -45,7 +45,7 @@
         <Condition ID="recov_energy">
             <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
         </Condition>
-        <Action ID="start_plugins">
+        <Action ID="StartPlugins">
             <input_port name="plugin_names">vector of plugin names,  which need to be started</input_port>
         </Action>
         <Condition ID="temperature_ok">

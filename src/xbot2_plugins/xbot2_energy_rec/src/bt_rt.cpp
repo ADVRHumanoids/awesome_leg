@@ -100,6 +100,7 @@ void BtRt::init_nrt_ros_bridge()
 
 void BtRt::init_bt()
 {
+    _factory.registerNodeType<StartPlugins>("StartPlugins");
 
     auto tree = _factory.createTreeFromFile(_bt_description_path);
 

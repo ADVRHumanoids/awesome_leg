@@ -15,18 +15,12 @@
 #include <Eigen/Geometry>
 
 #include <behaviortree_cpp_v3/bt_factory.h>
-#include <behaviortree_cpp_v3/tree_node.h>
-#include <behaviortree_cpp_v3/action_node.h>
-#include <behaviortree_cpp_v3/decorator_node.h>
-#include <behaviortree_cpp_v3/condition_node.h>
-
-#include <behaviortree_cpp_v3/behavior_tree.h>
-#include <behaviortree_cpp_v3/blackboard.h>
+#include "conditions/are_plugins_running.h"
+#include "actions/start_plugins.h"
 
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace BT;
-
 /**
  * @brief use of BehaviorTreeCPP_v3 inside of a rt plugin
  *

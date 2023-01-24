@@ -52,6 +52,13 @@ if(${behaviortree_cpp_v3_FOUND})
 
 endif()
 
+# bt actions/conditions/etc...
+
+set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
+add_library(${BT_CUSTOM_NODES_LIB} SHARED src/actions/start_plugins.cpp)
+target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE include/actions include/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
+target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES})
+
 install(
     TARGETS jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt DESTINATION lib
 )
