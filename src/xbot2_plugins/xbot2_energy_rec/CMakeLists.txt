@@ -39,6 +39,12 @@ target_include_directories(bus_power_rt PRIVATE include src ${matlogger2_INCLUDE
 add_dependencies(bus_power_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(bus_power_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
+add_xbot2_plugin(cart_imp_cntrl_rt
+    src/cart_imp_cntrl_rt.cpp)
+target_include_directories(cart_imp_cntrl_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(cart_imp_cntrl_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(cart_imp_cntrl_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
 if(${behaviortree_cpp_v3_FOUND})
     message("Will compile behaviour tree rt plugin")
     add_xbot2_plugin(bt_rt
@@ -57,7 +63,7 @@ endif()
 set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
 add_library(${BT_CUSTOM_NODES_LIB} SHARED src/actions/start_plugins.cpp src/conditions/are_plugins_running.cpp)
 target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE include/actions include/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
-target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES})
+target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2_ros_support)
 
 install(
     TARGETS jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt DESTINATION lib

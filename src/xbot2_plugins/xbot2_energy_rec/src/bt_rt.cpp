@@ -31,7 +31,6 @@ void BtRt::read_config_from_yaml()
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
     _bt_description_path = getParamOrThrow<std::string>("~bt_description_path");
-
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")

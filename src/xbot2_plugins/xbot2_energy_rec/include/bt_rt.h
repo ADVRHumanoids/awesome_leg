@@ -62,6 +62,7 @@ private:
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4;
 
+    std::vector<std::string> _plugin_list = {"bus_power_rt", "jump_replayer_rt"};
     MatLogger2::Ptr _dump_logger;
 
    // handle adapting ROS primitives for RT support
