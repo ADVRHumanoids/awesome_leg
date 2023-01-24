@@ -46,7 +46,6 @@ if(${behaviortree_cpp_v3_FOUND})
     target_include_directories(bt_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${behaviortree_cpp_v3_INCLUDE_DIRS})
     add_dependencies(bt_rt ${PROJECT_NAME}_generate_messages)
     target_link_libraries(bt_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support ${behaviortree_cpp_v3_LIBRARIES})
-    message(STATUS "**************${behaviortree_cpp_v3_LIBRARIES}****************")
     install(
         TARGETS bt_rt DESTINATION lib
     )
