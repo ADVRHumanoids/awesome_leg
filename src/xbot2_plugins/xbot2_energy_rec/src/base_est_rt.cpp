@@ -32,6 +32,8 @@ void BaseEstRt::init_vars()
     _q_p_ddot_be = Eigen::VectorXd::Zero(_nv_be);
     _tau_be = Eigen::VectorXd::Zero(_nv_be);
 
+    _est_w_vect = std::vector<double>(6);
+
 }
 
 void BaseEstRt::reset_flags()
@@ -348,9 +350,17 @@ void BaseEstRt::update_states()
                               _M_world_from_tip);
     _R_world_from_tip = _M_world_from_tip.rotation();
 
-    get_fts_force(); // after update tip pose, we get the local force and
-    // rotate it to the world (errors on the position of the passive joint won't
-    // affect the correctness of the tip orientation)
+//    get_fts_force(); // after update tip pose, we get the local force and
+//    // rotate it to the world (errors on the position of the passive joint won't
+//    // affect the correctness of the tip orientation)
+
+    _contact_info = _est->contact_info;// get base estimation info
+
+    _be_msg_name = _contact_info[0].name;
+    _est_w = _contact_info[0].wrench;
+    _vertex_frames = _contact_info[0].vertex_frames;
+    _vertex_weights = _contact_info[0].vertex_weights;
+    _contact_state = _contact_info[0].contact_state;
 
 }
 
@@ -458,6 +468,8 @@ void BaseEstRt::init_nrt_ros_bridge()
 
     /* Publishers */
 
+    _base_est_st_pub = _ros->advertise<awesome_leg::BaseEstStatus>("base_estimation_node", 1);
+
 }
 
 void BaseEstRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
@@ -489,6 +501,21 @@ void BaseEstRt::get_tau_cmd()
 
     _tau_cmd = _tau_ff - _K_p * (_q_p_meas - _q_p_ref) - _K_d * (_q_p_dot_meas - _q_p_dot_ref);
 
+}
+
+void BaseEstRt::pub_base_est_status()
+{
+    auto base_est_msg = _base_est_st_pub->loanMessage();
+
+    Eigen::Map<Eigen::VectorXd>(&_est_w_vect[0], _est_w.size(), 1) = _est_w;
+
+    base_est_msg->msg().name = _be_msg_name;
+    base_est_msg->msg().wrench = _est_w_vect;
+    base_est_msg->msg().vertex_frames = _vertex_frames;
+    base_est_msg->msg().vertex_weights = _vertex_weights;
+    base_est_msg->msg().contact_state = _contact_state;
+
+    _base_est_st_pub->publishLoaned(std::move(base_est_msg));
 }
 
 bool BaseEstRt::on_initialize()
@@ -558,6 +585,8 @@ void BaseEstRt::run()
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
+
+    pub_base_est_status(); // publish base estimation topic
 
 }
 

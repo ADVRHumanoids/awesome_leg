@@ -30,6 +30,8 @@
 #include <cartesian_interface/utils/estimation/ForceEstimation.h>
 #include <base_estimation/contact_viz.h>
 
+#include <awesome_leg/BaseEstStatus.h>
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace ikbe;
@@ -77,7 +79,8 @@ private:
     bool _rt_active, _nrt_exit,
         _is_sim = true,
         _ft_tip_sensor_found = false,
-        _use_ground_truth_gz = true;
+        _use_ground_truth_gz = true,
+        _contact_state = true;
 
     int _n_jnts_robot,
         _nv_be, _nq_be;
@@ -89,7 +92,8 @@ private:
                 _hw_type,
                 _tip_fts_name,
                 _contact_linkname = "tip1",
-                _ik_problem_path;
+                _ik_problem_path,
+                _be_msg_name;
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -105,6 +109,12 @@ private:
 
     utils_defs::Wrench _meas_w_loc, _meas_w_abs,
                        _est_w;
+
+    std::vector<std::string> _vertex_frames;
+    std::vector<double> _vertex_weights;
+    std::vector<double> _est_w_vect;
+
+    std::vector<BaseEstimation::ContactInformation> _contact_info;
 
     utils_defs::PosVec3D _base_link_trans_wrt_test_rig;
     utils_defs::LinVel _base_link_vel_wrt_test_rig;
@@ -143,6 +153,8 @@ private:
 
     SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
     SubscriberPtr<geometry_msgs::TwistStamped> _base_link_twist_sub;
+
+    PublisherPtr<awesome_leg::BaseEstStatus> _base_est_st_pub;
 
     ModelInterface::Model::Ptr _pin_model_ptr;
 
@@ -185,6 +197,8 @@ private:
 
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
     void on_base_link_twist_received(const geometry_msgs::TwistStamped& msg);
+
+    void pub_base_est_status();
 
 };
 
