@@ -4,7 +4,9 @@
 #include <behaviortree_cpp_v3/condition_node.h>
 #include <behaviortree_cpp_v3/leaf_node.h>
 
-namespace BT
+using namespace  BT;
+
+namespace rt_BT
 {
 
     class ArePluginsRunning : public ConditionNode

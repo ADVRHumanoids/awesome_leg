@@ -55,7 +55,7 @@ endif()
 # bt actions/conditions/etc...
 
 set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
-add_library(${BT_CUSTOM_NODES_LIB} SHARED src/actions/start_plugins.cpp)
+add_library(${BT_CUSTOM_NODES_LIB} SHARED src/actions/start_plugins.cpp src/conditions/are_plugins_running.cpp)
 target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE include/actions include/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
 target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES})
 

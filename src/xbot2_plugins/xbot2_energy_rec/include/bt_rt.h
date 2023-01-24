@@ -21,6 +21,8 @@
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace BT;
+using namespace rt_BT;
+
 /**
  * @brief use of BehaviorTreeCPP_v3 inside of a rt plugin
  *

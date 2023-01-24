@@ -3,7 +3,9 @@
 
 #include <behaviortree_cpp_v3/action_node.h>
 
-namespace BT
+using namespace BT;
+
+namespace rt_BT
 {
 
     class StartPlugins : public SyncActionNode
@@ -17,7 +19,7 @@ namespace BT
 
         private:
 
-            virtual BT::NodeStatus tick() override
+            virtual NodeStatus tick() override
             {
                 return NodeStatus::FAILURE;
             }
