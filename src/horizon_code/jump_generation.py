@@ -155,7 +155,7 @@ if __name__ == '__main__':
                         help = 'horizon config file name', default = file_name)
                         
     parser.add_argument('--opt_type', '-optt', type = str,\
-                        help = 'optimization type', default = pretakeoff_opt_name, 
+                        help = 'optimization type', default = apex_opt_name, 
                         choices = [pretakeoff_opt_name, apex_opt_name, full_opt_name])
 
     parser.add_argument('--is_acc_based_form', '-isacc', type = str2bool,\

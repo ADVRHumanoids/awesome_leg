@@ -145,7 +145,7 @@ up2apex_gen:
     is_iq_cnstrnt: true # whether to use the iq constraint or not
     is_friction_cone: true # whether to use a friction constraint or not
 
-    is_sliding_guide_friction: true # whether to use the sliding guide estimation of friction
+    is_sliding_guide_friction: false # whether to use the sliding guide estimation of friction
 
     friction_cnstrnt: 
       mu_friction_cone: 0.6
@@ -179,7 +179,7 @@ up2apex_gen:
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: 1 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 100 # maximize terminal com pos at the end of the horizon
 
       refinement:
 

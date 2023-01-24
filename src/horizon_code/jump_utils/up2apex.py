@@ -259,7 +259,6 @@ class up2ApexGen:
         self.vcom = self.com_fk(q = self.q_p, v = self.q_p_dot, a = self.q_p_ddot)["vcom"]
 
     def __set_constraints(self):
-        
 
         # constraints
         if self.is_sliding_guide_friction:
@@ -302,7 +301,7 @@ class up2ApexGen:
         com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], \
                     nodes = self.apex_node) # reach the apex at the end of the trajectory 
         
-        com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
+        # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
 
         self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
@@ -337,10 +336,10 @@ class up2ApexGen:
         if self.is_friction_cone:
 
             # linearized friction cone (constraint need to be split in two because setBounds only takes numerical vals)
-            friction_cone_1 = self.prb.createConstraint("friction_cone_1",\
+            friction_cone_1 = self.prb.createIntermediateConstraint("friction_cone_1",\
                                                 self.f_contact[1] - (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_1.setBounds(-cs.inf, 0)
-            friction_cone_2 = self.prb.createConstraint("friction_cone_2",\
+            friction_cone_2 = self.prb.createIntermediateConstraint("friction_cone_2",\
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
 
@@ -630,10 +629,6 @@ class up2ApexGen:
         self.lbs = self.urdf_kin_dyn.q_min() + jnt_lim_margin_array
         self.ubs = self.urdf_kin_dyn.q_max() - jnt_lim_margin_array
 
-        if self.is_sliding_guide_friction:
-            
-            self.sliding_guide_friction_torque = - self.sliding_guide_kd * self.q_p_dot[0]
-
         self.tau_lim = np.array([0] + self.act_yaml_file["tau_peak_ar"])  # effort limits (0 on the passive d.o.f.)
         
         self.prb = Problem(self.n_int)  # initialization of a problem object
@@ -687,6 +682,10 @@ class up2ApexGen:
                                                             self.q_p_dot, self.tau, self.contact_map)
 
         self.xdot = utils.double_integrator(self.q_p, self.q_p_dot, self.q_p_ddot)  # integrator for the system's dynamics
+
+        if self.is_sliding_guide_friction:
+            
+            self.sliding_guide_friction_torque = - self.sliding_guide_kd * self.q_p_dot[0]
 
         return self.prb
 

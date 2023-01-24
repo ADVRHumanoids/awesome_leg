@@ -11,7 +11,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Script for plotting offline jumps of the Awesome Leg')
 
-    parser.add_argument('--sol_type', '-stype', type = str, default = "")
     parser.add_argument('--base_sol_name', '-bsname', type = str, default = "awesome_jump")
     parser.add_argument('--sol_path', '-path', type = str)
     parser.add_argument('--sim_name', '-sname', type = str)
