@@ -173,11 +173,8 @@ void BusPowerRt::update_state()
     if(_use_iq_meas)
     {
         _iq_getter->get_last_iq_out(_iq_meas);
+        _iq_getter->get_last_iq_out_filt(_iq_meas_filt);
     }
-
-    // Removing noise from iq_meas
-    _mov_avrg_filter_iq_meas.add_sample(_iq_meas);
-    _mov_avrg_filter_iq_meas.get(_iq_meas_filt);
 
 }
 
@@ -502,7 +499,9 @@ bool BusPowerRt::on_initialize()
     init_nrt_ros_bridge();
 
     // using the order given by _jnt_names
-    _iq_getter.reset(new IqRosGetter());
+    _iq_getter.reset(new IqRosGetter(_plugin_dt, 
+                                    false, 
+                                    _mov_avrg_cutoff_freq_iq_meas));
 
     // quadrature current from XBot2 ROS topic (they need to be activated
     // manually)
@@ -537,10 +536,6 @@ bool BusPowerRt::on_initialize()
     // filter for iq(estimate)
     _mov_avrg_filter_iq = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);
     _mov_avrg_filter_iq.get_window_size(_mov_avrg_window_size_iq); // get computed window size
-
-    // filter for iq(measurement)
-    _mov_avrg_filter_iq_meas = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq_meas);
-    _mov_avrg_filter_iq_meas.get_window_size(_mov_avrg_window_size_iq_meas); // get computed window size
 
     //filter for tau_meas
     _mov_avrg_filter_tau = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);

@@ -154,7 +154,6 @@ private:
 
     MovAvrgFilt _mov_avrg_filter_iq;
     MovAvrgFilt _mov_avrg_filter_tau;
-    MovAvrgFilt _mov_avrg_filter_iq_meas;
     MovAvrgFilt _mov_avrg_filter_q_dot;
 
     int _mov_avrg_window_size_iq = 10;

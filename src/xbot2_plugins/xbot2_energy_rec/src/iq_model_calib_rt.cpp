@@ -530,7 +530,7 @@ bool IqModelCalibRt::on_initialize()
     init_nrt_ros_bridge();
 
     // using the order given by _jnt_names
-    _iq_getter = IqRosGetter(); // object to get the
+    _iq_getter = IqRosGetter(_plugin_dt); // object to get the
     // quadrature current from XBot2 ROS topic (they need to be activated
     // manually)
     _iq_jnt_names = _jnt_names; // we will get (and estimate) the iq
