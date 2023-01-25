@@ -121,9 +121,9 @@ xbotcore_plugins:
 
             use_ground_truth_gz: {value: false, type: bool}
 
-            obs_bw: {value: 5.0, type: double}
+            obs_bw: {value: 1.0, type: double}
 
-            svd_thresh: {value: 0.05, type: double}
+            svd_thresh: {value: 0.08, type: double}
 
     jmp_replayer_rt:
         thread: rt_main
