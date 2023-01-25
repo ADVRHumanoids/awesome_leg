@@ -226,7 +226,7 @@ xbotcore_plugins:
 
             bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
 
-            plugin_list: {value: ["bus_power_rt", "jump_replayer_rt"], type: vector<string>}
+            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
 
     plugins_strt_rt:
         thread: rt_main
@@ -235,7 +235,7 @@ xbotcore_plugins:
 
             async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
 
-            plugin_list: {value: ["bus_power_rt", "jump_replayer_rt"], type: vector<string>}
+            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
 
             queue_size: {value: 5, type: int}
 

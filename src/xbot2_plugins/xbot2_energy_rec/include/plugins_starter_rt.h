@@ -32,8 +32,6 @@ public:
 
     void on_abort() override;
 
-    void on_feedback_received(const bool& msg);
-
 private:
 
     bool _rt_active, _nrt_exit,
@@ -52,6 +50,8 @@ private:
 
     // queue object to handle multiple subscribers/servers at once
     std::vector<CallbackQueue> _queues;
+
+    std::vector<std::function<int()>> _callbacks;
 
     // internal publisher and subscribers
     std::vector<PublisherPtr<Runnable::Command>> _req_pubs;

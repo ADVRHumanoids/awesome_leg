@@ -9,14 +9,6 @@ void PluginsStarterRt::read_config_from_yaml()
     _async_service_pattern = getParamOrThrow<std::string>("~async_service_pattern");
 }
 
-void PluginsStarterRt::on_feedback_received(const bool& msg)
-{
-    _plugins_started = msg;
-
-
-
-}
-
 bool PluginsStarterRt::on_initialize()
 {
     std::string sim_flagname = "sim";
@@ -41,6 +33,8 @@ bool PluginsStarterRt::on_initialize()
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                                "Received response from plugin: {} \n",
                                _plugin_list[i]);
+
+            return 1;
         };
 
         _req_pubs[i] = advertise<Runnable::Command>(_async_service_pattern + _plugin_list[i] + "/command/request");
