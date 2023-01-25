@@ -62,6 +62,8 @@ void PluginsStarterRt::run()
 
     for(int i = 0; i < _n_plugins; i++)
     {
+        _res_subs[i]->run();
+
         if(!_active_plugins[i])
         {
             _req_pubs[i]->publish(Command::Start);
