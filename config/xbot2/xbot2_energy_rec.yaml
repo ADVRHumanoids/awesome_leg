@@ -228,6 +228,17 @@ xbotcore_plugins:
 
             plugin_list: {value: ["bus_power_rt", "jump_replayer_rt"], type: vector<string>}
 
+    plugins_strt_rt:
+        thread: rt_main
+        type: plugins_strt_rt
+        params:
+
+            async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
+
+            plugin_list: {value: ["bus_power_rt", "jump_replayer_rt"], type: vector<string>}
+
+            queue_size: {value: 5, type: int}
+
 
 # global parameters
 xbotcore_param:
