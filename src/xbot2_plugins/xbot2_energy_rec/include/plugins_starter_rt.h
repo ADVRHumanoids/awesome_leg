@@ -39,7 +39,8 @@ private:
         _plugins_started = false;
 
     int _queue_size = 1,
-        _n_plugins = 0;
+        _n_plugins = 0,
+        _active_plugins_counter = 0;
 
     double _plugin_dt;
 

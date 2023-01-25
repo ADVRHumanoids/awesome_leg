@@ -31,10 +31,9 @@ bool PluginsStarterRt::on_initialize()
             _active_plugins[i] = msg;
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                               "Received response from plugin: {} \n",
-                               _plugin_list[i]);
+                               "Received response {} from plugin: {} \n",
+                               msg, _plugin_list[i]);
 
-            return 1;
         };
 
         _req_pubs[i] = advertise<Runnable::Command>(_async_service_pattern + _plugin_list[i] + "/command/request");
@@ -60,6 +59,8 @@ void PluginsStarterRt::starting()
 void PluginsStarterRt::run()
 {
 
+    _active_plugins_counter = 0;
+
     for(int i = 0; i < _n_plugins; i++)
     {
         _res_subs[i]->run();
@@ -68,6 +69,21 @@ void PluginsStarterRt::run()
         {
             _req_pubs[i]->publish(Command::Start);
         }
+        else
+        {
+            _active_plugins_counter += 1;
+
+            jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+                               "Plugin {} successfully started \n",
+                               _plugin_list[i]);
+        }
+
+    }
+
+    if(_active_plugins_counter == _plugin_list.size())
+    { // we exit the plugin
+
+        stop();
 
     }
 
@@ -75,7 +91,12 @@ void PluginsStarterRt::run()
 
 void PluginsStarterRt::on_stop()
 {
+    for(int i = 0; i < _n_plugins; i++)
+    {
+        _active_plugins[i] = false;
+    }
 
+    jinfo("Stopping PluginsStarterRt");
 }
 
 void PluginsStarterRt::stopping()
