@@ -79,6 +79,8 @@ void BaseEstRt::get_params_from_config()
     _use_ground_truth_gz = getParamOrThrow<bool>("~use_ground_truth_gz");
 
     _obs_bw = getParamOrThrow<double>("~obs_bw");
+
+    _svd_thresh = getParamOrThrow<double>("~svd_thresh");
 }
 
 void BaseEstRt::is_sim(std::string sim_string = "sim")
@@ -150,7 +152,7 @@ void BaseEstRt::init_base_estimator()
 //    _est->setFilterTs(getPeriodSec());
 
     bool use_momentum_obs = true;
-    _ft_virt_sensor = _est->createVirtualFt(_tip_link_name, {0, 1, 2}, use_momentum_obs, _obs_bw); // estimating only force
+    _ft_virt_sensor = _est->createVirtualFt(_tip_link_name, {0, 1, 2}, use_momentum_obs, _obs_bw, _svd_thresh); // estimating only force
 
     std::vector<std::string> vertex_frames = {_tip_link_name};
     _est->addSurfaceContact(vertex_frames, _ft_virt_sensor); // a task for each contact needs to be defined in the YAML config for the problem

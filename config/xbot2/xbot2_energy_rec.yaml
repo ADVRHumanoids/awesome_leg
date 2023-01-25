@@ -121,7 +121,9 @@ xbotcore_plugins:
 
             use_ground_truth_gz: {value: false, type: bool}
 
-            obs_bw: {value: 10.0, type: double}
+            obs_bw: {value: 5.0, type: double}
+
+            svd_thresh: {value: 0.05, type: double}
 
     jmp_replayer_rt:
         thread: rt_main
@@ -198,7 +200,7 @@ xbotcore_plugins:
 
             rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
-            R: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd} # phase resistance
+            R: {value: [0.09, 0.09], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [1e-6, 1e-6], type: Eigen::VectorXd}
 
