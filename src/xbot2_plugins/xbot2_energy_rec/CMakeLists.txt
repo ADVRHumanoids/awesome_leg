@@ -51,6 +51,12 @@ target_include_directories(plugins_strt_rt PRIVATE include src ${matlogger2_INCL
 add_dependencies(plugins_strt_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(plugins_strt_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
+add_xbot2_plugin(contact_est_rt
+    src/contact_est_rt.cpp)
+target_include_directories(contact_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(contact_est_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(contact_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
 if(${behaviortree_cpp_v3_FOUND})
     message("Will compile behaviour tree rt plugin")
     add_xbot2_plugin(bt_rt
@@ -72,7 +78,7 @@ target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE include/actions includ
 target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2_ros_support)
 
 install(
-    TARGETS jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_strt_rt DESTINATION lib
+    TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_strt_rt DESTINATION lib
 )
 
 install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
