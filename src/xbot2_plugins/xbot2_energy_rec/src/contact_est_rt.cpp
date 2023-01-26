@@ -36,9 +36,8 @@ void ContactEstRt::init_vars()
     _p = Eigen::VectorXd::Zero(_nv_ft_est);
     _p_dot = Eigen::VectorXd::Zero(_nv_ft_est);
     _C = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
-    _v = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
-    _q = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
-    _tau = Eigen::MatrixXd::Zero(_nv_ft_est, _nv_ft_est);
+    _v = Eigen::VectorXd::Zero(_nv_ft_est);
+    _tau = Eigen::VectorXd::Zero(_nv_ft_est);;
 
     _meas_tip_f_abs = Eigen::VectorXd::Zero(3);
     _tip_f_est_abs = Eigen::VectorXd::Zero(3);
