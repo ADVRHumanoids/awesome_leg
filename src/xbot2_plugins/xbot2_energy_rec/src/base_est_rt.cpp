@@ -80,6 +80,9 @@ void BaseEstRt::get_params_from_config()
 
     _obs_bw = getParamOrThrow<double>("~obs_bw");
 
+    _contact_release_thr = getParamOrThrow<double>("~contact_release_thr");
+    _contact_attach_thr = getParamOrThrow<double>("~contact_attach_thr");
+
     _svd_thresh = getParamOrThrow<double>("~svd_thresh");
 }
 
@@ -136,8 +139,8 @@ void BaseEstRt::init_base_estimator()
 {
     _be_options.dt = _plugin_dt;
     _be_options.log_enabled = false;
-    _be_options.contact_release_thr = 5.0; // [N]
-    _be_options.contact_attach_thr = 10.0;
+    _be_options.contact_release_thr = _contact_release_thr; // [N]
+    _be_options.contact_attach_thr = _contact_attach_thr; // [N]
 
     // load problem
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
@@ -253,20 +256,7 @@ void BaseEstRt::get_base_est(double& pssv_jnt_pos,
                                 double& pssv_jnt_vel)
 {
 
-    if(_is_sim && _use_ground_truth_gz)
-    { // for now, estimates only available in simulation
-
-        _M_base_link_ref_from_base_link = _M_world_from_base_link_ref.inverse() * _M_world_from_base_link;
-        // _M_world_from_base_link is automatically updated by the ros topic callback method
-
-        pssv_jnt_pos = _M_base_link_ref_from_base_link.translation()[2];
-
-        _base_link_vel_wrt_test_rig = _M_test_rig_from_world.rotation() * _base_link_vel; // pure rotation from world to test rig
-        pssv_jnt_vel = _base_link_vel_wrt_test_rig[2]; // extracting vertical component (== prismatic joint velocity)
-
-    }
-    else
-    { // we employ estimates from the virtual wrench sensor and ik base estimator
+        // we employ estimates from the virtual wrench sensor and ik base estimator
 
         /* Update estimate */
         Eigen::Affine3d base_pose;
@@ -287,7 +277,6 @@ void BaseEstRt::get_base_est(double& pssv_jnt_pos,
         pssv_jnt_vel = _q_p_dot_be(0);
 
         pssv_jnt_pos = _q_p_be(0);
-    }
 
 }
 
@@ -295,21 +284,24 @@ void BaseEstRt::update_base_estimates()
 {
     double passive_jnt_pos = 0, passive_jnt_vel = 0;
 
+    // _q_p_be(0) is left to the last estimated value
     _q_p_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_meas; // assign actuated dofs with meas.
     // from encoders
 
+//    _q_p_dot_be(0) = passive_jnt_vel; // assign passive dofs
+    // _q_p_dot_be(0) is left to the last estimated value
     _q_p_dot_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
     // from encoders
 
+    _tau_be(0) = 0; // no effort on passive joints
     _tau_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
 
-    update_be_model(); // update the model with the measurements (passive dof set to 0)
+    update_be_model(); // update xbot2 model with the measurements
 
     get_base_est(passive_jnt_pos, passive_jnt_vel); // get ground truth or computes estimates
 
-    _q_p_be(0) = passive_jnt_pos; // assign passive dofs
-    _q_p_dot_be(0) = passive_jnt_vel; // assign passive dofs
-    _tau_be(0) = 0; // no effort on passive joints
+
+
 
     update_pin_model(); // update pin model with estimates
 

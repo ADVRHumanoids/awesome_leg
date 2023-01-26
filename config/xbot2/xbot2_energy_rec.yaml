@@ -24,7 +24,7 @@ xbotcore_threads:
 #    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
-    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
+    base_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
 
 # plugins
 xbotcore_plugins:
@@ -94,7 +94,7 @@ xbotcore_plugins:
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
     base_est_rt:
-        thread: rt_main
+        thread: base_est
         type: base_est_rt
         params:
 
@@ -114,8 +114,8 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            contact_release_thr: {value: 10.0, type: double}
-            contact_attach_thr: {value: 5.0, type: double}
+            contact_release_thr: {value: 40.0, type: double}
+            contact_attach_thr: {value: 50.0, type: double}
 
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
 
@@ -123,7 +123,7 @@ xbotcore_plugins:
 
             obs_bw: {value: 1.0, type: double}
 
-            svd_thresh: {value: 0.08, type: double}
+            svd_thresh: {value: 0.1, type: double}
 
     jmp_replayer_rt:
         thread: rt_main

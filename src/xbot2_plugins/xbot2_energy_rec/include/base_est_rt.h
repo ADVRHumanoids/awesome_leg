@@ -100,7 +100,9 @@ private:
            _matlogger_buffer_size = 1e4,
            _mov_avrg_cutoff_freq = 15.0,
            _obs_bw = 20.0,
-           _svd_thresh = 0.05;
+           _svd_thresh = 0.05,
+           _contact_release_thr = 10.0,
+           _contact_attach_thr = 5.0;
 
     utils_defs::Force3D _meas_tip_f_loc,
                    _meas_tip_f_abs;
