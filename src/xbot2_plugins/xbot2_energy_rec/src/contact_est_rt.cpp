@@ -293,7 +293,7 @@ void ContactEstRt::update_state()
 
     _base_est_model->setJointPosition(_q_p_ft_est);
     _base_est_model->setJointVelocity(_q_p_dot_ft_est);
-    _base_est_model->setJointEffort(_q_p_dot_ft_est);
+    _base_est_model->setJointEffort(_tau_ft_est);
 
     // getting link poses from model
     _pin_model_ptr->get_frame_pose(_tip_link_name,
