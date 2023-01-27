@@ -45,11 +45,11 @@ target_include_directories(cart_imp_cntrl_rt PRIVATE include src ${matlogger2_IN
 add_dependencies(cart_imp_cntrl_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(cart_imp_cntrl_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
-add_xbot2_plugin(plugins_strt_rt
-    src/plugins_starter_rt.cpp)
-target_include_directories(plugins_strt_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
-add_dependencies(plugins_strt_rt ${PROJECT_NAME}_generate_messages)
-target_link_libraries(plugins_strt_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+add_xbot2_plugin(plugins_mngr_rt
+    src/plugins_manager_rt.cpp)
+target_include_directories(plugins_mngr_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(plugins_mngr_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(plugins_mngr_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(contact_est_rt
     src/contact_est_rt.cpp)

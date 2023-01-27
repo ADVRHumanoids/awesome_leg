@@ -1,6 +1,6 @@
-#include "plugins_starter_rt.h"
+#include "plugins_manager_rt.h"
 
-void PluginsStarterRt::read_config_from_yaml()
+void PluginsManagerRt::read_config_from_yaml()
 {
     _plugin_list = getParamOrThrow<std::vector<std::string>>("~plugin_list");
 
@@ -9,7 +9,7 @@ void PluginsStarterRt::read_config_from_yaml()
     _async_service_pattern = getParamOrThrow<std::string>("~async_service_pattern");
 }
 
-bool PluginsStarterRt::on_initialize()
+bool PluginsManagerRt::on_initialize()
 {
     std::string sim_flagname = "sim";
 
@@ -48,7 +48,7 @@ bool PluginsStarterRt::on_initialize()
 
 }
 
-void PluginsStarterRt::starting()
+void PluginsManagerRt::starting()
 {
 
     // Move on to run()
@@ -56,7 +56,7 @@ void PluginsStarterRt::starting()
 
 }
 
-void PluginsStarterRt::run()
+void PluginsManagerRt::run()
 {
 
     _active_plugins_counter = 0;
@@ -89,29 +89,29 @@ void PluginsStarterRt::run()
 
 }
 
-void PluginsStarterRt::on_stop()
+void PluginsManagerRt::on_stop()
 {
     for(int i = 0; i < _n_plugins; i++)
     {
         _active_plugins[i] = false;
     }
 
-    jinfo("Stopping PluginsStarterRt");
+    jinfo("Stopping PluginsManagerRt");
 }
 
-void PluginsStarterRt::stopping()
+void PluginsManagerRt::stopping()
 {
     stop_completed();
 }
 
-void PluginsStarterRt::on_abort()
+void PluginsManagerRt::on_abort()
 {
 
 }
 
-void PluginsStarterRt::on_close()
+void PluginsManagerRt::on_close()
 {
-    jinfo("Closing PluginsStarterRt");
+    jinfo("Closing PluginsManagerRt");
 }
 
-XBOT2_REGISTER_PLUGIN(PluginsStarterRt, plugins_strt_rt)
+XBOT2_REGISTER_PLUGIN(PluginsManagerRt, plugins_mngr_rt)

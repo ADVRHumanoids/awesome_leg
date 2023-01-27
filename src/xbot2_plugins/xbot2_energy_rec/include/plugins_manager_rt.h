@@ -1,5 +1,5 @@
-#ifndef PLUGINS_STARTER_H
-#define PLUGINS_STARTER_H
+#ifndef PLUGINS_MANAGER_H
+#define PLUGINS_MANAGER_H
 
 #include <xbot2/xbot2.h>
 
@@ -11,7 +11,7 @@ using namespace XBot;
  *
  */
 
-class PluginsStarterRt : public ControlPlugin
+class PluginsManagerRt : public ControlPlugin
 {
 
 public:
@@ -67,4 +67,4 @@ private:
 
 };
 
-#endif // PLUGINS_STARTER_H
+#endif // PLUGINS_MANAGER_H
