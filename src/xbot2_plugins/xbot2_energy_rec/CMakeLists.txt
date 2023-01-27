@@ -78,7 +78,7 @@ target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE include/actions includ
 target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2_ros_support)
 
 install(
-    TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_strt_rt DESTINATION lib
+    TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_mngr_rt DESTINATION lib
 )
 
 install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
