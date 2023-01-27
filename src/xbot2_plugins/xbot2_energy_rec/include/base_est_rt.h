@@ -116,6 +116,8 @@ private:
     std::vector<std::string> _vertex_frames;
     std::vector<double> _vertex_weights;
     std::vector<double> _est_w_vect;
+    std::vector<double> _base_link_vel_vect;
+    std::vector<double> _base_link_omega_vect;
 
     std::vector<BaseEstimation::ContactInformation> _contact_info;
 

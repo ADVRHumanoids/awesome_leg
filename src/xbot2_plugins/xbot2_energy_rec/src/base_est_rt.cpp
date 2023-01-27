@@ -34,6 +34,9 @@ void BaseEstRt::init_vars()
 
     _est_w_vect = std::vector<double>(6);
 
+    _base_link_vel_vect = std::vector<double>(3);
+    _base_link_omega_vect = std::vector<double>(3);
+
 }
 
 void BaseEstRt::reset_flags()
@@ -299,9 +302,8 @@ void BaseEstRt::update_base_estimates()
     update_be_model(); // update xbot2 model with the measurements
 
     get_base_est(passive_jnt_pos, passive_jnt_vel); // get ground truth or computes estimates
-
-
-
+    _q_p_dot_be(0) = passive_jnt_vel;
+    _q_p_be(0) = passive_jnt_pos;
 
     update_pin_model(); // update pin model with estimates
 
@@ -355,6 +357,7 @@ void BaseEstRt::update_states()
     _vertex_frames = _contact_info[0].vertex_frames;
     _vertex_weights = _contact_info[0].vertex_weights;
     _contact_state = _contact_info[0].contact_state;
+
 
 }
 
@@ -502,12 +505,18 @@ void BaseEstRt::pub_base_est_status()
     auto base_est_msg = _base_est_st_pub->loanMessage();
 
     Eigen::Map<Eigen::VectorXd>(&_est_w_vect[0], _est_w.size(), 1) = _est_w;
+    Eigen::Map<Eigen::VectorXd>(&_base_link_vel_vect[0], _base_link_vel.size(), 1) = _base_link_vel;
+    Eigen::Map<Eigen::VectorXd>(&_base_link_omega_vect[0], _base_link_omega.size(), 1) = _base_link_omega;
 
     base_est_msg->msg().name = _be_msg_name;
     base_est_msg->msg().wrench = _est_w_vect;
     base_est_msg->msg().vertex_frames = _vertex_frames;
     base_est_msg->msg().vertex_weights = _vertex_weights;
     base_est_msg->msg().contact_state = _contact_state;
+
+    base_est_msg->msg().base_vel_meas = _base_link_vel_vect;
+    base_est_msg->msg().base_omega_meas = _base_link_omega_vect;
+    base_est_msg->msg().passive_jnt_v_est = _q_p_dot_be(0);
 
     _base_est_st_pub->publishLoaned(std::move(base_est_msg));
 }
