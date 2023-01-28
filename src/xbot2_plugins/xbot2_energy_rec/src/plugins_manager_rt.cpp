@@ -167,8 +167,7 @@ void PluginsManagerRt::run()
     if(_plugins_counter == _plugin_list.size())
     { // we exit the plugin
 
-
-        stop();
+          stop();
 
     }
 

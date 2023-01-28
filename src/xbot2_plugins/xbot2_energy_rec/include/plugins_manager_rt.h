@@ -37,12 +37,15 @@ private:
     bool _rt_active, _nrt_exit,
         _is_sim = true,
         _all_plugins_running = false,
-        _start_plugins = false;
+        _start_plugins = true,
+        _status = false;
 
     int _queue_size = 1,
         _queue_size_status = 1,
         _n_plugins = 0,
-        _plugins_counter = 0;
+        _plugins_counter = 0,
+        _retry_counter = 0,
+        _retry_n = 2;
 
     double _plugin_dt;
 
