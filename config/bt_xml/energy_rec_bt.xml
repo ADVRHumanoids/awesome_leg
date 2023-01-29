@@ -4,7 +4,7 @@
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
             <ReactiveFallback>
-                <Condition ID="ArePluginsRunning" all_plugin_running="false" plugin_names=""/>
+                <Condition ID="ArePluginsRunning"/>
                 <Action ID="start_plugins" plugin_names=""/>
             </ReactiveFallback>
             <ReactiveFallback>
@@ -13,6 +13,7 @@
             </ReactiveFallback>
             <SubTree ID="energy_rec_demo"/>
             <Action ID="CloseAllPlugins"/>
+            <Action ID="CloseBtRoot"/>
         </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
@@ -27,11 +28,12 @@
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
+        <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
-        <Condition ID="ArePluginsRunning">
-            <input_port default="false" name="all_plugin_running">whether all the plugins are successfully running or not</input_port>
-            <input_port name="plugin_names">names of the plugins of which we need to check the running state before executing the main control tree</input_port>
-        </Condition>
+        <Action ID="CloseBtRoot"/>
+        <Action ID="StartPlugins">
+            <input_port name="plugin_names">vector of plugin names,  which need to be started</input_port>
+        </Action>
         <SubTree ID="energy_rec_demo"/>
         <Action ID="go2takeoff_config">
             <input_port default="false" name="jump_ready">if true, we are ready to move to next phase</input_port>
@@ -45,8 +47,8 @@
         <Condition ID="recov_energy">
             <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
         </Condition>
-        <Action ID="StartPlugins">
-            <input_port name="plugin_names">vector of plugin names,  which need to be started</input_port>
+        <Action ID="start_plugins">
+            <inout_port name="plugin_names"/>
         </Action>
         <Condition ID="temperature_ok">
             <input_port default="false" name="temp_ok">whether driver temperatures are BOTH ok</input_port>
