@@ -58,24 +58,30 @@ add_dependencies(contact_est_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(contact_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 if(${behaviortree_cpp_v3_FOUND})
+
     message("Will compile behaviour tree rt plugin")
+
+    # bt actions/conditions/etc...
+
+    set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
+    add_library(${BT_CUSTOM_NODES_LIB} STATIC src/actions/start_plugins.cpp src/conditions/are_plugins_running.cpp)
+    target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE src/actions src/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
+    target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2_ros_support)
+    install(
+        TARGETS ${BT_CUSTOM_NODES_LIB} DESTINATION lib
+    )
+
     add_xbot2_plugin(bt_rt
         src/bt_rt.cpp)
     target_include_directories(bt_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${behaviortree_cpp_v3_INCLUDE_DIRS})
-    add_dependencies(bt_rt ${PROJECT_NAME}_generate_messages)
-    target_link_libraries(bt_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support ${behaviortree_cpp_v3_LIBRARIES})
+    add_dependencies(bt_rt ${PROJECT_NAME}_generate_messages ${BT_CUSTOM_NODES_LIB})
+    target_link_libraries(bt_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support ${behaviortree_cpp_v3_LIBRARIES}
+                          ${BT_CUSTOM_NODES_LIB})
     install(
         TARGETS bt_rt DESTINATION lib
     )
 
 endif()
-
-# bt actions/conditions/etc...
-
-set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
-add_library(${BT_CUSTOM_NODES_LIB} SHARED src/actions/start_plugins.cpp src/conditions/are_plugins_running.cpp)
-target_include_directories(${BT_CUSTOM_NODES_LIB} PRIVATE include/actions include/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
-target_link_libraries(${BT_CUSTOM_NODES_LIB} PRIVATE ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2_ros_support)
 
 install(
     TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_mngr_rt DESTINATION lib

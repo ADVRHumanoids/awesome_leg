@@ -102,8 +102,9 @@ void BtRt::init_nrt_ros_bridge()
 void BtRt::init_bt()
 {
     _factory.registerNodeType<StartPlugins>("StartPlugins");
+    _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
 
-    auto tree = _factory.createTreeFromFile(_bt_description_path);
+    _tree = _factory.createTreeFromFile(_bt_description_path);
 
 }
 
@@ -143,8 +144,7 @@ void BtRt::starting()
 
 void BtRt::run()
 {
-
-    _queue.run();
+    _tree.tickRoot();
 
     add_data2dump_logger(); // add data to the logger
 

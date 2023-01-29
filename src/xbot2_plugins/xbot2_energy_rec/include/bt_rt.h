@@ -21,7 +21,6 @@
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace BT;
-using namespace rt_BT;
 
 /**
  * @brief use of BehaviorTreeCPP_v3 inside of a rt plugin
@@ -68,12 +67,12 @@ private:
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
 
-    // queue object to handle multiple subscribers/servers at once
-    CallbackQueue _queue;
-
     BehaviorTreeFactory _factory;
 
+    Tree _tree;
+
     void read_config_from_yaml();
+
     void is_sim(std::string sim_string);
 
     void spawn_nrt_thread();
