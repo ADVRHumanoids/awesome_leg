@@ -4,7 +4,6 @@ bool CartImpCntrlRt::get_params_from_config()
 {
     // Reading some paramters from XBot2 config. YAML file
 
-    bool tau_tilde_found = getParam("~torque_bias", _tau_tilde); // estimated bias torques
     bool urdf_path_found = getParam("~urdf_path", _urdf_path); // urdf specific to gravity compensator
     bool srdf_path_found = getParam("~srdf_path", _srdf_path); // srdf_path specific to gravity compensator
     bool cartesio_path_found = getParam("~cartesio_yaml_path", _cartesio_path); // srdf_path specific to gravity compensator

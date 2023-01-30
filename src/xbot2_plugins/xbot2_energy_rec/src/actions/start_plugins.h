@@ -12,8 +12,6 @@ namespace BT
 
         public:
 
-        StartPlugins() = default;
-
         StartPlugins(const std::string& name) : AsyncActionNode(name, {})
         {
             setRegistrationID(name);

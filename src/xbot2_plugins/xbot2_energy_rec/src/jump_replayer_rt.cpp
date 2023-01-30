@@ -123,9 +123,6 @@ void JumpReplayerRt::get_params_from_config()
     _urdf_path = getParamOrThrow<std::string>("~urdf_path"); 
     _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
 
-    _urdf_path_ft_est = getParamOrThrow<std::string>("~urdf_path_ft_est");
-    _srdf_path_ft_est = getParamOrThrow<std::string>("~srdf_path_ft_est");
-
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
