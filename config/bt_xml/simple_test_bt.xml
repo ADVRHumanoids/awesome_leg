@@ -4,7 +4,7 @@
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
             <ReactiveFallback>
-                <Condition ID="ArePluginsRunning" all_plugin_running="false" plugin_names=""/>
+                <Condition ID="ArePluginsRunning" all_plugin_running="false"/>
                 <Action ID="start_plugins" plugin_names=""/>
             </ReactiveFallback>
         </Sequence>
@@ -23,7 +23,6 @@
     <TreeNodesModel>
         <Condition ID="ArePluginsRunning">
             <input_port default="false" name="all_plugin_running">whether all the plugins are successfully running or not</input_port>
-            <input_port name="plugin_names">names of the plugins of which we need to check the running state before executing the main control tree</input_port>
         </Condition>
         <Action ID="CloseAllPlugins"/>
         <Action ID="StartPlugins">
