@@ -36,6 +36,7 @@ add_message_files(
   ContactEstStatus.msg
   RegPowStatus.msg
   BaseEstStatus.msg
+  BtRootStatus.msg
 )
 
 generate_messages(

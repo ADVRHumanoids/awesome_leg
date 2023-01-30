@@ -97,6 +97,9 @@ void BtRt::init_nrt_ros_bridge()
 
     _ros = std::make_unique<RosSupport>(nh);
 
+    // ros publisher for root status
+    _bt_root_status_pub= _ros->advertise<awesome_leg::BtRootStatus>(_bt_root_topicname + "/status", 1);
+
 }
 
 void BtRt::init_bt()
@@ -118,11 +121,8 @@ void BtRt::init_bt()
     // This logger publish status changes using ZeroMQ. Used by Groot
     // PublisherZMQ publisher_zmq(_tree);
 
-    // ros publisher for root status
-    _bt_root_status_pub= advertise<NodeStatus>( "/" + _bt_root_topicname + "/status");
-
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                       "\n BT INFO: \n");
+                       "\nBT INFO: \n");
 
     printTreeRecursively(_tree.rootNode()); // display tree info
 
@@ -130,9 +130,37 @@ void BtRt::init_bt()
 
 }
 
+std::string BtRt::bt_status2string(NodeStatus status)
+{
+
+    if (status == NodeStatus::IDLE)
+    {
+        return "IDLE";
+    }
+    if (status == NodeStatus::RUNNING)
+    {
+        return "RUNNING";
+    }
+    if (status == NodeStatus::FAILURE)
+    {
+        return "FAILURE";
+    }
+    if (status == NodeStatus::SUCCESS)
+    {
+        return "SUCCESS";
+    }
+    else
+    {
+        return "INVALID";
+    }
+
+}
+
 void BtRt::pub_bt_status()
 {
-    _bt_root_status_pub->publish(_bt_root_status);
+    _bt_root_status_msg.status = bt_status2string(_bt_root_status);
+
+    _bt_root_status_pub->publish(_bt_root_status_msg);
 }
 
 bool BtRt::on_initialize()
@@ -171,6 +199,7 @@ void BtRt::starting()
 
 void BtRt::run()
 {
+
     _bt_root_status = _tree.tickRoot();
 
     add_data2dump_logger(); // add data to the logger
@@ -178,6 +207,13 @@ void BtRt::run()
     pub_bt_status(); // publishes bt status to external ros topic
 
     update_clocks(); // last, update the clocks (loop + any additional one)
+
+    if(_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE)
+    { // behaviour tree succeded --> exit
+
+        stop();
+
+    }
 
 }
 

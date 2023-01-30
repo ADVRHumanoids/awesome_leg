@@ -22,6 +22,6 @@ NodeStatus ArePluginsRunning::tick()
 
     std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
 
-    return NodeStatus::SUCCESS;
+    return NodeStatus::FAILURE;
 
 }

@@ -2,19 +2,47 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <Sequence>
-            <ReactiveFallback>
-                <Condition ID="ArePluginsRunning"/>
-                <Action ID="StartPlugins"/>
-            </ReactiveFallback>
-        </Sequence>
+        <ReactiveFallback>
+            <Condition ID="ArePluginsRunning"/>
+            <Action ID="StartPlugins"/>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="energy_rec_demo">
+        <ReactiveFallback>
+            <Condition ID="recov_energy" current_e_r="0.0"/>
+            <SequenceStar>
+                <Action ID="go2takeoff_config" jump_ready="false" trigger_approach_traj="false"/>
+                <Action ID="perform_takeoff" takeoff_detected="false" trigger_takeoff="false"/>
+            </SequenceStar>
+        </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
         <Condition ID="ArePluginsRunning">
             <output_port default="false" name="all_plugins_running">whether all the plugins are successfully running or not</output_port>
         </Condition>
+        <Action ID="CloseAllPlugins"/>
         <Action ID="StartPlugins"/>
+        <SubTree ID="energy_rec_demo"/>
+        <Action ID="go2takeoff_config">
+            <input_port default="false" name="jump_ready">if true, we are ready to move to next phase</input_port>
+            <output_port default="false" name="trigger_approach_traj">when true, will send a signal to the plugin for moving the robot to the inital configuration for the demo</output_port>
+        </Action>
+        <Action ID="perform_takeoff">
+            <input_port default="false" name="takeoff_detected">go to next phase if true</input_port>
+            <output_port default="false" name="trigger_takeoff">if true, trigger the plugin which performs the takeoff</output_port>
+        </Action>
+        <Action ID="power_monitor"/>
+        <Condition ID="recov_energy">
+            <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
+        </Condition>
+        <Condition ID="temperature_ok">
+            <input_port default="false" name="temp_ok">whether driver temperatures are BOTH ok</input_port>
+        </Condition>
+        <Action ID="wait_for_actuators_cooling">
+            <output_port default="false" name="stop_robot">If true, signal all plugins to stop the robot</output_port>
+        </Action>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>

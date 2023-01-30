@@ -23,6 +23,8 @@
 #include "conditions/are_plugins_running.h"
 #include "actions/start_plugins.h"
 
+#include <awesome_leg/BtRootStatus.h>
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace BT;
@@ -73,7 +75,9 @@ private:
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
 
-    PublisherPtr<NodeStatus> _bt_root_status_pub;
+    awesome_leg::BtRootStatus _bt_root_status_msg;
+
+    PublisherPtr<awesome_leg::BtRootStatus> _bt_root_status_pub;
 
     NodeStatus _bt_root_status;
 
@@ -96,6 +100,8 @@ private:
     void init_dump_logger();
 
     void init_bt();
+
+    std::string bt_status2string(NodeStatus status);
 
     void pub_bt_status();
 

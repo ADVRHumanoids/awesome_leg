@@ -8,6 +8,6 @@ NodeStatus StartPlugins::tick()
 
     std::cout << Colors::kBlue << "ticking StartPlugins action" << Colors::kEndl << std::endl;
 
-    return NodeStatus::SUCCESS;
+    return NodeStatus::RUNNING;
 
 }
