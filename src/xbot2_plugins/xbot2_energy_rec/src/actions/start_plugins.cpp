@@ -6,7 +6,7 @@ using namespace BT;
 NodeStatus StartPlugins::tick()
 {
 
-    std::cout << Colors::kGreen << "ticking StartPlugins action" << Colors::kEndl << std::endl;
+    std::cout << Colors::kBlue << "ticking StartPlugins action" << Colors::kEndl << std::endl;
 
     return NodeStatus::SUCCESS;
 
