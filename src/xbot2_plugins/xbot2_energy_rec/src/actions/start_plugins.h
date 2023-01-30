@@ -2,6 +2,7 @@
 #define START_PLUGINS_H
 
 #include <behaviortree_cpp_v3/action_node.h>
+#include <xbot2/journal/journal.h>
 
 namespace BT
 {
@@ -12,17 +13,14 @@ namespace BT
 
         public:
 
-        StartPlugins(const std::string& name) : AsyncActionNode(name, {})
-        {
-            setRegistrationID(name);
-        }
+            StartPlugins(const std::string& name) : AsyncActionNode(name, {})
+            {
+                setRegistrationID(name);
+            }
 
         private:
 
-            virtual NodeStatus tick() override
-            {
-                return NodeStatus::SUCCESS;
-            }
+            NodeStatus tick() override;
 
     };
 

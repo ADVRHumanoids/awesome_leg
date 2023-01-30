@@ -1,4 +1,5 @@
 #include "are_plugins_running.h"
+#include "../utils_defs.hpp"
 
 using namespace BT;
 
@@ -18,6 +19,8 @@ NodeStatus ArePluginsRunning::tick()
 {
 
     setOutput("are_plugins_running", true);
+
+    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
 
     return NodeStatus::SUCCESS;
 

@@ -2,6 +2,8 @@
 #define ARE_PLUGINS_RUNNING_H
 
 #include <behaviortree_cpp_v3/condition_node.h>
+#include <xbot2/journal/journal.h>
+#include "../utils_defs.hpp"
 
 namespace BT
 {
