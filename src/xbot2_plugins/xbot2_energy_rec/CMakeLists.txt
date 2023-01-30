@@ -10,6 +10,7 @@ find_package(cartesian_interface REQUIRED)
 find_package(awesome_utils REQUIRED)
 find_package(base_estimation REQUIRED)
 find_package(catkin REQUIRED COMPONENTS behaviortree_cpp_v3)
+#find_package(ZMQ REQUIRED)
 
 add_executable(start_jump_replayer src/start_jump_replayer.cpp)
 add_dependencies(start_jump_replayer ${PROJECT_NAME}_generate_messages)

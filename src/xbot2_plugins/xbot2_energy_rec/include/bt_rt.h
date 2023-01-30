@@ -60,7 +60,8 @@ private:
 
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type,
-                _bt_description_path;
+                _bt_description_path,
+                _bt_root_topicname = "bt_root";
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -71,6 +72,10 @@ private:
 
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
+
+    PublisherPtr<NodeStatus> _bt_root_status_pub;
+
+    NodeStatus _bt_root_status;
 
     BehaviorTreeFactory _factory;
 
@@ -91,6 +96,8 @@ private:
     void init_dump_logger();
 
     void init_bt();
+
+    void pub_bt_status();
 
     void create_ros_api();
 

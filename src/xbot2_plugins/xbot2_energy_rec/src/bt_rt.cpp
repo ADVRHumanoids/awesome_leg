@@ -115,6 +115,24 @@ void BtRt::init_bt()
     // This logger stores the execution time of each node
     MinitraceLogger logger_minitrace(_tree, "/tmp/bt_trace.json");
 
+    // This logger publish status changes using ZeroMQ. Used by Groot
+    // PublisherZMQ publisher_zmq(_tree);
+
+    // ros publisher for root status
+    _bt_root_status_pub= advertise<NodeStatus>( "/" + _bt_root_topicname + "/status");
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                       "\n BT INFO: \n");
+
+    printTreeRecursively(_tree.rootNode()); // display tree info
+
+    jhigh().jprint("\n");
+
+}
+
+void BtRt::pub_bt_status()
+{
+    _bt_root_status_pub->publish(_bt_root_status);
 }
 
 bool BtRt::on_initialize()
@@ -153,9 +171,11 @@ void BtRt::starting()
 
 void BtRt::run()
 {
-    _tree.tickRoot();
+    _bt_root_status = _tree.tickRoot();
 
     add_data2dump_logger(); // add data to the logger
+
+    pub_bt_status(); // publishes bt status to external ros topic
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
