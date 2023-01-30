@@ -4,7 +4,7 @@
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
             <ReactiveFallback>
-                <Condition ID="ArePluginsRunning" all_plugin_running="false"/>
+                <Condition ID="ArePluginsRunning" all_plugins_running="false"/>
                 <Action ID="StartPlugins"/>
             </ReactiveFallback>
             <ReactiveFallback>
@@ -29,7 +29,7 @@
     <!-- ////////// -->
     <TreeNodesModel>
         <Condition ID="ArePluginsRunning">
-            <output_port default="false" name="all_plugin_running">whether all the plugins are successfully running or not</output_port>
+            <output_port default="false" name="all_plugins_running">whether all the plugins are successfully running or not</output_port>
         </Condition>
         <Action ID="CloseAllPlugins"/>
         <Action ID="CloseBtRoot"/>
