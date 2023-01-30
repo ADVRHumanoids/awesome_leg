@@ -11,19 +11,15 @@ namespace BT
         public:
 
             // You must provide the function to call when tick() is invoked
-            ArePluginsRunning(const std::string& name) : ConditionNode(name, {}){
-
-                setRegistrationID(name);
-            };
+            ArePluginsRunning(const std::string& name, const NodeConfiguration& config);
 
             ~ArePluginsRunning() override = default;
 
+            static PortsList providedPorts(); // this is required to be a static method
+
         private:
 
-            virtual NodeStatus tick() override
-            {
-                return NodeStatus::SUCCESS;
-            }
+            NodeStatus tick() override;
 
     };
 

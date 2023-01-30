@@ -4,8 +4,8 @@
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
             <ReactiveFallback>
-                <Condition ID="ArePluginsRunning"/>
-                <Action ID="start_plugins" plugin_names=""/>
+                <Condition ID="ArePluginsRunning" all_plugin_running="false"/>
+                <Action ID="StartPlugins"/>
             </ReactiveFallback>
             <ReactiveFallback>
                 <Condition ID="temperature_ok" temp_ok="false"/>
@@ -28,12 +28,12 @@
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
-        <Condition ID="ArePluginsRunning"/>
+        <Condition ID="ArePluginsRunning">
+            <output_port default="false" name="all_plugin_running">whether all the plugins are successfully running or not</output_port>
+        </Condition>
         <Action ID="CloseAllPlugins"/>
         <Action ID="CloseBtRoot"/>
-        <Action ID="StartPlugins">
-            <input_port name="plugin_names">vector of plugin names,  which need to be started</input_port>
-        </Action>
+        <Action ID="StartPlugins"/>
         <SubTree ID="energy_rec_demo"/>
         <Action ID="go2takeoff_config">
             <input_port default="false" name="jump_ready">if true, we are ready to move to next phase</input_port>
@@ -47,9 +47,6 @@
         <Condition ID="recov_energy">
             <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
         </Condition>
-        <Action ID="start_plugins">
-            <inout_port name="plugin_names"/>
-        </Action>
         <Condition ID="temperature_ok">
             <input_port default="false" name="temp_ok">whether driver temperatures are BOTH ok</input_port>
         </Condition>
