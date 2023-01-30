@@ -106,6 +106,15 @@ void BtRt::init_bt()
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 
+    // This logger prints state changes on console
+    StdCoutLogger logger_cout(_tree);
+
+    // This logger saves state changes on file
+    FileLogger logger_file(_tree, "/tmp/bt_trace.fbl");
+
+    // This logger stores the execution time of each node
+    MinitraceLogger logger_minitrace(_tree, "/tmp/bt_trace.json");
+
 }
 
 bool BtRt::on_initialize()
@@ -154,7 +163,6 @@ void BtRt::run()
 
 void BtRt::on_stop()
 {
-
     init_clocks();
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
