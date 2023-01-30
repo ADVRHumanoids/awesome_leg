@@ -15,6 +15,11 @@
 #include <Eigen/Geometry>
 
 #include <behaviortree_cpp_v3/bt_factory.h>
+#include <behaviortree_cpp_v3/loggers/bt_cout_logger.h>
+#include <behaviortree_cpp_v3/loggers/bt_file_logger.h>
+#include <behaviortree_cpp_v3/loggers/bt_minitrace_logger.h>
+#include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
+
 #include "conditions/are_plugins_running.h"
 #include "actions/start_plugins.h"
 
