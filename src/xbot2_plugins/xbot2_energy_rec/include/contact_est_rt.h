@@ -136,7 +136,7 @@ private:
 
     utils_defs::RotMat3D _R_world_from_tip;
 
-    utils_defs::Wrench _w_c_est, _meas_w_loc, _meas_w_abs,
+    utils_defs::Wrench _w_c_est, _w_c_est_loc, _meas_w_loc, _meas_w_abs,
                   _i_c;
 
     utils_defs::Force3D _tip_f_est_abs, _meas_tip_f_loc,

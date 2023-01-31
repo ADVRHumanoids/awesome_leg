@@ -111,6 +111,7 @@ private:
                    _meas_tip_t_abs;
 
     utils_defs::Wrench _meas_w_loc, _meas_w_abs,
+                       _est_w_loc,
                        _est_w;
 
     std::vector<std::string> _vertex_frames;

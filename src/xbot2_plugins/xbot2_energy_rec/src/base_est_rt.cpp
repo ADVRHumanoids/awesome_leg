@@ -353,7 +353,9 @@ void BaseEstRt::update_states()
     _contact_info = _est->contact_info;// get base estimation info
 
     _be_msg_name = _contact_info[0].name;
-    _est_w = _contact_info[0].wrench;
+    _est_w_loc = _contact_info[0].wrench;
+    _est_w.segment(0, 3) = _R_world_from_tip * _est_w_loc.segment(0, 3);
+    _est_w.segment(3, 3) = _R_world_from_tip * _est_w_loc.segment(0, 3);
     _vertex_frames = _contact_info[0].vertex_frames;
     _vertex_weights = _contact_info[0].vertex_weights;
     _contact_state = _contact_info[0].contact_state;

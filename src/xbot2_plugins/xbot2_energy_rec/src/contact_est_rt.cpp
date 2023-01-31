@@ -293,6 +293,7 @@ void ContactEstRt::update_state()
     _base_est_model->setJointPosition(_q_p_ft_est);
     _base_est_model->setJointVelocity(_q_p_dot_ft_est);
     _base_est_model->setJointEffort(_tau_ft_est);
+    _base_est_model->update();
 
     // getting link poses from model
     _pin_model_ptr->get_frame_pose(_tip_link_name,
@@ -300,7 +301,7 @@ void ContactEstRt::update_state()
     _pin_model_ptr->get_frame_pose(_base_link_name,
                               _M_world_from_base_link);
 
-    _R_world_from_tip = _M_world_from_tip.rotation();
+    _base_est_model->getOrientation(_tip_link_name, _R_world_from_tip);
 
     get_fts_force(); // after update tip pose, we get the local force and
     // rotate it to the world
@@ -319,7 +320,10 @@ void ContactEstRt::update_state()
     // and without observer)
 
     _fest->update();
-    _fest_virt->getWrench(_w_c_est);
+//    _fest_virt->getWrench(_w_c_est_loc);
+//    _w_c_est.segment(0, 3) = _R_world_from_tip * _w_c_est_loc.segment(0, 3);
+//    _w_c_est.segment(3, 3) = _R_world_from_tip * _w_c_est_loc.segment(3, 3);
+
 }
 
 void ContactEstRt::get_fts_force()
