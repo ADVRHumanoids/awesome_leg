@@ -376,6 +376,27 @@ void IqModelCalibRt::init_nrt_ros_bridge()
     _iq_cal_pub = _ros->advertise<awesome_leg::IqCalStatus>(
         "iq_cal_node", 1, iq_cal_prealloc);
 
+    /* Services */
+
+    _stop_calibration_srv = _ros->advertiseService(
+        "stop_calibration_srv",
+        &IqModelCalibRt::on_stop_calib_msg_rec,
+        this,
+        &_queue);
+}
+
+bool IqModelCalibRt::on_stop_calib_msg_rec(const awesome_leg::IqModelCalibRtRequest& req,
+                                           awesome_leg::IqModelCalibRtResponse& res)
+{
+    _stop_calibration = req.stop; // setting flag
+
+    std::string message;
+
+    res.message = (_stop_calibration == true) ? "Stopping calibration!! Gains will be fixed to the latest ones!" : "Resuming calibration!!";
+
+    res.success = true;
+
+    return res.success;
 }
 
 void IqModelCalibRt::add_data2bedumped()
@@ -467,17 +488,25 @@ void IqModelCalibRt::run_iq_calib()
     // we update the calibration oject with fresh
     // states (we filter every input, so that we get the same delay).
     // Note that we don't really care about the
-    // delay introduced here.
+    // delay introduced here. This call updates all the necessary internal
+    // data, but still doesn't update the calibration
     _iq_calib.add_sample(_q_p_dot_meas_filt,
                          _q_p_ddot_est_filt,
                          _iq_meas_filt,
                          _tau_meas_filt);
 
-    _iq_calib.set_ig(_K_d0_ig, _K_d1_ig);
+    _iq_calib.set_ig(_K_d0_ig, _K_d1_ig); // in case Kd0 and Kd1 i.g. are updated are run-time
 
     // we solve the calibration problem and get the current
     // optimal values
-    _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
+    if(!_stop_calibration)
+    { // if we want to stop the calibration, we simply don't update anymore
+      // the friction gains. The internal quantities are still computed, so
+      // we can still monitor relevant quantities, but the optimal gains stay fix.
+
+        _iq_calib.get_current_optimal_Kd(_K_d0_cal, _K_d1_cal);
+
+    }
 
     // we set the ig to the new solution to
     // promote convergence (which is also controlled by

@@ -258,7 +258,6 @@ xbotcore_plugins:
 
 #            tip_link_name: {value: "tip1", type: string}
 #            base_link_name: {value: "base_link", type: string}
-
 #            verbose: {value: false, type: bool}
 
 #            test_rig_linkname: {value: "test_rig", type: string}

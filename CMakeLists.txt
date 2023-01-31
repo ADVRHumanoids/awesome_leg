@@ -27,6 +27,7 @@ add_message_files(
 add_service_files(
   FILES
   JumpNow.srv
+  IqModelCalibRt.srv
 )
 
 add_message_files(

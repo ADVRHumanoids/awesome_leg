@@ -30,6 +30,9 @@
 
 #include <awesome_leg/IqEstStatus.h>
 #include <awesome_leg/IqCalStatus.h>
+#include <awesome_leg/IqModelCalibRt.h>
+#include <awesome_leg/IqModelCalibRtRequest.h>
+#include <awesome_leg/IqModelCalibRtResponse.h>
 
 using namespace XBot;
 using namespace CalibUtils;
@@ -83,7 +86,8 @@ private:
         _is_sim = true,
         _reduce_dumped_sol_size = false,
         _verbose = false,
-        _jnt_names_were_set = false;
+        _jnt_names_were_set = false,
+        _stop_calibration = false;
 
     int _n_jnts_model,
         _n_jnts_model_ft_est,
@@ -145,6 +149,9 @@ private:
     PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
     PublisherPtr<awesome_leg::IqCalStatus> _iq_cal_pub;
 
+    ServiceServerPtr<awesome_leg::IqModelCalibRtRequest,
+                     awesome_leg::IqModelCalibRtResponse> _stop_calibration_srv;
+
     IqRosGetter _iq_getter;
     IqEstimator _iq_estimator;
     IqCalib _iq_calib;
@@ -190,6 +197,9 @@ private:
 
     void run_iq_calib();
     void run_iq_estimation();
+
+    bool on_stop_calib_msg_rec(const awesome_leg::IqModelCalibRtRequest& req,
+                               awesome_leg::IqModelCalibRtResponse& res);
                  
 };
 
