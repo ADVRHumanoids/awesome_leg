@@ -1,5 +1,6 @@
 string name
 float64[] wrench
+float64[] meas_wrench
 string[] vertex_frames
 float64[] vertex_weights
 bool contact_state

@@ -33,6 +33,7 @@ void BaseEstRt::init_vars()
     _tau_be = Eigen::VectorXd::Zero(_nv_be);
 
     _est_w_vect = std::vector<double>(6);
+    _meas_w_abs_vect = std::vector<double>(6);
 
     _base_link_vel_vect = std::vector<double>(3);
     _base_link_omega_vect = std::vector<double>(3);
@@ -78,8 +79,6 @@ void BaseEstRt::get_params_from_config()
     _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
 
     _mov_avrg_cutoff_freq = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
-
-    _use_ground_truth_gz = getParamOrThrow<bool>("~use_ground_truth_gz");
 
     _obs_bw = getParamOrThrow<double>("~obs_bw");
 
@@ -507,11 +506,13 @@ void BaseEstRt::pub_base_est_status()
     auto base_est_msg = _base_est_st_pub->loanMessage();
 
     Eigen::Map<Eigen::VectorXd>(&_est_w_vect[0], _est_w.size(), 1) = _est_w;
+    Eigen::Map<Eigen::VectorXd>(&_meas_w_abs_vect[0], _meas_w_abs.size(), 1) = _meas_w_abs;
     Eigen::Map<Eigen::VectorXd>(&_base_link_vel_vect[0], _base_link_vel.size(), 1) = _base_link_vel;
     Eigen::Map<Eigen::VectorXd>(&_base_link_omega_vect[0], _base_link_omega.size(), 1) = _base_link_omega;
 
     base_est_msg->msg().name = _be_msg_name;
     base_est_msg->msg().wrench = _est_w_vect;
+    base_est_msg->msg().meas_wrench = _meas_w_abs_vect;
     base_est_msg->msg().vertex_frames = _vertex_frames;
     base_est_msg->msg().vertex_weights = _vertex_weights;
     base_est_msg->msg().contact_state = _contact_state;

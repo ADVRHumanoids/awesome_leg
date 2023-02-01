@@ -111,7 +111,6 @@ xbotcore_plugins:
             base_link_name: {value: "base_link", type: string}
             test_rig_linkname: {value: "test_rig", type: string}
             
-
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
@@ -119,8 +118,6 @@ xbotcore_plugins:
             contact_attach_thr: {value: 90.0, type: double}
 
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
-
-            use_ground_truth_gz: {value: false, type: bool}
 
             obs_bw: {value: 1.0, type: double}
 
