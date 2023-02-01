@@ -109,17 +109,17 @@ void BtRt::init_bt()
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 
-    // This logger prints state changes on console
-    StdCoutLogger logger_cout(_tree);
+//    // This logger prints state changes on console
+//    StdCoutLogger _logger_cout(_tree);
 
-    // This logger saves state changes on file
-    FileLogger logger_file(_tree, "/tmp/bt_trace.fbl");
+//    // This logger saves state changes on file
+//    FileLogger _logger_file(_tree, "/tmp/bt_trace.fbl");
 
-    // This logger stores the execution time of each node
-    MinitraceLogger logger_minitrace(_tree, "/tmp/bt_trace.json");
+//    // This logger stores the execution time of each node
+//    MinitraceLogger _logger_minitrace(_tree, "/tmp/bt_trace.json"); // causes segfault
 
-    // This logger publish status changes using ZeroMQ. Used by Groot
-    // PublisherZMQ publisher_zmq(_tree);
+//    // This logger publish status changes using ZeroMQ. Used by Groot
+//    PublisherZMQ publisher_zmq(_tree);
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                        "\nBT INFO: \n");
@@ -200,7 +200,7 @@ void BtRt::starting()
 void BtRt::run()
 {
 
-    _bt_root_status = _tree.tickRoot();
+//    _bt_root_status = _tree.tickRoot();
 
     add_data2dump_logger(); // add data to the logger
 
@@ -208,12 +208,12 @@ void BtRt::run()
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    if(_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE)
-    { // behaviour tree succeded --> exit
+//    if(_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE)
+//    { // behaviour tree succeded --> exit
 
-        stop();
+//        stop();
 
-    }
+//    }
 
 }
 

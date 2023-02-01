@@ -110,12 +110,13 @@ xbotcore_plugins:
             tip_link_name: {value: "tip1", type: string}
             base_link_name: {value: "base_link", type: string}
             test_rig_linkname: {value: "test_rig", type: string}
+            
 
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            contact_release_thr: {value: 50.0, type: double}
-            contact_attach_thr: {value: 200.0, type: double}
+            contact_release_thr: {value: 30.0, type: double}
+            contact_attach_thr: {value: 90.0, type: double}
 
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
 
@@ -214,18 +215,18 @@ xbotcore_plugins:
 
             use_iq_meas: {value: false, type: bool}
 
-#    bt_rt:
-#        thread: rt_main
-#        type: bt_rt
-#        params:
+    bt_rt:
+        thread: rt_main
+        type: bt_rt
+        params:
 
-#            mat_path: {value: /tmp/, type: string}
-#            dump_mat_suffix: {value: "base_est_rt", type: string}
-#            matlogger_buffer_size: {value: 1e5, type: double}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
-#            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt.xml, type: file} # used by the model interface
+            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt.xml, type: file} # used by the model interface
 
-#            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
+            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
 
     plugins_mngr_rt:
         thread: rt_main
@@ -243,32 +244,32 @@ xbotcore_plugins:
         type: cartesio_imp_cntrl_rt
         params:
 
-    contact_est_rt:
-        thread: base_est
-        type: contact_est_rt
-        params:
+#    contact_est_rt:
+#        thread: base_est
+#        type: contact_est_rt
+#        params:
 
-            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+#            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+#            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            mat_path: {value: /tmp/, type: string}
-            mat_name: {value: contact_est_rt.mat, type: string}
-            dump_mat_suffix: {value: contact_est_rt, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
+#            mat_path: {value: /tmp/, type: string}
+#            mat_name: {value: contact_est_rt.mat, type: string}
+#            dump_mat_suffix: {value: contact_est_rt, type: string}
+#            matlogger_buffer_size: {value: 1e5, type: double}
 
-            tip_link_name: {value: "tip1", type: string}
-            base_link_name: {value: "base_link", type: string}
-            verbose: {value: false, type: bool}
+#            tip_link_name: {value: "tip1", type: string}
+#            base_link_name: {value: "base_link", type: string}
+#            verbose: {value: false, type: bool}
 
-            test_rig_linkname: {value: "test_rig", type: string}
-            tip_fts_name: {value: "tip1_fts", type: string}
-            contact_linkname: {value: "tip1", type: string}
+#            test_rig_linkname: {value: "test_rig", type: string}
+#            tip_fts_name: {value: "tip1_fts", type: string}
+#            contact_linkname: {value: "tip1", type: string}
 
-            ft_est_bw: {value: 30.0, type: double}
-            svd_thresh: {value: 0.05, type: double}
-            use_ground_truth_gz: {value: true, type: bool} # whether to use ground truth from Gazebo (if working in simulation)
+#            ft_est_bw: {value: 30.0, type: double}
+#            svd_thresh: {value: 0.05, type: double}
+#            use_ground_truth_gz: {value: true, type: bool} # whether to use ground truth from Gazebo (if working in simulation)
 
-            meas_w_filt_bw: {value: 1000.0, type: double}
+#            meas_w_filt_bw: {value: 1000.0, type: double}
 
 # global parameters
 xbotcore_param:
