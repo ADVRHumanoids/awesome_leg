@@ -80,7 +80,9 @@ private:
         _is_sim = true,
         _ft_tip_sensor_found = false,
         _use_ground_truth_gz = true,
-        _contact_state = true;
+        _contact_state = true,
+        _is_flight_phase = false,
+        _is_flight_phase_prev = false;
 
     int _n_jnts_robot,
         _nv_be, _nq_be;
@@ -96,13 +98,14 @@ private:
                 _be_msg_name;
 
     double _plugin_dt,
-           _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
+           _loop_time = 0.0, _flight_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4,
            _mov_avrg_cutoff_freq = 15.0,
            _obs_bw = 20.0,
            _svd_thresh = 0.05,
            _contact_release_thr = 10.0,
-           _contact_attach_thr = 5.0;
+           _contact_attach_thr = 5.0,
+           _g = 9.81;
 
     utils_defs::Force3D _meas_tip_f_loc,
                    _meas_tip_f_abs;
@@ -131,7 +134,8 @@ private:
                     _tau_ff, _meas_stiff, _meas_damp,
                     _tau_cmd;
 
-    Eigen::VectorXd _q_p_be, _q_p_dot_be, _q_p_ddot_be, _tau_be;
+    Eigen::VectorXd _q_p_be, _q_p_dot_be, _q_p_ddot_be, _tau_be,
+                    _q_p_be_takeoff, _q_p_dot_be_takeoff;
 
     Eigen::VectorXd _meas_w_filt,
                     _base_link_vel, _base_link_omega;

@@ -5,6 +5,7 @@
 void BaseEstRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
+    _flight_time = 0.0;
 }
 
 void BaseEstRt::init_vars()
@@ -30,6 +31,8 @@ void BaseEstRt::init_vars()
     _q_p_be = Eigen::VectorXd::Zero(_nq_be);
     _q_p_dot_be = Eigen::VectorXd::Zero(_nv_be);
     _q_p_ddot_be = Eigen::VectorXd::Zero(_nv_be);
+    _q_p_be_takeoff = Eigen::VectorXd::Zero(_nv_be);
+    _q_p_dot_be_takeoff =  Eigen::VectorXd::Zero(_nv_be);
     _tau_be = Eigen::VectorXd::Zero(_nv_be);
 
     _est_w_vect = std::vector<double>(6);
@@ -49,11 +52,17 @@ void BaseEstRt::update_clocks()
 {
     // Update timer(s)
     _loop_time += _plugin_dt;
+    _flight_time += _flight_time;
 
     // Reset timers, if necessary
     if (_loop_time >= _loop_timer_reset_time)
     {
         _loop_time = _loop_time - _loop_timer_reset_time;
+    }
+
+    if (_is_flight_phase_prev && !_is_flight_phase)
+    { // we are at the touchdown instant
+        _flight_time = 0.0;
     }
 
 }
@@ -298,11 +307,27 @@ void BaseEstRt::update_base_estimates()
     _tau_be(0) = 0; // no effort on passive joints
     _tau_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
 
+    if(_is_flight_phase)
+    { // we are flying --> the force estimator won't use the estimate of the base estimation (which assumes ground contact).
+      // instead, we assume the base, once in flight phase, accelerates with - g (which is an approximation)
+        _q_p_be[0] = _q_p_be_takeoff[0] + _q_p_dot_be_takeoff[0] * _flight_time - 1.0/2.0* _g * std::pow(_flight_time, 2);
+        _q_p_dot_be[0] = _q_p_dot_be_takeoff[0] - _g * _flight_time;
+    }
+    else
+    { // we use the latest values assigned to _q_p_dot_be[0] and _q_p_be[0] (which come from the latest performed
+      // base estimation)
+
+    }
+
     update_be_model(); // update xbot2 model with the measurements
 
-    get_base_est(passive_jnt_pos, passive_jnt_vel); // get ground truth or computes estimates
-    _q_p_dot_be(0) = passive_jnt_vel;
-    _q_p_be(0) = passive_jnt_pos;
+    get_base_est(passive_jnt_pos, passive_jnt_vel); // first updated the f estimation
+    // using the internal model state and then performs the base estimation
+    if(!_is_flight_phase)
+    { // we are one the ground --> we can employ base estimation, otherwise we use the integrated base
+        _q_p_dot_be(0) = passive_jnt_vel;
+        _q_p_be(0) = passive_jnt_pos;
+    }
 
     update_pin_model(); // update pin model with estimates
 
@@ -339,6 +364,16 @@ void BaseEstRt::update_states()
 
     get_tau_cmd(); // computes the joint-level impedance control
 
+    if (!_is_flight_phase_prev && _is_flight_phase)
+    { // we are right after the takeoff instant --> we store the current state
+        _q_p_be_takeoff = _q_p_be;
+        _q_p_dot_be_takeoff = _q_p_dot_be;
+    }
+    if (_is_flight_phase_prev && !_is_flight_phase)
+    { // we are at the touchdown instant
+
+    }
+
     update_base_estimates();
 
     _pin_model_ptr->get_frame_pose(_tip_link_name,
@@ -358,6 +393,10 @@ void BaseEstRt::update_states()
     _vertex_frames = _contact_info[0].vertex_frames;
     _vertex_weights = _contact_info[0].vertex_weights;
     _contact_state = _contact_info[0].contact_state;
+
+    _is_flight_phase_prev = _is_flight_phase;
+    _is_flight_phase = !_contact_info[0].contact_state; // we check if
+    // we went flying --> next control loop we bypass base estimation
 
 
 }
