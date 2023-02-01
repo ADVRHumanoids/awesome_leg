@@ -85,6 +85,8 @@ private:
 
     Tree _tree;
 
+    PublisherZMQ _publisher_zmq(Tree);
+
     void read_config_from_yaml();
 
     void is_sim(std::string sim_string);

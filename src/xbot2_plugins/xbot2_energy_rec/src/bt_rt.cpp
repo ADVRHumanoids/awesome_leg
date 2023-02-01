@@ -119,7 +119,7 @@ void BtRt::init_bt()
 //    MinitraceLogger _logger_minitrace(_tree, "/tmp/bt_trace.json"); // causes segfault
 
 //    // This logger publish status changes using ZeroMQ. Used by Groot
-//    PublisherZMQ publisher_zmq(_tree);
+    PublisherZMQ _publisher_zmq(_tree);
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                        "\nBT INFO: \n");
@@ -200,7 +200,7 @@ void BtRt::starting()
 void BtRt::run()
 {
 
-//    _bt_root_status = _tree.tickRoot();
+    _bt_root_status = _tree.tickRoot();
 
     add_data2dump_logger(); // add data to the logger
 
