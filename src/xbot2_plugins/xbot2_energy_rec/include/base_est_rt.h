@@ -135,7 +135,8 @@ private:
                     _tau_cmd;
 
     Eigen::VectorXd _q_p_be, _q_p_dot_be, _q_p_ddot_be, _tau_be,
-                    _q_p_be_takeoff, _q_p_dot_be_takeoff;
+                    _q_p_be_takeoff, _q_p_dot_be_takeoff,
+                    _q_p_dot_be_aux, _q_p_be_aux;
 
     Eigen::VectorXd _meas_w_filt,
                     _base_link_vel, _base_link_omega;
@@ -194,8 +195,7 @@ private:
 
     void update_clocks();
     void get_robot_state();
-    void get_base_est(double& pssv_jnt_pos,
-                      double& pssv_jnt_vel);
+    void get_base_est();
     void update_base_estimates();
     void update_be_model();
     void update_pin_model();

@@ -35,6 +35,9 @@ void BaseEstRt::init_vars()
     _q_p_dot_be_takeoff =  Eigen::VectorXd::Zero(_nv_be);
     _tau_be = Eigen::VectorXd::Zero(_nv_be);
 
+    _q_p_be_aux = Eigen::VectorXd::Zero(_nq_be);
+    _q_p_dot_be_aux = Eigen::VectorXd::Zero(_nq_be);
+
     _est_w_vect = std::vector<double>(6);
     _meas_w_abs_vect = std::vector<double>(6);
 
@@ -263,8 +266,7 @@ void BaseEstRt::get_fts_force()
 
 }
 
-void BaseEstRt::get_base_est(double& pssv_jnt_pos,
-                                double& pssv_jnt_vel)
+void BaseEstRt::get_base_est()
 {
 
         // we employ estimates from the virtual wrench sensor and ik base estimator
@@ -282,18 +284,14 @@ void BaseEstRt::get_base_est(double& pssv_jnt_pos,
             return;
         }
 
-        _base_est_model->getJointVelocity(_q_p_dot_be);
-        _base_est_model->getJointPosition(_q_p_be);
+        _base_est_model->getJointVelocity(_q_p_dot_be_aux);
+        _base_est_model->getJointPosition(_q_p_be_aux);
 
-        pssv_jnt_vel = _q_p_dot_be(0);
-
-        pssv_jnt_pos = _q_p_be(0);
 
 }
 
 void BaseEstRt::update_base_estimates()
 {
-    double passive_jnt_pos = 0, passive_jnt_vel = 0;
 
     // _q_p_be(0) is left to the last estimated value
     _q_p_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_meas; // assign actuated dofs with meas.
@@ -321,12 +319,12 @@ void BaseEstRt::update_base_estimates()
 
     update_be_model(); // update xbot2 model with the measurements
 
-    get_base_est(passive_jnt_pos, passive_jnt_vel); // first updated the f estimation
+    get_base_est(); // first updated the f estimation
     // using the internal model state and then performs the base estimation
     if(!_is_flight_phase)
     { // we are one the ground --> we can employ base estimation, otherwise we use the integrated base
-        _q_p_dot_be(0) = passive_jnt_vel;
-        _q_p_be(0) = passive_jnt_pos;
+        _q_p_dot_be(0) = _q_p_dot_be_aux(0);
+        _q_p_be(0) = _q_p_be_aux(0);
     }
 
     update_pin_model(); // update pin model with estimates
