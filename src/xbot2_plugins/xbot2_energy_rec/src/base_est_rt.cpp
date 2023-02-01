@@ -166,10 +166,14 @@ void BaseEstRt::init_base_estimator()
     _est = std::make_unique<BaseEstimation>(_base_est_model, ik_problem_yaml, _be_options);
 //    _est->setFilterOmega(0.0);
 //    _est->setFilterDamping(0.0);
-//    _est->setFilterTs(getPeriodSec());
+    _est->setFilterTs(getPeriodSec());
 
     bool use_momentum_obs = true;
-    _ft_virt_sensor = _est->createVirtualFt(_tip_link_name, {0, 1, 2}, use_momentum_obs, _obs_bw, _svd_thresh); // estimating only force
+    _ft_virt_sensor = _est->createVirtualFt(_tip_link_name,
+                                            {0, 1, 2},
+                                            use_momentum_obs,
+                                            _obs_bw,
+                                            _svd_thresh); // estimating only force
 
     std::vector<std::string> vertex_frames = {_tip_link_name};
     _est->addSurfaceContact(vertex_frames, _ft_virt_sensor); // a task for each contact needs to be defined in the YAML config for the problem
