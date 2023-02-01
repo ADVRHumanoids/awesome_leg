@@ -3,17 +3,17 @@
  <tabbed_widget name="Main Window" parent="main_window">
   <Tab containers="1" tab_name="tab1">
    <Container>
-    <DockSplitter orientation="-" sizes="0.5;0.5" count="2">
+    <DockSplitter count="2" sizes="0.500561;0.499439" orientation="-">
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="1.025000" bottom="-0.025000" left="20.785200" right="40.785100"/>
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-0.025000" left="5.927300" right="25.926700" top="1.025000"/>
        <limitY/>
        <curve name="/base_est_rt/base_estimation_node/contact_state" color="#1f77b4"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-       <range top="519.202901" bottom="-12.663485" left="20.785200" right="40.785100"/>
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-2.504258" left="5.927300" right="25.926700" top="102.674563"/>
        <limitY/>
        <curve name="/base_est_rt/base_estimation_node/vertex_weights.0" color="#d62728"/>
       </plot>
@@ -23,50 +23,50 @@
   </Tab>
   <Tab containers="1" tab_name="tab2">
    <Container>
-    <DockSplitter orientation="-" sizes="0.332968;0.334064;0.332968" count="3">
-     <DockSplitter orientation="|" sizes="0.5;0.5" count="2">
+    <DockSplitter count="3" sizes="0.332584;0.334831;0.332584" orientation="-">
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="482.220076" bottom="-1871.793527" left="20.785200" right="40.785100"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.000000" left="5.927300" right="25.926700" top="0.000000"/>
         <limitY/>
         <curve name="/base_est_rt/base_estimation_node/wrench.0" color="#1ac938"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.100000" bottom="-0.100000" left="20.785200" right="40.785100"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.100000" left="5.927300" right="25.926700" top="0.100000"/>
         <limitY/>
         <curve name="/base_est_rt/base_estimation_node/wrench.3" color="#9467bd"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter orientation="|" sizes="0.5;0.5" count="2">
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.100000" bottom="-0.100000" left="20.785200" right="40.785100"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-1268.006819" left="5.927300" right="25.926700" top="471.697603"/>
         <limitY/>
         <curve name="/base_est_rt/base_estimation_node/wrench.1" color="#ff7f0e"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.100000" bottom="-0.100000" left="20.785200" right="40.785100"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.100000" left="5.927300" right="25.926700" top="0.100000"/>
         <limitY/>
         <curve name="/base_est_rt/base_estimation_node/wrench.4" color="#17becf"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter orientation="|" sizes="0.5;0.5" count="2">
+     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="57411.454922" bottom="-10180.100785" left="20.785200" right="40.785100"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-5060.739180" left="5.927300" right="25.926700" top="11449.385617"/>
         <limitY/>
         <curve name="/base_est_rt/base_estimation_node/wrench.2" color="#f14cc1"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_x="false" mode="TimeSeries" flip_y="false" style="Lines">
-        <range top="0.100000" bottom="-0.100000" left="20.785200" right="40.785100"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.100000" left="5.927300" right="25.926700" top="0.100000"/>
         <limitY/>
         <curve name="/base_est_rt/base_estimation_node/wrench.5" color="#bcbd22"/>
        </plot>
@@ -75,14 +75,42 @@
     </DockSplitter>
    </Container>
   </Tab>
-  <currentTabIndex index="1"/>
+  <Tab containers="1" tab_name="tab2">
+   <Container>
+    <DockSplitter count="1" sizes="1" orientation="-">
+     <DockArea name="...">
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-4.089428" left="5.927300" right="25.926700" top="21.096165"/>
+       <limitY/>
+       <curve name="/base_est_rt/base_estimation_node/base_vel_meas.2" color="#1f77b4"/>
+       <curve name="/base_est_rt/base_estimation_node/passive_jnt_v_est" color="#d62728"/>
+      </plot>
+     </DockArea>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab containers="1" tab_name="tab3">
+   <Container>
+    <DockSplitter count="1" sizes="1" orientation="-">
+     <DockArea name="...">
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-23043.936844" left="5.927300" right="25.926700" top="24368.135437"/>
+       <limitY/>
+       <curve name="/base_est_rt/base_estimation_node/tau_c_raw.0" color="#1ac938"/>
+       <curve name="/base_est_rt/base_estimation_node/tau_c_raw_filt.0" color="#ff7f0e"/>
+      </plot>
+     </DockArea>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <currentTabIndex index="3"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="1"/>
  <!-- - - - - - - - - - - - - - - -->
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <default delimiter="0" time_axis=""/>
+   <default time_axis="" delimiter="0"/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS bags">

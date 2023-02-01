@@ -38,11 +38,22 @@ void BaseEstRt::init_vars()
     _q_p_be_aux = Eigen::VectorXd::Zero(_nq_be);
     _q_p_dot_be_aux = Eigen::VectorXd::Zero(_nq_be);
 
+    _CT_v = Eigen::VectorXd::Zero(_nv_be);
+    _g = Eigen::VectorXd::Zero(_nv_be);
+    _tau_c_raw = Eigen::VectorXd::Zero(_nv_be);
+    _tau_c_raw_filt = Eigen::VectorXd::Zero(_nv_be);
+    _p = Eigen::VectorXd::Zero(_nv_be);
+    _p_dot = Eigen::VectorXd::Zero(_nv_be);
+    _C = Eigen::MatrixXd::Zero(_nv_be, _nv_be);
+
     _est_w_vect = std::vector<double>(6);
     _meas_w_abs_vect = std::vector<double>(6);
 
     _base_link_vel_vect = std::vector<double>(3);
     _base_link_omega_vect = std::vector<double>(3);
+
+    _tau_c_raw_filt_vect = std::vector<double>(_nv_be);
+    _tau_c_raw_vect = std::vector<double>(_nv_be);
 
 }
 
@@ -91,6 +102,7 @@ void BaseEstRt::get_params_from_config()
     _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
 
     _mov_avrg_cutoff_freq = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
+    _mov_avrg_cutoff_freq_tau_c = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
 
     _obs_bw = getParamOrThrow<double>("~obs_bw");
 
@@ -312,8 +324,8 @@ void BaseEstRt::update_base_estimates()
     if(_is_flight_phase)
     { // we are flying --> the force estimator won't use the estimate of the base estimation (which assumes ground contact).
       // instead, we assume the base, once in flight phase, accelerates with - g (which is an approximation)
-        _q_p_be[0] = _q_p_be_takeoff[0] + _q_p_dot_be_takeoff[0] * _flight_time - 1.0/2.0* _g * std::pow(_flight_time, 2);
-        _q_p_dot_be[0] = _q_p_dot_be_takeoff[0] - _g * _flight_time;
+        _q_p_be[0] = _q_p_be_takeoff[0] + _q_p_dot_be_takeoff[0] * _flight_time + 1.0/2.0* _g_scalar * std::pow(_flight_time, 2);
+        _q_p_dot_be[0] = _q_p_dot_be_takeoff[0] + _g_scalar * _flight_time;
     }
     else
     { // we use the latest values assigned to _q_p_dot_be[0] and _q_p_be[0] (which come from the latest performed
@@ -386,6 +398,19 @@ void BaseEstRt::update_states()
     // rotate it to the world (errors on the position of the passive joint won't
     // affect the correctness of the tip orientation)
 
+    // getting other quantities which are useful to compute the raw residual vector
+    _pin_model_ptr->get_C(_C);
+    _pin_model_ptr->get_g(_g);
+    _pin_model_ptr->get_p(_p);
+
+    _num_diff_p.add_sample(_p); // differentiating the generalized momentum
+    _num_diff_p.dot(_p_dot);
+    _CT_v = _C.transpose() * _q_p_dot_be;
+    _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
+    // and without observer)
+    _tau_c_raw_filter.add_sample(_tau_c_raw);
+    _tau_c_raw_filter.get(_tau_c_raw_filt);
+
     _contact_info = _est->contact_info;// get base estimation info
 
     _be_msg_name = _contact_info[0].name;
@@ -437,6 +462,9 @@ void BaseEstRt::init_dump_logger()
     _dump_logger->create("q_p_dot_be", _nv_be, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_be", _nv_be, 1, _matlogger_buffer_size);
 
+    _dump_logger->create("tau_c_raw", _nv_be, 1, _matlogger_buffer_size);
+    _dump_logger->create("tau_c_raw_filt", _nv_be, 1, _matlogger_buffer_size);
+
     _dump_logger->create("tip_w_est_abs", _est_w.size(), 1, _matlogger_buffer_size);
 
     if (_is_sim)
@@ -470,6 +498,9 @@ void BaseEstRt::add_data2dump_logger()
     _dump_logger->add("q_p_be", _q_p_be);
     _dump_logger->add("q_p_dot_be", _q_p_dot_be);
     _dump_logger->add("tau_be", _tau_be);
+
+    _dump_logger->add("tau_c_raw", _tau_c_raw);
+    _dump_logger->add("tau_c_raw_filt", _tau_c_raw_filt);
 
 
     if (_is_sim)
@@ -551,6 +582,9 @@ void BaseEstRt::pub_base_est_status()
     Eigen::Map<Eigen::VectorXd>(&_base_link_vel_vect[0], _base_link_vel.size(), 1) = _base_link_vel;
     Eigen::Map<Eigen::VectorXd>(&_base_link_omega_vect[0], _base_link_omega.size(), 1) = _base_link_omega;
 
+    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
+    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_filt_vect[0], _tau_c_raw_filt.size(), 1) = _tau_c_raw_filt;
+
     base_est_msg->msg().name = _be_msg_name;
     base_est_msg->msg().wrench = _est_w_vect;
     base_est_msg->msg().meas_wrench = _meas_w_abs_vect;
@@ -561,6 +595,9 @@ void BaseEstRt::pub_base_est_status()
     base_est_msg->msg().base_vel_meas = _base_link_vel_vect;
     base_est_msg->msg().base_omega_meas = _base_link_omega_vect;
     base_est_msg->msg().passive_jnt_v_est = _q_p_dot_be(0);
+
+    base_est_msg->msg().tau_c_raw = _tau_c_raw_vect;
+    base_est_msg->msg().tau_c_raw_filt = _tau_c_raw_filt_vect;
 
     _base_est_st_pub->publishLoaned(std::move(base_est_msg));
 }
@@ -591,8 +628,11 @@ bool BaseEstRt::on_initialize()
     init_base_estimator();
 
     _num_diff_v = NumDiff(_nv_be, _plugin_dt);
+    _num_diff_p = NumDiff(_nv_be, _plugin_dt);
 
     _ft_meas_filt = MovAvrgFilt(_meas_w_abs.size(), _plugin_dt, _mov_avrg_cutoff_freq);
+
+    _tau_c_raw_filter = MovAvrgFilt(_tau_c_raw.size(), _plugin_dt, _mov_avrg_cutoff_freq_tau_c);
 
     // setting pin model q to neutral to get the reference base link
     // height wrt the passive dof is defined

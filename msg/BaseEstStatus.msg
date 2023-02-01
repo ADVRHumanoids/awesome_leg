@@ -7,3 +7,5 @@ bool contact_state
 float64[] base_vel_meas
 float64[] base_omega_meas
 float64 passive_jnt_v_est
+float64[] tau_c_raw
+float64[] tau_c_raw_filt

@@ -101,11 +101,12 @@ private:
            _loop_time = 0.0, _flight_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4,
            _mov_avrg_cutoff_freq = 15.0,
+           _mov_avrg_cutoff_freq_tau_c = 15.0,
            _obs_bw = 20.0,
            _svd_thresh = 0.05,
            _contact_release_thr = 10.0,
            _contact_attach_thr = 5.0,
-           _g = 9.81;
+           _g_scalar = - 9.81;
 
     utils_defs::Force3D _meas_tip_f_loc,
                    _meas_tip_f_abs;
@@ -123,6 +124,8 @@ private:
     std::vector<double > _meas_w_abs_vect;
     std::vector<double> _base_link_vel_vect;
     std::vector<double> _base_link_omega_vect;
+    std::vector<double> _tau_c_raw_vect;
+    std::vector<double> _tau_c_raw_filt_vect;
 
     std::vector<BaseEstimation::ContactInformation> _contact_info;
 
@@ -141,6 +144,10 @@ private:
     Eigen::VectorXd _meas_w_filt,
                     _base_link_vel, _base_link_omega;
 
+    Eigen::VectorXd _tau_c_raw, _tau_c_raw_filt,
+                    _CT_v, _g, _p, _p_dot;
+    Eigen::MatrixXd _C;
+
     Eigen::MatrixXd _K_p, _K_d;
 
     utils_defs::RotMat3D _R_world_from_tip;
@@ -150,8 +157,11 @@ private:
                     _M_world_from_base_link, _M_world_from_base_link_ref, _M_base_link_ref_from_base_link,
                     _M_test_rig_from_base_link;
 
-    MovAvrgFilt _ft_meas_filt;
+    MovAvrgFilt _ft_meas_filt,
+                _tau_c_raw_filter;
+
     NumDiff _num_diff_v;
+    NumDiff _num_diff_p;
 
     MatLogger2::Ptr _dump_logger;
 

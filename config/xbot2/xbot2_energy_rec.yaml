@@ -118,10 +118,11 @@ xbotcore_plugins:
             contact_attach_thr: {value: 90.0, type: double}
 
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
+            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
 
-            obs_bw: {value: 1.0, type: double}
+            obs_bw: {value: 5.0, type: double}
 
-            svd_thresh: {value: 0.1, type: double}
+            svd_thresh: {value: 0.05, type: double}
 
     jmp_replayer_rt:
         thread: rt_main
