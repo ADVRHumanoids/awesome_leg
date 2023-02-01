@@ -73,8 +73,7 @@ public:
 
 private:
 
-    bool _is_first_run = true,
-        _rt_active, _nrt_exit,
+    bool _rt_active, _nrt_exit,
         _is_sim = true,
         _reduce_dumped_sol_size = false,
         _verbose = false,
@@ -113,8 +112,7 @@ private:
                         _tau_c_raw_vect, _CT_v_vect, _g_vect,
                         _p_vect, _p_dot_vect,
                         _q_p_ft_est_vect, _q_p_dot_ft_est_vect,
-                        _tau_cmd_vect,
-                        _i_c_vect;
+                        _tau_cmd_vect;
 
     Eigen::VectorXd _base_link_pos,
                     _base_link_vel, _base_link_omega;
@@ -136,8 +134,7 @@ private:
 
     utils_defs::RotMat3D _R_world_from_tip;
 
-    utils_defs::Wrench _w_c_est, _w_c_est_loc, _meas_w_loc, _meas_w_abs,
-                  _i_c;
+    utils_defs::Wrench _w_c_est, _w_c_est_loc, _meas_w_loc, _meas_w_abs;
 
     utils_defs::Force3D _tip_f_est_abs, _meas_tip_f_loc,
                    _meas_tip_f_abs,

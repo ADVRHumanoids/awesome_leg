@@ -63,7 +63,6 @@ void ContactEstRt::init_vars()
     _q_p_ft_est_vect = std::vector<double>(_nq_ft_est);
     _q_p_dot_ft_est_vect = std::vector<double>(_nv_ft_est);
     _tau_cmd_vect = std::vector<double>(_nv_ft_est);
-    _i_c_vect = std::vector<double>(_nv_ft_est);
     _w_c_est_vect = std::vector<double>(6);
     _tip_f_est_abs_vect = std::vector<double>(3);
     _tip_t_est_abs_vect = std::vector<double>(3);
@@ -510,7 +509,6 @@ void ContactEstRt::init_nrt_ros_bridge()
     std::vector<double> q_p_ft_est_prealloc(_nv_ft_est);
     std::vector<double> q_p_dot_ft_est_prealloc(_nv_ft_est);
     std::vector<double> tau_cmd_prealloc(_nv_ft_est);
-    std::vector<double> i_c_prealloc(6);
 
     std::vector<double> f_c_prealloc(3);
     std::vector<double> t_c_prealloc(3);
@@ -522,7 +520,7 @@ void ContactEstRt::init_nrt_ros_bridge()
     contact_est_prealloc.tau_c = tau_c_prealloc;
     contact_est_prealloc.tau_cmd = tau_cmd_prealloc;
 
-    contact_est_prealloc.i_c = i_c_prealloc;
+
 
     contact_est_prealloc.tau_c_raw = tau_c_raw_prealloc;
     contact_est_prealloc.g = g_prealloc;
@@ -599,7 +597,6 @@ void ContactEstRt::pub_contact_est_status()
     Eigen::Map<utils_defs::Torque3D>(&_meas_tip_t_abs_vect[0], _meas_tip_t_abs.size(), 1) = _meas_tip_t_abs;
     Eigen::Map<utils_defs::Force3D>(&_meas_tip_f_abs_filt_vect[0], _meas_tip_f_abs_filt.size(), 1) = _meas_tip_f_abs_filt;
     Eigen::Map<utils_defs::Torque3D>(&_meas_tip_t_abs_filt_vect[0], _meas_tip_t_abs_filt.size(), 1) = _meas_tip_t_abs_filt;
-    Eigen::Map<utils_defs::Wrench>(&_i_c_vect[0], _i_c.size(), 1) = _i_c;
 
     // filling message
 
@@ -610,8 +607,6 @@ void ContactEstRt::pub_contact_est_status()
 
     status_msg->msg().tau_c_raw = _tau_c_raw_vect;
     status_msg->msg().tau_cmd = _tau_cmd_vect;
-
-    status_msg->msg().i_c = _i_c_vect;
 
     status_msg->msg().g = _g_vect;
     status_msg->msg().p = _p_vect;
@@ -702,21 +697,14 @@ void ContactEstRt::run()
 
     pub_contact_est_status();
 
-    add_data2dump_logger(); // add data to the logger
+//    add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
-
-    if (_is_first_run)
-    { // next control loops are aware that it is not the first control loop
-        _is_first_run = !_is_first_run;
-    }
 
 }
 
 void ContactEstRt::on_stop()
 {
-    _is_first_run = true;
-
     reset_flags();
 
     init_clocks();
