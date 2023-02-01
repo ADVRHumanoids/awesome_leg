@@ -345,9 +345,9 @@ void BaseEstRt::update_states()
                               _M_world_from_tip);
     _R_world_from_tip = _M_world_from_tip.rotation();
 
-//    get_fts_force(); // after update tip pose, we get the local force and
-//    // rotate it to the world (errors on the position of the passive joint won't
-//    // affect the correctness of the tip orientation)
+    get_fts_force(); // after update tip pose, we get the local force and
+    // rotate it to the world (errors on the position of the passive joint won't
+    // affect the correctness of the tip orientation)
 
     _contact_info = _est->contact_info;// get base estimation info
 
