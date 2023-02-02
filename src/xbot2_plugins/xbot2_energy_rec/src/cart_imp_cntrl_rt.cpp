@@ -2,35 +2,7 @@
 
 bool CartImpCntrlRt::get_params_from_config()
 {
-    // Reading some paramters from XBot2 config. YAML file
 
-    bool urdf_path_found = getParam("~urdf_path", _urdf_path); // urdf specific to gravity compensator
-    bool srdf_path_found = getParam("~srdf_path", _srdf_path); // srdf_path specific to gravity compensator
-    bool cartesio_path_found = getParam("~cartesio_yaml_path", _cartesio_path); // srdf_path specific to gravity compensator
-    bool stiffness_found = getParam("~stiffness", _stiffness);
-    bool damping_found = getParam("~damping", _damping);
-    bool stop_stiffness_found = getParam("~stop_stiffness", _stop_stiffness);
-    bool stop_damping_found = getParam("~stop_damping", _stop_damping);
-    bool t_exec_found = getParam("~t_exec", _t_exec);
-    bool q_target_found = getParam("~q_target", _q_p_target);
-
-    bool delta_effort_lim_found = getParam("~delta_effort_lim", _delta_effort_lim);
-
-    if (
-        !(tau_tilde_found && 
-        urdf_path_found && srdf_path_found && cartesio_path_found &&
-        stiffness_found && damping_found && stop_stiffness_found && stop_damping_found &&
-        delta_effort_lim_found &&
-        q_target_found &&
-        t_exec_found)
-        )
-    { // not all necessary parameters were read -> throw error
-        jhigh().jerror("Failed to read at least one of the plugin parameters from the YAML file.\n Please check that you have correctly assigned all of them.");
-                
-        return false;
-    }
-
-    return true;
 }
 
 void CartImpCntrlRt::init_model_interface()
@@ -131,7 +103,7 @@ void CartImpCntrlRt::starting()
     // so that when the plugin is restarted, the object is recreated)
 
     init_cartesio_solver();
-    auto task = _solver->getTask("tip"); // Getting tip cartesian task and casting it to cartesian (task)
+    auto task = _solver->getTask("hip_impedance"); // Getting tip cartesian task and casting it to cartesian (task)
     _int_task = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
 
     _model->setJointPosition(_q_p_target);

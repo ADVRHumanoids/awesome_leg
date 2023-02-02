@@ -40,18 +40,25 @@ public:
 
 private:
 
-    Eigen::VectorXd _tau_tilde, 
-                    _stiffness, _damping, 
-                    _stop_stiffness, _stop_damping,
-                    _q_p_meas, _q_p_dot_meas, _q_p_ddot_meas,
-                    _q_p_ci, _q_p_dot_ci, _q_p_ddot_ci,
-                    _q_p_target,
-                    _effort_command, _meas_effort,
-                    _effort_lims;
+    bool _rt_active, _nrt_exit,
+        _is_sim = true;
 
-    Eigen::Affine3d _target_pose;
+    int _n_jnts;
 
-    std::string _urdf_path, _srdf_path, _cartesio_path;
+    std::string _urdf_path, _srdf_path, _cartesio_path
+                _mat_path, _dump_mat_suffix,
+                _tip_link_name, _base_link_name, _test_rig_linkname,
+                _hw_type;
+
+    double _plugin_dt, _loop_time = 0.0,
+           _loop_timer_reset_time = 3600.0,
+           _matlogger_buffer_size = 1e6;
+
+    Eigen::VectorXd _q_p_meas, _q_p_dot_meas,
+                    _meas_jnt_stiff, _meas_jnt_damp,
+                    _tau_ff,
+                    _tau_cmd,
+                    _tau_meas;
 
     XBot::ModelInterface::Ptr _model;  
 
@@ -65,10 +72,7 @@ private:
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
 
-    double _dt, _time, _t_exec,
-           _delta_effort_lim;;
-
-    int _n_jnts_model, _n_jnts_robot;
+    PublisherPtr<awesome_leg::ContactEstStatus> _cont_est_status_pub;
 
     // method for computing joint efforts using the measured robot state
     bool get_params_from_config();

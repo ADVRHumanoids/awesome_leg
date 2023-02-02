@@ -104,7 +104,6 @@ void ContactEstRt::get_params_from_config()
     _srdf_path_base_est = getParamOrThrow<std::string>("~srdf_path_base_est");
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
-    _mat_name = getParamOrThrow<std::string>("~mat_name"); 
     _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 

@@ -83,7 +83,7 @@ private:
     int _n_jnts_robot,
         _nv_ft_est, _nq_ft_est;
 
-    std::string _mat_path, _mat_name, _dump_mat_suffix,
+    std::string _mat_path, _dump_mat_suffix,
                 _urdf_path_base_est, _srdf_path_base_est,
                 _tip_link_name, _base_link_name,
                 _hw_type,
@@ -93,7 +93,7 @@ private:
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-           _matlogger_buffer_size = 1e4,
+           _matlogger_buffer_size = 1e6,
            _ft_est_bw = 10.0,
            _ft_meas_cutoff_freq = 20.0,
            _svd_thresh = 0.05;
