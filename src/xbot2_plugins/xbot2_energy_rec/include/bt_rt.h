@@ -25,6 +25,8 @@
 
 #include <awesome_leg/BtRootStatus.h>
 
+#include <memory>
+
 using namespace XBot;
 using namespace XBot::Cartesian;
 using namespace BT;
@@ -63,13 +65,13 @@ private:
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type,
                 _bt_description_path,
-                _bt_root_topicname = "bt_root";
+                _bt_root_topicname = "bt_root",
+                _plugin_manager_name = "";
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e4;
 
-    std::vector<std::string> _plugin_list;
     MatLogger2::Ptr _dump_logger;
 
    // handle adapting ROS primitives for RT support
@@ -85,7 +87,7 @@ private:
 
     Tree _tree;
 
-    PublisherZMQ _publisher_zmq(Tree);
+    std::unique_ptr<PublisherZMQ> _zmq_pub_ptr;
 
     void read_config_from_yaml();
 
@@ -100,6 +102,8 @@ private:
     void init_nrt_ros_bridge();
 
     void init_dump_logger();
+
+//    void init_plugin_manager();
 
     void init_bt();
 

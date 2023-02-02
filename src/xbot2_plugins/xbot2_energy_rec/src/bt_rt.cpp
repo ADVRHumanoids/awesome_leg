@@ -32,7 +32,7 @@ void BtRt::read_config_from_yaml()
 
     _bt_description_path = getParamOrThrow<std::string>("~bt_description_path");
 
-    _plugin_list = getParamOrThrow<std::vector<std::string>>("~plugin_list");
+    _plugin_manager_name = getParamOrThrow<std::string>("~plugin_manager_name");
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -113,13 +113,13 @@ void BtRt::init_bt()
 //    StdCoutLogger _logger_cout(_tree);
 
 //    // This logger saves state changes on file
-//    FileLogger _logger_file(_tree, "/tmp/bt_trace.fbl");
+//    _logger_file = FileLogger(_tree, "/tmp/bt_trace.fbl");
 
 //    // This logger stores the execution time of each node
 //    MinitraceLogger _logger_minitrace(_tree, "/tmp/bt_trace.json"); // causes segfault
 
-//    // This logger publish status changes using ZeroMQ. Used by Groot
-    PublisherZMQ _publisher_zmq(_tree);
+    // This logger publish status changes using ZeroMQ. Used by Groot
+    _zmq_pub_ptr = std::make_unique<PublisherZMQ>(_tree);
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                        "\nBT INFO: \n");
@@ -191,6 +191,8 @@ void BtRt::starting()
     init_dump_logger(); // needs to be here
 
     init_clocks(); // initialize clocks timers
+
+//    init_plugin_manager();
 
     // Move on to run()
     start_completed();
