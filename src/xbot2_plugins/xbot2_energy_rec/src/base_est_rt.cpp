@@ -417,6 +417,7 @@ void BaseEstRt::update_states()
     _est_w_loc = _contact_info[0].wrench;
     _est_w.segment(0, 3) = _R_world_from_tip * _est_w_loc.segment(0, 3);
     _est_w.segment(3, 3) = _R_world_from_tip * _est_w_loc.segment(3, 3);
+    _est_wrench_norm = _est_w.norm();
     _vertex_frames = _contact_info[0].vertex_frames;
     _vertex_weights = _contact_info[0].vertex_weights;
     _contact_state = _contact_info[0].contact_state;
@@ -466,6 +467,7 @@ void BaseEstRt::init_dump_logger()
     _dump_logger->create("tau_c_raw_filt", _nv_be, 1, _matlogger_buffer_size);
 
     _dump_logger->create("tip_w_est_abs", _est_w.size(), 1, _matlogger_buffer_size);
+    _dump_logger->create("est_wrench_norm", 1, 1, _matlogger_buffer_size);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -502,6 +504,7 @@ void BaseEstRt::add_data2dump_logger()
     _dump_logger->add("tau_c_raw", _tau_c_raw);
     _dump_logger->add("tau_c_raw_filt", _tau_c_raw_filt);
 
+    _dump_logger->add("est_wrench_norm", _est_wrench_norm);
 
     if (_is_sim)
     { // no estimate of base link abs position on the real robot (for now)
@@ -586,7 +589,9 @@ void BaseEstRt::pub_base_est_status()
     Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_filt_vect[0], _tau_c_raw_filt.size(), 1) = _tau_c_raw_filt;
 
     base_est_msg->msg().name = _be_msg_name;
-    base_est_msg->msg().wrench = _est_w_vect;
+    base_est_msg->msg().est_wrench = _est_w_vect;
+    base_est_msg->msg().est_wrench_norm = _est_wrench_norm;
+
     base_est_msg->msg().meas_wrench = _meas_w_abs_vect;
     base_est_msg->msg().vertex_frames = _vertex_frames;
     base_est_msg->msg().vertex_weights = _vertex_weights;

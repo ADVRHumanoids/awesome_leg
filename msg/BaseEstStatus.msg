@@ -1,5 +1,6 @@
 string name
-float64[] wrench
+float64[] est_wrench
+float64 est_wrench_norm
 float64[] meas_wrench
 string[] vertex_frames
 float64[] vertex_weights

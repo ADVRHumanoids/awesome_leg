@@ -94,7 +94,7 @@ xbotcore_plugins:
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
     base_est_rt:
-        thread: base_est
+        thread: rt_main
         type: base_est_rt
         params:
 
@@ -122,7 +122,7 @@ xbotcore_plugins:
 
             obs_bw: {value: 5.0, type: double}
 
-            svd_thresh: {value: 0.05, type: double}
+            svd_thresh: {value: 0.1, type: double}
 
     jmp_replayer_rt:
         thread: rt_main
@@ -224,7 +224,7 @@ xbotcore_plugins:
 
             bt_description_path: {value: $PWD/../bt_xml/simple_test_bt.xml, type: file} # used by the model interface
 
-            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
+            plugin_manager_name: {value: "plugins_mngr_rt", type: string}
 
     plugins_mngr_rt:
         thread: rt_main

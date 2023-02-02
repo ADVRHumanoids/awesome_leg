@@ -106,7 +106,8 @@ private:
            _svd_thresh = 0.05,
            _contact_release_thr = 10.0,
            _contact_attach_thr = 5.0,
-           _g_scalar = - 9.81;
+           _g_scalar = - 9.81,
+           _est_wrench_norm = 0.0;
 
     utils_defs::Force3D _meas_tip_f_loc,
                    _meas_tip_f_abs;
