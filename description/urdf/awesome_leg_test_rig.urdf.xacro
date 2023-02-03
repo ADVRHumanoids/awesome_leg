@@ -18,27 +18,6 @@
 
     <xacro:property name="pelvis_mounting_height" value="0.25" />
 
-    <!-- <xacro:if value="$(arg dump_video_frames)">
-
-        <joint name="test_rig_2camera_link" type="fixed">
-        <parent link="test_rig" />
-        <child link="camera_link" />
-        <origin xyz="0 ${camera_depth} ${camera_height}" rpy="0 0 0" />
-        </joint>
-
-        <link name="camera_link">
-            <visual name="visual">
-            <geometry>
-            <box>
-            <size>0.1 0.1 0.1</size>
-            </box>
-            </geometry>
-            </visual>
-            
-        </link>
-
-    </xacro:if> -->
-
     <link name="world" />
 
     <joint name="world_test_rig" type="fixed">
@@ -48,6 +27,7 @@
     </joint>
     
     <link name="test_rig"> 
+
         <visual>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
@@ -55,6 +35,7 @@
             </geometry>
             <material name="brown"/>
         </visual>
+
         <!--<collision>
             <origin rpy="0 0 0" xyz="0 0 0" />
             <geometry>
