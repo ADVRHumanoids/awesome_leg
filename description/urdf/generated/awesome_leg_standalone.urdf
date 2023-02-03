@@ -8,7 +8,6 @@
 -->
 <robot name="awesome_leg">
   <!--<xacro:property name="sliding_guide_dyn_friction" value="50.0" />-->
-  <!-- <xacro:property name="payload_mass" value="7.38" /> -->
   <!-- color -->
   <material name="darkblue">
     <color rgba="0.0 0.3 0.9 1"/>
@@ -29,7 +28,6 @@
     <color rgba="0.59 0.29 0.0 1"/>
   </material>
   <!--<xacro:property name="sliding_guide_dyn_friction" value="50.0" />-->
-  <!-- <xacro:property name="payload_mass" value="7.38" /> -->
   <!-- color -->
   <material name="darkblue">
     <color rgba="0.0 0.3 0.9 1"/>
@@ -168,7 +166,7 @@
         </xacro:if> -->
   <link name="femur1">
     <inertial>
-      <origin xyz="0.0 0.0 0.0"/>
+      <origin rpy="0.0 0.0 0.0" xyz="-1.7807105e-05 -0.034271947 -0.22282064000000001"/>
       <mass value="3.3712777"/>
       <inertia ixx="0.046647423" ixy="-1.269764e-05" ixz="-3.2745809999999995e-05" iyy="0.043720135" iyz="-0.063299091" izz="0.07579481299999999"/>
     </inertial>
@@ -195,7 +193,7 @@
   </joint>
   <link name="shin1">
     <inertial>
-      <origin xyz="0.0 0.0 0.0"/>
+      <origin rpy="0.0 0.0 0.0" xyz="9.2284672e-07 0.01759883 -0.18730054000000002"/>
       <mass value="1.3106594"/>
       <inertia ixx="0.040133964999999994" ixy="4.6219082e-08" ixz="-3.043232e-07" iyy="0.040269285" iyz="0.0013816329" izz="0.0015274496"/>
     </inertial>

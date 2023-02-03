@@ -22,7 +22,7 @@
 
         <link name="femur${id}">
             <inertial>
-                <origin xyz="0.0 0.0 0.0"/>
+                <origin rpy="${89.6977809 * DEG2RAD} ${-80.3474629 * DEG2RAD} ${-89.9195968 * DEG2RAD}" xyz="${-1.7807105e-02 * mmTom} ${-3.4271947e+01 * mmTom} ${-2.2282064e+02 * mmTom}"/>
                 <mass value="3.3712777"/>
                 <inertia ixx="${4.6647423e+04 * kgmm2_2_kgm2}" iyy="${4.3720135e+04 * kgmm2_2_kgm2}" izz="${7.5794813e+04 * kgmm2_2_kgm2}"
                     ixy="${-1.2697640e+01 * kgmm2_2_kgm2}" ixz="${-3.2745810e+01 * kgmm2_2_kgm2}" iyz="${-6.3299091e+04 * kgmm2_2_kgm2}" />
@@ -52,7 +52,7 @@
 
         <link name="shin${id}">
             <inertial>
-                <origin xyz="0.0 0.0 0.0"/>
+                <origin rpy="${-87.960 * DEG2RAD} ${0.0 * DEG2RAD} ${-90 * DEG2RAD}" xyz="${9.2284672e-04 * mmTom} ${1.759883e+01 * mmTom} ${-1.8730054e+02 * mmTom}"/>
                 <mass value="1.3106594"/>
                 <inertia ixx="${4.0133965e+04 * kgmm2_2_kgm2}" iyy="${4.0269285e+04 * kgmm2_2_kgm2}" izz="${1.5274496e+03 * kgmm2_2_kgm2}"
                     ixy="${4.6219082e-02 * kgmm2_2_kgm2}" ixz="${-3.0432320e-01 * kgmm2_2_kgm2}" iyz="${1.3816329e+03 * kgmm2_2_kgm2}" />

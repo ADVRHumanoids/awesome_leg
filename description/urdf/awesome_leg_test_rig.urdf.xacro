@@ -82,13 +82,14 @@
             <material name="black"/> 
         </visual>
         <collision>
-            <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            <origin xyz="0 0 0" rpy="0.0 0.0 0.0"/>
             <geometry>
                 <mesh filename="package://awesome_leg/description/new_meshes/collision/base.stl" scale="${dmTom} ${dmTom} ${dmTom}"/>
             </geometry>
         </collision>
         <inertial>
-            <mass value="${4.5477704 + payload_mass}" />
+            <origin rpy="${89.9076318 * DEG2RAD} ${43.5501361 * DEG2RAD} ${89.8459487 * DEG2RAD}" xyz="${-6.0548104e-03 * mmTom} ${8.2902397e+01 * mmTom} ${6.0505209e+01 * mmTom}"/>
+            <mass value="${7.3800519 + payload_mass}" />
             <inertia ixx="${4.4624842e+04 * kgmm2_2_kgm2}" iyy="${2.6977590e+04 * kgmm2_2_kgm2}" izz="${2.7956754e+04 * kgmm2_2_kgm2}"
                     ixy="${-1.4644878e+01 * kgmm2_2_kgm2}" ixz="${3.0225947e+01 * kgmm2_2_kgm2}" iyz="${9.6636358e+03 * kgmm2_2_kgm2}" />
         </inertial>
