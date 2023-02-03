@@ -42,6 +42,9 @@ void JumpReplayerRt::init_vars()
     _q_p_cmd_vect = std::vector<double>(_n_jnts_robot);
     _q_p_dot_cmd_vect = std::vector<double>(_n_jnts_robot);
     _tau_cmd_vect = std::vector<double>(_n_jnts_robot);
+
+    _f_contact_ref = Eigen::VectorXd::Zero(3);
+
     _f_contact_ref_vect = std::vector<double>(3);;
 
 }
@@ -317,6 +320,8 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->create("q_p_dot_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
+    _dump_logger->create("f_cont_ref", 3, 1, _matlogger_buffer_size);
+
 }
 
 void JumpReplayerRt::add_data2dump_logger()
@@ -340,6 +345,8 @@ void JumpReplayerRt::add_data2dump_logger()
         _dump_logger->add("tau_cmd", _tau_cmd);
 
     }
+
+    _dump_logger->add("f_cont_ref", _f_contact_ref);
 
     _dump_logger->add("replay_stiffness", _replay_stiffness);
     _dump_logger->add("replay_damping", _replay_damping);
@@ -604,10 +611,16 @@ void JumpReplayerRt::pub_replay_status()
         _tau_cmd_vect[i]  = _tau_cmd(i);
     }
 
-//    for(int i = 0; i < 3; i++)
-//    {
-//        _f_contact_ref_vect[i] = _f_contact_ref(i);
-//    }
+    for(int i = 0; i < 3; i++)
+    {
+        _f_contact_ref_vect[i] = _f_contact_ref(i);
+    }
+
+    status_msg->msg().pos_ref = _q_p_cmd_vect;
+    status_msg->msg().vel_ref = _q_p_dot_cmd_vect;
+    status_msg->msg().eff_ref = _tau_cmd_vect;
+
+    status_msg->msg().f_cont_ref = _f_contact_ref_vect;
 
     _replay_status_pub->publishLoaned(std::move(status_msg));
 }
