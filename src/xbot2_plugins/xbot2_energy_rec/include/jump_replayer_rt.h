@@ -135,6 +135,9 @@ private:
                     _meas_driver_temp, _driver_temp_threshold,
                     _auxiliary_vector;
 
+    std::vector<double> _q_p_cmd_vect, _q_p_dot_cmd_vect,
+                        _tau_cmd_vect, _f_contact_ref_vect;
+
     Eigen::Affine3d _test_rig_pose, _test_rig_pose_inv,
                     _tip_pose_abs, _tip_pose_rel_base_link, _base_link_abs,
                     _base_link_abs_est, _tip_pose_abs_est,

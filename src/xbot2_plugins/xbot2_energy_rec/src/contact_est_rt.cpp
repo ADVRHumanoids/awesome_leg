@@ -636,6 +636,7 @@ bool ContactEstRt::on_initialize()
           "\n ContactEstRt: aborting since not in sim \n \n");
       abort();
     }
+
     get_params_from_config(); // load params from yaml file
 
     _plugin_dt = getPeriodSec();

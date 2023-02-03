@@ -17,7 +17,7 @@
           <contact>
              <ode>
                 <kp>1000000000</kp>
-                <kd>1</kd>
+                <kd>100</kd>
                 <!-- <min_depth> 0 </min_depth>
                 <max_vel>0.01</max_vel>- -->
                 <soft_cfm> 0.00001 </soft_cfm>

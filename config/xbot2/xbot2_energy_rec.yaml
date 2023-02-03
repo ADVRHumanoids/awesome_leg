@@ -25,7 +25,7 @@ xbotcore_threads:
     bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
     bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     iq_calib:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
+    base_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
     bus_power:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
 
 

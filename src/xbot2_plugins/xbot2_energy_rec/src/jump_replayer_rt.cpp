@@ -39,6 +39,11 @@ void JumpReplayerRt::init_vars()
 
     _auxiliary_vector = Eigen::VectorXd::Zero(_n_jnts_robot);
 
+    _q_p_cmd_vect = std::vector<double>(_n_jnts_robot);
+    _q_p_dot_cmd_vect = std::vector<double>(_n_jnts_robot);
+    _tau_cmd_vect = std::vector<double>(_n_jnts_robot);
+    _f_contact_ref_vect = std::vector<double>(3);;
+
 }
 
 void JumpReplayerRt::reset_flags()
@@ -587,6 +592,22 @@ void JumpReplayerRt::pub_replay_status()
     auto status_msg = _replay_status_pub->loanMessage();
     status_msg->msg().approach_traj_finished = _approach_traj_finished;
     status_msg->msg().traj_finished = _traj_finished;
+
+    status_msg->msg().send_pos = _send_pos_ref;
+    status_msg->msg().send_vel = _send_vel_ref;
+    status_msg->msg().send_eff = _send_eff_ref;
+
+    for(int i = 0; i < _n_jnts_robot; i++)
+    {
+        _q_p_cmd_vect[i] = _q_p_cmd(i);
+        _q_p_dot_cmd_vect[i] = _q_p_dot_cmd(i);
+        _tau_cmd_vect[i]  = _tau_cmd(i);
+    }
+
+//    for(int i = 0; i < 3; i++)
+//    {
+//        _f_contact_ref_vect[i] = _f_contact_ref(i);
+//    }
 
     _replay_status_pub->publishLoaned(std::move(status_msg));
 }
