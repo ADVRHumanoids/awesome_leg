@@ -9,6 +9,7 @@ find_package(xbot_msgs REQUIRED)
 find_package(matlogger2 REQUIRED)
 find_package(cartesian_interface REQUIRED)
 find_package(xbot2 QUIET)
+find_package(xacro REQUIRED)
 
 option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 
@@ -58,6 +59,40 @@ add_executable(robot_state_logger src/awesome_leg_utils/robot_state_logger.cpp)
 target_link_libraries(robot_state_logger ${catkin_LIBRARIES} ${XBotInterface_LIBRARIES} matlogger2::matlogger2)
 target_include_directories(robot_state_logger PRIVATE ${catkin_INCLUDE_DIRS} ${XBotInterface_INCLUDE_DIRS} ${xbot_msgs_INCLUDE_DIRS})
 set_target_properties(robot_state_logger PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+# xacro files generation
+
+# Xacro files
+file(GLOB awesome_leg_xacros
+                             ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_xbot.urdf.xacro
+                             ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro,
+                             ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_floating.urdf.xacro)
+
+set(awesome_leg_standalone  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_standalone.urdf")
+set(awesome_leg_xbot  ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/"awesome_leg_xbot.urdf")
+set(awesome_leg  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg.urdf")
+set(awesome_leg_no_sliding  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_no_sliding.urdf")
+set(awesome_leg_floating  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_floating.urdf")
+
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_standalone.urdf.xacro
+                    ${awesome_leg_standalone})
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_xbot.urdf.xacro
+                    ${awesome_leg_xbot})
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro
+                    ${awesome_leg})
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro
+                    ${awesome_leg_no_sliding})
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro
+                    ${awesome_leg_floating})
+
+list(APPEND URDF_files ${awesome_leg_standalone})
+list(APPEND URDF_files ${awesome_leg_xbot})
+list(APPEND URDF_files ${awesome_leg})
+list(APPEND URDF_files ${awesome_leg_no_sliding})
+list(APPEND URDF_files ${awesome_leg_floating})
+
+# add an abstract target to actually trigger the builds
+add_custom_target(urdf_files ALL DEPENDS ${URDF_files})
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY worlds DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
