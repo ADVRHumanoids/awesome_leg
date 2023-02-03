@@ -1,0 +1,279 @@
+# XBot2 Awesome Leg configuration file, with a tip cartesian impedance control plugin.
+
+# description
+XBotInterface:
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf
+  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg.srdf
+
+# model interface
+ModelInterface:
+  model_type: RBDL
+  is_model_floating_base: false
+
+# hal
+xbotcore_device_configs:
+    sim: $PWD/ecat_config/hal/awesome_leg_gz.yaml
+    dummy: $PWD/ecat_config/hal/awesome_leg_dummy.yaml
+    ec_pos: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_imp: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_idle: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+
+# threads
+xbotcore_threads:
+    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
+    nrt_main: {sched: other, prio: 0 , period: 0.01}
+    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
+    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 4}
+    iq_calib:  {sched: fifo , prio: 60, period: 0.01, core_id: 5}
+    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 6}
+    bus_power:  {sched: fifo , prio: 60, period: 0.01, core_id: 7}
+
+
+# plugins
+xbotcore_plugins:
+
+    homing:
+        thread: rt_main
+        type: homing_example
+
+    homing_custom:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [-1.0, -1.57], type: Eigen::VectorXd}
+
+    homing_landing:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [0.8, 0.9], type: Eigen::VectorXd}
+
+    homing_iq_calibration:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [1.57, -2.16], type: Eigen::VectorXd}
+
+    ros_io: {thread: nrt_main, type: ros_io}
+
+    ros_control: {thread: nrt_main, type: ros_control}
+
+    ec_ros: {thread: nrt_main, type: ec_ros}
+
+    iq_model_calib_rt:
+        thread: iq_calib
+        type: iq_model_calib_rt
+        params:
+
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+
+            mat_path: {value: /home/embedded/Desktop/iq_model_calib/, type: string}
+            dump_mat_suffix: {value: iq_estimation, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+
+            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+
+            K_d0_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1_ig: {value: [0.0, 0.0], type: Eigen::VectorXd} # initial guess for the dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+
+            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+
+            der_est_order: {value: 1, type: int}
+
+            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+
+            iq_calib_window_size: {value: 10000, type: int}
+
+            verbose: {value: false, type: bool}
+
+            lambda_qp_reg: {value: 0.000001, type: double}
+            alpha: {value: 5, type: int}
+            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
+            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
+
+    base_est_rt:
+        thread: base_est
+        type: base_est_rt
+        params:
+
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+
+            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            tip_link_name: {value: "tip1", type: string}
+            base_link_name: {value: "base_link", type: string}
+            test_rig_linkname: {value: "test_rig", type: string}
+
+            tip_fts_name: {value: "tip1_fts", type: string}
+            contact_linkname: {value: "tip1", type: string}
+
+            contact_release_thr: {value: 30.0, type: double}
+            contact_attach_thr: {value: 90.0, type: double}
+
+            mov_avrg_cutoff_freq: {value: 15.0, type: double}
+            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
+
+            obs_bw: {value: 5.0, type: double}
+
+            svd_thresh: {value: 0.1, type: double}
+
+    jmp_replayer_rt:
+        thread: bt_components
+        type: jmp_replayer_rt
+        params:
+
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
+
+            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
+            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
+            dump_mat_suffix: {value: traj_replay, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            is_first_jnt_passive : {value: true, type: bool}
+            resample: {value: false, type: bool}
+
+            delta_effort_lim: {value: 1e-6, type: double}
+            # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
+
+            replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
+            replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
+            # touchdown_stiffness: {value: [2500.0, 2500.0], type: Eigen::VectorXd}
+            # touchdown_damping: {value: [40.0, 40.0], type: Eigen::VectorXd}
+            stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
+            stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
+
+            send_pos_ref: {value: true, type: bool}
+            send_vel_ref: {value: true, type: bool}
+            send_eff_ref: {value: false, type: bool}
+
+            traj_pause_time: {value: 0.05, type: double} # don't go lower than the control plugin!!
+
+            tip_link_name: {value: tip1, type: string}
+            base_link_name: {value: base_link, type: string}
+
+            approach_traj_exec_time: {value: 5.0, type: double}
+            imp_ramp_time: {value: 5.0, type: double}
+
+            reduce_dumped_sol_size: {value: false, type: bool}
+
+            send_whole_traj: {value: true, type: bool}
+
+            verbose: {value: false, type: bool}
+
+            test_rig_linkname: {value: "test_rig", type: string}
+            tip_fts_name: {value: "tip1_fts", type: string}
+            contact_linkname: {value: "tip1", type: string}
+
+            driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
+
+    bus_power_rt:
+        thread: bus_power
+        type: bus_power_rt
+        params:
+
+            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: bus_power_rt, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+
+            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+
+            K_d0: {value: [3.0, 10.0], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1: {value: [1.5, 2.0], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+
+            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+
+            R: {value: [0.09, 0.09], type: Eigen::VectorXd} # phase resistance
+            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            L_m: {value: [1e-6, 1e-6], type: Eigen::VectorXd}
+
+            der_est_order: {value: 1, type: int}
+
+            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+
+            alpha: {value: 5, type: int}
+            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
+            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
+
+            use_iq_meas: {value: false, type: bool}
+
+    bt_rt:
+        thread: bt_components
+        type: bt_rt
+        params:
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt.xml, type: file} # used by the model interface
+
+            plugin_manager_name: {value: "plugins_mngr_rt", type: string}
+
+    plugins_mngr_rt:
+        thread: rt_main
+        type: plugins_mngr_rt
+        params:
+
+            async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
+
+            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
+
+            queue_size: {value: 5, type: int}
+
+#    cartesio_imp_cntrl_rt:
+#        thread: rt_main
+#        type: cartesio_imp_cntrl_rt
+#        params:
+
+    # contact_est_rt:
+    #     thread: base_est
+    #     type: contact_est_rt
+    #     params:
+
+    #         urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+    #         srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+
+    #         mat_path: {value: /tmp/, type: string}
+    #         dump_mat_suffix: {value: contact_est_rt, type: string}
+    #         matlogger_buffer_size: {value: 1e5, type: double}
+
+    #         tip_link_name: {value: "tip1", type: string}
+    #         base_link_name: {value: "base_link", type: string}
+    #         verbose: {value: false, type: bool}
+
+    #         test_rig_linkname: {value: "test_rig", type: string}
+    #         tip_fts_name: {value: "tip1_fts", type: string}
+    #         contact_linkname: {value: "tip1", type: string}
+
+    #         ft_est_bw: {value: 50.0, type: double}
+    #         svd_thresh: {value: 0.05, type: double}
+    #         use_ground_truth_gz: {value: true, type: bool} # whether to use ground truth from Gazebo (if working in simulation)
+
+    #         meas_w_filt_bw: {value: 1000.0, type: double}
+
+# global parameters
+xbotcore_param:
+    /jm/tx_filter_autostart: {value: true, type: bool}
+    /jm/tx_filter_cutoff: {value: 2.0, type: double}
+    # /jm/tx_filter_cutoff: {value: 500.0, type: double}
+    /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
