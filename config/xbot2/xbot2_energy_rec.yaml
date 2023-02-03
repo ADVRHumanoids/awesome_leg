@@ -20,13 +20,13 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
+    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
-    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
-    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 4}
-    iq_calib:  {sched: fifo , prio: 60, period: 0.01, core_id: 5}
-    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 6}
-    bus_power:  {sched: fifo , prio: 60, period: 0.01, core_id: 7}
+    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
+    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    iq_calib:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+    base_est: {sched: fifo , prio: 60, period: 0.001, core_id: 3}
+    bus_power:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
 
 
 # plugins
@@ -245,31 +245,31 @@ xbotcore_plugins:
 #        type: cartesio_imp_cntrl_rt
 #        params:
 
-    # contact_est_rt:
-    #     thread: base_est
-    #     type: contact_est_rt
-    #     params:
+    contact_est_rt:
+        thread: base_est
+        type: contact_est_rt
+        params:
 
-    #         urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-    #         srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-    #         mat_path: {value: /tmp/, type: string}
-    #         dump_mat_suffix: {value: contact_est_rt, type: string}
-    #         matlogger_buffer_size: {value: 1e5, type: double}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: contact_est_rt, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
-    #         tip_link_name: {value: "tip1", type: string}
-    #         base_link_name: {value: "base_link", type: string}
-    #         verbose: {value: false, type: bool}
+            tip_link_name: {value: "tip1", type: string}
+            base_link_name: {value: "base_link", type: string}
+            verbose: {value: false, type: bool}
 
-    #         test_rig_linkname: {value: "test_rig", type: string}
-    #         tip_fts_name: {value: "tip1_fts", type: string}
-    #         contact_linkname: {value: "tip1", type: string}
+            test_rig_linkname: {value: "test_rig", type: string}
+            tip_fts_name: {value: "tip1_fts", type: string}
+            contact_linkname: {value: "tip1", type: string}
 
-    #         ft_est_bw: {value: 50.0, type: double}
-    #         svd_thresh: {value: 0.05, type: double}
-    #         use_ground_truth_gz: {value: true, type: bool} # whether to use ground truth from Gazebo (if working in simulation)
+            ft_est_bw: {value: 50.0, type: double}
+            svd_thresh: {value: 0.05, type: double}
+            use_ground_truth_gz: {value: true, type: bool} # whether to use ground truth from Gazebo (if working in simulation)
 
-    #         meas_w_filt_bw: {value: 1000.0, type: double}
+            meas_w_filt_bw: {value: 1000.0, type: double}
 
 # global parameters
 xbotcore_param:
