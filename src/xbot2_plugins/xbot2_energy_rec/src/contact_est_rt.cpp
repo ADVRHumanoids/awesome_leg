@@ -150,9 +150,9 @@ void ContactEstRt::init_model_interfaces()
 {
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-        "\n BaseEstRt: URDF for xbot2 model interface loaded @ {}\n", _urdf_path_base_est);
+        "\n ContactEstRt: URDF for xbot2 model interface loaded @ {}\n", _urdf_path_base_est);
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-        "\n BaseEstRt: SRDF for xbot2 model interface loaded @ {}\n \n", _srdf_path_base_est);
+        "\n ContactEstRt: SRDF for xbot2 model interface loaded @ {}\n \n", _srdf_path_base_est);
 
     XBot::ConfigOptions xbot_cfg;
     xbot_cfg.set_urdf_path(_urdf_path_base_est);
@@ -165,14 +165,14 @@ void ContactEstRt::init_model_interfaces()
     _base_est_model = XBot::ModelInterface::getModel(xbot_cfg);
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-        "\n BaseEstRt: XBot2 model interface initialized successfully \n \n");
+        "\n ContactEstRt: XBot2 model interface initialized successfully \n \n");
 
     _pin_model_ptr.reset(new ModelInterface::Model(_urdf_path_base_est));
     _nq_ft_est = _pin_model_ptr->get_nq();
     _nv_ft_est = _pin_model_ptr->get_nv();
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-        "\n BaseEstRt: Pinocchio-based model interface initialized successfully \n \n");
+        "\n ContactEstRt: Pinocchio-based model interface initialized successfully \n \n");
 
 }
 
@@ -630,6 +630,12 @@ bool ContactEstRt::on_initialize()
 
     is_sim(sim_flagname); // see if we are running a simulation
 
+    if(!_is_sim)
+    {
+      jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+          "\n ContactEstRt: aborting since not in sim \n \n");
+      abort();
+    }
     get_params_from_config(); // load params from yaml file
 
     _plugin_dt = getPeriodSec();
