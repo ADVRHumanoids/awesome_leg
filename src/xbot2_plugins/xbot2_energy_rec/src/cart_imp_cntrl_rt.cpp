@@ -76,8 +76,9 @@ void CartImpCntrlRt::init_cartesio_solver()
         "\n ## CartImpCntrlRt:\nTASK LIST:\n");
     for (std::string task: _task_list)
     {
+
         jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-            "\n- {}\n", task);
+            "\n- {}", task);
     }
 
     // getting tasks
@@ -86,6 +87,38 @@ void CartImpCntrlRt::init_cartesio_solver()
     _actuated_jnt_tracking = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("actuated_jnt_tracking"));
     _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
 //    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
+
+
+    _cart_impedance = _hip_impedance->getImpedance();
+    _K = _cart_impedance.stiffness;
+    _D = _cart_impedance.damping;
+//    _Lambda = _cart_impedance.inertia;
+
+    _hip_impedance->getPoseReference(_M_ref_imp);
+
+}
+
+void CartImpCntrlRt::update_tasks()
+{
+    _hip_impedance->setImpedance(_cart_impedance);
+
+    _hip_impedance->setPoseReference(_M_ref_imp);
+
+     // _touchdown_conf->setActivationState(Cartesian::ActivationState::Enabled);
+    // _touchdown_conf->setActivationState(Cartesian::ActivationState::Disabled);
+
+}
+
+void CartImpCntrlRt::update_ci_solver()
+{
+
+    _ci_solver->update(_loop_time, _plugin_dt);
+
+}
+
+void CartImpCntrlRt::compute_inverse_dyn()
+{
+    _model->computeInverseDynamics(_tau_cmd);
 
 }
 
@@ -102,6 +135,15 @@ void CartImpCntrlRt::update_state()
 //    _model->setJointPosition(_q_p_meas);
 //    _model->setJointVelocity(_q_p_dot_meas);
 //    _model->update();
+
+//    Eigen::Vector6d::Map(inertia.data()).asDiagonal()
+
+    update_tasks();
+
+    update_ci_solver();
+
+    compute_inverse_dyn();
+
     
 }
 

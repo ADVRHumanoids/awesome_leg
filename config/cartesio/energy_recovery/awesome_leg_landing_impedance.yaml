@@ -29,8 +29,8 @@ hip_impedance:
     type: "Interaction" # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
     name: "hip_impedance"
     lambda: 1 # if using Interaction, this is simply a scaling factor
-    stiffness: [0, 100, 100, 0, 10, 0]
-    damping: [0, 5, 5, 0, 1, 0]
+    stiffness: [0, 100, 100, 0, 0, 0]
+    damping: [0, 5, 5, 0, 0, 0]
     base_link: "base_link"
     distal_link: "tip1"
     indices: [0, 2]
@@ -59,7 +59,7 @@ touchdown_conf: # tracking of touchdown configuration (to be used during flight 
 #    type: "TorqueLimits"
 #    name: "effort_limits"
 #    bound_scaling: 1
-#    indices: [1, 2]
+#    indices: [0, 1, 2] # how to handle the passive joint and the fact that we don't want to use an estimate of the contact force?
 
 #JointLimits:
 #  lib_name: "libcartesio_acceleration_support.so"

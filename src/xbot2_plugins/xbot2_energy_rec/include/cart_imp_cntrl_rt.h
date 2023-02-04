@@ -77,11 +77,18 @@ private:
     Cartesian::PosturalTask::Ptr _touchdown_conf;
     Cartesian::acceleration::TorqueLimits::Ptr _torque_limits;
 
+    Cartesian::ActivationState _touchdown_conf_task_state =
+
     MatLogger2::Ptr _logger;
 
-    Cartesian::Impedance _impedance;
-    Eigen::Matrix6d _cart_stiffness;
-    Eigen::Matrix6d _cart_damping;
+    Cartesian::Impedance _cart_impedance;
+    Eigen::Vector6d _cart_stiffness;
+    Eigen::Vector6d _cart_damping;
+    Eigen::Matrix6d _K;
+    Eigen::Matrix6d _D;
+    Eigen::Matrix6d _Lambda;
+
+    Eigen::Affine3d _M_ref_imp;
 
     void get_params_from_config();
     void init_model_interface();
@@ -91,6 +98,11 @@ private:
 
     void init_clocks();
     void update_clocks();
+
+    void update_tasks();
+    void update_ci_solver();
+
+    void compute_inverse_dyn();
 
 };
 
