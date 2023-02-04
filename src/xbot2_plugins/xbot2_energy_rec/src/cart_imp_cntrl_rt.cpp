@@ -70,14 +70,22 @@ void CartImpCntrlRt::init_cartesio_solver()
                                                                  ik_pb,
                                                                  ci_ctx);
 
+    _task_list = _ci_solver->getTaskList();
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+        "\n ## CartImpCntrlRt:\nTASK LIST:\n");
+    for (std::string task: _task_list)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+            "\n- {}\n", task);
+    }
+
     // getting tasks
     _ground_contact = task_as<Cartesian::CartesianTask>(_ci_solver->getTask("ground_contact"));
-//    _hip_impedance = task_as<Cartesian::InteractionTask>(_ci_solver->getTask("hip_impedance"));
-//    _actuated_jnt_tracking = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("actuated_jnt_tracking"));
-//    _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
+    _hip_impedance = task_as<Cartesian::InteractionTask>(_ci_solver->getTask("hip_impedance"));
+    _actuated_jnt_tracking = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("actuated_jnt_tracking"));
+    _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
 //    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
-
-//    _int_task = std::dynamic_pointer_cast<InteractionTask>(task); // interaction cartesian task (exposes additional methods)
 
 }
 
@@ -156,7 +164,7 @@ void CartImpCntrlRt::starting()
 //    _int_task->setPoseTarget(_target_pose, _t_exec);
 
     // // Update the model with the current robot state
-    update_state();  
+//    update_state();
 
     // Reset CartesIO solver
     _ci_solver->reset(_loop_time);
@@ -172,7 +180,7 @@ void CartImpCntrlRt::run()
 {   
 
     // Update the measured state
-    update_state();
+//    update_state();
      
     // and update CartesIO solver using the measured state
 //    _solver->update(_loop_time, _plugin_dt);

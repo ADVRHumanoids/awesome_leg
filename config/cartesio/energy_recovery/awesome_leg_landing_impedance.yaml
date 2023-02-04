@@ -11,49 +11,55 @@ stack: # tasks
     - ["touchdown_conf"]
 
 constraints:
-    - ["ground_contact"]
-    - ["actuated_jnt_tracking"]
-    - ["effort_limits"]
+    - "ground_contact"
+    - "actuated_jnt_tracking"
+#    - "effort_limits"
 
 ground_contact: # tip is supposed in contact with the environment when using the landing controller
-  lib_name: "libcartesio_acceleration_support.so"
-  type: "Cartesian"
-  distal_link: "tip1"
-  lambda: 0.0 # no pos feedback
-  lambda2: 1.0 # vel gain
-  indices: [0, 2]
+    lib_name: "libcartesio_acceleration_support.so"
+    type: "Cartesian"
+    name: "ground_contact"
+    distal_link: "tip1"
+    lambda: 0.0 # no pos feedback
+    lambda2: 1.0 # vel gain
+    indices: [0, 2]
 
 hip_impedance:
-  lib_name: "libcartesio_acceleration_support.so"
-  type: "Interaction" # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
-  lambda: 1 # if using Interaction, this is simply a scaling factor
-  stiffness: [0, 100, 100, 0, 10, 0]
-  damping: [0, 5, 5, 0, 1, 0]
-  distal_link: "base_link"
-  indices: [0, 2]
+    lib_name: "libcartesio_acceleration_support.so"
+    type: "Interaction" # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
+    name: "hip_impedance"
+    lambda: 1 # if using Interaction, this is simply a scaling factor
+    stiffness: [0, 100, 100, 0, 10, 0]
+    damping: [0, 5, 5, 0, 1, 0]
+    base_link: "base_link"
+    distal_link: "tip1"
+    indices: [0, 2]
 
 actuated_jnt_tracking: # we track joint measurements and leave the base free, so that it can be estimated via IK
-  lib_name: "libcartesio_acceleration_support.so"
-  type: "Postural"
-  lambda: 0.0 # no pos feedback
-  lambda2: 1.0 # vel gain
-  disabled_joints:
-      - "test_rig2base"
+    lib_name: "libcartesio_acceleration_support.so"
+    type: "Postural"
+    name: "actuated_jnt_tracking"
+    lambda: 0.0 # no pos feedback
+    lambda2: 1.0 # vel gain
+    disabled_joints:
+       - "test_rig2base"
 
 touchdown_conf: # tracking of touchdown configuration (to be used during flight phase)
-  lib_name: "libcartesio_acceleration_support.so"
-  type: "Postural"
-  lambda: 1.0 # pos feedback gain
-  lambda2: 0.0 # vel feedback gain
-  weight: 1.0 # task weight
-  disabled_joints:
+    lib_name: "libcartesio_acceleration_support.so"
+    type: "Postural"
+    name: "touchdown_conf"
+    lambda: 1.0 # pos feedback gain
+    lambda2: 0.0 # vel feedback gain
+    weight: 1.0 # task weight
+    disabled_joints:
       - "test_rig2base"
 
-effort_limits:
-  lib_name: "libcartesio_acceleration_support.so"
-  type: "TorqueLimits"
-  bound_scaling: 1
-  indices: [1, 2]
+#effort_limits:
+#    lib_name: "libcartesio_acceleration_support.so"
+#    type: "TorqueLimits"
+#    name: "effort_limits"
+#    bound_scaling: 1
+#    indices: [1, 2]
 
 #JointLimits:
 #  lib_name: "libcartesio_acceleration_support.so"
@@ -63,6 +69,7 @@ effort_limits:
 #VelocityLimits:
 #  lib_name: libcartesio_acceleration_support.so
 #  type: VelocityLimits
+#  name: "VelocityLimits"
 #  bound_scaling: 1
 
 

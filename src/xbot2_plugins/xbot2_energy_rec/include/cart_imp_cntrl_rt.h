@@ -65,6 +65,8 @@ private:
                     _tau_meas,
                     _effort_lims;
 
+    std::vector<std::string> _task_list;
+
     XBot::ModelInterface::Ptr _model;  
 
     Cartesian::CartesianInterfaceImpl::Ptr _ci_solver;
