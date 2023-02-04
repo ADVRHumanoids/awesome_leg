@@ -17,7 +17,7 @@ constraints: ["Postural"]
 #  bound_scaling: 1
 
 Postural: # we want to track the measurements at the joint level and estimate the rest
-    type: Postural
+    type: "Postural"
     lambda: 0.0 # pos gain
     lambda2: 0.05 # vel gain
     disabled_joints:
@@ -25,6 +25,6 @@ Postural: # we want to track the measurements at the joint level and estimate th
 
 ground_contact:
   type: "Cartesian"
-  distal_link: tip1
+  distal_link: "tip1"
   indices: [0, 2]
 
