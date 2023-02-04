@@ -20,11 +20,6 @@ option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
 #  BypassDspRt.srv
 #)
 
-add_message_files(
-  FILES
-  MatReplayerStatus.msg
-)
-
 add_service_files(
   FILES
   JumpNow.srv
@@ -33,6 +28,7 @@ add_service_files(
 
 add_message_files(
   FILES
+  MatReplayerStatus.msg
   IqEstStatus.msg
   IqCalStatus.msg
   ContactEstStatus.msg
@@ -50,7 +46,7 @@ catkin_package(CATKIN_DEPENDS message_runtime)
 
 # add_subdirectory(src/xbot2_plugins/xbot2_grav_comp)
 # add_subdirectory(src/xbot2_plugins/xbot2_imp_cntrl)
-add_subdirectory(src/xbot2_plugins/xbot2_jump)
+#add_subdirectory(src/xbot2_plugins/xbot2_jump)
 #add_subdirectory(src/xbot2_plugins/xbot2_iq_model_calib)
 #add_subdirectory(src/xbot2_plugins/xbot2_contact_est)
 add_subdirectory(src/xbot2_plugins/xbot2_energy_rec)
@@ -59,8 +55,6 @@ add_executable(robot_state_logger src/awesome_leg_utils/robot_state_logger.cpp)
 target_link_libraries(robot_state_logger ${catkin_LIBRARIES} ${XBotInterface_LIBRARIES} matlogger2::matlogger2)
 target_include_directories(robot_state_logger PRIVATE ${catkin_INCLUDE_DIRS} ${XBotInterface_INCLUDE_DIRS} ${xbot_msgs_INCLUDE_DIRS})
 set_target_properties(robot_state_logger PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
-
-# xacro files generation
 
 # Xacro files
 file(GLOB awesome_leg_xacros
