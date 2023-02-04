@@ -3,15 +3,19 @@
 
 #include <xbot2/xbot2.h>
 #include <matlogger2/matlogger2.h>
+
 #include <cartesian_interface/CartesianInterfaceImpl.h>
 #include <cartesian_interface/sdk/problem/Interaction.h>
+#include <cartesian_interface/sdk/problem/Cartesian.h>
+#include <cartesian_interface/sdk/problem/Postural.h>
+
+#include <cartesio_acceleration_support/TorqueLimits.h>
 
 #include <iostream>
 #include <cartesian_interface/ros/RosClient.h>
 
 using namespace std;
 using namespace XBot;
-using namespace XBot::Cartesian;
 
 /**
  * @brief
@@ -43,43 +47,48 @@ private:
     bool _rt_active, _nrt_exit,
         _is_sim = true;
 
-    int _n_jnts;
+    int _n_jnts_model, _n_jnts_robot;
 
-    std::string _urdf_path, _srdf_path, _cartesio_path
+    std::string _urdf_path, _srdf_path, _ci_yaml_path,
                 _mat_path, _dump_mat_suffix,
                 _tip_link_name, _base_link_name, _test_rig_linkname,
                 _hw_type;
 
-    double _plugin_dt, _loop_time = 0.0,
-           _loop_timer_reset_time = 3600.0,
+    double _plugin_dt,
+           _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
            _matlogger_buffer_size = 1e6;
 
     Eigen::VectorXd _q_p_meas, _q_p_dot_meas,
                     _meas_jnt_stiff, _meas_jnt_damp,
                     _tau_ff,
                     _tau_cmd,
-                    _tau_meas;
+                    _tau_meas,
+                    _effort_lims;
 
     XBot::ModelInterface::Ptr _model;  
 
-    CartesianInterface::Ptr _solver;
+    Cartesian::CartesianInterfaceImpl::Ptr _ci_solver;
 
-    InteractionTask::Ptr _int_task;
+    Cartesian::CartesianTask::Ptr _ground_contact;
+    Cartesian::InteractionTask::Ptr _hip_impedance;
+    Cartesian::PosturalTask::Ptr _actuated_jnt_tracking;
+    Cartesian::PosturalTask::Ptr _touchdown_conf;
+    Cartesian::acceleration::TorqueLimits::Ptr _torque_limits;
 
     MatLogger2::Ptr _logger;
 
-    Impedance _impedance;
+    Cartesian::Impedance _impedance;
     Eigen::Matrix6d _cart_stiffness;
     Eigen::Matrix6d _cart_damping;
 
-    PublisherPtr<awesome_leg::ContactEstStatus> _cont_est_status_pub;
-
-    // method for computing joint efforts using the measured robot state
-    bool get_params_from_config();
+    void get_params_from_config();
     void init_model_interface();
     void init_cartesio_solver();
     void update_state();
     void saturate_input();
+
+    void init_clocks();
+    void update_clocks();
 
 };
 

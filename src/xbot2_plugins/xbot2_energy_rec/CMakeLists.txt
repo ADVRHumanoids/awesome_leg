@@ -40,11 +40,11 @@ target_include_directories(bus_power_rt PRIVATE include src ${matlogger2_INCLUDE
 add_dependencies(bus_power_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(bus_power_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
-#add_xbot2_plugin(cart_imp_cntrl_rt
-#    src/cart_imp_cntrl_rt.cpp)
-#target_include_directories(cart_imp_cntrl_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
-#add_dependencies(cart_imp_cntrl_rt ${PROJECT_NAME}_generate_messages)
-#target_link_libraries(cart_imp_cntrl_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2 xbot2::xbot2_ros_support)
+add_xbot2_plugin(cart_imp_cntrl_rt
+    src/cart_imp_cntrl_rt.cpp)
+target_include_directories(cart_imp_cntrl_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(cart_imp_cntrl_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(cart_imp_cntrl_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2 xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(plugins_mngr_rt
     src/plugins_manager_rt.cpp)
@@ -85,7 +85,7 @@ if(${behaviortree_cpp_v3_FOUND})
 endif()
 
 install(
-    TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_mngr_rt DESTINATION lib
+    TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_mngr_rt cart_imp_cntrl_rt DESTINATION lib
 )
 
 install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
