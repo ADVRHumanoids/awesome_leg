@@ -80,8 +80,7 @@ public:
 
 private:
 
-    bool _is_first_run = true,
-        _pause_started = false, _pause_finished = false,
+    bool _pause_started = false, _pause_finished = false,
         _rt_active, _nrt_exit,
         _is_sim = true,
         _reduce_dumped_sol_size = false,
