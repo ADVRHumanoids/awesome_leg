@@ -35,6 +35,7 @@ add_message_files(
   RegPowStatus.msg
   BaseEstStatus.msg
   BtRootStatus.msg
+  PluginsManStatus.msg
 )
 
 generate_messages(
