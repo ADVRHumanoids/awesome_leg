@@ -88,7 +88,6 @@ void CartImpCntrlRt::init_cartesio_solver()
     _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
 //    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
 
-
     _cart_impedance = _hip_impedance->getImpedance();
     _K = _cart_impedance.stiffness;
     _D = _cart_impedance.damping;
@@ -118,6 +117,7 @@ void CartImpCntrlRt::update_ci_solver()
 
 void CartImpCntrlRt::compute_inverse_dyn()
 {
+
     _model->computeInverseDynamics(_tau_cmd);
 
 }

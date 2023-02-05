@@ -77,8 +77,6 @@ private:
     Cartesian::PosturalTask::Ptr _touchdown_conf;
     Cartesian::acceleration::TorqueLimits::Ptr _torque_limits;
 
-    Cartesian::ActivationState _touchdown_conf_task_state =
-
     MatLogger2::Ptr _logger;
 
     Cartesian::Impedance _cart_impedance;
