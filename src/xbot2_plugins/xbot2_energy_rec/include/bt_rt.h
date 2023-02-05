@@ -62,11 +62,15 @@ private:
     bool _rt_active, _nrt_exit,
         _is_sim = true;
 
+    int _queue_size = 1;
+
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type,
                 _bt_description_path,
                 _bt_root_topicname = "bt_root",
-                _plugin_manager_name = "";
+                _plugin_manager_name = "",
+                _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
+                ;
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -78,7 +82,6 @@ private:
     RosSupport::UniquePtr _ros;
 
     awesome_leg::BtRootStatus _bt_root_status_msg;
-
     PublisherPtr<awesome_leg::BtRootStatus> _bt_root_status_pub;
 
     NodeStatus _bt_root_status;
@@ -88,6 +91,10 @@ private:
     Tree _tree;
 
     std::unique_ptr<PublisherZMQ> _zmq_pub_ptr;
+
+    // internal publisher and subscribers for triggering the plugin manager
+    PublisherPtr<Runnable::Command> _plugins_man_strt_req_pubs;
+    SubscriberPtr<bool> _plugins_man_strt_res_subs;
 
     void read_config_from_yaml();
 
@@ -103,7 +110,7 @@ private:
 
     void init_dump_logger();
 
-//    void init_plugin_manager();
+    void init_plugin_manager();
 
     void init_bt();
 

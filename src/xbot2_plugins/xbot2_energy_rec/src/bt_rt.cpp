@@ -33,6 +33,9 @@ void BtRt::read_config_from_yaml()
     _bt_description_path = getParamOrThrow<std::string>("~bt_description_path");
 
     _plugin_manager_name = getParamOrThrow<std::string>("~plugin_manager_name");
+
+    _queue_size = getParamOrThrow<int>("~queue_size");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -163,6 +166,15 @@ void BtRt::pub_bt_status()
     _bt_root_status_pub->publish(_bt_root_status_msg);
 }
 
+void BtRt::init_plugin_manager()
+{
+
+    _plugins_man_strt_req_pubs->publish(Command::Start);
+
+    _plugins_man_strt_res_subs->run(); // processes plugins command service feedback
+
+}
+
 bool BtRt::on_initialize()
 {
     std::string sim_flagname = "sim";
@@ -181,6 +193,21 @@ bool BtRt::on_initialize()
 
     init_bt();
 
+    // plugin manager asynchronous starting
+    auto res_callback_cmd = [this](const bool& msg)
+    {
+
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                           "Received command response {} from plugin manager\n",
+                           msg);
+
+    };
+
+    _plugins_man_strt_req_pubs = advertise<Runnable::Command>(_async_service_pattern + _plugin_manager_name + "/command/request");
+    _plugins_man_strt_res_subs = subscribe<bool>(_async_service_pattern + _plugin_manager_name + "/command/response",
+                                res_callback_cmd,
+                                _queue_size);
+
     return true;
 
 }
@@ -192,7 +219,7 @@ void BtRt::starting()
 
     init_clocks(); // initialize clocks timers
 
-//    init_plugin_manager();
+    init_plugin_manager();
 
     // Move on to run()
     start_completed();
