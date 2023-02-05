@@ -103,7 +103,7 @@ void BtRt::init_nrt_ros_bridge()
     _ros = std::make_unique<RosSupport>(nh);
 
     // ros publisher for root status
-    _bt_root_status_pub= _ros->advertise<awesome_leg::BtRootStatus>(_bt_root_topicname + "/status", 1);
+    _bt_root_status_pub = _ros->advertise<awesome_leg::BtRootStatus>(_bt_root_topicname + "/status", 1);
 
 }
 
@@ -209,6 +209,22 @@ bool BtRt::on_initialize()
     _plugins_man_strt_res_subs = subscribe<bool>(_async_service_pattern + _plugin_manager_name + "/command/response",
                                 res_callback_cmd,
                                 _queue_size);
+
+
+    // lambda to define callback
+//    auto plugins_status_callback = [this](const awesome_leg::PluginsManStatus& msg)
+//    {
+
+//        std::cout << Colors::kBlue << "Received status from plugin manager" << Colors::kEndl << std::endl;
+
+//        _plugins_status_msg.all_plugins_running = msg.all_plugins_running;
+//        _plugins_status_msg.all_plugins_stopped = msg.all_plugins_stopped;
+
+//    };
+
+//    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>(_plugins_stat_topicname,
+//                            plugins_status_callback,
+//                            1);
 
     return true;
 

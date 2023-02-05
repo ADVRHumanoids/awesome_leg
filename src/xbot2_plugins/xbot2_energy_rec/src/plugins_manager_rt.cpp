@@ -79,9 +79,9 @@ bool PluginsManagerRt::on_initialize()
 
     _plugins_stat_pub = advertise<awesome_leg::PluginsManStatus>(_plugins_stat_topicname);
 
-    _start_plugins_srvr = advertiseService<service::Empty, bool>("start_plugins",
+    _start_plugins_srvr = advertiseService<service::Empty, bool>(_start_plugins_servname,
                                         &PluginsManagerRt::on_start_signal, this);
-    _stop_plugins_srvr = advertiseService<service::Empty, bool>("stop_plugins",
+    _stop_plugins_srvr = advertiseService<service::Empty, bool>(_stop_plugins_servname,
                                         &PluginsManagerRt::on_stop_signal, this);
     return true;
 
@@ -225,7 +225,6 @@ void PluginsManagerRt::run()
     }
 
     _triggered = false; // next run, we'll wait for another trigger signal
-
 
     _all_plugins_running = _running_plugins_counter == _plugin_list.size() ? true : false;
     _all_plugins_stopped = _stopped_plugins_counter == _plugin_list.size() ? true : false;

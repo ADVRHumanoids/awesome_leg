@@ -54,7 +54,9 @@ private:
     double _plugin_dt;
 
     std::string _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
-                _plugins_stat_topicname = "plugins_manager/plugins_status";
+                _plugins_stat_topicname = "plugins_manager/plugins_status",
+                _start_plugins_servname = "start_plugins",
+                _stop_plugins_servname = "stop_plugins";
 
     std::vector<std::string> _plugin_list;
     std::vector<std::string> _plugins_status;

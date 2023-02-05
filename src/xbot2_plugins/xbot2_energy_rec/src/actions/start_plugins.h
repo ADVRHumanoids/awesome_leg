@@ -31,16 +31,20 @@ namespace BT
 
             int _queue_size = 1;
 
+            std::string _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/";
+
+            std::string _start_plugins_servname = "start_plugins";
+
+            std::string _plugins_manager_name = "plugins_mngr_rt";
+
+            std::string _asynch_servicepath;
+
+            service::Empty empty_msg;
+
             NodeStatus tick() override;
 
-            std::string _plugins_stat_topicname = "plugins_manager/plugins_status";
-
-            awesome_leg::PluginsManStatus _plugins_status_msg;
-
             // internal XBot2 publisher to employ asynchronous server exposed by plugins manager
-//            PublisherPtr<> _plugins_starter_pub;
-
-            SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
+            PublisherPtr<service::Empty> _plugins_starter_pub;
 
     };
 

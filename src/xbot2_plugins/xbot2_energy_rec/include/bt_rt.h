@@ -24,6 +24,7 @@
 #include "actions/start_plugins.h"
 
 #include <awesome_leg/BtRootStatus.h>
+#include <awesome_leg/PluginsManStatus.h>
 
 #include <memory>
 
@@ -95,6 +96,8 @@ private:
     // internal publisher and subscribers for triggering the plugin manager
     PublisherPtr<Runnable::Command> _plugins_man_strt_req_pubs;
     SubscriberPtr<bool> _plugins_man_strt_res_subs;
+
+//    SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
 
     void read_config_from_yaml();
 
