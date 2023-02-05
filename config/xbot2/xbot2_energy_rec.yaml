@@ -227,6 +227,12 @@ xbotcore_plugins:
 
             plugin_manager_name: {value: "plugins_mngr_rt", type: string}
 
+            async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
+
+            plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
+
+            queue_size: {value: 5, type: int}
+
     plugins_mngr_rt:
         thread: rt_main
         type: plugins_mngr_rt
@@ -236,7 +242,11 @@ xbotcore_plugins:
 
             plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
 
+            plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
+
             queue_size: {value: 5, type: int}
+
+            verbose: {value: true, type: bool}
 
     cartesio_imp_cntrl_rt:
         thread: rt_main
