@@ -1,7 +1,34 @@
 #include "start_plugins.h"
 #include "../utils_defs.hpp"
 
+#include <xbot2/intraprocess/topic.h>
+
 using namespace BT;
+
+StartPlugins::StartPlugins(const std::string& name,
+             std::string plugins_stat_topicname,
+             bool verbose) :
+    AsyncActionNode(name, {}),
+    Task("start_plugins_task", "", strmap()),
+    _plugins_stat_topicname{plugins_stat_topicname}, _verbose{verbose}
+{
+    setRegistrationID(name);
+
+    // lambda to define callback
+    auto plugins_status_callback = [this](const awesome_leg::PluginsManStatus& msg)
+    {
+
+        std::cout << Colors::kBlue << "Received status from plugin manager" << Colors::kEndl << std::endl;
+
+        _plugins_status_msg.all_plugins_running = msg.all_plugins_running;
+        _plugins_status_msg.all_plugins_stopped = msg.all_plugins_stopped;
+
+    };
+
+    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>(_plugins_stat_topicname,
+                            plugins_status_callback,
+                            _queue_size);
+}
 
 NodeStatus StartPlugins::tick()
 {
