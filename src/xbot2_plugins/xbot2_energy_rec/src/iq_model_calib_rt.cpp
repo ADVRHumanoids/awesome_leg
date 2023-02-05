@@ -631,7 +631,7 @@ void IqModelCalibRt::run()
 
     update_state(); // update all necessary states
 
-    _queue.run();
+    _queue.run(); // processes callbacks
 
     // calibrate iq model
     run_iq_calib();
