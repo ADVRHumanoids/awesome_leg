@@ -5,12 +5,9 @@
 
 using namespace BT;
 
-StartPlugins::StartPlugins(const std::string& name,
-             std::string plugins_stat_topicname,
-             bool verbose) :
+StartPlugins::StartPlugins(const std::string& name) :
     AsyncActionNode(name, {}),
-    Task("start_plugins_task", "", strmap()),
-    _plugins_stat_topicname{plugins_stat_topicname}, _verbose{verbose}
+    Task("start_plugins_task", "")
 {
     setRegistrationID(name);
 

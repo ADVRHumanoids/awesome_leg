@@ -23,9 +23,7 @@ namespace BT
 
         public:
 
-            StartPlugins(const std::string& name,
-                         std::string plugins_stat_topicname,
-                         bool verbose = false);
+            StartPlugins(const std::string& name);
 
         private:
 

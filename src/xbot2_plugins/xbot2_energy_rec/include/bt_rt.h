@@ -70,7 +70,7 @@ private:
                 _bt_root_topicname = "bt_root",
                 _plugin_manager_name = "",
                 _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
-                ;
+                _plugins_stat_topicname  = "plugins_manager/plugins_status";
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,

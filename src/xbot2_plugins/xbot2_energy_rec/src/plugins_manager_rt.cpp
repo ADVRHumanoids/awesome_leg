@@ -77,7 +77,6 @@ bool PluginsManagerRt::on_initialize()
         _plugins_status[i] = "";
     }
 
-
     _plugins_stat_pub = advertise<awesome_leg::PluginsManStatus>(_plugins_stat_topicname);
 
     _start_plugins_srvr = advertiseService<service::Empty, bool>("start_plugins",

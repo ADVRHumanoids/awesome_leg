@@ -34,6 +34,8 @@ void BtRt::read_config_from_yaml()
 
     _plugin_manager_name = getParamOrThrow<std::string>("~plugin_manager_name");
 
+    _plugins_stat_topicname = getParamOrThrow<std::string>("~plugins_stat_topicname");
+
     _queue_size = getParamOrThrow<int>("~queue_size");
 
 }
