@@ -7,6 +7,11 @@ void PluginsManagerRt::read_config_from_yaml()
     _queue_size = getParamOrThrow<int>("~queue_size");
 
     _async_service_pattern = getParamOrThrow<std::string>("~async_service_pattern");
+
+    _plugins_stat_topicname = getParamOrThrow<std::string>("~plugins_stat_topicname");
+
+    _verbose = getParamOrThrow<bool>("~verbose");
+
 }
 
 bool PluginsManagerRt::on_initialize()
@@ -34,9 +39,13 @@ bool PluginsManagerRt::on_initialize()
         auto res_callback_cmd = [i, this](const bool& msg)
         {
 
-            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                               "Received command response {} from plugin: {} \n",
-                               msg, _plugin_list[i]);
+            if(_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                                   "Received command response {} from plugin: {} \n",
+                                   msg, _plugin_list[i]);
+            }
+
 
         };
 
@@ -51,10 +60,12 @@ bool PluginsManagerRt::on_initialize()
 
             _plugins_status[i] = msg;
 
-            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                               "Received status response {} from plugin: {} \n",
-                               msg, _plugin_list[i]);
-
+            if(_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                                  "Received status response {} from plugin: {} \n",
+                                  msg, _plugin_list[i]);
+            }
         };
 
         _status_req_pubs[i] = advertise<service::Empty>(_async_service_pattern + _plugin_list[i] + "/get_state/request");
@@ -66,8 +77,33 @@ bool PluginsManagerRt::on_initialize()
         _plugins_status[i] = "";
     }
 
+
+    _plugins_stat_pub = advertise<awesome_leg::PluginsManStatus>(_plugins_stat_topicname);
+
+    _start_plugins_srvr = advertiseService<service::Empty, bool>("start_plugins",
+                                        &PluginsManagerRt::on_start_signal, this);
+    _stop_plugins_srvr = advertiseService<service::Empty, bool>("stop_plugins",
+                                        &PluginsManagerRt::on_stop_signal, this);
     return true;
 
+}
+
+bool PluginsManagerRt::on_start_signal(const service::Empty& req, bool& res)
+{
+    _triggered = true;
+
+    _start_plugins = true; // will start plugins
+
+    return true;
+}
+
+bool PluginsManagerRt::on_stop_signal(const service::Empty& req, bool& res)
+{
+    _triggered = true;
+
+    _start_plugins = false; // will stop plugins
+
+    return true;
 }
 
 void PluginsManagerRt::starting()
@@ -81,22 +117,32 @@ void PluginsManagerRt::starting()
 void PluginsManagerRt::run()
 {
 
-    _plugins_counter = 0;
+    _running_plugins_counter = 0;
+    _stopped_plugins_counter = 0;
+
+    for(int i = 0; i < _n_plugins; i++)
+    { // we first read the status of the plugins (saved into _plugins_status)
+
+        _status_req_pubs[i]->publish(empty_msg);
+        _status_res_subs[i]->run(); // processes plugins status callbacks
+
+    }
 
     if(_start_plugins)
     { // in this case the plugin, when triggered, starts(if not already running) all the plugins in the list
 
         for(int i = 0; i < _n_plugins; i++)
         {
-            _status_req_pubs[i]->publish(empty_msg);
-            _status_res_subs[i]->run(); // processes plugins status callbacks
 
-            if(_plugins_status[i] == "Initialized" || _plugins_status[i] == "Stopped")
+            if((_plugins_status[i] == "Initialized" || _plugins_status[i] == "Stopped"))
             {// initialized or stopped externally, but not running -> we start the plugin
 
-                _strt_req_pubs[i]->publish(Command::Start);
+                if(_triggered)
+                {
+                    _strt_req_pubs[i]->publish(Command::Start);
 
-                _strt_res_subs[i]->run(); // processes plugins command service feedback
+                    _strt_res_subs[i]->run(); // processes plugins command service feedback
+                }
 
             }
             else
@@ -104,18 +150,25 @@ void PluginsManagerRt::run()
 
                 if(_plugins_status[i] == "Running")
                 {
-                    _plugins_counter += 1;
+                    _running_plugins_counter += 1;
 
-                    jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-                                       "Plugin {} successfully started \n",
-                                       _plugin_list[i]);
+                    if(_verbose)
+                    {
+                        jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+                                           "Plugin {} is running \n",
+                                           _plugin_list[i]);
+                    }
+
                 }
 
                 if(_plugins_status[i] == "Aborted" || _plugins_status[i] == "InitFailed")
                 {
-                    jhigh().jprint(fmt::fg(fmt::terminal_color::yellow),
-                                       "Plugin {} was aborted. It is not possible to start it.\n",
-                                       _plugin_list[i]);
+                    if(_verbose)
+                    {
+                        jhigh().jprint(fmt::fg(fmt::terminal_color::yellow),
+                                           "Plugin {} was aborted. It is not possible to start it.\n",
+                                           _plugin_list[i]);
+                    }
                 }
 
             }
@@ -128,15 +181,17 @@ void PluginsManagerRt::run()
 
         for(int i = 0; i < _n_plugins; i++)
         {
-            _status_req_pubs[i]->publish(empty_msg);
-            _status_res_subs[i]->run(); // processes plugins status callbacks
 
             if(_plugins_status[i] == "Running")
             {// initialized or stopped externally, but not running -> we start the plugin
 
-                _strt_req_pubs[i]->publish(Command::Stop);
+                if(_triggered)
+                {
+                    _strt_req_pubs[i]->publish(Command::Stop);
 
-                _strt_res_subs[i]->run(); // processes plugins command service feedback
+                    _strt_res_subs[i]->run(); // processes plugins command service feedback
+
+                }
 
             }
             else
@@ -144,18 +199,24 @@ void PluginsManagerRt::run()
 
                 if(_plugins_status[i] == "Stopped" || _plugins_status[i] == "Initialized")
                 {
-                    _plugins_counter += 1;
+                    _stopped_plugins_counter += 1;
 
-                    jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-                                       "Plugin {} successfully stopped.\n",
-                                       _plugin_list[i]);
+                    if(_verbose)
+                    {
+                        jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+                                           "Plugin {} is currently stopped.\n",
+                                           _plugin_list[i]);
+                    }
                 }
 
                 if(_plugins_status[i] == "Aborted" || _plugins_status[i] == "InitFailed")
                 {
-                    jhigh().jprint(fmt::fg(fmt::terminal_color::yellow),
-                                       "Plugin {} was aborted. It is not possible to stop it.\n",
-                                       _plugin_list[i]);
+                    if(_verbose)
+                    {
+                        jhigh().jprint(fmt::fg(fmt::terminal_color::yellow),
+                                           "Plugin {} was aborted. It is not possible to stop it.\n",
+                                           _plugin_list[i]);
+                    }
                 }
 
             }
@@ -164,15 +225,15 @@ void PluginsManagerRt::run()
 
     }
 
-    if(_plugins_counter == _plugin_list.size())
-    { // we exit the plugin
+    _triggered = false; // next run, we'll wait for another trigger signal
 
-          stop();
 
-    }
+    _all_plugins_running = _running_plugins_counter == _plugin_list.size() ? true : false;
+    _all_plugins_stopped = _stopped_plugins_counter == _plugin_list.size() ? true : false;
 
-    //publish plugin status(_all_plugins_running)
-
+    _plugins_stat_msg.all_plugins_running = _all_plugins_running;
+    _plugins_stat_msg.all_plugins_stopped = _all_plugins_stopped;
+    _plugins_stat_pub->publish(_plugins_stat_msg);
 
 }
 
