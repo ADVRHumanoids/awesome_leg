@@ -4,11 +4,11 @@
     <BehaviorTree ID="BehaviorTree">
         <Sequence>
             <ReactiveFallback>
-                <Condition ID="ArePluginsRunning" all_plugins_running="false"/>
+                <Condition ID="ArePluginsRunning"/>
                 <Action ID="StartPlugins"/>
             </ReactiveFallback>
             <ReactiveFallback>
-                <Condition ID="temperature_ok" temp_ok="false"/>
+                <Condition ID="temperature_ok"/>
                 <Action ID="wait_for_actuators_cooling" stop_robot="false"/>
             </ReactiveFallback>
             <SubTree ID="energy_rec_demo"/>
@@ -28,9 +28,7 @@
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
-        <Condition ID="ArePluginsRunning">
-            <output_port default="false" name="all_plugins_running">whether all the plugins are successfully running or not</output_port>
-        </Condition>
+        <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
         <Action ID="CloseBtRoot"/>
         <Action ID="StartPlugins"/>
@@ -47,9 +45,7 @@
         <Condition ID="recov_energy">
             <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
         </Condition>
-        <Condition ID="temperature_ok">
-            <input_port default="false" name="temp_ok">whether driver temperatures are BOTH ok</input_port>
-        </Condition>
+        <Condition ID="temperature_ok"/>
         <Action ID="wait_for_actuators_cooling">
             <output_port default="false" name="stop_robot">If true, signal all plugins to stop the robot</output_port>
         </Action>
