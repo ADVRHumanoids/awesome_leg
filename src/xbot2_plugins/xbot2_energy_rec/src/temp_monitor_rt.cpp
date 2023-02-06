@@ -116,7 +116,8 @@ void TempMonRt::update_state()
 
     if(_verbose)
     {
-        std::cout << Colors::kBlue << "TempMonRt: current drivers temperature:" << _meas_driver_temp.format(CleanFmt) << Colors::kEndl << std::endl;
+        std::cout << Colors::kBlue << "TempMonRt: current drivers temperature:" << _meas_driver_temp.format(CleanFmt) <<
+                  "[deg];\n time: " << _loop_time << " s"<< Colors::kEndl << std::endl;
 
     }
 }
@@ -204,11 +205,11 @@ void TempMonRt::fake_temperature()
 
     if(!_is_idle)
     { // we increment the temperature linearly, if the robot is not in idle
-        _meas_driver_temp = _meas_driver_temp.array() + _temp_rise_rate * _loop_time;
+        _meas_driver_temp = _meas_driver_temp.array() + _temp_rise_rate * _plugin_dt;
     }
     if(_is_idle)
     { // we are in idle and the actuators are cooling down
-        _meas_driver_temp = _meas_driver_temp.array() + _temp_cooling_rate * _loop_time;
+        _meas_driver_temp = _meas_driver_temp.array() + _temp_cooling_rate * _plugin_dt;
     }
 }
 
@@ -253,7 +254,7 @@ bool TempMonRt::on_initialize()
     if((_is_sim || _is_dummy) && _simulate_temp_if_sim)
     {
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\n TempMonRt: will use fake temp. readings.\n");
+                   "\n\n##TempMonRt: will use fake temp. readings.\\nn");
     }
 
     return true;
