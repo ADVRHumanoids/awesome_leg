@@ -282,8 +282,6 @@ void TempMonRt::starting()
 
     init_clocks(); // initialize clocks timers
 
-    update_state(); // read current jnt positions and velocities
-
     start_completed(); // Move on to run()
 
 
@@ -292,14 +290,13 @@ void TempMonRt::starting()
 void TempMonRt::run()
 {
 
+    _idle_status_sub->run(); // we process callbacks from the idle state subscriber
+
     update_state(); // update all necessary states
 
-    check_driver_temp_limits();
+    check_driver_temp_limits(); // checks if drivers temperatures are ALL ok
 
-    _queue.run();
-
-    // publish iq estimate info
-    pub_temp_status(); // publish estimates to topic
+    pub_temp_status(); // publish temperature status to internal topic
 
     add_data2bedumped(); // add data to the logger
 

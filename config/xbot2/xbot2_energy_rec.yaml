@@ -255,8 +255,11 @@ xbotcore_plugins:
 
             idle_status_topicname: {value: "idle_status", type: string} # only used if simulate_temp_if_sim
 
-            temp_rise_rate: {value: 0.017, type: double}
-            temp_cooling_rate: {value: 0.034, type: double}
+#            temp_rise_rate: {value: 0.017, type: double}
+#            temp_cooling_rate: {value: 0.034, type: double}
+
+            temp_rise_rate: {value: 1, type: double}
+            temp_cooling_rate: {value: 1, type: double}
 
     idler_rt:
         thread: rt_main
