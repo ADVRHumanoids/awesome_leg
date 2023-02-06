@@ -234,6 +234,9 @@ xbotcore_plugins:
 
             queue_size: {value: 5, type: int}
 
+            tree_logpath: {value: "/tmp", type: string}
+            tree_logname: {value: "bt_trace", type: string}
+
     temp_monitor_rt:
         thread: rt_main
         type: temp_monitor_rt

@@ -38,6 +38,8 @@ void BtRt::read_config_from_yaml()
 
     _queue_size = getParamOrThrow<int>("~queue_size");
 
+    _tree_logpath = getParamOrThrow<std::string>("~tree_logpath");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -140,7 +142,8 @@ void BtRt::init_bt()
 //    StdCoutLogger _logger_cout(_tree);
 
 //    // This logger saves state changes on file
-//    _logger_file = FileLogger(_tree, "/tmp/bt_trace.fbl");
+    _tree_log_fullpaths = _tree_logpath + "/" + _tree_logname + ".fbl";
+    _logger_file = std::make_unique<FileLogger>(_tree, _tree_log_fullpaths.c_str());
 
 //    // This logger stores the execution time of each node
 //    MinitraceLogger _logger_minitrace(_tree, "/tmp/bt_trace.json"); // causes segfault

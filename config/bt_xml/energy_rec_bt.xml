@@ -8,47 +8,57 @@
                 <Action ID="StartPlugins"/>
             </ReactiveFallback>
             <ReactiveFallback>
-                <Condition ID="temperature_ok"/>
-                <Action ID="wait_for_actuators_cooling" stop_robot="false"/>
+                <Condition ID="TemperatureOk"/>
+                <Action ID="CoolDownByWaiting"/>
             </ReactiveFallback>
-            <SubTree ID="energy_rec_demo"/>
-            <Action ID="CloseAllPlugins"/>
+            <SubTree ID="EnergyRecDemo"/>
+            <ReactiveFallback>
+                <Condition ID="ArePluginsClosed"/>
+                <Action ID="CloseAllPlugins"/>
+            </ReactiveFallback>
             <Action ID="CloseBtRoot"/>
         </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
-    <BehaviorTree ID="energy_rec_demo">
+    <BehaviorTree ID="EnergyRecDemo">
         <ReactiveFallback>
-            <Condition ID="recov_energy" current_e_r="0.0"/>
-            <SequenceStar>
-                <Action ID="go2takeoff_config" jump_ready="false" trigger_approach_traj="false"/>
-                <Action ID="perform_takeoff" takeoff_detected="false" trigger_takeoff="false"/>
-            </SequenceStar>
+            <Condition ID="RecovEnergyReached"/>
+            <SubTree ID="PerformJumpSequence"/>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
+    <BehaviorTree ID="PerformJumpSequence">
+        <ReactiveSequence>
+            <ReactiveFallback>
+                <Condition ID="IsFlightPhase"/>
+                <SequenceStar>
+                    <ReactiveFallback>
+                        <Condition ID="TakeoffConfigReached"/>
+                        <Action ID="Go2TakeoffConfig"/>
+                    </ReactiveFallback>
+                    <Action ID="PerformTakeoff"/>
+                </SequenceStar>
+            </ReactiveFallback>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
     <TreeNodesModel>
+        <Condition ID="ArePluginsClosed"/>
         <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
         <Action ID="CloseBtRoot"/>
+        <Action ID="CoolDownByWaiting"/>
+        <SubTree ID="EnergyRecDemo"/>
+        <Action ID="Go2TakeoffConfig"/>
+        <Condition ID="IsFlightPhase"/>
+        <Condition ID="IsNotIdle"/>
+        <SubTree ID="PerformJumpSequence"/>
+        <Action ID="PerformTakeoff"/>
+        <Condition ID="RecovEnergyReached"/>
         <Action ID="StartPlugins"/>
-        <SubTree ID="energy_rec_demo"/>
-        <Action ID="go2takeoff_config">
-            <input_port default="false" name="jump_ready">if true, we are ready to move to next phase</input_port>
-            <output_port default="false" name="trigger_approach_traj">when true, will send a signal to the plugin for moving the robot to the inital configuration for the demo</output_port>
-        </Action>
-        <Action ID="perform_takeoff">
-            <input_port default="false" name="takeoff_detected">go to next phase if true</input_port>
-            <output_port default="false" name="trigger_takeoff">if true, trigger the plugin which performs the takeoff</output_port>
-        </Action>
-        <Action ID="power_monitor"/>
-        <Condition ID="recov_energy">
-            <input_port default="0.0" name="current_e_r">amount of recovered energy during the post-impact phase (provided by a sutable component)</input_port>
-        </Condition>
-        <Condition ID="temperature_ok"/>
-        <Action ID="wait_for_actuators_cooling">
-            <output_port default="false" name="stop_robot">If true, signal all plugins to stop the robot</output_port>
-        </Action>
+        <Condition ID="TakeoffConfigReached"/>
+        <Condition ID="TakeoffPerformed"/>
+        <Condition ID="TemperatureOk"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
