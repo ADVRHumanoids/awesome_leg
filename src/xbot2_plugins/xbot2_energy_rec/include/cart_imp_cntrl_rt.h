@@ -45,7 +45,7 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true;
+        _is_sim = true, _is_dummy = false;
 
     int _n_jnts_model, _n_jnts_robot;
 

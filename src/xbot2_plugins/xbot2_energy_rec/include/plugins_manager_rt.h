@@ -35,7 +35,7 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true,
+        _is_sim = true, _is_dummy = false,
         _all_plugins_running = false,
         _all_plugins_stopped = false,
         _start_plugins = true,

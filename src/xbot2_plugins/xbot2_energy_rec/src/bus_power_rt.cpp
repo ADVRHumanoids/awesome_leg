@@ -154,6 +154,26 @@ void BusPowerRt::is_sim(std::string sim_string = "sim")
 
 }
 
+void BusPowerRt::is_dummy(std::string dummy_string = "dummy")
+{
+    XBot::Context ctx;
+    auto& pm = ctx.paramManager();
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+
+    size_t dummy_found = _hw_type.find(dummy_string);
+
+
+    if (dummy_found != std::string::npos) { // we are running the plugin in dummy mode
+
+        _is_dummy = true;
+    }
+    else // we are running on the real robot
+    {
+        _is_dummy = false;
+    }
+
+}
+
 void BusPowerRt::update_state()
 {
     // "sensing" the robot
@@ -483,8 +503,10 @@ void BusPowerRt::run_reg_pow_estimation()
 bool BusPowerRt::on_initialize()
 {
     std::string sim_flagname = "sim";
-
     is_sim(sim_flagname); // see if we are running a simulation
+
+    std::string dummy_flagname = "dummy";
+    is_dummy(dummy_flagname); // see if we are running in dummy mode
 
     get_params_from_config(); // load params from yaml file
 

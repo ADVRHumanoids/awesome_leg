@@ -78,7 +78,7 @@ public:
 
 private:
 
-    bool _is_sim = true,
+    bool _is_sim = true, _is_dummy = false,
          _use_iq_meas = true;
 
     int _n_jnts_robot,
@@ -184,6 +184,7 @@ private:
     void init_nrt_ros_bridge();
 
     void is_sim(std::string sim_string);
+    void is_dummy(std::string dummy_string);
 
     void pub_iq_est();
     void pub_reg_pow();

@@ -74,7 +74,7 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true,
+        _is_sim = true, _is_dummy = false,
         _reduce_dumped_sol_size = false,
         _verbose = false,
         _ft_tip_sensor_found = false,
@@ -208,6 +208,7 @@ private:
     void get_fts_force();
 
     void is_sim(std::string sim_string);
+    void is_dummy(std::string dummy_string);
 
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
     void on_base_link_twist_received(const geometry_msgs::TwistStamped& msg);

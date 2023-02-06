@@ -61,7 +61,7 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true;
+        _is_sim = true, _is_dummy = false;
 
     int _queue_size = 1;
 
@@ -102,6 +102,7 @@ private:
     void read_config_from_yaml();
 
     void is_sim(std::string sim_string);
+    void is_dummy(std::string dummy_string);
 
     void spawn_nrt_thread();
 

@@ -82,7 +82,7 @@ private:
 
     bool _pause_started = false, _pause_finished = false,
         _rt_active, _nrt_exit,
-        _is_sim = true,
+        _is_sim = true, _is_dummy = false,
         _reduce_dumped_sol_size = false,
         _verbose = false,
         _jnt_names_were_set = false,
@@ -190,6 +190,7 @@ private:
     void init_nrt_ros_bridge();
 
     void is_sim(std::string sim_string);
+    void is_dummy(std::string dummy_string);
 
     void pub_iq_est();
     void pub_iq_cal();

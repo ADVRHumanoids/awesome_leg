@@ -77,7 +77,7 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true,
+        _is_sim = true, _is_dummy = false,
         _ft_tip_sensor_found = false,
         _use_ground_truth_gz = true,
         _contact_state = true,
@@ -188,7 +188,10 @@ private:
     std::map<std::string, ForceTorqueSensor::ConstPtr> _ft_map;
 
     void get_params_from_config();
+
     void is_sim(std::string sim_string);
+    void is_dummy(std::string dummy_string);
+
     void reset_flags();
 
     void spawn_nrt_thread();

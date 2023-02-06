@@ -85,7 +85,7 @@ private:
         _resample = false,
         _rt_active, _nrt_exit,
         _jump_now = false, _is_first_trigger = true,
-        _is_sim = true,
+        _is_sim = true, _is_dummy = false,
         _reduce_dumped_sol_size = false,
         _send_whole_traj = false,
         _verbose = false,
@@ -197,6 +197,7 @@ private:
     void spawn_nrt_thread();
 
     void is_sim(std::string sim_string);
+    void is_dummy(std::string dummy_string);
 
     bool on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
                           awesome_leg::JumpNowResponse& res);

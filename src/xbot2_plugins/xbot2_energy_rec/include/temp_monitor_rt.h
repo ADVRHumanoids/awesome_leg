@@ -14,6 +14,7 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
+#include <Eigen/Dense>
 
 #include <xbot2/hal/dev_ft.h>
 
@@ -59,7 +60,8 @@ public:
 
 private:
 
-    bool _is_sim = true, _verbose = false,
+    bool _is_sim = true, _is_dummy = false,
+         _verbose = false,
          _is_drivers_temp_ok = false,
          _simulate_temp_if_sim = true,
          _is_idle = false;
@@ -116,6 +118,8 @@ private:
     void init_nrt_ros_bridge();
 
     void is_sim(std::string sim_string);
+
+    void is_dummy(std::string dummy_string);
 
     void pub_temp_status();
 
