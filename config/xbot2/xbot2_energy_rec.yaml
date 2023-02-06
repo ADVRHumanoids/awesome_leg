@@ -249,8 +249,8 @@ xbotcore_plugins:
 
             verbose: {value: true, type: bool}
 
-            driver_temp_threshold: {value: 58.0, type: double}
-            driver_temp_threshold_cooling: {value: 55.0, type: double}
+            driver_temp_threshold: {value: 60.0, type: double}
+            driver_temp_threshold_cooling: {value: 45.0, type: double}
 
             simulate_temp_if_sim: {value: true, type: bool}
 
@@ -260,7 +260,7 @@ xbotcore_plugins:
 #            temp_cooling_rate: {value: 0.034, type: double}
 
             temp_rise_rate: {value: 1, type: double}
-            temp_cooling_rate: {value: 1, type: double}
+            temp_cooling_rate: {value: 2, type: double}
 
     idler_rt:
         thread: rt_main

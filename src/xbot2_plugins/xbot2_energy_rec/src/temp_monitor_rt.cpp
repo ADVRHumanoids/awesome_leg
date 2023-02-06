@@ -204,20 +204,20 @@ void TempMonRt::check_driver_temp_limits()
     {
         _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds.array()).all();
 
+        if(!_is_drivers_temp_ok)
+        {
+            if(_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::red),
+                           "\n TempMonRt: driver temperature threshold of {} deg exceeded on one or more actuators.\n", _driver_temp_threshold);
+            }
+        }
+
     }
     if (_cooling_down)
     {
         _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds_cooling.array()).all();
 
-    }
-
-    if(!_is_drivers_temp_ok)
-    {
-        if(_verbose)
-        {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::red),
-                       "\n TempMonRt: driver temperature threshold of {} deg exceeded on one or more actuators.\n", _driver_temp_threshold);
-        }
     }
 }
 
