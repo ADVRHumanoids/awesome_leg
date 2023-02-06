@@ -91,6 +91,9 @@ bool PluginsManagerRt::on_start_signal(const service::Empty& req, bool& res)
 {
     _triggered = true;
 
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                      "\n PluginsManagerRt: received start signal!! \n");
+
     _start_plugins = true; // will start plugins
 
     return true;
@@ -99,6 +102,9 @@ bool PluginsManagerRt::on_start_signal(const service::Empty& req, bool& res)
 bool PluginsManagerRt::on_stop_signal(const service::Empty& req, bool& res)
 {
     _triggered = true;
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                      "\n PluginsManagerRt: received stop signal!! \n");
 
     _start_plugins = false; // will stop plugins
 
@@ -232,6 +238,9 @@ void PluginsManagerRt::run()
     _plugins_stat_msg.all_plugins_running = _all_plugins_running;
     _plugins_stat_msg.all_plugins_stopped = _all_plugins_stopped;
     _plugins_stat_pub->publish(_plugins_stat_msg);
+
+    _start_plugins_srvr->run();
+    _stop_plugins_srvr->run();
 
 }
 

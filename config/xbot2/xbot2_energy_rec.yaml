@@ -240,13 +240,13 @@ xbotcore_plugins:
 
             async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
 
-            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt"], type: vector<string>}
+            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt", "base_est_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 
             queue_size: {value: 5, type: int}
 
-            verbose: {value: true, type: bool}
+            verbose: {value: false, type: bool}
 
     cartesio_imp_cntrl_rt:
         thread: rt_main

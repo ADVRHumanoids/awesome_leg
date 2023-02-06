@@ -35,8 +35,6 @@ namespace BT
 
             std::string _start_plugins_servname = "start_plugins";
 
-//            std::string _plugins_manager_name = "plugins_mngr_rt";
-
             std::string _asynch_servicepath;
 
             service::Empty empty_msg;
