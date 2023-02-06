@@ -61,8 +61,7 @@ public:
 private:
 
     bool _is_sim = true, _is_dummy = false,
-         _verbose = false,
-         _is_idle = false;
+         _verbose = false;
 
     int _queue_size = 1;
 
@@ -92,7 +91,9 @@ private:
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
-    PublisherPtr<bool> _idle_state_pub;
+    awesome_leg::IdleState _idle_state_msg;
+
+    PublisherPtr<awesome_leg::IdleState> _idle_state_pub;
 
     ServiceServerPtr<awesome_leg::IdleState, bool> _idle_state_setter_srvr;
 

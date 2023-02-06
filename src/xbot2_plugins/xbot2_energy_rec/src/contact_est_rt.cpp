@@ -597,6 +597,7 @@ void ContactEstRt::pub_contact_est_status()
     auto status_msg = _cont_est_status_pub->loanMessage();
 
     // mapping EigenVectorXd data to std::vector, so that they can be published
+
     Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
 
     Eigen::Map<Eigen::VectorXd>(&_tau_cmd_vect[0], _tau.size(), 1) = _tau;

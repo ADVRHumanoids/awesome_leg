@@ -253,7 +253,7 @@ bool TempMonRt::on_initialize()
     {
         if(_verbose)
         {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::red),
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                        "\n TempMonRt: received idle status: {}.\n", msg.idle);
         }
 
@@ -292,7 +292,7 @@ void TempMonRt::starting()
 void TempMonRt::run()
 {
 
-//    _idle_status_sub->run(); // we process callbacks from the idle state subscriber
+    _idle_status_sub->run(); // we process callbacks from the idle state subscriber
 
     check_driver_temp_limits(); // checks if drivers temperatures are ALL ok
 

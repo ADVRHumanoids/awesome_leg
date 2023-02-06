@@ -122,7 +122,7 @@ void IdlerRt::init_dump_logger()
 
 void IdlerRt::add_data2dump_logger()
 {
-    _dump_logger->add("idle_status", int(_is_idle));
+    _dump_logger->add("idle_status", int(_idle_state_msg.idle));
 
 }
 
@@ -144,7 +144,7 @@ void IdlerRt::add_data2bedumped()
 void IdlerRt::pub_idle_state()
 {
 
-    _idle_state_pub->publish(_is_idle);
+    _idle_state_pub->publish(_idle_state_msg);
 
 }
 
@@ -171,7 +171,7 @@ bool IdlerRt::on_initialize()
                        "\n IdlerRt: received idle request with value: {}.\n", req.idle);
         }
 
-        _is_idle = req.idle;
+        _idle_state_msg.idle = req.idle;
 
         res = true;
 
@@ -181,8 +181,9 @@ bool IdlerRt::on_initialize()
 
     _idle_state_setter_srvr = advertiseService<awesome_leg::IdleState, bool>(_idler_servicename,
                                                                             on_idle_cmd_received);
+    _idle_state_msg.idle = false;
 
-    _idle_state_pub = advertise<bool>(_idle_status_topicname);
+    _idle_state_pub = advertise<awesome_leg::IdleState>(_idle_status_topicname);
 
     return true;
 

@@ -20,7 +20,7 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
+    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 0}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
 #    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
 #    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
@@ -216,7 +216,7 @@ xbotcore_plugins:
             use_iq_meas: {value: false, type: bool}
 
     bt_rt:
-        thread: bt_components
+        thread: rt_main
         type: bt_rt
         params:
 
