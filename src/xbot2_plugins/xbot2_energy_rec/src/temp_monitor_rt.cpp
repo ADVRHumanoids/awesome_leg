@@ -223,7 +223,8 @@ void TempMonRt::fake_temperature()
     }
     if(_idle_status_msg.idle)
     { // we are in idle and the actuators are cooling down
-        _meas_driver_temp = _meas_driver_temp.array() + _temp_cooling_rate * _plugin_dt;
+
+        _meas_driver_temp = _meas_driver_temp.array() - _temp_cooling_rate * _plugin_dt;
     }
 }
 
