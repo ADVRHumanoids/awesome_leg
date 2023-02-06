@@ -250,6 +250,7 @@ xbotcore_plugins:
             verbose: {value: true, type: bool}
 
             driver_temp_threshold: {value: 58.0, type: double}
+            driver_temp_threshold_cooling: {value: 55.0, type: double}
 
             simulate_temp_if_sim: {value: true, type: bool}
 

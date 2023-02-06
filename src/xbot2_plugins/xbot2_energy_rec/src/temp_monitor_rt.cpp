@@ -14,11 +14,14 @@ void TempMonRt::init_clocks()
 void TempMonRt::init_vars()
 {
     _driver_temp_thresholds = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _driver_temp_thresholds_cooling = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     _meas_driver_temp = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     for(int i = 0; i <_n_jnts_robot; i++)
     {
         _driver_temp_thresholds(i) = _driver_temp_threshold;
+        _driver_temp_thresholds_cooling(i) = _driver_temp_threshold_cooling;
 
         _meas_driver_temp(i) = _fake_starting_temp;
     }
@@ -52,6 +55,7 @@ void TempMonRt::get_params_from_config()
     _queue_size = getParamOrThrow<int>("~queue_size");
 
     _driver_temp_threshold = getParamOrThrow<double>("~driver_temp_threshold");
+    _driver_temp_threshold_cooling  = getParamOrThrow<double>("~driver_temp_threshold_cooling");
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
@@ -195,7 +199,17 @@ void TempMonRt::add_data2bedumped()
 void TempMonRt::check_driver_temp_limits()
 {
 
-    _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds.array()).all();
+    // this is a check with hysteresis (schmiddt trigger-like)
+    if (!_cooling_down)
+    {
+        _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds.array()).all();
+
+    }
+    if (_cooling_down)
+    {
+        _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds_cooling.array()).all();
+
+    }
 
     if(!_is_drivers_temp_ok)
     {
@@ -220,10 +234,11 @@ void TempMonRt::fake_temperature()
     if(!_idle_status_msg.idle)
     { // we increment the temperature linearly, if the robot is not in idle
         _meas_driver_temp = _meas_driver_temp.array() + _temp_rise_rate * _plugin_dt;
+        _cooling_down = false;
     }
     if(_idle_status_msg.idle)
     { // we are in idle and the actuators are cooling down
-
+        _cooling_down = true;
         _meas_driver_temp = _meas_driver_temp.array() - _temp_cooling_rate * _plugin_dt;
     }
 }

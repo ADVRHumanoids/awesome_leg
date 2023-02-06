@@ -63,7 +63,8 @@ private:
     bool _is_sim = true, _is_dummy = false,
          _verbose = false,
          _is_drivers_temp_ok = false,
-         _simulate_temp_if_sim = true;
+         _simulate_temp_if_sim = true,
+         _cooling_down = false;
 
     int _n_jnts_robot, _queue_size = 1;
 
@@ -76,6 +77,7 @@ private:
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _matlogger_buffer_size = 1e6,
         _driver_temp_threshold = 58.0,
+        _driver_temp_threshold_cooling = 55.0,
         _fake_starting_temp = 40.0,
         _temp_rise_rate = 1.0/60.0,
         _temp_cooling_rate = 5.0/60.0; // deg/s
@@ -83,7 +85,8 @@ private:
     std::vector<std::string> _jnt_names;
 
     Eigen::VectorXd _meas_driver_temp,
-                    _driver_temp_thresholds;
+                    _driver_temp_thresholds,
+                    _driver_temp_thresholds_cooling;
 
     MatLogger2::Ptr _dump_logger;
 
