@@ -66,33 +66,6 @@ void IqModelCalibRt::init_vars()
     _tau_rot_est_vect = std::vector<double>(_n_jnts_robot);
 
     _iq_cal_sol_millis_vect = std::vector<double>(_n_jnts_robot);
-
-    // mapping EigenVectorXd data to std::vector, so that they can be published
-    Eigen::Map<Eigen::VectorXd>(&_iq_est_vect[0], _iq_est.size(), 1) = _iq_est;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_vect[0], _q_p_ddot_est.size(), 1) = _q_p_ddot_est;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_filt_vect[0], _q_p_ddot_est_filt.size(), 1) = _q_p_ddot_est_filt;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_vect[0], _q_p_dot_meas.size(), 1) = _q_p_dot_meas;
-    Eigen::Map<Eigen::VectorXd>(&_tau_meas_vect[0], _tau_meas.size(), 1) = _tau_meas;
-    Eigen::Map<Eigen::VectorXd>(&_K_t_vect[0], _K_t.size(), 1) = _K_t;
-    Eigen::Map<Eigen::VectorXd>(&_K_d0_vect[0], _K_d0.size(), 1) = _K_d0;
-    Eigen::Map<Eigen::VectorXd>(&_K_d1_vect[0], _K_d1.size(), 1) = _K_d1;
-    Eigen::Map<Eigen::VectorXd>(&_rot_MoI_vect[0], _rot_MoI.size(), 1) = _rot_MoI;
-    Eigen::Map<Eigen::VectorXd>(&_red_ratio_vect[0], _red_ratio.size(), 1) = _red_ratio;
-    Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_vect[0], _iq_friction_torque.size(), 1) = _iq_friction_torque;
-
-    // mapping EigenVectorXd data to std::vector, so that they can be published
-    Eigen::Map<Eigen::VectorXd>(&_tau_meas_filt_vect[0], _tau_meas_filt.size(), 1) = _tau_meas_filt;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_filt_vect[0], _q_p_dot_meas_filt.size(), 1) = _q_p_dot_meas_filt;
-    Eigen::Map<Eigen::VectorXd>(&_tau_rot_est_vect[0], _tau_rot_est.size(), 1) = _tau_rot_est;
-    Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_cal_vect[0], _iq_friction_torque_cal.size(), 1) = _iq_friction_torque_cal;
-    Eigen::Map<Eigen::VectorXd>(&_alpha_f0_vect[0], _alpha_f0.size(), 1) = _alpha_f0;
-    Eigen::Map<Eigen::VectorXd>(&_alpha_f1_vect[0], _alpha_f1.size(), 1) = _alpha_f1;
-    Eigen::Map<Eigen::VectorXd>(&_K_d0_cal_vect[0], _K_d0_cal.size(), 1) = _K_d0_cal;
-    Eigen::Map<Eigen::VectorXd>(&_K_d1_cal_vect[0], _K_d1_cal.size(), 1) = _K_d1_cal;
-    Eigen::Map<Eigen::VectorXd>(&_iq_meas_vect[0], _iq_meas.size(), 1) = _iq_meas;
-    Eigen::Map<Eigen::VectorXd>(&_iq_meas_filt_vect[0], _iq_meas_filt.size(), 1) = _iq_meas_filt;
-    Eigen::Map<Eigen::VectorXd>(&_iq_cal_sol_millis_vect[0], _iq_cal_sol_millis.size(), 1) = _iq_cal_sol_millis;
-
 }
 
 void IqModelCalibRt::reset_flags()
@@ -456,6 +429,19 @@ void IqModelCalibRt::pub_iq_est()
 {
     auto iq_est_msg = _iq_est_pub->loanMessage();
 
+    // mapping EigenVectorXd data to std::vector, so that they can be published
+    Eigen::Map<Eigen::VectorXd>(&_iq_est_vect[0], _iq_est.size(), 1) = _iq_est;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_vect[0], _q_p_ddot_est.size(), 1) = _q_p_ddot_est;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_ddot_est_filt_vect[0], _q_p_ddot_est_filt.size(), 1) = _q_p_ddot_est_filt;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_vect[0], _q_p_dot_meas.size(), 1) = _q_p_dot_meas;
+    Eigen::Map<Eigen::VectorXd>(&_tau_meas_vect[0], _tau_meas.size(), 1) = _tau_meas;
+    Eigen::Map<Eigen::VectorXd>(&_K_t_vect[0], _K_t.size(), 1) = _K_t;
+    Eigen::Map<Eigen::VectorXd>(&_K_d0_vect[0], _K_d0.size(), 1) = _K_d0;
+    Eigen::Map<Eigen::VectorXd>(&_K_d1_vect[0], _K_d1.size(), 1) = _K_d1;
+    Eigen::Map<Eigen::VectorXd>(&_rot_MoI_vect[0], _rot_MoI.size(), 1) = _rot_MoI;
+    Eigen::Map<Eigen::VectorXd>(&_red_ratio_vect[0], _red_ratio.size(), 1) = _red_ratio;
+    Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_vect[0], _iq_friction_torque.size(), 1) = _iq_friction_torque;
+
     // filling message
     iq_est_msg->msg().iq_est = _iq_est_vect;
     iq_est_msg->msg().q_p_ddot_est = _q_p_ddot_est_vect;
@@ -481,6 +467,19 @@ void IqModelCalibRt::pub_iq_cal()
 {
 
     auto iq_cal_msg = _iq_cal_pub->loanMessage();
+
+    // mapping EigenVectorXd data to std::vector, so that they can be published
+    Eigen::Map<Eigen::VectorXd>(&_tau_meas_filt_vect[0], _tau_meas_filt.size(), 1) = _tau_meas_filt;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_meas_filt_vect[0], _q_p_dot_meas_filt.size(), 1) = _q_p_dot_meas_filt;
+    Eigen::Map<Eigen::VectorXd>(&_tau_rot_est_vect[0], _tau_rot_est.size(), 1) = _tau_rot_est;
+    Eigen::Map<Eigen::VectorXd>(&_iq_friction_torque_cal_vect[0], _iq_friction_torque_cal.size(), 1) = _iq_friction_torque_cal;
+    Eigen::Map<Eigen::VectorXd>(&_alpha_f0_vect[0], _alpha_f0.size(), 1) = _alpha_f0;
+    Eigen::Map<Eigen::VectorXd>(&_alpha_f1_vect[0], _alpha_f1.size(), 1) = _alpha_f1;
+    Eigen::Map<Eigen::VectorXd>(&_K_d0_cal_vect[0], _K_d0_cal.size(), 1) = _K_d0_cal;
+    Eigen::Map<Eigen::VectorXd>(&_K_d1_cal_vect[0], _K_d1_cal.size(), 1) = _K_d1_cal;
+    Eigen::Map<Eigen::VectorXd>(&_iq_meas_vect[0], _iq_meas.size(), 1) = _iq_meas;
+    Eigen::Map<Eigen::VectorXd>(&_iq_meas_filt_vect[0], _iq_meas_filt.size(), 1) = _iq_meas_filt;
+    Eigen::Map<Eigen::VectorXd>(&_iq_cal_sol_millis_vect[0], _iq_cal_sol_millis.size(), 1) = _iq_cal_sol_millis;
 
     // filling message
     iq_cal_msg->msg().tau_linkside_filt = _tau_meas_filt_vect;

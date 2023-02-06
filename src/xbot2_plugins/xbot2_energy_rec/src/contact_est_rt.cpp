@@ -73,26 +73,6 @@ void ContactEstRt::init_vars()
     _meas_tip_f_abs_filt_vect= std::vector<double>(3);
     _meas_tip_t_abs_filt_vect = std::vector<double>(3);
 
-    // mapping EigenVectorXd data to std::vector, so that they can be published
-    Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
-
-    Eigen::Map<Eigen::VectorXd>(&_tau_cmd_vect[0], _tau.size(), 1) = _tau;
-    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
-    Eigen::Map<Eigen::VectorXd>(&_g_vect[0], _g.size(), 1) = _g;
-    Eigen::Map<Eigen::VectorXd>(&_p_vect[0], _p.size(), 1) = _p;
-    Eigen::Map<Eigen::VectorXd>(&_p_dot_vect[0], _p_dot.size(), 1) = _p_dot;
-    Eigen::Map<Eigen::VectorXd>(&_CT_v_vect[0], _CT_v.size(), 1) = _CT_v;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_ft_est_vect[0], _q.size(), 1) = _q;
-    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_ft_est_vect[0], _v.size(), 1) = _v;
-
-    Eigen::Map<utils_defs::Wrench>(&_w_c_est_vect[0], _w_c_est.size(), 1) = _w_c_est;
-    Eigen::Map<utils_defs::Force3D>(&_tip_f_est_abs_vect[0], _tip_f_est_abs.size(), 1) = _tip_f_est_abs;
-    Eigen::Map<utils_defs::Torque3D>(&_tip_t_est_abs_vect[0], _tip_t_est_abs.size(), 1) = _tip_t_est_abs;
-    Eigen::Map<utils_defs::Force3D>(&_meas_tip_f_abs_vect[0], _meas_tip_f_abs.size(), 1) = _meas_tip_f_abs;
-    Eigen::Map<utils_defs::Torque3D>(&_meas_tip_t_abs_vect[0], _meas_tip_t_abs.size(), 1) = _meas_tip_t_abs;
-    Eigen::Map<utils_defs::Force3D>(&_meas_tip_f_abs_filt_vect[0], _meas_tip_f_abs_filt.size(), 1) = _meas_tip_f_abs_filt;
-    Eigen::Map<utils_defs::Torque3D>(&_meas_tip_t_abs_filt_vect[0], _meas_tip_t_abs_filt.size(), 1) = _meas_tip_t_abs_filt;
-
     _selector = std::vector<int>{0, 1, 2};
 
 }
@@ -615,6 +595,26 @@ void ContactEstRt::on_base_link_twist_received(const geometry_msgs::TwistStamped
 void ContactEstRt::pub_contact_est_status()
 {
     auto status_msg = _cont_est_status_pub->loanMessage();
+
+    // mapping EigenVectorXd data to std::vector, so that they can be published
+    Eigen::Map<Eigen::VectorXd>(&_tau_c_vect[0], _tau_c.size(), 1) = _tau_c;
+
+    Eigen::Map<Eigen::VectorXd>(&_tau_cmd_vect[0], _tau.size(), 1) = _tau;
+    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
+    Eigen::Map<Eigen::VectorXd>(&_g_vect[0], _g.size(), 1) = _g;
+    Eigen::Map<Eigen::VectorXd>(&_p_vect[0], _p.size(), 1) = _p;
+    Eigen::Map<Eigen::VectorXd>(&_p_dot_vect[0], _p_dot.size(), 1) = _p_dot;
+    Eigen::Map<Eigen::VectorXd>(&_CT_v_vect[0], _CT_v.size(), 1) = _CT_v;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_ft_est_vect[0], _q.size(), 1) = _q;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_ft_est_vect[0], _v.size(), 1) = _v;
+
+    Eigen::Map<utils_defs::Wrench>(&_w_c_est_vect[0], _w_c_est.size(), 1) = _w_c_est;
+    Eigen::Map<utils_defs::Force3D>(&_tip_f_est_abs_vect[0], _tip_f_est_abs.size(), 1) = _tip_f_est_abs;
+    Eigen::Map<utils_defs::Torque3D>(&_tip_t_est_abs_vect[0], _tip_t_est_abs.size(), 1) = _tip_t_est_abs;
+    Eigen::Map<utils_defs::Force3D>(&_meas_tip_f_abs_vect[0], _meas_tip_f_abs.size(), 1) = _meas_tip_f_abs;
+    Eigen::Map<utils_defs::Torque3D>(&_meas_tip_t_abs_vect[0], _meas_tip_t_abs.size(), 1) = _meas_tip_t_abs;
+    Eigen::Map<utils_defs::Force3D>(&_meas_tip_f_abs_filt_vect[0], _meas_tip_f_abs_filt.size(), 1) = _meas_tip_f_abs_filt;
+    Eigen::Map<utils_defs::Torque3D>(&_meas_tip_t_abs_filt_vect[0], _meas_tip_t_abs_filt.size(), 1) = _meas_tip_t_abs_filt;
 
     // filling message
 
