@@ -25,7 +25,11 @@ NodeStatus WaitForCooling::tick()
 
     _set2idle_pub->publish(_set2idle);
 
-    std::cout << Colors::kMagenta << "ticking WaitForCooling action" << Colors::kEndl << std::endl;
+    if(_verbose)
+    {
+        std::cout << Colors::kMagenta << "ticking WaitForCooling action" << Colors::kEndl << std::endl;
+
+    }
 
     return NodeStatus::RUNNING;
 

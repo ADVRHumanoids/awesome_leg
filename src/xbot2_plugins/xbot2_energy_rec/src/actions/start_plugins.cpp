@@ -23,7 +23,10 @@ NodeStatus StartPlugins::tick()
 
     _plugins_starter_pub->publish(empty_msg);
 
-    std::cout << Colors::kMagenta << "ticking StartPlugins action" << Colors::kEndl << std::endl;
+    if(_verbose)
+    {
+        std::cout << Colors::kMagenta << "ticking StartPlugins action" << Colors::kEndl << std::endl;
+    }
 
     return NodeStatus::RUNNING;
 

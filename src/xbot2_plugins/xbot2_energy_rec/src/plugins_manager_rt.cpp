@@ -92,7 +92,7 @@ bool PluginsManagerRt::on_start_signal(const service::Empty& req, bool& res)
     _triggered = true;
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                      "\n PluginsManagerRt: received start signal!! \n");
+                      "\nPluginsManagerRt: received start signal!! \n");
 
     _start_plugins = true; // will start plugins
 
