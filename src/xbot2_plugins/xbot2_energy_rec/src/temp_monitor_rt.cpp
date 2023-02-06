@@ -59,6 +59,9 @@ void TempMonRt::get_params_from_config()
 
     _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
 
+    _temp_rise_rate = getParamOrThrow<double>("~temp_rise_rate");
+    _temp_cooling_rate = getParamOrThrow<double>("~temp_cooling_rate");
+
 }
 
 void TempMonRt::is_sim(std::string sim_string = "sim")
@@ -123,7 +126,7 @@ void TempMonRt::update_state()
 
         for(int i = 0; i < _jnt_names.size(); i++)
         {
-            std::cout << Colors::kBlue << _jnt_names[i];
+            std::cout << Colors::kBlue << _jnt_names[i] << " ";
         }
 
         std::cout << Colors::kBlue << "\n" << Colors::kEndl << std::endl;

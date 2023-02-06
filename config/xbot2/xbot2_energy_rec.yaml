@@ -255,10 +255,17 @@ xbotcore_plugins:
 
             idle_status_topicname: {value: "idle_status", type: string} # only used if simulate_temp_if_sim
 
+            temp_rise_rate: {value: 0.017, type: double}
+            temp_cooling_rate: {value: 0.034, type: double}
+
     idler_rt:
         thread: rt_main
         type: idler_rt
         params:
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "idler_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
             idler_servicename: {value: "set_cmd_plugins_2idle", type: string}
 
@@ -275,7 +282,7 @@ xbotcore_plugins:
 
             async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
 
-            plugin_list: {value: ["temp_mon_rt", "bus_power_rt", "jmp_replayer_rt", "base_est_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "bus_power_rt", "jmp_replayer_rt", "base_est_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 

@@ -37,7 +37,7 @@ NodeStatus ArePluginsRunning::tick()
 
     _plugins_status_subs->run();
 
-    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
+//    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
 
     NodeStatus result = _plugins_status_msg.all_plugins_running? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 

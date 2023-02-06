@@ -99,7 +99,17 @@ if(${behaviortree_cpp_v3_FOUND})
 endif()
 
 install(
-    TARGETS contact_est_rt jmp_replayer_rt base_est_rt iq_model_calib_rt bus_power_rt plugins_mngr_rt cart_imp_cntrl_rt temp_monitor_rt DESTINATION lib
+    TARGETS
+    contact_est_rt
+    jmp_replayer_rt
+    base_est_rt
+    iq_model_calib_rt
+    bus_power_rt
+    plugins_mngr_rt
+    cart_imp_cntrl_rt
+    temp_monitor_rt
+    idler_rt
+    DESTINATION lib
 )
 
 install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
