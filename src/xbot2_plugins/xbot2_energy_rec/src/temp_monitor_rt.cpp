@@ -22,6 +22,8 @@ void TempMonRt::init_vars()
 
         _meas_driver_temp(i) = _fake_starting_temp;
     }
+
+    _idle_status_msg.idle = false;
 }
 
 void TempMonRt::reset_flags()
@@ -215,11 +217,11 @@ void TempMonRt::pub_temp_status()
 void TempMonRt::fake_temperature()
 {
 
-    if(!_is_idle)
+    if(!_idle_status_msg.idle)
     { // we increment the temperature linearly, if the robot is not in idle
         _meas_driver_temp = _meas_driver_temp.array() + _temp_rise_rate * _plugin_dt;
     }
-    if(_is_idle)
+    if(_idle_status_msg.idle)
     { // we are in idle and the actuators are cooling down
         _meas_driver_temp = _meas_driver_temp.array() + _temp_cooling_rate * _plugin_dt;
     }
@@ -260,8 +262,8 @@ bool TempMonRt::on_initialize()
     };
 
     _idle_status_sub = subscribe<awesome_leg::IdleState>(_idle_status_topicname,
-                                                                on_idle_status_received,
-                                                               _queue_size);
+                                                            on_idle_status_received,
+                                                           _queue_size);
 
     if((_is_sim || _is_dummy) && _simulate_temp_if_sim)
     {
@@ -290,9 +292,7 @@ void TempMonRt::starting()
 void TempMonRt::run()
 {
 
-    _idle_status_sub->run(); // we process callbacks from the idle state subscriber
-
-    update_state(); // update all necessary states
+//    _idle_status_sub->run(); // we process callbacks from the idle state subscriber
 
     check_driver_temp_limits(); // checks if drivers temperatures are ALL ok
 

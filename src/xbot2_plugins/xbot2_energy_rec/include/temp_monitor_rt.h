@@ -63,8 +63,7 @@ private:
     bool _is_sim = true, _is_dummy = false,
          _verbose = false,
          _is_drivers_temp_ok = false,
-         _simulate_temp_if_sim = true,
-         _is_idle = false;
+         _simulate_temp_if_sim = true;
 
     int _n_jnts_robot, _queue_size = 1;
 
