@@ -12,7 +12,7 @@ WaitForCooling::WaitForCooling(const std::string& name) :
 
     setRegistrationID(name);
 
-    _asynch_servicepath = _async_service_pattern + _start_plugins_servname + "/request";
+    _asynch_servicepath = _async_service_pattern + _idle_state_servername + "/request";
 
     _set2idle_pub = advertise<awesome_leg::IdleState>(_asynch_servicepath);
 
@@ -25,7 +25,7 @@ NodeStatus WaitForCooling::tick()
 
     _set2idle_pub->publish(_set2idle);
 
-    std::cout << Colors::kBlue << "ticking WaitForCooling action" << Colors::kEndl << std::endl;
+    std::cout << Colors::kMagenta << "ticking WaitForCooling action" << Colors::kEndl << std::endl;
 
     return NodeStatus::RUNNING;
 

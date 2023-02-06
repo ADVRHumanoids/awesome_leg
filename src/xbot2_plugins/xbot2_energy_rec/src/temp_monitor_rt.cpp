@@ -291,6 +291,7 @@ void TempMonRt::starting()
 
 void TempMonRt::run()
 {
+    update_state();
 
     _idle_status_sub->run(); // we process callbacks from the idle state subscriber
 

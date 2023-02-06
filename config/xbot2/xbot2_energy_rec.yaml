@@ -247,7 +247,7 @@ xbotcore_plugins:
 
             queue_size: {value: 5, type: int}
 
-            verbose: {value: true, type: bool}
+            verbose: {value: false, type: bool}
 
             driver_temp_threshold: {value: 58.0, type: double}
 
@@ -276,7 +276,7 @@ xbotcore_plugins:
 
             queue_size: {value: 5, type: int}
 
-            verbose: {value: false, type: bool}
+            verbose: {value: true, type: bool}
 
     plugins_mngr_rt:
         thread: rt_main

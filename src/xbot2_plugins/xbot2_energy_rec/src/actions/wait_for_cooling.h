@@ -33,7 +33,7 @@ namespace BT
 
             std::string _async_service_pattern = "/xbotcore/async_service/";
 
-            std::string _start_plugins_servname = "set2idle";
+            std::string _idle_state_servername = "set_cmd_plugins_2idle";
 
             std::string _asynch_servicepath;
 

@@ -167,7 +167,7 @@ bool IdlerRt::on_initialize()
     {
         if(_verbose)
         {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::red),
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                        "\n IdlerRt: received idle request with value: {}.\n", req.idle);
         }
 
