@@ -22,11 +22,11 @@ xbotcore_device_configs:
 xbotcore_threads:
     rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
-    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
-    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
-    iq_calib:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    base_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
-    bus_power:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+#    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
+#    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+#    iq_calib:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+#    base_est: {sched: fifo , prio: 60, period: 0.01, core_id: 3}
+#    bus_power:  {sched: fifo , prio: 60, period: 0.01, core_id: 3}
 
 
 # plugins
@@ -61,7 +61,7 @@ xbotcore_plugins:
     ec_ros: {thread: nrt_main, type: ec_ros}
 
     iq_model_calib_rt:
-        thread: iq_calib
+        thread: rt_main
         type: iq_model_calib_rt
         params:
 
@@ -97,7 +97,7 @@ xbotcore_plugins:
             # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
     base_est_rt:
-        thread: base_est
+        thread: rt_main
         type: base_est_rt
         params:
 
@@ -128,7 +128,7 @@ xbotcore_plugins:
             svd_thresh: {value: 0.1, type: double}
 
     jmp_replayer_rt:
-        thread: bt_components
+        thread: rt_main
         type: jmp_replayer_rt
         params:
 
@@ -181,7 +181,7 @@ xbotcore_plugins:
 
 
     bus_power_rt:
-        thread: bus_power
+        thread: rt_main
         type: bus_power_rt
         params:
 
@@ -305,7 +305,7 @@ xbotcore_plugins:
                 ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
 
     contact_est_rt:
-        thread: base_est
+        thread: rt_main
         type: contact_est_rt
         params:
 
