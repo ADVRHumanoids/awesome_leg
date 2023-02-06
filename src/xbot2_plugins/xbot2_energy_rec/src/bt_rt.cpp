@@ -132,6 +132,7 @@ void BtRt::init_bt()
     _factory.registerNodeType<StartPlugins>("StartPlugins");
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
     _factory.registerNodeType<TemperatureOk>("temperature_ok");
+    _factory.registerNodeType<WaitForCooling>("wait_for_actuators_cooling");
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 
