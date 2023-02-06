@@ -42,7 +42,11 @@ NodeStatus TemperatureOk::tick()
 
     NodeStatus result = _are_temp_ok? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
-    std::cout << Colors::kGreen << "ticking TemperatureOk-->temp ok: " << _are_temp_ok << Colors::kEndl << std::endl;
+    if(_verbose)
+    {
+        std::cout << Colors::kGreen << "ticking TemperatureOk-->temp ok: " << _are_temp_ok << Colors::kEndl << std::endl;
+    }
+
 
     if(_are_temp_ok && !are_temp_ok_prev)
     {// we only trigger a state change from idle to running if we previously had a temperature failure (now recovered)
