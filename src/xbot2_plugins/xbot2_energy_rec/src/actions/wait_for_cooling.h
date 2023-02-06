@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/SetPlugins2Idle.h>
+#include <awesome_leg/IdleState.h>
 
 using namespace XBot;
 
@@ -41,8 +41,8 @@ namespace BT
 
             NodeStatus tick() override;
 
-            // internal XBot2 publisher to employ asynchronous server exposed by plugins manager
-            PublisherPtr<service::Empty> _wait_for_cooling_pub;
+            awesome_leg::IdleState _set2idle;
+            PublisherPtr<awesome_leg::IdleState> _set2idle_pub;
 
     };
 

@@ -116,8 +116,17 @@ void TempMonRt::update_state()
 
     if(_verbose)
     {
-        std::cout << Colors::kBlue << "TempMonRt: current drivers temperature:" << _meas_driver_temp.format(CleanFmt) <<
-                  "[deg];\n time: " << _loop_time << " s"<< Colors::kEndl << std::endl;
+        std::cout << Colors::kBlue << "TempMonRt: current drivers temperature:" << _meas_driver_temp.format(CleanFmt) << "[deg]\n" <<
+                  "time: " << _loop_time << " s\n" << Colors::kEndl << std::endl;
+
+        std::cout << Colors::kBlue << "Joint names: ";
+
+        for(int i = 0; i < _jnt_names.size(); i++)
+        {
+            std::cout << Colors::kBlue << _jnt_names[i];
+        }
+
+        std::cout << Colors::kBlue << "\n" << Colors::kEndl << std::endl;
 
     }
 }
@@ -235,7 +244,7 @@ bool TempMonRt::on_initialize()
     _temp_ok_pub = advertise<bool>(_temp_stat_topicname);
 
     // lambda to define callback
-    auto on_idle_status_received = [this](const awesome_leg::SetPlugins2Idle& msg)
+    auto on_idle_status_received = [this](const awesome_leg::IdleState& msg)
     {
         if(_verbose)
         {
@@ -247,7 +256,7 @@ bool TempMonRt::on_initialize()
 
     };
 
-    _idle_status_sub = subscribe<awesome_leg::SetPlugins2Idle>(_idle_status_topicname,
+    _idle_status_sub = subscribe<awesome_leg::IdleState>(_idle_status_topicname,
                                                                 on_idle_status_received,
                                                                _queue_size);
 

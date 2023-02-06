@@ -1,5 +1,5 @@
-#ifndef TEMP_MONITOR_RT_H
-#define TEMP_MONITOR_RT_H
+#ifndef IDLER_RT_H
+#define IDLER_RT_H
 
 #include <matlogger2/matlogger2.h>
 
@@ -26,7 +26,7 @@
 
 using namespace XBot;
 
-class TempMonRt : public ControlPlugin
+class IdlerRt : public ControlPlugin
 {
 
 public:
@@ -62,16 +62,14 @@ private:
 
     bool _is_sim = true, _is_dummy = false,
          _verbose = false,
-         _is_drivers_temp_ok = false,
-         _simulate_temp_if_sim = true,
          _is_idle = false;
 
-    int _n_jnts_robot, _queue_size = 1;
+    int _queue_size = 1;
 
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type,
-                _temp_stat_topicname = "temp_status",
-                _idle_status_topicname = "idle_status";
+                _idle_status_topicname = "idle_status",
+                _idler_servicename = "set_cmd_plugins_2idle";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -94,11 +92,9 @@ private:
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
-    PublisherPtr<bool> _temp_ok_pub;
+    PublisherPtr<bool> _idle_state_pub;
 
-    awesome_leg::IdleState _idle_status_msg;
-
-    SubscriberPtr<awesome_leg::IdleState> _idle_status_sub; // only used to fake temperature in sim
+    ServiceServerPtr<awesome_leg::IdleState, bool> _idle_state_setter_srvr;
 
     void get_params_from_config();
 
@@ -121,14 +117,8 @@ private:
 
     void is_dummy(std::string dummy_string);
 
-    void pub_temp_status();
-
-    void update_state();
-
-    void check_driver_temp_limits();
-
-    void fake_temperature();
+    void pub_idle_state();
 }
 ;
 
-#endif // TEMP_MONITOR_RT_H
+#endif // IDLER_RT_H

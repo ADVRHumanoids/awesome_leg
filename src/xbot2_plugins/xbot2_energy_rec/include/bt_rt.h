@@ -21,6 +21,8 @@
 #include <behaviortree_cpp_v3/loggers/bt_zmq_publisher.h>
 
 #include "conditions/are_plugins_running.h"
+#include "conditions/temperature_ok.h"
+
 #include "actions/start_plugins.h"
 
 #include <awesome_leg/BtRootStatus.h>

@@ -1,4 +1,4 @@
-#include "start_plugins.h"
+#include "wait_for_cooling.h"
 #include "../utils_defs.hpp"
 
 #include <xbot2/intraprocess/topic.h>
@@ -14,14 +14,16 @@ WaitForCooling::WaitForCooling(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + _start_plugins_servname + "/request";
 
-    _plugins_starter_pub = advertise<service::Empty>(_asynch_servicepath);
+    _set2idle_pub = advertise<awesome_leg::IdleState>(_asynch_servicepath);
+
+    _set2idle.idle = true;
 
 }
 
 NodeStatus WaitForCooling::tick()
 {
 
-    _wait_for_cooling_pub->publish(empty_msg);
+    _set2idle_pub->publish(_set2idle);
 
     std::cout << Colors::kBlue << "ticking WaitForCooling action" << Colors::kEndl << std::endl;
 

@@ -224,7 +224,7 @@ xbotcore_plugins:
             dump_mat_suffix: {value: "base_est_rt", type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt.xml, type: file} # used by the model interface
+            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt2.xml, type: file} # used by the model interface
 
             plugin_manager_name: {value: "plugins_mngr_rt", type: string}
 
@@ -255,19 +255,18 @@ xbotcore_plugins:
 
             idle_status_topicname: {value: "idle_status", type: string} # only used if simulate_temp_if_sim
 
+    idler_rt:
+        thread: rt_main
+        type: idler_rt
+        params:
 
-#    idler_rt:
-#        thread: rt_main
-#        type: idler_rt
-#        params:
+            idler_servicename: {value: "set_cmd_plugins_2idle", type: string}
 
-#            idler_servicename: {value: "set_cmd_plugins_2idle", type: string}
+            idle_status_topicname: {value: "idle_status", type: string}
 
-#            idle_status_topicname: {value: "idle_status", type: string}
+            queue_size: {value: 5, type: int}
 
-#            queue_size: {value: 5, type: int}
-
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
     plugins_mngr_rt:
         thread: rt_main

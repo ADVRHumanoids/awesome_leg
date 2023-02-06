@@ -64,6 +64,12 @@ target_include_directories(temp_monitor_rt PRIVATE include src ${matlogger2_INCL
 add_dependencies(temp_monitor_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(temp_monitor_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
+add_xbot2_plugin(idler_rt
+    src/idler_rt.cpp)
+target_include_directories(idler_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(idler_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(idler_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
 if(${behaviortree_cpp_v3_FOUND})
 
     message("Will compile behaviour tree rt plugin")
@@ -71,7 +77,9 @@ if(${behaviortree_cpp_v3_FOUND})
     # bt actions/conditions/etc...
 
     set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
-    add_library(${BT_CUSTOM_NODES_LIB} SHARED src/actions/start_plugins.cpp src/conditions/are_plugins_running.cpp)
+    add_library(${BT_CUSTOM_NODES_LIB} SHARED
+        src/actions/start_plugins.cpp src/actions/wait_for_cooling.cpp
+        src/conditions/are_plugins_running.cpp src/conditions/temperature_ok.cpp)
     target_include_directories(${BT_CUSTOM_NODES_LIB} PUBLIC src/actions src/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
     target_link_libraries(${BT_CUSTOM_NODES_LIB} PUBLIC ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2 xbot2::xbot2_ros_support)
     install(
