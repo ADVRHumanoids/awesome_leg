@@ -36,6 +36,7 @@ add_message_files(
   BaseEstStatus.msg
   BtRootStatus.msg
   PluginsManStatus.msg
+  SetPlugins2Idle.msg
 )
 
 generate_messages(

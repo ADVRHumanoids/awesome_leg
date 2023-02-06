@@ -177,8 +177,6 @@ xbotcore_plugins:
             tip_fts_name: {value: "tip1_fts", type: string}
             contact_linkname: {value: "tip1", type: string}
 
-            driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
-
     bus_power_rt:
         thread: bus_power
         type: bus_power_rt
@@ -233,6 +231,41 @@ xbotcore_plugins:
 
             queue_size: {value: 5, type: int}
 
+    temp_monitor_rt:
+        thread: rt_main
+        type: temp_monitor_rt
+        params:
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "temp_monitor_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            temp_stat_topicname: {value: "temp_monitor/temp_status", type: string}
+
+            queue_size: {value: 5, type: int}
+
+            verbose: {value: false, type: bool}
+
+            driver_temp_threshold: {value: 58.0, type: double}
+
+            simulate_temp_if_sim: {value: true, type: bool}
+
+            idle_status_topicname: {value: "idle_status", type: string} # only used if simulate_temp_if_sim
+
+
+#    idler_rt:
+#        thread: rt_main
+#        type: idler_rt
+#        params:
+
+#            idler_servicename: {value: "set_cmd_plugins_2idle", type: string}
+
+#            idle_status_topicname: {value: "idle_status", type: string}
+
+#            queue_size: {value: 5, type: int}
+
+#            verbose: {value: false, type: bool}
+
     plugins_mngr_rt:
         thread: rt_main
         type: plugins_mngr_rt
@@ -240,7 +273,7 @@ xbotcore_plugins:
 
             async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
 
-            plugin_list: {value: ["bus_power_rt", "jmp_replayer_rt", "base_est_rt"], type: vector<string>}
+            plugin_list: {value: ["temp_mon_rt", "bus_power_rt", "jmp_replayer_rt", "base_est_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 
@@ -249,15 +282,15 @@ xbotcore_plugins:
             verbose: {value: false, type: bool}
 
     cartesio_imp_cntrl_rt:
-        thread: rt_main
-        type: cart_imp_cntrl_rt
-        params:
+            thread: rt_main
+            type: cart_imp_cntrl_rt
+            params:
 
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
+                urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
 
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+                srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
+                ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
 
     contact_est_rt:
         thread: base_est
