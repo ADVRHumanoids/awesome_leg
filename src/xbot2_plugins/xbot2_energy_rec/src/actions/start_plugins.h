@@ -31,11 +31,11 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/";
+            std::string _async_service_pattern = "/xbotcore/async_service/";
 
             std::string _start_plugins_servname = "start_plugins";
 
-            std::string _plugins_manager_name = "plugins_mngr_rt";
+//            std::string _plugins_manager_name = "plugins_mngr_rt";
 
             std::string _asynch_servicepath;
 
