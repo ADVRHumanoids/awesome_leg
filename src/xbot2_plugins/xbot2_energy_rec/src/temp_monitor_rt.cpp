@@ -153,10 +153,12 @@ void TempMonRt::init_dump_logger()
     _dump_logger->add("verbose", int(_verbose));
 
     _dump_logger->create("is_drivers_temp_ok", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("drivers_temp", _n_jnts_robot , 1, _matlogger_buffer_size);
 }
 
 void TempMonRt::add_data2dump_logger()
 {
+    _dump_logger->add("drivers_temp", _meas_driver_temp);
 
 }
 
