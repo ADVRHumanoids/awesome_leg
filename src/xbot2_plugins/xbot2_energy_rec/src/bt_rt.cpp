@@ -43,6 +43,8 @@ void BtRt::read_config_from_yaml()
     _use_zmq_pub = getParamOrThrow<bool>("~use_zmq_pub");
     _use_bt_log =  getParamOrThrow<bool>("~use_bt_log");
 
+    _stop_on_completion = getParamOrThrow<bool>("~stop_on_completion");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -269,7 +271,12 @@ void BtRt::starting()
 void BtRt::run()
 {
 
-    _bt_root_status = _tree.tickRoot();
+
+    if(!_bt_finished)
+    {
+        _bt_root_status = _tree.tickRoot();
+
+    }
 
     add_data2dump_logger(); // add data to the logger
 
@@ -277,12 +284,18 @@ void BtRt::run()
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-//    if(_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE)
-//    { // behaviour tree succeded --> exit
+    if(_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE)
+    { // behaviour tree succeded --> exit
 
-//        stop();
+        _bt_finished = true;
 
-//    }
+        if(_stop_on_completion)
+        {
+            stop();
+
+        }
+
+    }
 
 }
 
