@@ -432,7 +432,7 @@ void BaseEstRt::update_states()
 
     _num_diff_p.add_sample(_p); // differentiating the generalized momentum
     _num_diff_p.dot(_p_dot);
-    _CT_v = _C.transpose() * _q_p_dot_be;
+    _CT_v.noalias() = _C.transpose() * _q_p_dot_be;
     _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
     // and without observer)
     _tau_c_raw_filter.add_sample(_tau_c_raw);
