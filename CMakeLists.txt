@@ -59,13 +59,9 @@ target_include_directories(robot_state_logger PRIVATE ${catkin_INCLUDE_DIRS} ${X
 set_target_properties(robot_state_logger PROPERTIES INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # Xacro files
-file(GLOB awesome_leg_xacros
-                             ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_xbot.urdf.xacro
-                             ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro,
-                             ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_floating.urdf.xacro)
 
 set(awesome_leg_standalone  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_standalone.urdf")
-set(awesome_leg_xbot  ${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/"awesome_leg_xbot.urdf")
+set(awesome_leg_xbot  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_xbot.urdf")
 set(awesome_leg  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg.urdf")
 set(awesome_leg_no_sliding  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_no_sliding.urdf")
 set(awesome_leg_floating  "${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/generated/awesome_leg_floating.urdf")
@@ -76,9 +72,9 @@ xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_xb
                     ${awesome_leg_xbot})
 xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro
                     ${awesome_leg})
-xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_no_sliding.urdf.xacro
                     ${awesome_leg_no_sliding})
-xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_test_rig.urdf.xacro
+xacro_add_xacro_file(${CMAKE_CURRENT_SOURCE_DIR}/description/urdf/awesome_leg_floating.urdf.xacro
                     ${awesome_leg_floating})
 
 list(APPEND URDF_files ${awesome_leg_standalone})
