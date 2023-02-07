@@ -100,9 +100,9 @@ endif()
 
 install(
     TARGETS
-    # contact_est_rt
+    contact_est_rt
     jmp_replayer_rt
-    # base_est_rt
+    base_est_rt
     iq_model_calib_rt
     bus_power_rt
     plugins_mngr_rt
