@@ -484,7 +484,6 @@ void BaseEstRt::init_dump_logger()
     _dump_logger->create("q_p_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_dot_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_ff", _n_jnts_robot, 1, _matlogger_buffer_size);
-    _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("q_p_be", _nq_be, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_dot_be", _nv_be, 1, _matlogger_buffer_size);
@@ -520,7 +519,6 @@ void BaseEstRt::add_data2dump_logger()
     _dump_logger->add("q_p_ref", _q_p_ref);
     _dump_logger->add("q_p_dot_ref", _q_p_dot_ref);
     _dump_logger->add("tau_ff", _tau_ff);
-    _dump_logger->add("tau_cmd", _tau_cmd);
 
     _dump_logger->add("tip_w_est_abs", _est_w);
 

@@ -687,7 +687,8 @@ bool ContactEstRt::on_initialize()
 
     // setting model position to zero to get the reference base link
     // height wrt the passive dof is defined
-    _pin_model_ptr->set_q(Eigen::VectorXd::Zero(_nq_ft_est));
+    Eigen::VectorXd tmp_vect = Eigen::VectorXd::Zero(_nq_ft_est);
+    _pin_model_ptr->set_q(tmp_vect);
     _pin_model_ptr->update();
 
     // getting link poses from model
