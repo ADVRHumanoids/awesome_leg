@@ -185,7 +185,7 @@ xbotcore_plugins:
             tree_logpath: {value: "/tmp", type: string}
             tree_logname: {value: "bt_trace", type: string}
 
-            use_zmq_pub: {value: false, type: bool}
+            use_zmq_pub: {value: true, type: bool}
             use_bt_log: {value: false, type: bool}
 
     temp_monitor_rt:

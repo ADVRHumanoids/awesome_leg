@@ -51,6 +51,8 @@ void ContactEstRt::init_vars()
     _meas_tip_t_loc = Eigen::VectorXd::Zero(3);
 
     _w_c_est = Eigen::VectorXd::Zero(6);
+    _meas_w_abs = Eigen::VectorXd::Zero(6);
+
 
     // used to convert to ros messages-compatible types
     _tau_c_vect = std::vector<double>(_nv_ft_est);

@@ -115,10 +115,12 @@ private:
     utils_defs::Torque3D _meas_tip_t_loc,
                    _meas_tip_t_abs;
 
-    utils_defs::Wrench _meas_w_loc, _meas_w_abs,
+    utils_defs::Wrench _meas_w_loc,
                        _est_w_loc,
                        _est_w;
 
+    Eigen::VectorXd _meas_w_abs;
+    
     std::vector<std::string> _vertex_frames;
     std::vector<double> _vertex_weights;
     std::vector<double> _est_w_vect;

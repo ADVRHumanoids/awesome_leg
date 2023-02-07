@@ -127,14 +127,14 @@ private:
                     _q_p_ft_est, _q_p_dot_ft_est, _q_p_ddot_ft_est, _tau_ft_est,
                     _tau_c, _tau_c_raw,
                     _CT_v, _g, _p, _p_dot, _q, _v, _tau,
-                    _meas_w_filt;
+                    _meas_w_filt, _meas_w_abs;
 
     Eigen::MatrixXd _C,
                     _K_p, _K_d;
 
     utils_defs::RotMat3D _R_world_from_tip;
 
-    utils_defs::Wrench _w_c_est, _w_c_est_loc, _meas_w_loc, _meas_w_abs;
+    utils_defs::Wrench _w_c_est, _w_c_est_loc, _meas_w_loc;
 
     utils_defs::Force3D _tip_f_est_abs, _meas_tip_f_loc,
                    _meas_tip_f_abs,

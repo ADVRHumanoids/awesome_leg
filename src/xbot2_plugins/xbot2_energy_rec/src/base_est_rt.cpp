@@ -46,6 +46,7 @@ void BaseEstRt::init_vars()
     _C = Eigen::MatrixXd::Zero(_nv_be, _nv_be);
 
     _est_w_vect = std::vector<double>(6);
+    _meas_w_abs = Eigen::VectorXd::Zero(6);
     _meas_w_abs_vect = std::vector<double>(6);
 
     _base_link_vel_vect = std::vector<double>(3);
