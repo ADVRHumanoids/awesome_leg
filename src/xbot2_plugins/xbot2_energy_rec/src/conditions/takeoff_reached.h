@@ -1,0 +1,4 @@
+#ifndef TAKEOFF_REACHED_H
+#define TAKEOFF_REACHED_H
+
+#endif // TAKEOFF_REACHED_H

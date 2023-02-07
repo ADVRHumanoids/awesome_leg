@@ -139,7 +139,7 @@ void BtRt::init_bt()
     _factory.registerNodeType<StartPlugins>("StartPlugins");
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
     _factory.registerNodeType<TemperatureOk>("TemperatureOk");
-    _factory.registerNodeType<WaitForCooling>("CoolDownByWaiting");
+    _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
     _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
     _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
 

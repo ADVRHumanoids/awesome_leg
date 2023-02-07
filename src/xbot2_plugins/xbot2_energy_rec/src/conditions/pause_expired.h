@@ -1,0 +1,4 @@
+#ifndef PAUSE_EXPIRED_H
+#define PAUSE_EXPIRED_H
+
+#endif // PAUSE_EXPIRED_H

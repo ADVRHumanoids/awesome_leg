@@ -1,5 +1,5 @@
-#ifndef WAIT_FOR_COOLING_H
-#define WAIT_FOR_COOLING_H
+#ifndef SET2IDLE_H
+#define SET2IDLE_H
 
 #include <behaviortree_cpp_v3/action_node.h>
 #include <xbot2/journal/journal.h>
@@ -17,17 +17,19 @@ using namespace XBot;
 namespace BT
 {
 
-    class WaitForCooling : public AsyncActionNode, public Task
+    class Set2Idle : public AsyncActionNode, public Task
     { // we are working with rt plugins, so we should minimize blocking code
       // that's why we employ asynchronous action nodes
 
         public:
 
-            WaitForCooling(const std::string& name);
+            Set2Idle(const std::string& name);
 
         private:
 
             bool _verbose = false;
+
+            std::string _name;
 
             int _queue_size = 1;
 
@@ -48,4 +50,4 @@ namespace BT
 
 }
 
-#endif // WAIT_FOR_COOLING_H
+#endif // SET2IDLE_H
