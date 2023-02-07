@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<root main_tree_to_execute="BehaviorTree">
+    <!-- ////////// -->
+    <BehaviorTree ID="BehaviorTree">
+        <Sequence>
+            <ReactiveFallback>
+                <Condition ID="ArePluginsRunning"/>
+                <Action ID="StartPlugins"/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="TemperatureOk"/>
+                <Action ID="CoolDownByWaiting"/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="ArePluginsClosed"/>
+                <Action ID="CloseAllPlugins"/>
+            </ReactiveFallback>
+        </Sequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="EnergyRecDemo">
+        <ReactiveFallback>
+            <Condition ID="RecovEnergyReached"/>
+            <SubTree ID="PerformJumpSequence"/>
+        </ReactiveFallback>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <BehaviorTree ID="PerformJumpSequence">
+        <ReactiveSequence>
+            <ReactiveFallback>
+                <Condition ID="IsFlightPhase"/>
+                <SequenceStar>
+                    <ReactiveFallback>
+                        <Condition ID="TakeoffConfigReached"/>
+                        <Action ID="Go2TakeoffConfig"/>
+                    </ReactiveFallback>
+                    <Action ID="PerformTakeoff"/>
+                </SequenceStar>
+            </ReactiveFallback>
+        </ReactiveSequence>
+    </BehaviorTree>
+    <!-- ////////// -->
+    <TreeNodesModel>
+        <Condition ID="ArePluginsClosed"/>
+        <Condition ID="ArePluginsRunning"/>
+        <Action ID="CloseAllPlugins"/>
+        <Action ID="CloseBtRoot"/>
+        <Action ID="CoolDownByWaiting"/>
+        <SubTree ID="EnergyRecDemo"/>
+        <Action ID="Go2TakeoffConfig"/>
+        <Condition ID="IsFlightPhase"/>
+        <Condition ID="IsNotIdle"/>
+        <SubTree ID="PerformJumpSequence"/>
+        <Action ID="PerformTakeoff"/>
+        <Condition ID="RecovEnergyReached"/>
+        <Action ID="StartPlugins"/>
+        <Condition ID="TakeoffConfigReached"/>
+        <Condition ID="TakeoffPerformed"/>
+        <Condition ID="TemperatureOk"/>
+    </TreeNodesModel>
+    <!-- ////////// -->
+</root>

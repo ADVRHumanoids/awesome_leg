@@ -78,8 +78,8 @@ if(${behaviortree_cpp_v3_FOUND})
 
     set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
     add_library(${BT_CUSTOM_NODES_LIB} SHARED
-        src/actions/start_plugins.cpp src/actions/wait_for_cooling.cpp
-        src/conditions/are_plugins_running.cpp src/conditions/temperature_ok.cpp)
+        src/actions/start_plugins.cpp src/actions/stop_plugins.cpp src/actions/wait_for_cooling.cpp
+        src/conditions/are_plugins_running.cpp src/conditions/are_plugins_closed.cpp src/conditions/temperature_ok.cpp)
     target_include_directories(${BT_CUSTOM_NODES_LIB} PUBLIC src/actions src/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
     target_link_libraries(${BT_CUSTOM_NODES_LIB} PUBLIC ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2 xbot2::xbot2_ros_support)
     install(
