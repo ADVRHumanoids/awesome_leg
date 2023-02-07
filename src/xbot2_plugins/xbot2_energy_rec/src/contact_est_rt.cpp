@@ -724,7 +724,10 @@ void ContactEstRt::run()
 
     update_state(); // update all necessary states
 
-    _queue.run();
+    if(_is_sim)
+    {
+        _queue.run();
+    }
 
     pub_contact_est_status();
 

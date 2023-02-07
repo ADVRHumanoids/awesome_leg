@@ -678,7 +678,10 @@ void BaseEstRt::run()
 {
     update_states(); // update all necessary states
 
-    _queue.run();
+    if(_is_sim)
+    {
+        _queue.run();
+    }
 
     add_data2dump_logger(); // add data to the logger
 
