@@ -18,7 +18,6 @@ void BaseEstRt::init_vars()
 
     _q_p_dot_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_ff = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _meas_stiff = Eigen::VectorXd::Zero(_n_jnts_robot);
     _meas_damp = Eigen::VectorXd::Zero(_n_jnts_robot);
 
@@ -405,8 +404,6 @@ void BaseEstRt::update_states()
 
     get_robot_state(); // gets states from the robot
 
-    get_tau_cmd(); // computes the joint-level impedance control
-
     if (!_is_flight_phase_prev && _is_flight_phase)
     { // we are right after the takeoff instant --> we store the current state
         _q_p_be_takeoff = _q_p_be;
@@ -590,19 +587,6 @@ void BaseEstRt::on_base_link_twist_received(const geometry_msgs::TwistStamped& m
 
     _base_link_vel = twist.head(3);
     _base_link_omega = twist.tail(3);
-}
-
-void BaseEstRt::get_tau_cmd()
-{
-    // assign stiffness and damping matrices
-    for (int i = 0; i < _q_p_meas.size(); i++)
-    {
-        _K_p(i, i) = _meas_stiff(i);
-        _K_d(i, i) = _meas_damp(i);
-    }
-
-    _tau_cmd = _tau_ff - _K_p * (_q_p_meas - _q_p_ref) - _K_d * (_q_p_dot_meas - _q_p_dot_ref);
-
 }
 
 void BaseEstRt::pub_base_est_status()
