@@ -61,7 +61,8 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true, _is_dummy = false;
+        _is_sim = true, _is_dummy = false, 
+        _use_zmq_pub = false, _use_bt_log = false;
 
     int _queue_size = 1;
 

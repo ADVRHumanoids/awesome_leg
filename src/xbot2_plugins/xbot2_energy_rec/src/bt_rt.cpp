@@ -40,6 +40,9 @@ void BtRt::read_config_from_yaml()
 
     _tree_logpath = getParamOrThrow<std::string>("~tree_logpath");
 
+    _use_zmq_pub = getParamOrThrow<bool>("~use_zmq_pub");
+    _use_bt_log =  getParamOrThrow<bool>("~use_bt_log");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -141,15 +144,21 @@ void BtRt::init_bt()
 //    // This logger prints state changes on console
 //    StdCoutLogger _logger_cout(_tree);
 
-//    // This logger saves state changes on file
-    _tree_log_fullpaths = _tree_logpath + "/" + _tree_logname + ".fbl";
-    _logger_file = std::make_unique<FileLogger>(_tree, _tree_log_fullpaths.c_str());
-
+    // This logger saves state changes on file
+    if (_use_bt_log)
+    {
+        _tree_log_fullpaths = _tree_logpath + "/" + _tree_logname + ".fbl";
+        _logger_file = std::make_unique<FileLogger>(_tree, _tree_log_fullpaths.c_str());
+    }
+    
 //    // This logger stores the execution time of each node
 //    MinitraceLogger _logger_minitrace(_tree, "/tmp/bt_trace.json"); // causes segfault
 
-    // This logger publish status changes using ZeroMQ. Used by Groot
-    _zmq_pub_ptr = std::make_unique<PublisherZMQ>(_tree);
+    if(_use_zmq_pub)
+    {
+        // This logger publish status changes using ZeroMQ. Used by Groot
+        _zmq_pub_ptr = std::make_unique<PublisherZMQ>(_tree);
+    }
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                        "\nBT INFO: \n");
