@@ -121,6 +121,8 @@ void BusPowerRt::get_params_from_config()
 
     _use_iq_meas = getParamOrThrow<bool>("~use_iq_meas");
 
+    _dump_iq_data = getParamOrThrow<bool>("~dump_iq_data");
+
 }
 
 void BusPowerRt::is_sim(std::string sim_string = "sim")
@@ -491,10 +493,10 @@ void BusPowerRt::run_reg_pow_estimation()
      _pow_monitor->update(); // update power and energy estimates using current state
      // and current estimates from iq estimator (or iq measurements if _use_iq_meas == true)
 
-     _er = _pow_monitor->get_e();
-     _pr = _pow_monitor->get_p();
-
      _pow_monitor->get(_er_k, _pr_k);
+
+     _pow_monitor->get_e(_er);
+     _pow_monitor->get_p(_pr);
 
      _pow_monitor->get_p_terms(_pk_joule, _pk_mech, _pk_indct);
      _pow_monitor->get_e_terms(_ek_joule, _ek_mech, _ek_indct);
@@ -537,7 +539,7 @@ bool BusPowerRt::on_initialize()
                                         _red_ratio,
                                         _alpha,
                                         _q_dot_3sigma,
-                                        true));
+                                        _dump_iq_data));
 
     // bus power estimator
     _pow_monitor.reset(new RegEnergy(_iq_getter,
@@ -546,7 +548,7 @@ bool BusPowerRt::on_initialize()
                                      _L_leak, _L_m,
                                      _plugin_dt,
                                      _use_iq_meas,
-                                     true));
+                                     _dump_iq_data));
 
     // numerical differentiation
     _num_diff = NumDiff(_n_jnts_robot, _plugin_dt, _der_est_order);

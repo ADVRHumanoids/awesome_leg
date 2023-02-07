@@ -79,7 +79,8 @@ public:
 private:
 
     bool _is_sim = true, _is_dummy = false,
-         _use_iq_meas = true;
+         _use_iq_meas = true, 
+         _dump_iq_data = false;
 
     int _n_jnts_robot,
         _der_est_order = 1,

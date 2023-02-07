@@ -21,21 +21,24 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
+    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
 
 # plugins
 xbotcore_plugins:
 
-    homing_iq_calibration:
-        thread: rt_main
-        type: homing_example
-        params:
-            qhome: {value: [1.57, -2.16], type: Eigen::VectorXd}
+    # homing_iq_calibration:
+    #     thread: rt_main
+    #     type: homing_example
+    #     params:
+    #         qhome: {value: [1.57, -2.16], type: Eigen::VectorXd}
+
+    ros_io: {thread: nrt_main, type: ros_io}
 
     ec_ros: {thread: nrt_main, type: ec_ros}
 
     iq_model_calib_rt:
-        thread: rt_main
+        thread: rt_main_slow
         type: iq_model_calib_rt
         params:
 
