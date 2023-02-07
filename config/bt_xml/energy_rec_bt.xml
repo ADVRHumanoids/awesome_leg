@@ -16,30 +16,37 @@
                 <Condition ID="ArePluginsClosed"/>
                 <Action ID="CloseAllPlugins"/>
             </ReactiveFallback>
-            <Action ID="CloseBtRoot"/>
         </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="EnergyRecDemo">
         <ReactiveFallback>
             <Condition ID="RecovEnergyReached"/>
-            <SubTree ID="PerformJumpSequence"/>
+            <ReactiveSequence>
+                <ReactiveFallback>
+                    <Condition ID="IsIdle"/>
+                    <SubTree ID="PerformJumpSequence"/>
+                </ReactiveFallback>
+                <Action ID="RestartJumpSequence"/>
+            </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="PerformJumpSequence">
-        <ReactiveSequence>
+        <Sequence>
             <ReactiveFallback>
-                <Condition ID="IsFlightPhase"/>
-                <SequenceStar>
-                    <ReactiveFallback>
-                        <Condition ID="TakeoffConfigReached"/>
-                        <Action ID="Go2TakeoffConfig"/>
-                    </ReactiveFallback>
-                    <Action ID="PerformTakeoff"/>
-                </SequenceStar>
+                <Condition ID="TakeoffConfigReached"/>
+                <Action ID="Go2TakeoffConfig"/>
             </ReactiveFallback>
-        </ReactiveSequence>
+            <ReactiveFallback>
+                <Condition ID="TakeoffPerformed"/>
+                <Action ID="PerformTakeoff"/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="PauseExpired"/>
+                <Action ID="WaitABit"/>
+            </ReactiveFallback>
+        </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
@@ -51,14 +58,17 @@
         <SubTree ID="EnergyRecDemo"/>
         <Action ID="Go2TakeoffConfig"/>
         <Condition ID="IsFlightPhase"/>
-        <Condition ID="IsNotIdle"/>
+        <Condition ID="IsIdle"/>
+        <Condition ID="PauseExpired"/>
         <SubTree ID="PerformJumpSequence"/>
         <Action ID="PerformTakeoff"/>
         <Condition ID="RecovEnergyReached"/>
+        <Action ID="RestartJumpSequence"/>
         <Action ID="StartPlugins"/>
         <Condition ID="TakeoffConfigReached"/>
         <Condition ID="TakeoffPerformed"/>
         <Condition ID="TemperatureOk"/>
+        <Action ID="WaitABit"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
