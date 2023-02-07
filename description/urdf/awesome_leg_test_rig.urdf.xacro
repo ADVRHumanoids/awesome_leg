@@ -16,7 +16,17 @@
     <xacro:property name="test_rig_height" value="1.0" />
     <xacro:property name="hip_mounting_offset" value="0.08" />
 
-    <xacro:property name="pelvis_mounting_height" value="0.25" />
+    <xacro:if value="$(arg sliding_guide)">
+
+        <xacro:property name="pelvis_mounting_height" value="0.25" />
+
+    </xacro:if>
+
+    <xacro:unless value="$(arg sliding_guide)">
+
+        <xacro:property name="pelvis_mounting_height" value="0.4" />
+
+    </xacro:unless>
 
     <link name="world" />
 
