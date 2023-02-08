@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/PluginsManStatus.h>
+#include <awesome_leg/IdleState.h>
 
 using namespace XBot;
 
@@ -34,11 +34,12 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _plugins_stat_topicname = "plugins_manager/plugins_status";
+            std::string _idle_status_topicname = "idle_status";
+            std::string _idle_pluginname = "idler_rt";
 
-            awesome_leg::PluginsManStatus _plugins_status_msg;
+            awesome_leg::IdleState _idle_state;
 
-            SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
+            SubscriberPtr<awesome_leg::IdleState> _idle_state_sub;
 
             NodeStatus tick() override;
 

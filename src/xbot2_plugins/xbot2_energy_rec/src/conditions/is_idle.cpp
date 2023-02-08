@@ -11,36 +11,38 @@ IsIdle::IsIdle(const std::string& name, const NodeConfiguration& config) :
     setRegistrationID(name);
 
     // lambda to define callback
-    auto plugins_status_callback = [this](const awesome_leg::PluginsManStatus& msg)
+    auto idle_state_callback = [this](const awesome_leg::IdleState& msg)
     {
 
-        _plugins_status_msg.all_plugins_running = msg.all_plugins_running;
-        _plugins_status_msg.all_plugins_stopped = msg.all_plugins_stopped;
+        _idle_state.idle = msg.idle;
 
     };
 
-    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>(_plugins_stat_topicname,
-                            plugins_status_callback,
+    _idle_state_sub = subscribe<awesome_leg::IdleState>("/" + _idle_pluginname + "/" + _idle_status_topicname,
+                            idle_state_callback,
                             _queue_size);
+
+    _idle_state.idle = true; // for safety reasons, we assume to be in idle if not otherwise indicated
+
 };
 
 PortsList IsIdle::providedPorts()
 {
 
-  return { OutputPort<bool>("are_plugins_running") };
+  return { OutputPort<bool>("is_idle") };
 
 }
 
 NodeStatus IsIdle::tick()
 {
 
-    setOutput("are_plugins_running", true);
+    setOutput("is_idle", true);
 
-    _plugins_status_subs->run();
+    _idle_state_sub->run();
 
-//    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
+//    std::cout << Colors::kGreen << "ticking IsIdle" << Colors::kEndl << std::endl;
 
-    NodeStatus result = _plugins_status_msg.all_plugins_running? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    NodeStatus result = _idle_state.idle? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
     return result;
 

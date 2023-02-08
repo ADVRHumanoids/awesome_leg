@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/PluginsManStatus.h>
+#include <awesome_leg/MatReplayerStatus.h>
 
 using namespace XBot;
 
@@ -34,11 +34,12 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _plugins_stat_topicname = "plugins_manager/plugins_status";
+            std::string _plugins_stat_topicname = "replay_status_node";
+            std::string _takeoff_pluginname = "jmp_replayer_rt";
 
-            awesome_leg::PluginsManStatus _plugins_status_msg;
+            awesome_leg::MatReplayerStatus _jump_status;
 
-            SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
+            SubscriberPtr<awesome_leg::MatReplayerStatus> _jump_stat_sub;
 
             NodeStatus tick() override;
 
