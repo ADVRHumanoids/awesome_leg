@@ -47,6 +47,8 @@ void BtRt::read_config_from_yaml()
 
     _stop_ticking_root_if_completed = getParamOrThrow<bool>("~stop_ticking_root_if_completed");
 
+    _verbose = getParamOrThrow<bool>("~verbose");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -298,6 +300,13 @@ void BtRt::run()
     }
 
     _bt_root_status = _tree.tickRoot();
+
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                           "Root status: {}\n",
+                           _bt_root_status);
+    }
 
     add_data2dump_logger(); // add data to the logger
 

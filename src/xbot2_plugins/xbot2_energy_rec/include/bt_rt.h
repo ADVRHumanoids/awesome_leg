@@ -65,7 +65,8 @@ private:
         _use_zmq_pub = false, _use_bt_log = false,
         _bt_finished = false,
         _stop_on_completion = false,
-        _stop_ticking_root_if_completed = true;
+        _stop_ticking_root_if_completed = true,
+        _verbose = false;
 
     int _queue_size = 1;
 

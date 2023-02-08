@@ -11,6 +11,7 @@
                 <Condition ID="TemperatureOk"/>
                 <Action ID="CoolDownByWaiting"/>
             </ReactiveFallback>
+            <SubTree ID="EnergyRecDemo"/>
         </Sequence>
     </BehaviorTree>
     <!-- ////////// -->
