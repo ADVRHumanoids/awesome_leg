@@ -12,11 +12,11 @@ ModelInterface:
 
 # hal
 xbotcore_device_configs:
-    sim: $PWD/ecat_config/hal/awesome_leg_gz.yaml
-    dummy: $PWD/ecat_config/hal/awesome_leg_dummy.yaml
-    ec_pos: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
-    ec_imp: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
-    ec_idle: $PWD/ecat_config/hal/awesome_leg_ec_all.yaml
+    sim: $PWD/../ecat_config/hal/awesome_leg_gz.yaml
+    dummy: $PWD/../ecat_config/hal/awesome_leg_dummy.yaml
+    ec_pos: $PWD/../ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_imp: $PWD/../ecat_config/hal/awesome_leg_ec_all.yaml
+    ec_idle: $PWD/../ecat_config/hal/awesome_leg_ec_all.yaml
 
 # threads
 xbotcore_threads:
