@@ -55,15 +55,6 @@ void BaseEstRt::init_vars()
     _tau_c_raw_filt_vect = std::vector<double>(_nv_be);
     _tau_c_raw_vect = std::vector<double>(_nv_be);
 
-    // mapping eigen variables to std vectors so that they can be publshed via topics
-    Eigen::Map<Eigen::VectorXd>(&_est_w_vect[0], _est_w.size(), 1) = _est_w;
-    Eigen::Map<Eigen::VectorXd>(&_meas_w_abs_vect[0], _meas_w_abs.size(), 1) = _meas_w_abs;
-    Eigen::Map<Eigen::VectorXd>(&_base_link_vel_vect[0], _base_link_vel.size(), 1) = _base_link_vel;
-    Eigen::Map<Eigen::VectorXd>(&_base_link_omega_vect[0], _base_link_omega.size(), 1) = _base_link_omega;
-
-    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
-    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_filt_vect[0], _tau_c_raw_filt.size(), 1) = _tau_c_raw_filt;
-
 }
 
 void BaseEstRt::reset_flags()
@@ -592,6 +583,15 @@ void BaseEstRt::pub_base_est_status()
 {
     auto base_est_msg = _base_est_st_pub->loanMessage();
 
+    // mapping eigen variables to std vectors so that they can be publshed via topics
+    Eigen::Map<Eigen::VectorXd>(&_est_w_vect[0], _est_w.size(), 1) = _est_w;
+    Eigen::Map<Eigen::VectorXd>(&_meas_w_abs_vect[0], _meas_w_abs.size(), 1) = _meas_w_abs;
+    Eigen::Map<Eigen::VectorXd>(&_base_link_vel_vect[0], _base_link_vel.size(), 1) = _base_link_vel;
+    Eigen::Map<Eigen::VectorXd>(&_base_link_omega_vect[0], _base_link_omega.size(), 1) = _base_link_omega;
+
+    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
+    Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_filt_vect[0], _tau_c_raw_filt.size(), 1) = _tau_c_raw_filt;
+    
     base_est_msg->msg().name = _be_msg_name;
     base_est_msg->msg().est_wrench = _est_w_vect;
     base_est_msg->msg().est_wrench_norm = _est_wrench_norm;
