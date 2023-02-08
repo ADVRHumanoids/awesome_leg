@@ -138,28 +138,29 @@ void BtRt::init_nrt_ros_bridge()
 
 void BtRt::init_bt()
 {
-//    _factory.registerNodeType<StartPlugins>("StartPlugins");
-//    _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
-//    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
-//    _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
-//    _factory.registerNodeType<StopPlugins>("Go2TakeoffConfig");
-//    _factory.registerNodeType<StopPlugins>("PerformTakeoff");
-//    _factory.registerNodeType<StopPlugins>("WaitABit");
-
-//    _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
-//    _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
-//    _factory.registerNodeType<TemperatureOk>("TemperatureOk");
-//    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
-//    _factory.registerNodeType<IsIdle>("IsIdle");
-//    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
-//    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
-//    _factory.registerNodeType<PauseExpired>("PauseExpired");
 
     _factory.registerNodeType<StartPlugins>("StartPlugins");
-    _factory.registerNodeType<Set2Idle>("wait_for_actuators_cooling");
+    _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
+    _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
+    _factory.registerNodeType<StopPlugins>("Go2TakeoffConfig");
+    _factory.registerNodeType<StopPlugins>("PerformTakeoff");
+    _factory.registerNodeType<StopPlugins>("WaitABit");
 
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
-    _factory.registerNodeType<TemperatureOk>("temperature_ok");
+    _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
+    _factory.registerNodeType<TemperatureOk>("TemperatureOk");
+    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
+    _factory.registerNodeType<IsIdle>("IsIdle");
+    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
+    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
+    _factory.registerNodeType<PauseExpired>("PauseExpired");
+
+//    _factory.registerNodeType<StartPlugins>("StartPlugins");
+//    _factory.registerNodeType<Set2Idle>("wait_for_actuators_cooling");
+
+//    _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
+//    _factory.registerNodeType<TemperatureOk>("temperature_ok");
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 

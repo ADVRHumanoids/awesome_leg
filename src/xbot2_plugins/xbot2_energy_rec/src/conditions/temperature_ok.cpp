@@ -25,7 +25,8 @@ TemperatureOk::TemperatureOk(const std::string& name, const NodeConfiguration& c
 
     _set2running.idle = false;
 
-    _are_temp_ok.drivers_temp_ok = false;
+    _are_temp_ok.drivers_temp_ok = false; // for safety reasons, if we tick the node without having received an update
+    // from the callback, we assume temperatures are NOT ok
 
 
 };

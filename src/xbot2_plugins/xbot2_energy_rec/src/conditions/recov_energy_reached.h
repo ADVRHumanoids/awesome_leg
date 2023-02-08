@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/PluginsManStatus.h>
+#include <awesome_leg/RegPowStatus.h>
 
 using namespace XBot;
 
@@ -34,11 +34,15 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _plugins_stat_topicname = "plugins_manager/plugins_status";
+            std::string _rec_evergy_topicname = "reg_pow_node_iq_model";
 
-            awesome_leg::PluginsManStatus _plugins_status_msg;
+            std::string _rec_energy_pluginname = "bus_power_rt_iq_model";
 
-            SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
+            double _recov_energy_thresh = 200.0; // [J]
+
+            awesome_leg::RegPowStatus _reg_pow_status;
+
+            SubscriberPtr<awesome_leg::RegPowStatus> _reg_pow_sub;
 
             NodeStatus tick() override;
 

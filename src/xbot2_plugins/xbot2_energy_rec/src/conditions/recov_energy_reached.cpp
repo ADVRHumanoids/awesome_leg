@@ -11,36 +11,38 @@ RecovEnergyReached::RecovEnergyReached(const std::string& name, const NodeConfig
     setRegistrationID(name);
 
     // lambda to define callback
-    auto plugins_status_callback = [this](const awesome_leg::PluginsManStatus& msg)
+    auto reg_energy_callback = [this](const awesome_leg::RegPowStatus& msg)
     {
 
-        _plugins_status_msg.all_plugins_running = msg.all_plugins_running;
-        _plugins_status_msg.all_plugins_stopped = msg.all_plugins_stopped;
+        _reg_pow_status.recov_energy = msg.recov_energy;
 
     };
 
-    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>(_plugins_stat_topicname,
-                            plugins_status_callback,
+    _reg_pow_sub = subscribe<awesome_leg::RegPowStatus>("/" + _rec_energy_pluginname + "/" + _rec_evergy_topicname,
+                            reg_energy_callback,
                             _queue_size);
+
+    _reg_pow_status.recov_energy = 0.0;// fif we tick the node without having received an update
+    // from the callback, we assume the recovered energy to be 0
 };
 
 PortsList RecovEnergyReached::providedPorts()
 {
 
-  return { OutputPort<bool>("are_plugins_running") };
+  return { OutputPort<bool>("recov_energy_reached") };
 
 }
 
 NodeStatus RecovEnergyReached::tick()
 {
 
-    setOutput("are_plugins_running", true);
+    setOutput("recov_energy_reached", true);
 
-    _plugins_status_subs->run();
+    _reg_pow_sub->run();
 
-//    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
+//    std::cout << Colors::kGreen << "ticking RecovEnergyReached" << Colors::kEndl << std::endl;
 
-    NodeStatus result = _plugins_status_msg.all_plugins_running? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    NodeStatus result = _reg_pow_status.recov_energy > _recov_energy_thresh? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
     return result;
 

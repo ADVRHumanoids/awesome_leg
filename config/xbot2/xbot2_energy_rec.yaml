@@ -168,7 +168,7 @@ xbotcore_plugins:
             use_iq_meas: {value: false, type: bool}
             dump_iq_data: {value: false, type: bool}
 
-            topic_ns: {value: iq_model, type: string}
+            topic_ns: {value: "iq_model", type: string}
 
 #    bus_power_rt_iq_meas:
 #        thread: rt_main
