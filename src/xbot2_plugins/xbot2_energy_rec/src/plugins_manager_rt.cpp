@@ -111,7 +111,9 @@ bool PluginsManagerRt::on_start_signal(const awesome_leg::SimpleTriggerRequest& 
 
     _start_plugins = true; // will start plugins
 
-    return true;
+    res.success = true;
+
+    return res.success;
 }
 
 bool PluginsManagerRt::on_stop_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
@@ -123,7 +125,9 @@ bool PluginsManagerRt::on_stop_signal(const awesome_leg::SimpleTriggerRequest& r
 
     _start_plugins = false; // will stop plugins
 
-    return true;
+    res.success = true;
+
+    return res.success;
 }
 
 void PluginsManagerRt::starting()
