@@ -171,7 +171,7 @@ xbotcore_plugins:
 
             topic_ns: {value: iq_model, type: string}
 
-    bus_power_rt_iq:
+    bus_power_rt_iq_meas:
         thread: rt_main
         type: bus_power_rt
         params:
@@ -288,7 +288,7 @@ xbotcore_plugins:
 
             # plugin_list: {value: ["idler_rt", "base_est_rt", "temp_monitor_rt", "jmp_replayer_rt", "base_est_rt", "cartesio_imp_cntrl_rt", "bus_power_rt"], type: vector<string>}
             
-            # plugin_list: {value: ["bus_power_rt_iq", "bus_power_rt_iq_model"], type: vector<string>}
+            # plugin_list: {value: ["bus_power_rt_iq_meas", "bus_power_rt_iq_model"], type: vector<string>}
 
             plugin_list: {value: ["base_est_rt", "jmp_replayer_rt"], type: vector<string>}
 
