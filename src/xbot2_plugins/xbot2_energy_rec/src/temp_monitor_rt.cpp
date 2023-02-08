@@ -59,6 +59,7 @@ void TempMonRt::get_params_from_config()
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
     _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
+    _idler_pluginname = getParamOrThrow<std::string>("~idler_pluginname");
 
     _temp_rise_rate = getParamOrThrow<double>("~temp_rise_rate");
     _temp_cooling_rate = getParamOrThrow<double>("~temp_cooling_rate");
@@ -182,6 +183,24 @@ void TempMonRt::init_nrt_ros_bridge()
 
     _ros = std::make_unique<RosSupport>(nh);
 
+    _temp_ok_pub = _ros->advertise<awesome_leg::TempOkStatus>(_temp_stat_topicname, 1);
+
+    // lambda to define callback
+    auto on_idle_status_received = [this](const awesome_leg::IdleState& msg)
+    {
+        if(_verbose)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                       "\n TempMonRt: received idle status: {}.\n", msg.idle);
+        }
+
+        _idle_status_msg.idle= msg.idle;
+
+    };
+
+    _idle_status_sub = subscribe<awesome_leg::IdleState>("/" + _idler_pluginname + "/" + _idle_status_topicname,
+                                                            on_idle_status_received,
+                                                           _queue_size);
 }
 
 void TempMonRt::add_data2bedumped()
@@ -197,9 +216,9 @@ void TempMonRt::check_driver_temp_limits()
     // this is a check with hysteresis (schmiddt trigger-like)
     if (!_cooling_down)
     {
-        _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds.array()).all();
+        _temp_ok.drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds.array()).all();
 
-        if(!_is_drivers_temp_ok)
+        if(!_temp_ok.drivers_temp_ok)
         {
             if(_verbose)
             {
@@ -211,7 +230,7 @@ void TempMonRt::check_driver_temp_limits()
     }
     if (_cooling_down)
     {
-        _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds_cooling.array()).all();
+        _temp_ok.drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_thresholds_cooling.array()).all();
 
     }
 }
@@ -219,7 +238,7 @@ void TempMonRt::check_driver_temp_limits()
 void TempMonRt::pub_temp_status()
 {
 
-    _temp_ok_pub->publish(_is_drivers_temp_ok);
+    _temp_ok_pub->publish(_temp_ok);
 
 }
 
@@ -255,32 +274,13 @@ bool TempMonRt::on_initialize()
 
     init_vars();
 
-    init_nrt_ros_bridge();
-
-    _temp_ok_pub = advertise<bool>(_temp_stat_topicname);
-
-    // lambda to define callback
-    auto on_idle_status_received = [this](const awesome_leg::IdleState& msg)
-    {
-        if(_verbose)
-        {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                       "\n TempMonRt: received idle status: {}.\n", msg.idle);
-        }
-
-        _idle_status_msg.idle= msg.idle;
-
-    };
-
-    _idle_status_sub = subscribe<awesome_leg::IdleState>(_idle_status_topicname,
-                                                            on_idle_status_received,
-                                                           _queue_size);
-
     if((_is_sim || _is_dummy) && _simulate_temp_if_sim)
     {
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n\n##TempMonRt: will use fake temp. readings.\\nn");
     }
+
+    init_nrt_ros_bridge();
 
     return true;
 

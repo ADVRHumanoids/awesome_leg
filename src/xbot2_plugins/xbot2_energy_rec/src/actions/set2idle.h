@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/IdleState.h>
+#include <awesome_leg/SetIdleState.h>
 
 using namespace XBot;
 
@@ -35,6 +35,8 @@ namespace BT
 
             std::string _async_service_pattern = "/xbotcore/async_service/";
 
+            std::string _idler_pluginname = "idler_rt";
+
             std::string _idle_state_servername = "set_cmd_plugins_2idle";
 
             std::string _asynch_servicepath;
@@ -43,8 +45,8 @@ namespace BT
 
             NodeStatus tick() override;
 
-            awesome_leg::IdleState _set2idle;
-            PublisherPtr<awesome_leg::IdleState> _set2idle_pub;
+            awesome_leg::SetIdleStateRequest _set2idle;
+            PublisherPtr<awesome_leg::SetIdleStateRequest> _set2idle_pub;
 
     };
 

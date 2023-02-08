@@ -49,89 +49,88 @@ xbotcore_plugins:
 
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-    base_est_rt:
-        thread: rt_main_slow
-        type: base_est_rt
-        params:
+#    base_est_rt:
+#        thread: rt_main_slow
+#        type: base_est_rt
+#        params:
 
-            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+#            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+#            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
+#            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-            mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: "base_est_rt", type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
+#            mat_path: {value: /tmp/, type: string}
+#            dump_mat_suffix: {value: "base_est_rt", type: string}
+#            matlogger_buffer_size: {value: 1e5, type: double}
 
-            tip_link_name: {value: "tip1", type: string}
-            base_link_name: {value: "base_link", type: string}
-            test_rig_linkname: {value: "test_rig", type: string}
+#            tip_link_name: {value: "tip1", type: string}
+#            base_link_name: {value: "base_link", type: string}
+#            test_rig_linkname: {value: "test_rig", type: string}
             
-            tip_fts_name: {value: "tip1_fts", type: string}
-            contact_linkname: {value: "tip1", type: string}
+#            tip_fts_name: {value: "tip1_fts", type: string}
+#            contact_linkname: {value: "tip1", type: string}
 
-            contact_release_thr: {value: 30.0, type: double}
-            contact_attach_thr: {value: 90.0, type: double}
+#            contact_release_thr: {value: 30.0, type: double}
+#            contact_attach_thr: {value: 90.0, type: double}
 
-            mov_avrg_cutoff_freq: {value: 15.0, type: double}
-            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
+#            mov_avrg_cutoff_freq: {value: 15.0, type: double}
+#            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
 
-            obs_bw: {value: 5.0, type: double}
+#            obs_bw: {value: 5.0, type: double}
 
-            svd_thresh: {value: 0.1, type: double}
+#            svd_thresh: {value: 0.1, type: double}
 
-    jmp_replayer_rt:
-        thread: rt_main
-        type: jmp_replayer_rt
-        params:
+#    jmp_replayer_rt:
+#        thread: rt_main
+#        type: jmp_replayer_rt
+#        params:
 
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
+#            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
+#            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
 
-            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
-            dump_mat_suffix: {value: traj_replay, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
+#            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
+#            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
+#            dump_mat_suffix: {value: traj_replay, type: string}
+#            matlogger_buffer_size: {value: 1e5, type: double}
 
-            is_first_jnt_passive : {value: true, type: bool}
-            resample: {value: false, type: bool}
+#            is_first_jnt_passive : {value: true, type: bool}
+#            resample: {value: false, type: bool}
 
-            delta_effort_lim: {value: 1e-6, type: double}
-            # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
+#            delta_effort_lim: {value: 1e-6, type: double}
+#            # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
 
-            replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
-            replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
-            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
-            # touchdown_stiffness: {value: [2500.0, 2500.0], type: Eigen::VectorXd}
-            # touchdown_damping: {value: [40.0, 40.0], type: Eigen::VectorXd}
-            stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
-            stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
+#            replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
+#            replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
+#            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
+#            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
+#            # touchdown_stiffness: {value: [2500.0, 2500.0], type: Eigen::VectorXd}
+#            # touchdown_damping: {value: [40.0, 40.0], type: Eigen::VectorXd}
+#            stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
+#            stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
 
-            send_pos_ref: {value: true, type: bool}
-            send_vel_ref: {value: true, type: bool}
-            send_eff_ref: {value: false, type: bool}
+#            send_pos_ref: {value: true, type: bool}
+#            send_vel_ref: {value: true, type: bool}
+#            send_eff_ref: {value: false, type: bool}
 
-            traj_pause_time: {value: 0.05, type: double} # don't go lower than the control plugin!!
+#            traj_pause_time: {value: 0.05, type: double} # don't go lower than the control plugin!!
 
-            tip_link_name: {value: tip1, type: string}
-            base_link_name: {value: base_link, type: string}
+#            tip_link_name: {value: tip1, type: string}
+#            base_link_name: {value: base_link, type: string}
 
-            approach_traj_exec_time: {value: 5.0, type: double}
-            imp_ramp_time: {value: 5.0, type: double}
+#            approach_traj_exec_time: {value: 5.0, type: double}
+#            imp_ramp_time: {value: 5.0, type: double}
 
-            reduce_dumped_sol_size: {value: false, type: bool}
+#            reduce_dumped_sol_size: {value: false, type: bool}
 
-            send_whole_traj: {value: true, type: bool}
+#            send_whole_traj: {value: true, type: bool}
 
-            verbose: {value: false, type: bool}
+#            verbose: {value: false, type: bool}
 
-            test_rig_linkname: {value: "test_rig", type: string}
-            tip_fts_name: {value: "tip1_fts", type: string}
-            contact_linkname: {value: "tip1", type: string}
+#            test_rig_linkname: {value: "test_rig", type: string}
+#            tip_fts_name: {value: "tip1_fts", type: string}
+#            contact_linkname: {value: "tip1", type: string}
 
-            driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
-
+#            driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
 
     bus_power_rt_iq_model:
         thread: rt_main
@@ -171,43 +170,43 @@ xbotcore_plugins:
 
             topic_ns: {value: iq_model, type: string}
 
-    bus_power_rt_iq_meas:
-        thread: rt_main
-        type: bus_power_rt
-        params:
+#    bus_power_rt_iq_meas:
+#        thread: rt_main
+#        type: bus_power_rt
+#        params:
 
-            mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: bus_power_rt, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
+#            mat_path: {value: /tmp/, type: string}
+#            dump_mat_suffix: {value: bus_power_rt, type: string}
+#            matlogger_buffer_size: {value: 1e5, type: double}
 
-            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+#            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
 
-            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+#            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
 
-            K_d0: {value: [3.0, 10.0], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-            K_d1: {value: [1.5, 2.0], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+#            K_d0: {value: [3.0, 10.0], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+#            K_d1: {value: [1.5, 2.0], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
 
-            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+#            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
-            R: {value: [0.09, 0.09], type: Eigen::VectorXd} # phase resistance
-            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
-            L_m: {value: [1e-6, 1e-6], type: Eigen::VectorXd}
+#            R: {value: [0.09, 0.09], type: Eigen::VectorXd} # phase resistance
+#            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
+#            L_m: {value: [1e-6, 1e-6], type: Eigen::VectorXd}
 
-            der_est_order: {value: 1, type: int}
+#            der_est_order: {value: 1, type: int}
 
-            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
+#            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
 
-            alpha: {value: 5, type: int}
-            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
-            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
+#            alpha: {value: 5, type: int}
+#            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
+#            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
 
-            use_iq_meas: {value: true, type: bool}
-            dump_iq_data: {value: false, type: bool}
+#            use_iq_meas: {value: true, type: bool}
+#            dump_iq_data: {value: false, type: bool}
 
-            topic_ns: {value: iq_meas, type: string}
+#            topic_ns: {value: iq_meas, type: string}
 
     bt_rt:
         thread: rt_main
@@ -218,6 +217,7 @@ xbotcore_plugins:
             dump_mat_suffix: {value: "base_est_rt", type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
+#            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt2.xml, type: file} # used by the model interface
             bt_description_path: {value: $PWD/../bt_xml/simple_test_bt2.xml, type: file} # used by the model interface
 
             plugin_manager_name: {value: "plugins_mngr_rt", type: string}
@@ -231,8 +231,11 @@ xbotcore_plugins:
             tree_logpath: {value: "/tmp", type: string}
             tree_logname: {value: "bt_trace", type: string}
 
-            use_zmq_pub: {value: false, type: bool}
+            use_zmq_pub: {value: true, type: bool}
             use_bt_log: {value: false, type: bool}
+
+            stop_on_completion: {value: false, type: bool}
+            stop_ticking_root_if_completed: {value: false, type: bool}
 
     temp_monitor_rt:
         thread: rt_main
@@ -255,6 +258,7 @@ xbotcore_plugins:
             simulate_temp_if_sim: {value: true, type: bool}
 
             idle_status_topicname: {value: "idle_status", type: string} # only used if simulate_temp_if_sim
+            idler_pluginname : {value: "idler_rt", type: string}
 
 #            temp_rise_rate: {value: 0.017, type: double}
 #            temp_cooling_rate: {value: 0.034, type: double}
@@ -290,7 +294,7 @@ xbotcore_plugins:
             
             # plugin_list: {value: ["bus_power_rt_iq_meas", "bus_power_rt_iq_model"], type: vector<string>}
 
-            plugin_list: {value: ["base_est_rt", "jmp_replayer_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 
@@ -298,16 +302,16 @@ xbotcore_plugins:
 
             verbose: {value: false, type: bool}
 
-    cartesio_imp_cntrl_rt:
-            thread: rt_main
-            type: cart_imp_cntrl_rt
-            params:
+#    cartesio_imp_cntrl_rt:
+#            thread: rt_main
+#            type: cart_imp_cntrl_rt
+#            params:
 
-                urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
+#                urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
 
-                srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+#                srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-                ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
+#                ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
 
     # contact_est_rt:
     #     thread: rt_main

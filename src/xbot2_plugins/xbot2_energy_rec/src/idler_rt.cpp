@@ -126,13 +126,6 @@ void IdlerRt::add_data2dump_logger()
 
 }
 
-void IdlerRt::init_nrt_ros_bridge()
-{
-    ros::NodeHandle nh(getName());
-
-    _ros = std::make_unique<RosSupport>(nh);
-
-}
 
 void IdlerRt::add_data2bedumped()
 {
@@ -145,6 +138,23 @@ void IdlerRt::pub_idle_state()
 {
 
     _idle_state_pub->publish(_idle_state_msg);
+
+}
+
+void IdlerRt::init_nrt_ros_bridge()
+{
+    ros::NodeHandle nh(getName());
+
+    _ros = std::make_unique<RosSupport>(nh);
+
+    _idle_state_setter_srvr = _ros->advertiseService(_idler_servicename,
+                                                    &IdlerRt::on_idle_cmd_received,
+                                                    this,
+                                                    &_queue);
+
+    _idle_state_msg.idle = false;
+    _idle_state_pub = _ros->advertise<awesome_leg::IdleState>(
+        _idle_status_topicname, 1);
 
 }
 
@@ -162,31 +172,21 @@ bool IdlerRt::on_initialize()
 
     init_nrt_ros_bridge();
 
-    // lambda to define callback
-    auto on_idle_cmd_received = [this](const awesome_leg::IdleState& req, bool& res)
-    {
-        if(_verbose)
-        {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                       "\nIdlerRt: received idle request with value: {}.\n", req.idle);
-        }
-
-        _idle_state_msg.idle = req.idle;
-
-        res = true;
-
-        return res;
-
-    };
-
-    _idle_state_setter_srvr = advertiseService<awesome_leg::IdleState, bool>(_idler_servicename,
-                                                                            on_idle_cmd_received);
-    _idle_state_msg.idle = false;
-
-    _idle_state_pub = advertise<awesome_leg::IdleState>(_idle_status_topicname);
-
     return true;
 
+}
+
+bool IdlerRt::on_idle_cmd_received(const awesome_leg::SetIdleStateRequest& req, awesome_leg::SetIdleStateResponse& res)
+{
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                   "\nIdlerRt: received idle request with value: {}.\n", req.idle);
+    }
+
+    _idle_state_msg.idle = req.idle;
+
+    return res.success;
 }
 
 void IdlerRt::starting()
@@ -206,7 +206,7 @@ void IdlerRt::starting()
 void IdlerRt::run()
 {
 
-    _idle_state_setter_srvr->run(); // process service callbacks
+    _queue.run(); // process service callbacks
 
     // publish iq estimate info
     pub_idle_state(); // publish estimates to topic

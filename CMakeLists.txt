@@ -24,6 +24,7 @@ add_service_files(
   FILES
   JumpNow.srv
   IqModelCalibRt.srv
+  SetIdleState.srv
 )
 
 add_message_files(
@@ -38,6 +39,7 @@ add_message_files(
   PluginsManStatus.msg
   IdleState.msg
   IqMeasStatus.msg
+  TempOkStatus.msg
 )
 
 generate_messages(

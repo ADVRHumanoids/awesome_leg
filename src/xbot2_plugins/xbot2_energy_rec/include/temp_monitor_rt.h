@@ -23,6 +23,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
 #include <awesome_leg/IdleState.h>
+#include <awesome_leg/TempOkStatus.h>
 
 using namespace XBot;
 
@@ -71,7 +72,8 @@ private:
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type,
                 _temp_stat_topicname = "temp_status",
-                _idle_status_topicname = "idle_status";
+                _idle_status_topicname = "idle_status",
+                _idler_pluginname = "idler_rt";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -96,7 +98,8 @@ private:
     // queue object to handle multiple subscribers/servers at once
     CallbackQueue _queue;
 
-    PublisherPtr<bool> _temp_ok_pub;
+    awesome_leg::TempOkStatus _temp_ok;
+    PublisherPtr<awesome_leg::TempOkStatus> _temp_ok_pub;
 
     awesome_leg::IdleState _idle_status_msg;
 

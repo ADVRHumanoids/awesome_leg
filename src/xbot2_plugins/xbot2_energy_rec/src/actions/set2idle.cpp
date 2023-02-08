@@ -13,9 +13,9 @@ Set2Idle::Set2Idle(const std::string& name) :
 
     setRegistrationID(_name);
 
-    _asynch_servicepath = _async_service_pattern + _idle_state_servername + "/request";
+    _asynch_servicepath = _async_service_pattern + "/" + _idler_pluginname + "/" + _idle_state_servername + "/request";
 
-    _set2idle_pub = advertise<awesome_leg::IdleState>(_asynch_servicepath);
+    _set2idle_pub = advertise<awesome_leg::SetIdleStateRequest>(_asynch_servicepath);
 
     _set2idle.idle = true;
 

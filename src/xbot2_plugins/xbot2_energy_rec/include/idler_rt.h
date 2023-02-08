@@ -23,6 +23,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
 #include <awesome_leg/IdleState.h>
+#include <awesome_leg/SetIdleState.h>
 
 using namespace XBot;
 
@@ -95,7 +96,7 @@ private:
 
     PublisherPtr<awesome_leg::IdleState> _idle_state_pub;
 
-    ServiceServerPtr<awesome_leg::IdleState, bool> _idle_state_setter_srvr;
+    ServiceServerPtr<awesome_leg::SetIdleStateRequest, awesome_leg::SetIdleStateResponse> _idle_state_setter_srvr;
 
     void get_params_from_config();
 
@@ -119,6 +120,8 @@ private:
     void is_dummy(std::string dummy_string);
 
     void pub_idle_state();
+
+    bool on_idle_cmd_received(const awesome_leg::SetIdleStateRequest& req, awesome_leg::SetIdleStateResponse& res);
 }
 ;
 

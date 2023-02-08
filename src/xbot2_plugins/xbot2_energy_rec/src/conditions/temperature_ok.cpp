@@ -10,19 +10,23 @@ TemperatureOk::TemperatureOk(const std::string& name, const NodeConfiguration& c
     setRegistrationID(name);
 
     // lambda to define callback
-    auto temp_status_callback = [this](const bool& msg)
+    auto temp_status_callback = [this](const awesome_leg::TempOkStatus& msg)
     {
         _are_temp_ok = msg;
     };
 
-    _temp_stat_subs = subscribe<bool>(_temp_stat_topicname,
+    _temp_stat_subs = subscribe<awesome_leg::TempOkStatus>("/" + _temp_monitor_pluginname + "/" + _temp_stat_topicname,
                             temp_status_callback,
                             _queue_size);
 
-    _asynch_servicepath = _async_service_pattern + _set2idle_servname + "/request";
-    _set_not2idle_pub = advertise<awesome_leg::IdleState>(_asynch_servicepath);
+    _asynch_servicepath = _async_service_pattern + "/" + _idler_pluginname + "/" + _set2idle_servname + "/request";
+
+    _set_not2idle_pub = advertise<awesome_leg::SetIdleStateRequest>(_asynch_servicepath);
 
     _set2running.idle = false;
+
+    _are_temp_ok.drivers_temp_ok = false;
+
 
 };
 
@@ -36,11 +40,11 @@ PortsList TemperatureOk::providedPorts()
 NodeStatus TemperatureOk::tick()
 {
 
-    bool are_temp_ok_prev = _are_temp_ok;
+    bool are_temp_ok_prev = _are_temp_ok.drivers_temp_ok;
 
     _temp_stat_subs->run();
 
-    NodeStatus result = _are_temp_ok? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    NodeStatus result = _are_temp_ok.drivers_temp_ok? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
     if(_verbose)
     {
@@ -48,7 +52,7 @@ NodeStatus TemperatureOk::tick()
     }
 
 
-    if(_are_temp_ok && !are_temp_ok_prev)
+    if(_are_temp_ok.drivers_temp_ok && !are_temp_ok_prev)
     {// we only trigger a state change from idle to running if we previously had a temperature failure (now recovered)
 
         _set_not2idle_pub->publish(_set2running);

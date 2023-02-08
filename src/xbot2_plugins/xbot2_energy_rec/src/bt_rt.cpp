@@ -45,6 +45,8 @@ void BtRt::read_config_from_yaml()
 
     _stop_on_completion = getParamOrThrow<bool>("~stop_on_completion");
 
+    _stop_ticking_root_if_completed = getParamOrThrow<bool>("~stop_ticking_root_if_completed");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")
@@ -136,23 +138,28 @@ void BtRt::init_nrt_ros_bridge()
 
 void BtRt::init_bt()
 {
+//    _factory.registerNodeType<StartPlugins>("StartPlugins");
+//    _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
+//    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
+//    _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
+//    _factory.registerNodeType<StopPlugins>("Go2TakeoffConfig");
+//    _factory.registerNodeType<StopPlugins>("PerformTakeoff");
+//    _factory.registerNodeType<StopPlugins>("WaitABit");
+
+//    _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
+//    _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
+//    _factory.registerNodeType<TemperatureOk>("TemperatureOk");
+//    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
+//    _factory.registerNodeType<IsIdle>("IsIdle");
+//    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
+//    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
+//    _factory.registerNodeType<PauseExpired>("PauseExpired");
+
     _factory.registerNodeType<StartPlugins>("StartPlugins");
-    _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
-    _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
-    _factory.registerNodeType<StopPlugins>("Go2TakeoffConfig");
-    _factory.registerNodeType<StopPlugins>("PerformTakeoff");
-    _factory.registerNodeType<StopPlugins>("WaitABit");
+    _factory.registerNodeType<Set2Idle>("wait_for_actuators_cooling");
 
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
-    _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
-    _factory.registerNodeType<TemperatureOk>("TemperatureOk");
-    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
-    _factory.registerNodeType<IsIdle>("IsIdle");
-    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
-    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
-    _factory.registerNodeType<PauseExpired>("PauseExpired");
-
+    _factory.registerNodeType<TemperatureOk>("temperature_ok");
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 
@@ -282,12 +289,14 @@ void BtRt::starting()
 void BtRt::run()
 {
 
-
     if(!_bt_finished)
-    {
+    {// continue ticking root
+
         _bt_root_status = _tree.tickRoot();
 
     }
+
+    _bt_root_status = _tree.tickRoot();
 
     add_data2dump_logger(); // add data to the logger
 
@@ -295,7 +304,7 @@ void BtRt::run()
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    if(_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE)
+    if((_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE) && _stop_ticking_root_if_completed)
     { // behaviour tree succeded --> exit
 
         _bt_finished = true;
