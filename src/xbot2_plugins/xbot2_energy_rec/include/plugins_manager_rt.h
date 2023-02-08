@@ -3,6 +3,7 @@
 
 #include <xbot2/xbot2.h>
 #include <awesome_leg/PluginsManStatus.h>
+#include <xbot2/ros/ros_support.h>
 
 using namespace XBot;
 
@@ -62,6 +63,9 @@ private:
     std::vector<std::string> _plugins_status;
     std::vector<bool> _active_plugins;
 
+    // handle adapting ROS primitives for RT support
+    RosSupport::UniquePtr _ros;
+
     awesome_leg::PluginsManStatus _plugins_stat_msg;
 
     service::Empty empty_msg;
@@ -91,6 +95,8 @@ private:
 
     bool on_stop_signal(const service::Empty& req, bool& res);
     bool on_start_signal(const service::Empty& req, bool& res);
+
+    void init_ros_bridge();
 
 
 };

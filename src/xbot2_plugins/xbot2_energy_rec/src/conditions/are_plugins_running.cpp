@@ -18,7 +18,7 @@ ArePluginsRunning::ArePluginsRunning(const std::string& name, const NodeConfigur
 
     };
 
-    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>(_plugins_stat_topicname,
+    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>("/" + _plugins_manager_name + "/" + _plugins_stat_topicname,
                             plugins_status_callback,
                             _queue_size);
 };

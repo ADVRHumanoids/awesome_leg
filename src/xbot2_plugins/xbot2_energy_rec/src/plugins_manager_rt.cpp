@@ -14,6 +14,16 @@ void PluginsManagerRt::read_config_from_yaml()
 
 }
 
+void PluginsManagerRt::init_ros_bridge()
+{
+    ros::NodeHandle nh(getName());
+
+    _ros = std::make_unique<RosSupport>(nh);
+
+    _plugins_stat_pub = _ros->advertise<awesome_leg::PluginsManStatus>(
+        _plugins_stat_topicname, 1);
+
+}
 bool PluginsManagerRt::on_initialize()
 {
     std::string sim_flagname = "sim";
@@ -77,12 +87,13 @@ bool PluginsManagerRt::on_initialize()
         _plugins_status[i] = "";
     }
 
-    _plugins_stat_pub = advertise<awesome_leg::PluginsManStatus>(_plugins_stat_topicname);
-
     _start_plugins_srvr = advertiseService<service::Empty, bool>(_start_plugins_servname,
                                         &PluginsManagerRt::on_start_signal, this);
     _stop_plugins_srvr = advertiseService<service::Empty, bool>(_stop_plugins_servname,
                                         &PluginsManagerRt::on_stop_signal, this);
+
+    init_ros_bridge();
+
     return true;
 
 }

@@ -36,6 +36,8 @@ namespace BT
 
             std::string _plugins_stat_topicname = "plugins_manager/plugins_status";
 
+            std::string _plugins_manager_name = "plugins_mngr_rt";
+
             awesome_leg::PluginsManStatus _plugins_status_msg;
 
             SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
