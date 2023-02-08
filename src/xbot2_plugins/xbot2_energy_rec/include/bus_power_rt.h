@@ -31,6 +31,7 @@
 
 #include <awesome_leg/IqEstStatus.h>
 #include <awesome_leg/RegPowStatus.h>
+#include <awesome_leg/IqMeasStatus.h>
 
 using namespace XBot;
 using namespace CalibUtils;
@@ -88,7 +89,8 @@ private:
         _alpha = 10;
 
     std::string _mat_path, _dump_mat_suffix,
-                _hw_type;
+                _hw_type, 
+                _topic_ns = "";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -144,6 +146,7 @@ private:
 
     PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
     PublisherPtr<awesome_leg::RegPowStatus> _reg_pow_pub;
+    PublisherPtr<awesome_leg::IqMeasStatus> _iq_meas_pub;
 
     IqRosGetter::Ptr _iq_getter;
     IqEstimator::Ptr _iq_estimator;
@@ -189,6 +192,7 @@ private:
 
     void pub_iq_est();
     void pub_reg_pow();
+    void pub_iq_meas();
 
     void run_iq_estimation();
     void run_reg_pow_estimation();

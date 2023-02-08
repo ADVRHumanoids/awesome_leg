@@ -108,8 +108,6 @@ private:
     void init_clocks();
     void init_dump_logger();
 
-    void reset_flags();
-
     void update_clocks();
 
     void add_data2dump_logger();

@@ -37,6 +37,7 @@ add_message_files(
   BtRootStatus.msg
   PluginsManStatus.msg
   IdleState.msg
+  IqMeasStatus.msg
 )
 
 generate_messages(

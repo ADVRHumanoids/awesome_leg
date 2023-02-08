@@ -123,6 +123,8 @@ void BusPowerRt::get_params_from_config()
 
     _dump_iq_data = getParamOrThrow<bool>("~dump_iq_data");
 
+    _topic_ns = getParamOrThrow<std::string>("~topic_ns");
+
 }
 
 void BusPowerRt::is_sim(std::string sim_string = "sim")
@@ -350,9 +352,11 @@ void BusPowerRt::init_nrt_ros_bridge()
     iq_status_prealloc.der_est_order = _der_est_order;
 
     iq_status_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
+    
+    std::string iq_est_topic = "iq_est_node_pow_" + _topic_ns;
 
     _iq_est_pub = _ros->advertise<awesome_leg::IqEstStatus>(
-        "iq_est_node_pow", 1, iq_status_prealloc);
+        iq_est_topic.c_str(), 1, iq_status_prealloc);
 
     // regenerative pow. status publisher
 
@@ -381,7 +385,18 @@ void BusPowerRt::init_nrt_ros_bridge()
 
     reg_pow_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
 
-    _reg_pow_pub = _ros->advertise<awesome_leg::RegPowStatus>("reg_pow_node", 1, reg_pow_prealloc);
+    std::string reg_pow_topic = "reg_pow_node_" + _topic_ns;
+    
+    _reg_pow_pub = _ros->advertise<awesome_leg::RegPowStatus>(reg_pow_topic.c_str(), 1, reg_pow_prealloc);
+
+    // iq measurement publisher
+
+    awesome_leg::IqMeasStatus iq_meas_prealloc;
+    iq_meas_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
+
+    std::string iq_meas_topic = "iq_meas_node_" + _topic_ns;
+    
+    _iq_meas_pub = _ros->advertise<awesome_leg::IqMeasStatus>(iq_meas_topic.c_str(), 1, iq_meas_prealloc);
 
 }
 
@@ -472,6 +487,28 @@ void BusPowerRt::pub_reg_pow()
 
 }
 
+void BusPowerRt::pub_iq_meas()
+{
+    auto iq_meas_msg = _iq_meas_pub->loanMessage();
+
+    // mapping EigenVectorXd data to std::vector, so that they can be published
+
+    for(int i = 0; i < _n_jnts_robot; i++)
+    {
+        _iq_meas_vect[i] = _iq_meas(i);
+        _iq_meas_filt_vect[i] = _iq_meas_filt(i);
+
+    }
+
+    // filling message
+    iq_meas_msg->msg().iq_meas = _iq_meas_vect;
+    iq_meas_msg->msg().iq_meas_filt = _iq_meas_filt_vect;
+    iq_meas_msg->msg().iq_jnt_names = _iq_jnt_names;
+
+    _iq_meas_pub->publishLoaned(std::move(iq_meas_msg));
+
+}
+
 void BusPowerRt::run_iq_estimation()
 {
 
@@ -520,8 +557,6 @@ bool BusPowerRt::on_initialize()
 
     init_vars();
 
-    init_nrt_ros_bridge();
-
     // using the order given by _jnt_names
     _iq_getter.reset(new IqRosGetter(_plugin_dt, 
                                     false, 
@@ -569,6 +604,8 @@ bool BusPowerRt::on_initialize()
     _mov_avrg_filter_q_dot = MovAvrgFilt(_n_jnts_robot, _plugin_dt, _mov_avrg_cutoff_freq_iq);
     _mov_avrg_filter_tau.get_window_size(_mov_avrg_window_size_q_dot); // get computed window size
 
+    init_nrt_ros_bridge();
+
     return true;
 
 }
@@ -582,8 +619,6 @@ void BusPowerRt::starting()
 
     init_clocks(); // initialize clocks timers
 
-    update_state(); // read current jnt positions and velocities
-
     start_completed(); // Move on to run()
 
 }
@@ -595,17 +630,20 @@ void BusPowerRt::run()
 
     _queue.run();
 
-    // computing and updating iq estimates
+    // // computing and updating iq estimates
     run_iq_estimation();
 
-    // publish iq estimate info
+    // // publish iq estimate info
     pub_iq_est(); // publish estimates to topic
 
-    // computing and updating reg. power and energy estimates
+    // // computing and updating reg. power and energy estimates
     run_reg_pow_estimation();
 
-    // publish reg. pow. info
+    // // publish reg. pow. info
     pub_reg_pow();
+
+    // publishes iq measurements to rostopic
+    pub_iq_meas();
 
     add_data2bedumped(); // add data to the logger
 

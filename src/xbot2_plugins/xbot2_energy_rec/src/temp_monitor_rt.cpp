@@ -29,11 +29,6 @@ void TempMonRt::init_vars()
     _idle_status_msg.idle = false;
 }
 
-void TempMonRt::reset_flags()
-{
-
-}
-
 void TempMonRt::update_clocks()
 {
     // Update timer(s)
@@ -295,8 +290,6 @@ void TempMonRt::starting()
 {
 
     init_dump_logger(); // needs to be here
-
-    reset_flags(); // reset flags, just in case
 
     init_clocks(); // initialize clocks timers
 
