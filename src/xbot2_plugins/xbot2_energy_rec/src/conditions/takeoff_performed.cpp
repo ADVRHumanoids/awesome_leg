@@ -11,36 +11,35 @@ TakeoffPerformed::TakeoffPerformed(const std::string& name, const NodeConfigurat
     setRegistrationID(name);
 
     // lambda to define callback
-    auto plugins_status_callback = [this](const awesome_leg::PluginsManStatus& msg)
+    auto jump_status_callback = [this](const awesome_leg::MatReplayerStatus& msg)
     {
 
-        _plugins_status_msg.all_plugins_running = msg.all_plugins_running;
-        _plugins_status_msg.all_plugins_stopped = msg.all_plugins_stopped;
+        _jump_status.traj_finished = msg.traj_finished;
 
     };
 
-    _plugins_status_subs = subscribe<awesome_leg::PluginsManStatus>(_plugins_stat_topicname,
-                            plugins_status_callback,
+    _jump_stat_sub = subscribe<awesome_leg::MatReplayerStatus>("/" + _takeoff_pluginname + "/" + _plugins_stat_topicname,
+                            jump_status_callback,
                             _queue_size);
 };
 
 PortsList TakeoffPerformed::providedPorts()
 {
 
-  return { OutputPort<bool>("are_plugins_running") };
+  return { OutputPort<bool>("takeoff_performed") };
 
 }
 
 NodeStatus TakeoffPerformed::tick()
 {
 
-    setOutput("are_plugins_running", true);
+    setOutput("takeoff_performed", true);
 
-    _plugins_status_subs->run();
+    _jump_stat_sub->run();
 
-//    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
+//    std::cout << Colors::kGreen << "ticking TakeoffPerformed" << Colors::kEndl << std::endl;
 
-    NodeStatus result = _plugins_status_msg.all_plugins_running? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    NodeStatus result = _jump_status.traj_finished? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
     return result;
 
