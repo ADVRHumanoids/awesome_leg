@@ -25,6 +25,7 @@ add_service_files(
   JumpNow.srv
   IqModelCalibRt.srv
   SetIdleState.srv
+  SimpleTrigger.srv
 )
 
 add_message_files(

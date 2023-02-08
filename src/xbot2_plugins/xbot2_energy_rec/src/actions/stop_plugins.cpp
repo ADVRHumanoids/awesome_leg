@@ -12,16 +12,16 @@ StopPlugins::StopPlugins(const std::string& name) :
 
     setRegistrationID(name);
 
-    _asynch_servicepath = _async_service_pattern + _stop_plugins_servname + "/request";
+    _asynch_servicepath = _async_service_pattern + "/" + _plugins_manager_name + "/" + _stop_plugins_servname + "/request";
 
-    _plugins_stopper_pub = advertise<service::Empty>(_asynch_servicepath);
+    _plugins_stopper_pub = advertise<awesome_leg::SimpleTriggerRequest>(_asynch_servicepath);
 
 }
 
 NodeStatus StopPlugins::tick()
 {
 
-    _plugins_stopper_pub->publish(empty_msg);
+    _plugins_stopper_pub->publish(_trigger);
 
     if(_verbose)
     {

@@ -11,6 +11,7 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <awesome_leg/PluginsManStatus.h>
+#include <awesome_leg/SimpleTriggerRequest.h>
 
 using namespace XBot;
 
@@ -33,16 +34,18 @@ namespace BT
 
             std::string _async_service_pattern = "/xbotcore/async_service/";
 
+            std::string _plugins_manager_name = "plugins_mngr_rt";
+
             std::string _start_plugins_servname = "start_plugins";
 
             std::string _asynch_servicepath;
 
-            service::Empty empty_msg;
+            awesome_leg::SimpleTriggerRequest _trigger;
 
             NodeStatus tick() override;
 
             // internal XBot2 publisher to employ asynchronous server exposed by plugins manager
-            PublisherPtr<service::Empty> _plugins_starter_pub;
+            PublisherPtr<awesome_leg::SimpleTriggerRequest> _plugins_starter_pub;
 
     };
 

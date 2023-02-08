@@ -33,18 +33,8 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbotcore/async_service/";
-
-            std::string _idle_state_servername = "set_cmd_plugins_2idle";
-
-            std::string _asynch_servicepath;
-
-            service::Empty empty_msg;
-
             NodeStatus tick() override;
 
-            awesome_leg::IdleState _set2idle;
-            PublisherPtr<awesome_leg::IdleState> _set2idle_pub;
 
     };
 

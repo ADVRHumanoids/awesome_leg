@@ -4,6 +4,7 @@
 #include <xbot2/xbot2.h>
 #include <awesome_leg/PluginsManStatus.h>
 #include <xbot2/ros/ros_support.h>
+#include <awesome_leg/SimpleTrigger.h>
 
 using namespace XBot;
 
@@ -72,6 +73,7 @@ private:
 
     // queue object to handle multiple subscribers/servers at once
     std::vector<CallbackQueue> _queues;
+    CallbackQueue _queue;
 
     // internal publisher and subscribers
     std::vector<PublisherPtr<Runnable::Command>> _strt_req_pubs;
@@ -80,12 +82,12 @@ private:
     std::vector<PublisherPtr<service::Empty>> _status_req_pubs;
     std::vector<SubscriberPtr<std::string>> _status_res_subs;
 
-    // internal topic to publish global plugin status (i.e. all running or not all running)
+    // topic to publish global plugin status (i.e. all running or not all running)
     PublisherPtr<awesome_leg::PluginsManStatus> _plugins_stat_pub;
 
-    // internal server for starting or stopping the plugins externally
-    ServiceServerPtr<service::Empty, bool> _start_plugins_srvr;
-    ServiceServerPtr<service::Empty, bool> _stop_plugins_srvr;
+    // server for starting or stopping the plugins externally
+    ServiceServerPtr<awesome_leg::SimpleTriggerRequest, awesome_leg::SimpleTriggerResponse> _start_plugins_srvr;
+    ServiceServerPtr<awesome_leg::SimpleTriggerRequest, awesome_leg::SimpleTriggerResponse> _stop_plugins_srvr;
 
     void read_config_from_yaml();
 
@@ -93,8 +95,8 @@ private:
 
     void init_dump_logger();
 
-    bool on_stop_signal(const service::Empty& req, bool& res);
-    bool on_start_signal(const service::Empty& req, bool& res);
+    bool on_stop_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res);
+    bool on_start_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res);
 
     void init_ros_bridge();
 

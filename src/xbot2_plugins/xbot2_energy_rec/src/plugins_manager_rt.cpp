@@ -23,6 +23,15 @@ void PluginsManagerRt::init_ros_bridge()
     _plugins_stat_pub = _ros->advertise<awesome_leg::PluginsManStatus>(
         _plugins_stat_topicname, 1);
 
+    _start_plugins_srvr = _ros->advertiseService(_start_plugins_servname,
+                                                &PluginsManagerRt::on_start_signal,
+                                                this,
+                                                &_queue);
+    _stop_plugins_srvr = _ros->advertiseService(_stop_plugins_servname,
+                                                &PluginsManagerRt::on_stop_signal,
+                                                this,
+                                                &_queue);
+
 }
 bool PluginsManagerRt::on_initialize()
 {
@@ -87,18 +96,13 @@ bool PluginsManagerRt::on_initialize()
         _plugins_status[i] = "";
     }
 
-    _start_plugins_srvr = advertiseService<service::Empty, bool>(_start_plugins_servname,
-                                        &PluginsManagerRt::on_start_signal, this);
-    _stop_plugins_srvr = advertiseService<service::Empty, bool>(_stop_plugins_servname,
-                                        &PluginsManagerRt::on_stop_signal, this);
-
     init_ros_bridge();
 
     return true;
 
 }
 
-bool PluginsManagerRt::on_start_signal(const service::Empty& req, bool& res)
+bool PluginsManagerRt::on_start_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
 {
     _triggered = true;
 
@@ -110,7 +114,7 @@ bool PluginsManagerRt::on_start_signal(const service::Empty& req, bool& res)
     return true;
 }
 
-bool PluginsManagerRt::on_stop_signal(const service::Empty& req, bool& res)
+bool PluginsManagerRt::on_stop_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
 {
     _triggered = true;
 
@@ -250,8 +254,7 @@ void PluginsManagerRt::run()
     _plugins_stat_msg.all_plugins_stopped = _all_plugins_stopped;
     _plugins_stat_pub->publish(_plugins_stat_msg);
 
-    _start_plugins_srvr->run();
-    _stop_plugins_srvr->run();
+    _queue.run(); // runs service callbacks
 
 }
 
