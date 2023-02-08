@@ -104,29 +104,46 @@ bool PluginsManagerRt::on_initialize()
 
 bool PluginsManagerRt::on_start_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
 {
-    _triggered = true;
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                       "\nPluginsManagerRt: received start signal!! \n");
 
-    res.success = _start_plugins? false: true; // failure if trigger variables already set
+    if(!_is_first_trigger)
+    {
+        res.success = _start_plugins? false: true; // failure if trigger variables already set
+    }
+    else
+    {
+        _is_first_trigger = false;
+        res.success = true;
+    }
 
     _start_plugins = true; // flag to start all plugins
+
+    _triggered = true;
 
     return res.success;
 }
 
 bool PluginsManagerRt::on_stop_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
 {
-    _triggered = true;
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                       "\n PluginsManagerRt: received stop signal!! \n");
 
-
-    res.success = _start_plugins? true: false; // failure if trigger variables already set
+    if(!_is_first_trigger)
+    {
+        res.success = _start_plugins? true: false; // failure if trigger variables already set
+    }
+    else
+    {
+        _is_first_trigger = false;
+        res.success = true;
+    }
 
     _start_plugins = false; // flag to stop all plugins
+
+    _triggered = true;
 
     return res.success;
 }

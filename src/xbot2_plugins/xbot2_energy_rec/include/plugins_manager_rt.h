@@ -43,7 +43,8 @@ private:
         _start_plugins = true,
         _status = false,
         _triggered = false,
-        _verbose = false;
+        _verbose = false,
+        _is_first_trigger = true;
 
     int _queue_size = 1,
         _queue_size_status = 1,
