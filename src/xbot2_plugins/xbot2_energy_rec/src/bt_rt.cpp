@@ -145,9 +145,9 @@ void BtRt::init_bt()
     _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
     _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
     _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
-    _factory.registerNodeType<StopPlugins>("Go2TakeoffConfig");
-    _factory.registerNodeType<StopPlugins>("PerformTakeoff");
-    _factory.registerNodeType<StopPlugins>("WaitABit");
+    _factory.registerNodeType<Go2TakeoffConfig>("Go2TakeoffConfig");
+    _factory.registerNodeType<PerformTakeoff>("PerformTakeoff");
+    _factory.registerNodeType<Set2Idle>("WaitABit");
 
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
     _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
