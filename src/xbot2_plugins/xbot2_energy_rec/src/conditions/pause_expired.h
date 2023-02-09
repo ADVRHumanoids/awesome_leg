@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/PluginsManStatus.h>
+#include <awesome_leg/TimerStatus.h>
 
 using namespace XBot;
 
@@ -32,13 +32,22 @@ namespace BT
 
             bool _verbose = false;
 
+            bool _ref_time_set = false;
+
             int _queue_size = 1;
 
-            std::string _plugins_stat_topicname = "plugins_manager/plugins_status";
+            std::string _name;
 
-            awesome_leg::PluginsManStatus _plugins_status_msg;
+            std::string _timer_status_topicname = "timer";
+            std::string _timer_pluginname = "timer_rt";
 
-            SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
+            double _pause_time = 5.0; // [s]
+
+            double _pause_srt_time = 0.0;
+
+            awesome_leg::TimerStatus _timer_stat_msg;
+
+            SubscriberPtr<awesome_leg::TimerStatus> _timer_status_sub;
 
             NodeStatus tick() override;
 

@@ -154,9 +154,20 @@ void BtRt::init_bt()
     _factory.registerNodeType<TemperatureOk>("TemperatureOk");
     _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
     _factory.registerNodeType<IsIdle>("IsIdle");
-    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
-    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
-    _factory.registerNodeType<PauseExpired>("PauseExpired");
+
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence1");
+
+//    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
+//    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
+
+//    _factory.registerNodeType<Set2Idle>("WaitABit1");
+//    _factory.registerNodeType<Set2Idle>("WaitABit2");
+//    _factory.registerNodeType<Set2Idle>("WaitABit3");
+
+    _factory.registerNodeType<PauseExpired>("PauseExpired1");
+    _factory.registerNodeType<PauseExpired>("PauseExpired2");
+    _factory.registerNodeType<PauseExpired>("PauseExpired3");
+
 
 //    _factory.registerNodeType<StartPlugins>("StartPlugins");
 //    _factory.registerNodeType<Set2Idle>("wait_for_actuators_cooling");

@@ -36,7 +36,6 @@ bool TimerRt::on_reset_sign_received(const awesome_leg::SimpleTriggerRequest& re
     return res.success;
 }
 
-
 void TimerRt::starting()
 {
     _wall_time = chrono::wall_clock::now();
