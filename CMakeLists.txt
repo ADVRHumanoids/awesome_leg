@@ -27,6 +27,7 @@ add_service_files(
   SetIdleState.srv
   SimpleTrigger.srv
   SetSafetyStop.srv
+  SetRegEnergyMonitoringStatus.srv
 )
 
 add_message_files(

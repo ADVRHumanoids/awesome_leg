@@ -177,6 +177,8 @@ xbotcore_plugins:
 
             topic_ns: {value: "iq_model", type: string}
 
+            set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
+
 #    bus_power_rt_iq_meas:
 #        thread: rt_main
 #        type: bus_power_rt
@@ -214,6 +216,8 @@ xbotcore_plugins:
 #            dump_iq_data: {value: false, type: bool}
 
 #            topic_ns: {value: iq_meas, type: string}
+
+#             set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
 
     bt_rt:
         thread: rt_main

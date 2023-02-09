@@ -11,4 +11,5 @@ float64[] ek_indct
 
 string[] iq_jnt_names
 
-float64 recov_energy
+float64[] recov_energy
+float64 recov_energy_tot

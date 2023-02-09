@@ -33,6 +33,8 @@
 #include <awesome_leg/RegPowStatus.h>
 #include <awesome_leg/IqMeasStatus.h>
 
+#include <awesome_leg/SetRegEnergyMonitoringStatus.h>
+
 using namespace XBot;
 using namespace CalibUtils;
 using namespace SignProcUtils;
@@ -81,7 +83,8 @@ private:
 
     bool _is_sim = true, _is_dummy = false,
          _use_iq_meas = true, 
-         _dump_iq_data = false;
+         _dump_iq_data = false,
+         _monitor_recov_energy = true;
 
     int _n_jnts_robot,
         _der_est_order = 1,
@@ -90,7 +93,8 @@ private:
 
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type, 
-                _topic_ns = "";
+                _topic_ns = "",
+                _set_monitor_state_servname = "start_rec_energy_monitor";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -98,7 +102,7 @@ private:
         _lambda_qp_reg = 1.0,
         _q_dot_3sigma = 0.001;
 
-    double _er = 0.0, _pr = 0.0, _recov_energy = 0.0;
+    double _er = 0.0, _pr = 0.0, _recov_energy_tot = 0.0;
 
     Eigen::VectorXd _q_p_meas,
                     _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
@@ -110,7 +114,7 @@ private:
                     _alpha_f0, _alpha_f1,
                     _R, _L_leak, _L_m;
 
-    Eigen::VectorXd _er_k, _pr_k,
+    Eigen::VectorXd _er_k, _pr_k, _recov_energy,
                     _pk_joule, _pk_mech, _pk_indct,
                     _ek_joule, _ek_mech, _ek_indct;
 
@@ -127,7 +131,7 @@ private:
                         _iq_meas_vect,
                         _iq_meas_filt_vect;
 
-    std::vector<double> _er_k_vect, _pr_k_vect,
+    std::vector<double> _er_k_vect, _pr_k_vect, _recov_energy_vect,
                         _pk_joule_vect, _pk_mech_vect, _pk_indct_vect,
                         _ek_joule_vect, _ek_mech_vect, _ek_indct_vect;
 
@@ -147,6 +151,8 @@ private:
     PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
     PublisherPtr<awesome_leg::RegPowStatus> _reg_pow_pub;
     PublisherPtr<awesome_leg::IqMeasStatus> _iq_meas_pub;
+
+    ServiceServerPtr<awesome_leg::SetRegEnergyMonitoringStatusRequest, awesome_leg::SetRegEnergyMonitoringStatusResponse> _set_monitoring_state_srvr;
 
     IqRosGetter::Ptr _iq_getter;
     IqEstimator::Ptr _iq_estimator;
@@ -196,6 +202,9 @@ private:
 
     void run_iq_estimation();
     void run_reg_pow_estimation();
+
+    bool on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitoringStatusRequest& req, awesome_leg::SetRegEnergyMonitoringStatusResponse& res);
+
 
 };
 

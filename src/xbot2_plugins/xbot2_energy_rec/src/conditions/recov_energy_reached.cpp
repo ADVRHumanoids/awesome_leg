@@ -18,7 +18,7 @@ RecovEnergyReached::RecovEnergyReached(const std::string& name, const NodeConfig
             std::cout << Colors::kGreen << "rec energy callback" << Colors::kEndl << std::endl;
 
         }
-        _reg_pow_status.recov_energy = msg.recov_energy;
+        _reg_pow_status.recov_energy_tot = msg.recov_energy_tot;
 
     };
 
@@ -26,7 +26,7 @@ RecovEnergyReached::RecovEnergyReached(const std::string& name, const NodeConfig
                             reg_energy_callback,
                             _queue_size);
 
-    _reg_pow_status.recov_energy = 0.0;// fif we tick the node without having received an update
+    _reg_pow_status.recov_energy_tot = 0.0;// fif we tick the node without having received an update
     // from the callback, we assume the recovered energy to be 0
 };
 
@@ -46,11 +46,11 @@ NodeStatus RecovEnergyReached::tick()
 
     if(_verbose)
     {
-        std::cout << Colors::kGreen << "ticking RecovEnergyReached. Rec. energy: " << Colors::kBlue <<_reg_pow_status.recov_energy << Colors::kEndl << std::endl;
+        std::cout << Colors::kGreen << "ticking RecovEnergyReached. Rec. energy: " << Colors::kBlue <<_reg_pow_status.recov_energy_tot << Colors::kEndl << std::endl;
 
     }
 
-    NodeStatus result = _reg_pow_status.recov_energy > _recov_energy_thresh? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+    NodeStatus result = _reg_pow_status.recov_energy_tot > _recov_energy_thresh? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
     return result;
 

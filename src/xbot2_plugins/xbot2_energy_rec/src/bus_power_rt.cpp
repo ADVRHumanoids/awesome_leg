@@ -54,6 +54,7 @@ void BusPowerRt::init_vars()
     // regeneration stuff
     _er_k = Eigen::VectorXd::Zero(_n_jnts_robot);
     _pr_k = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _recov_energy = Eigen::VectorXd::Zero(_n_jnts_robot);
     _pk_joule = Eigen::VectorXd::Zero(_n_jnts_robot);
     _pk_mech = Eigen::VectorXd::Zero(_n_jnts_robot);
     _pk_indct = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -63,6 +64,7 @@ void BusPowerRt::init_vars()
 
     _er_k_vect = std::vector<double>(_n_jnts_robot);
     _pr_k_vect = std::vector<double>(_n_jnts_robot);
+    _recov_energy_vect = std::vector<double>(_n_jnts_robot);
     _pk_joule_vect = std::vector<double>(_n_jnts_robot);
     _pk_mech_vect = std::vector<double>(_n_jnts_robot);
     _pk_indct_vect = std::vector<double>(_n_jnts_robot);
@@ -124,6 +126,8 @@ void BusPowerRt::get_params_from_config()
     _dump_iq_data = getParamOrThrow<bool>("~dump_iq_data");
 
     _topic_ns = getParamOrThrow<std::string>("~topic_ns");
+
+    _set_monitor_state_servname = getParamOrThrow<std::string>("~set_monitor_state_servname");
 
 }
 
@@ -398,6 +402,46 @@ void BusPowerRt::init_nrt_ros_bridge()
     
     _iq_meas_pub = _ros->advertise<awesome_leg::IqMeasStatus>(iq_meas_topic.c_str(), 1, iq_meas_prealloc);
 
+    // iq monitoring service
+
+    _set_monitoring_state_srvr = _ros->advertiseService(_set_monitor_state_servname,
+                                                &BusPowerRt::on_monitor_state_signal,
+                                                this,
+                                                &_queue);
+
+
+}
+
+bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitoringStatusRequest& req, awesome_leg::SetRegEnergyMonitoringStatusResponse& res)
+{
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                      "\nBusPowerRt: received regenerative energy monitor trigger signal: {}\n", req.monitor_energy);
+
+    bool state_changed = _monitor_recov_energy != req.monitor_energy;
+
+    bool result = state_changed? true : false;
+
+    if(state_changed)
+    {
+         _monitor_recov_energy = req.monitor_energy;
+
+        if(_monitor_recov_energy)
+        {
+            _pow_monitor->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
+
+        }
+        if(!_monitor_recov_energy)
+        {
+            _pow_monitor->disable_rec_energy_monitoring(); // we disable energy recovery monitoring
+//            _pow_monitor->reset_rec_energy();
+
+        }
+
+    }
+
+    return result;
+
 }
 
 void BusPowerRt::add_data2bedumped()
@@ -460,6 +504,7 @@ void BusPowerRt::pub_reg_pow()
     {
         _er_k_vect[i] = _er_k(i);
         _pr_k_vect[i] = _pr_k(i);
+        _recov_energy_vect[i] = _recov_energy(i);
         _pk_joule_vect[i] = _pk_joule(i);
         _pk_mech_vect[i] = _pk_mech(i);
         _pk_indct_vect[i] = _pk_indct(i);
@@ -472,19 +517,21 @@ void BusPowerRt::pub_reg_pow()
     reg_pow_msg->msg().er = _er;
     reg_pow_msg->msg().pr = _pr;
 
+    // fake readings
+    _recov_energy_tot+= _plugin_dt * 5.0;
+
+    reg_pow_msg->msg().recov_energy_tot = _recov_energy_tot;
+
     reg_pow_msg->msg().er_k = _er_k_vect;
     reg_pow_msg->msg().pr_k = _pr_k_vect;
+    reg_pow_msg->msg().recov_energy = _recov_energy_vect;
+
     reg_pow_msg->msg().pk_joule = _pk_joule_vect;
     reg_pow_msg->msg().pk_mech = _pk_mech_vect;
     reg_pow_msg->msg().pk_indct = _pk_indct_vect;
     reg_pow_msg->msg().ek_joule = _ek_joule_vect;
     reg_pow_msg->msg().ek_mech = _ek_joule_vect;
     reg_pow_msg->msg().ek_indct = _ek_joule_vect;
-
-    // fake readings
-    _recov_energy+= _plugin_dt * 5.0;
-
-    reg_pow_msg->msg().recov_energy = _recov_energy ;
 
     reg_pow_msg->msg().iq_jnt_names = _iq_jnt_names;
 
@@ -543,6 +590,9 @@ void BusPowerRt::run_reg_pow_estimation()
      _pow_monitor->get_p_terms(_pk_joule, _pk_mech, _pk_indct);
      _pow_monitor->get_e_terms(_ek_joule, _ek_mech, _ek_indct);
 
+     _pow_monitor->get_current_e_recov(_recov_energy);
+     _pow_monitor->get_current_e_recov(_recov_energy_tot);
+
 }
 
 bool BusPowerRt::on_initialize()
@@ -589,6 +639,8 @@ bool BusPowerRt::on_initialize()
                                      _plugin_dt,
                                      _use_iq_meas,
                                      _dump_iq_data));
+    _pow_monitor->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
+    // by default
 
     // numerical differentiation
     _num_diff = NumDiff(_n_jnts_robot, _plugin_dt, _der_est_order);
