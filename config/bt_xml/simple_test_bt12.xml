@@ -2,54 +2,60 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <ReactiveSequence>
-            <ReactiveFallback>
-                <Condition ID="ArePluginsRunning"/>
-                <Action ID="StartPlugins"/>
-            </ReactiveFallback>
-            <ReactiveFallback>
-                <Condition ID="TemperatureOk"/>
-                <Action ID="CoolDownByWaiting"/>
-            </ReactiveFallback>
-            <SubTree ID="EnergyRecDemo"/>
+        <SequenceStar>
+            <ReactiveSequence>
+                <ReactiveFallback>
+                    <Condition ID="ArePluginsRunning"/>
+                    <Action ID="StartPlugins"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
+                    <Condition ID="TemperatureOk"/>
+                    <Action ID="CoolDownByWaiting"/>
+                </ReactiveFallback>
+                <SubTree ID="EnergyRecDemo"/>
+            </ReactiveSequence>
             <ReactiveFallback>
                 <Condition ID="ArePluginsClosed"/>
                 <Action ID="CloseAllPlugins"/>
             </ReactiveFallback>
-        </ReactiveSequence>
+        </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="EnergyRecDemo">
         <ReactiveFallback>
             <Condition ID="RecovEnergyReached"/>
             <ReactiveSequence>
-                <ReactiveFallback>
+                <Inverter>
+                    <Condition ID="IsSafetyStop"/>
+                </Inverter>
+                <Inverter>
                     <Condition ID="IsIdle"/>
-                    <SubTree ID="PerformJumpSequence"/>
-                </ReactiveFallback>
+                </Inverter>
+                <SubTree ID="PerformJumpSequence"/>
                 <Action ID="RestartJumpSequence"/>
             </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="PerformJumpSequence">
-        <Sequence>
+        <SequenceStar>
             <ReactiveFallback>
-                <Condition ID="PauseExpired1" name="PauseExpired1"/>
-                <Action ID="WaitABit1" name="WaitABit1"/>
+                <Condition ID="PauseExpired1"/>
+                <Action ID="AlwaysRunning3"/>
             </ReactiveFallback>
             <ReactiveFallback>
-                <Condition ID="PauseExpired2" name="PauseExpired2"/>
-                <Action ID="WaitABit2" name="WaitABit2"/>
+                <Condition ID="PauseExpired2"/>
+                <Action ID="AlwaysRunning4"/>
             </ReactiveFallback>
-            <ReactiveFallback>
-                <Condition ID="PauseExpired3" name="PauseExpired3"/>
-                <Action ID="WaitABit3" name="WaitABit3"/>
-            </ReactiveFallback>
-        </Sequence>
+        </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
+        <Action ID="AlwaysRunning"/>
+        <Action ID="AlwaysRunning1"/>
+        <Action ID="AlwaysRunning2"/>
+        <Action ID="AlwaysRunning3"/>
+        <Action ID="AlwaysRunning4"/>
         <Condition ID="ArePluginsClosed"/>
         <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
@@ -59,16 +65,24 @@
         <Action ID="Go2TakeoffConfig"/>
         <Condition ID="IsFlightPhase"/>
         <Condition ID="IsIdle"/>
+        <Condition ID="IsSafetyStop"/>
         <Condition ID="PauseExpired"/>
+        <Condition ID="PauseExpired1"/>
+        <Condition ID="PauseExpired2"/>
+        <Condition ID="PauseExpired3"/>
         <SubTree ID="PerformJumpSequence"/>
         <Action ID="PerformTakeoff"/>
         <Condition ID="RecovEnergyReached"/>
         <Action ID="RestartJumpSequence"/>
+        <Action ID="RestartJumpSequence1"/>
         <Action ID="StartPlugins"/>
         <Condition ID="TakeoffConfigReached"/>
         <Condition ID="TakeoffPerformed"/>
         <Condition ID="TemperatureOk"/>
         <Action ID="WaitABit"/>
+        <Action ID="WaitABit1"/>
+        <Action ID="WaitABit2"/>
+        <Action ID="WaitABit3"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>

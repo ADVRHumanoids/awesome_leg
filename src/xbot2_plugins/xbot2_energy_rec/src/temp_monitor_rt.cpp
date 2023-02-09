@@ -60,6 +60,7 @@ void TempMonRt::get_params_from_config()
 
     _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
     _idler_pluginname = getParamOrThrow<std::string>("~idler_pluginname");
+    _safety_stop_topicname = getParamOrThrow<std::string>("~safety_stop_topicname");
 
     _temp_rise_rate = getParamOrThrow<double>("~temp_rise_rate");
     _temp_cooling_rate = getParamOrThrow<double>("~temp_cooling_rate");
@@ -201,6 +202,22 @@ void TempMonRt::init_nrt_ros_bridge()
     _idle_status_sub = subscribe<awesome_leg::IdleState>("/" + _idler_pluginname + "/" + _idle_status_topicname,
                                                             on_idle_status_received,
                                                            _queue_size);
+
+    auto on_safety_msg_status_received = [this](const awesome_leg::SafetyStopState& msg)
+    {
+        if(_verbose)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                       "\n TempMonRt: received safety stop status: {}.\n", msg.stop);
+        }
+
+        _safety_status_msg.stop= msg.stop;
+
+    };
+
+    _safety_stop_status_sub = subscribe<awesome_leg::SafetyStopState>("/" + _idler_pluginname + "/" + _safety_stop_topicname,
+                                                            on_safety_msg_status_received,
+                                                           _queue_size);
 }
 
 void TempMonRt::add_data2bedumped()
@@ -245,12 +262,12 @@ void TempMonRt::pub_temp_status()
 void TempMonRt::fake_temperature()
 {
 
-    if(!_idle_status_msg.idle)
+    if(!_idle_status_msg.idle && !_safety_status_msg.stop)
     { // we increment the temperature linearly, if the robot is not in idle
         _meas_driver_temp = _meas_driver_temp.array() + _temp_rise_rate * _plugin_dt;
         _cooling_down = false;
     }
-    if(_idle_status_msg.idle)
+    if(_idle_status_msg.idle || _safety_status_msg.stop)
     { // we are in idle and the actuators are cooling down
         _cooling_down = true;
         _meas_driver_temp = _meas_driver_temp.array() - _temp_cooling_rate * _plugin_dt;
@@ -303,6 +320,7 @@ void TempMonRt::run()
     update_state();
 
     _idle_status_sub->run(); // we process callbacks from the idle state subscriber
+    _safety_stop_status_sub->run();
 
     check_driver_temp_limits(); // checks if drivers temperatures are ALL ok
 

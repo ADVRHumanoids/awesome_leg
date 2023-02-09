@@ -2,17 +2,23 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <Sequence>
+        <SequenceStar>
+            <ReactiveSequence>
+                <ReactiveFallback>
+                    <Condition ID="ArePluginsRunning"/>
+                    <Action ID="StartPlugins"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
+                    <Condition ID="TemperatureOk"/>
+                    <Action ID="CoolDownByWaiting"/>
+                </ReactiveFallback>
+                <SubTree ID="EnergyRecDemo"/>
+            </ReactiveSequence>
             <ReactiveFallback>
-                <Condition ID="ArePluginsRunning"/>
-                <Action ID="StartPlugins"/>
+                <Condition ID="ArePluginsClosed"/>
+                <Action ID="CloseAllPlugins"/>
             </ReactiveFallback>
-            <ReactiveFallback>
-                <Condition ID="TemperatureOk"/>
-                <Action ID="CoolDownByWaiting"/>
-            </ReactiveFallback>
-            <SubTree ID="EnergyRecDemo"/>
-        </Sequence>
+        </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="EnergyRecDemo">
@@ -20,32 +26,38 @@
             <Condition ID="RecovEnergyReached"/>
             <ReactiveSequence>
                 <ReactiveFallback>
-                    <Condition ID="IsIdle"/>
-                    <SubTree ID="PerformJumpSequence"/>
+                    <Inverter>
+                        <Condition ID="IsSafetyStop"/>
+                    </Inverter>
+                    <Action ID="AlwaysRunning1"/>
                 </ReactiveFallback>
+                <ReactiveFallback>
+                    <Inverter>
+                        <Condition ID="IsIdle"/>
+                    </Inverter>
+                    <Action ID="AlwaysRunning2"/>
+                </ReactiveFallback>
+                <SubTree ID="PerformJumpSequence"/>
                 <Action ID="RestartJumpSequence"/>
             </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="PerformJumpSequence">
-        <Sequence>
+        <SequenceStar>
             <ReactiveFallback>
-                <Condition ID="TakeoffConfigReached"/>
-                <Action ID="Go2TakeoffConfig"/>
+                <Condition ID="PauseExpired1"/>
+                <Action ID="AlwaysRunning3"/>
             </ReactiveFallback>
             <ReactiveFallback>
-                <Condition ID="TakeoffPerformed"/>
-                <Action ID="PerformTakeoff"/>
+                <Condition ID="PauseExpired2"/>
+                <Action ID="AlwaysRunning4"/>
             </ReactiveFallback>
-            <ReactiveFallback>
-                <Condition ID="PauseExpired"/>
-                <Action ID="WaitABit"/>
-            </ReactiveFallback>
-        </Sequence>
+        </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
+        <Action ID="AlwaysRunning"/>
         <Condition ID="ArePluginsClosed"/>
         <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
@@ -55,16 +67,24 @@
         <Action ID="Go2TakeoffConfig"/>
         <Condition ID="IsFlightPhase"/>
         <Condition ID="IsIdle"/>
+        <Condition ID="IsSafetyStop"/>
         <Condition ID="PauseExpired"/>
+        <Condition ID="PauseExpired1"/>
+        <Condition ID="PauseExpired2"/>
+        <Condition ID="PauseExpired3"/>
         <SubTree ID="PerformJumpSequence"/>
         <Action ID="PerformTakeoff"/>
         <Condition ID="RecovEnergyReached"/>
         <Action ID="RestartJumpSequence"/>
+        <Action ID="RestartJumpSequence1"/>
         <Action ID="StartPlugins"/>
         <Condition ID="TakeoffConfigReached"/>
         <Condition ID="TakeoffPerformed"/>
         <Condition ID="TemperatureOk"/>
         <Action ID="WaitABit"/>
+        <Action ID="WaitABit1"/>
+        <Action ID="WaitABit2"/>
+        <Action ID="WaitABit3"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>

@@ -23,6 +23,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
 #include <awesome_leg/IdleState.h>
+#include <awesome_leg/SafetyStopState.h>
 #include <awesome_leg/TempOkStatus.h>
 
 using namespace XBot;
@@ -73,6 +74,7 @@ private:
                 _hw_type,
                 _temp_stat_topicname = "temp_status",
                 _idle_status_topicname = "idle_status",
+                _safety_stop_topicname = "safety_stop_status",
                 _idler_pluginname = "idler_rt";
 
     double _plugin_dt,
@@ -102,8 +104,10 @@ private:
     PublisherPtr<awesome_leg::TempOkStatus> _temp_ok_pub;
 
     awesome_leg::IdleState _idle_status_msg;
+    awesome_leg::SafetyStopState _safety_status_msg;
 
     SubscriberPtr<awesome_leg::IdleState> _idle_status_sub; // only used to fake temperature in sim
+    SubscriberPtr<awesome_leg::SafetyStopState> _safety_stop_status_sub; // only used to fake temperature in sim
 
     void get_params_from_config();
 

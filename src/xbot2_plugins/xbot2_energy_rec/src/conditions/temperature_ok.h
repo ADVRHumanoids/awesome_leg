@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/SetIdleStateRequest.h>
+#include <awesome_leg/SetSafetyStopRequest.h>
 #include <awesome_leg/TempOkStatus.h>
 
 using namespace XBot;
@@ -43,7 +43,7 @@ namespace BT
 
             std::string _temp_monitor_pluginname = "temp_monitor_rt";
 
-            std::string _set2idle_servname = "set_cmd_plugins_2idle";
+            std::string _set2safety_stop_servname = "set_cmd_plugins_2safetystop";
 
             std::string _asynch_servicepath;
 
@@ -51,9 +51,9 @@ namespace BT
 
             SubscriberPtr<awesome_leg::TempOkStatus> _temp_stat_subs;
 
-            awesome_leg::SetIdleStateRequest _set2running;
+            awesome_leg::SetSafetyStopRequest _release_safety_stop_msg;
 
-            PublisherPtr<awesome_leg::SetIdleStateRequest> _set_not2idle_pub;
+            PublisherPtr<awesome_leg::SetSafetyStopRequest> _set_not2stop_pub;
 
             NodeStatus tick() override;
 

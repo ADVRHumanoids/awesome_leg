@@ -86,7 +86,7 @@ void CartImpCntrlRt::init_cartesio_solver()
     _hip_impedance = task_as<Cartesian::InteractionTask>(_ci_solver->getTask("hip_impedance"));
     _actuated_jnt_tracking = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("actuated_jnt_tracking"));
     _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
-//    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
+    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
 
     _cart_impedance = _hip_impedance->getImpedance();
     _K = _cart_impedance.stiffness;

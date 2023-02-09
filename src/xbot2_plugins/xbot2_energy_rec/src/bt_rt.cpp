@@ -142,10 +142,10 @@ void BtRt::init_bt()
 {
 
     _factory.registerNodeType<StartPlugins>("StartPlugins");
-    _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
+    _factory.registerNodeType<Set2SafetyStop>("CoolDownByWaiting");
     _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
-    _factory.registerNodeType<Go2TakeoffConfig>("Go2TakeoffConfig");
-    _factory.registerNodeType<PerformTakeoff>("PerformTakeoff");
+//    _factory.registerNodeType<Go2TakeoffConfig>("Go2TakeoffConfig");
+//    _factory.registerNodeType<PerformTakeoff>("PerformTakeoff");
     _factory.registerNodeType<Set2Idle>("WaitABit");
 
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
@@ -153,11 +153,17 @@ void BtRt::init_bt()
     _factory.registerNodeType<TemperatureOk>("TemperatureOk");
     _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
     _factory.registerNodeType<IsIdle>("IsIdle");
+    _factory.registerNodeType<IsSafetyStop>("IsSafetyStop");
 
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence1");
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence2");
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence3");
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence4");
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
+    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning1");
+    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning2");
+    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning3");
+    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning4");
+//    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning5");
+
+
+//    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence4");
 
 //    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
 //    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
@@ -327,7 +333,7 @@ void BtRt::run()
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    if((_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE) && _stop_ticking_root_if_completed)
+    if((_bt_root_status == NodeStatus::SUCCESS || _bt_root_status == NodeStatus::FAILURE))
     { // behaviour tree succeded --> exit
 
         _bt_finished = true;

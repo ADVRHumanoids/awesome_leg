@@ -9,5 +9,6 @@
 #include <takeoff_performed.h>
 #include <takeoff_reached.h>
 #include <is_idle.h>
+#include <is_safety_stop.h>
 
 #endif // CUSTOM_CONDITIONS_H

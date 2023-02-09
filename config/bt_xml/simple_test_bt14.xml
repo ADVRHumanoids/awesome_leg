@@ -27,12 +27,22 @@
             <ReactiveSequence>
                 <ReactiveFallback>
                     <Inverter>
+                        <Condition ID="IsSafetyStop"/>
+                    </Inverter>
+                    <Action ID="AlwaysRunning1"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
+                    <Inverter>
                         <Condition ID="IsIdle"/>
                     </Inverter>
-                    <Action ID="RestartJumpSequence4"/>
+                    <Action ID="AlwaysRunning2"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
+                    <Condition ID="PauseExpired3"/>
+                    <Action ID="AlwaysRunning5"/>
                 </ReactiveFallback>
                 <SubTree ID="PerformJumpSequence"/>
-                <Action ID="RestartJumpSequence3"/>
+                <Action ID="RestartJumpSequence"/>
             </ReactiveSequence>
         </ReactiveFallback>
     </BehaviorTree>
@@ -41,16 +51,22 @@
         <SequenceStar>
             <ReactiveFallback>
                 <Condition ID="PauseExpired1"/>
-                <Action ID="RestartJumpSequence1"/>
+                <Action ID="AlwaysRunning3"/>
             </ReactiveFallback>
             <ReactiveFallback>
                 <Condition ID="PauseExpired2"/>
-                <Action ID="RestartJumpSequence2"/>
+                <Action ID="AlwaysRunning4"/>
             </ReactiveFallback>
         </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
+        <Action ID="AlwaysRunning"/>
+        <Action ID="AlwaysRunning1"/>
+        <Action ID="AlwaysRunning2"/>
+        <Action ID="AlwaysRunning3"/>
+        <Action ID="AlwaysRunning4"/>
+        <Action ID="AlwaysRunning5"/>
         <Condition ID="ArePluginsClosed"/>
         <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
@@ -60,6 +76,7 @@
         <Action ID="Go2TakeoffConfig"/>
         <Condition ID="IsFlightPhase"/>
         <Condition ID="IsIdle"/>
+        <Condition ID="IsSafetyStop"/>
         <Condition ID="PauseExpired"/>
         <Condition ID="PauseExpired1"/>
         <Condition ID="PauseExpired2"/>
