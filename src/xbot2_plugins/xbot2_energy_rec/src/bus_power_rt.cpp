@@ -518,7 +518,7 @@ void BusPowerRt::pub_reg_pow()
     reg_pow_msg->msg().pr = _pr;
 
     // fake readings
-    _recov_energy_tot+= _plugin_dt * 5.0;
+//    _recov_energy_tot+= _plugin_dt * 5.0;
 
     reg_pow_msg->msg().recov_energy_tot = _recov_energy_tot;
 
