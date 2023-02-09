@@ -24,6 +24,8 @@
 
 #include <awesome_leg/IdleState.h>
 #include <awesome_leg/SetIdleState.h>
+#include <awesome_leg/SafetyStopState.h>
+#include <awesome_leg/SetSafetyStop.h>
 
 using namespace XBot;
 
@@ -69,7 +71,9 @@ private:
     std::string _mat_path, _dump_mat_suffix,
                 _hw_type,
                 _idle_status_topicname = "idle_status",
-                _idler_servicename = "set_cmd_plugins_2idle";
+                _idler_servicename = "set_cmd_plugins_2idle",
+                _safety_stop_status_topicname = "safety_stop_status",
+                _safety_stop_servicename = "set_cmd_plugins_2safetystop";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -93,10 +97,13 @@ private:
     CallbackQueue _queue;
 
     awesome_leg::IdleState _idle_state_msg;
+    awesome_leg::SafetyStopState _safety_stop_msg;
 
     PublisherPtr<awesome_leg::IdleState> _idle_state_pub;
+    PublisherPtr<awesome_leg::SafetyStopState> _safety_stop_pub;
 
     ServiceServerPtr<awesome_leg::SetIdleStateRequest, awesome_leg::SetIdleStateResponse> _idle_state_setter_srvr;
+    ServiceServerPtr<awesome_leg::SetSafetyStopRequest, awesome_leg::SetSafetyStopResponse> _stop_state_setter_srvr;
 
     void get_params_from_config();
 
@@ -119,9 +126,11 @@ private:
 
     void is_dummy(std::string dummy_string);
 
-    void pub_idle_state();
+    void pub_state();
 
     bool on_idle_cmd_received(const awesome_leg::SetIdleStateRequest& req, awesome_leg::SetIdleStateResponse& res);
+
+    bool on_safety_stop_cmd_received(const awesome_leg::SetSafetyStopRequest& req, awesome_leg::SetSafetyStopResponse& res);
 }
 ;
 

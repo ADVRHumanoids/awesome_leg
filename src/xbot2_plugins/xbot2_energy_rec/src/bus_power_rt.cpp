@@ -481,6 +481,11 @@ void BusPowerRt::pub_reg_pow()
     reg_pow_msg->msg().ek_mech = _ek_joule_vect;
     reg_pow_msg->msg().ek_indct = _ek_joule_vect;
 
+    // fake readings
+    _recov_energy+= _plugin_dt * 5.0;
+
+    reg_pow_msg->msg().recov_energy = _recov_energy ;
+
     reg_pow_msg->msg().iq_jnt_names = _iq_jnt_names;
 
     _reg_pow_pub->publishLoaned(std::move(reg_pow_msg));

@@ -92,6 +92,7 @@ if(${behaviortree_cpp_v3_FOUND})
         src/conditions/takeoff_reached.cpp)
 
     target_include_directories(${BT_CUSTOM_NODES_LIB} PUBLIC src/actions src/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
+    add_dependencies(${BT_CUSTOM_NODES_LIB} ${PROJECT_NAME}_generate_messages)
     target_link_libraries(${BT_CUSTOM_NODES_LIB} PUBLIC ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2 xbot2::xbot2_ros_support)
     install(
         TARGETS ${BT_CUSTOM_NODES_LIB} DESTINATION lib

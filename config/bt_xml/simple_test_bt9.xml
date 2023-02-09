@@ -2,21 +2,23 @@
 <root main_tree_to_execute="BehaviorTree">
     <!-- ////////// -->
     <BehaviorTree ID="BehaviorTree">
-        <ReactiveSequence>
-            <ReactiveFallback>
-                <Condition ID="ArePluginsRunning"/>
-                <Action ID="StartPlugins"/>
-            </ReactiveFallback>
-            <ReactiveFallback>
-                <Condition ID="TemperatureOk"/>
-                <Action ID="CoolDownByWaiting"/>
-            </ReactiveFallback>
-            <SubTree ID="EnergyRecDemo"/>
+        <SequenceStar>
+            <ReactiveSequence>
+                <ReactiveFallback>
+                    <Condition ID="ArePluginsRunning"/>
+                    <Action ID="StartPlugins"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
+                    <Condition ID="TemperatureOk"/>
+                    <Action ID="CoolDownByWaiting"/>
+                </ReactiveFallback>
+                <SubTree ID="EnergyRecDemo"/>
+            </ReactiveSequence>
             <ReactiveFallback>
                 <Condition ID="ArePluginsClosed"/>
                 <Action ID="CloseAllPlugins"/>
             </ReactiveFallback>
-        </ReactiveSequence>
+        </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <BehaviorTree ID="EnergyRecDemo">
@@ -24,9 +26,12 @@
             <Condition ID="RecovEnergyReached"/>
             <ReactiveSequence>
                 <ReactiveFallback>
-                    <Condition ID="IsIdle"/>
-                    <SubTree ID="PerformJumpSequence"/>
+                    <Inverter>
+                        <Condition ID="IsIdle"/>
+                    </Inverter>
+                    <Action ID="RestartJumpSequence4"/>
                 </ReactiveFallback>
+                <SubTree ID="PerformJumpSequence"/>
                 <Action ID="RestartJumpSequence3"/>
             </ReactiveSequence>
         </ReactiveFallback>
@@ -36,11 +41,11 @@
         <SequenceStar>
             <ReactiveFallback>
                 <Condition ID="PauseExpired1"/>
-                <Action ID="RestartJumpSequence2"/>
+                <Action ID="RestartJumpSequence1"/>
             </ReactiveFallback>
             <ReactiveFallback>
                 <Condition ID="PauseExpired2"/>
-                <Action ID="RestartJumpSequence1"/>
+                <Action ID="RestartJumpSequence2"/>
             </ReactiveFallback>
         </SequenceStar>
     </BehaviorTree>

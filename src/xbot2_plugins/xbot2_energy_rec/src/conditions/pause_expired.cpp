@@ -51,12 +51,12 @@ NodeStatus PauseExpired::tick()
 
     NodeStatus result = _timer_stat_msg.hr_time >= _pause_time? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
-//    if(result == NodeStatus::SUCCESS)
-//    { // next time this condition is triggered, we reset the internal reference time
+    if(result == NodeStatus::SUCCESS)
+    { // next time this condition is triggered, we reset the internal reference time
 
-//        _ref_time_set = false;
+        _ref_time_set = false;
 
-//    }
+    }
 
     return result;
 

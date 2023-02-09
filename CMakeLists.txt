@@ -26,6 +26,7 @@ add_service_files(
   IqModelCalibRt.srv
   SetIdleState.srv
   SimpleTrigger.srv
+  SetSafetyStop.srv
 )
 
 add_message_files(
@@ -42,6 +43,7 @@ add_message_files(
   IqMeasStatus.msg
   TempOkStatus.msg
   TimerStatus.msg
+  SafetyStopState.msg
 )
 
 generate_messages(

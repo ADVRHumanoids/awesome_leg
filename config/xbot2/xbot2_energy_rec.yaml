@@ -225,7 +225,7 @@ xbotcore_plugins:
             matlogger_buffer_size: {value: 1e5, type: double}
 
 #            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
-            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt8.xml, type: file} # used by the model interface
+            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt9.xml, type: file} # used by the model interface
 
             plugin_manager_name: {value: "plugins_mngr_rt", type: string}
 
@@ -241,8 +241,8 @@ xbotcore_plugins:
             use_zmq_pub: {value: true, type: bool}
             use_bt_log: {value: true, type: bool}
 
-            stop_on_completion: {value: false, type: bool}
-            stop_ticking_root_if_completed: {value: false, type: bool}
+            stop_on_completion: {value: true, type: bool}
+            stop_ticking_root_if_completed: {value: true, type: bool}
 
             verbose: {value: false, type: bool}
 
@@ -272,8 +272,8 @@ xbotcore_plugins:
 #            temp_rise_rate: {value: 0.017, type: double}
 #            temp_cooling_rate: {value: 0.034, type: double}
 
-            temp_rise_rate: {value: 0.1, type: double}
-            temp_cooling_rate: {value: 0.2, type: double}
+            temp_rise_rate: {value: 1, type: double}
+            temp_cooling_rate: {value: 2, type: double}
 
     idler_rt:
         thread: rt_main
@@ -285,8 +285,10 @@ xbotcore_plugins:
             matlogger_buffer_size: {value: 1e5, type: double}
 
             idler_servicename: {value: "set_cmd_plugins_2idle", type: string}
+            safety_stop_servicename: {value: "set_cmd_plugins_2safetystop", type: string}
 
             idle_status_topicname: {value: "idle_status", type: string}
+            safety_stop_status_topicname: {value: "safety_stop_status", type: string}
 
             queue_size: {value: 5, type: int}
 

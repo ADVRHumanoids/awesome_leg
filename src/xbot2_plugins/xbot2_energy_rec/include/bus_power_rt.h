@@ -98,7 +98,7 @@ private:
         _lambda_qp_reg = 1.0,
         _q_dot_3sigma = 0.001;
 
-    double _er = 0.0, _pr = 0.0;
+    double _er = 0.0, _pr = 0.0, _recov_energy = 0.0;
 
     Eigen::VectorXd _q_p_meas,
                     _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,

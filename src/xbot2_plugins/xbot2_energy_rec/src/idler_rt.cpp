@@ -117,12 +117,14 @@ void IdlerRt::init_dump_logger()
     _dump_logger->add("verbose", int(_verbose));
 
     _dump_logger->create("idle_status", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("safety_stop", 1, 1, _matlogger_buffer_size);
 
 }
 
 void IdlerRt::add_data2dump_logger()
 {
     _dump_logger->add("idle_status", int(_idle_state_msg.idle));
+    _dump_logger->add("safety_stop", int(_safety_stop_msg.stop));
 
 }
 
@@ -134,10 +136,11 @@ void IdlerRt::add_data2bedumped()
 
 }
 
-void IdlerRt::pub_idle_state()
+void IdlerRt::pub_state()
 {
 
     _idle_state_pub->publish(_idle_state_msg);
+    _safety_stop_pub->publish(_safety_stop_msg);
 
 }
 
@@ -152,9 +155,18 @@ void IdlerRt::init_nrt_ros_bridge()
                                                     this,
                                                     &_queue);
 
+    _stop_state_setter_srvr = _ros->advertiseService(_safety_stop_servicename,
+                                                    &IdlerRt::on_safety_stop_cmd_received,
+                                                    this,
+                                                    &_queue);
+
     _idle_state_msg.idle = false;
     _idle_state_pub = _ros->advertise<awesome_leg::IdleState>(
         _idle_status_topicname, 1);
+
+    _safety_stop_msg.stop = false;
+    _safety_stop_pub = _ros->advertise<awesome_leg::SafetyStopState>(
+        _safety_stop_status_topicname, 1);
 
 }
 
@@ -181,10 +193,23 @@ bool IdlerRt::on_idle_cmd_received(const awesome_leg::SetIdleStateRequest& req, 
     if(_verbose)
     {
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\nIdlerRt: received idle request with value: {}.\n", req.idle);
+                   "\nIdlerRt: received idle request with value: idle: {}.\n", req.idle);
     }
 
     _idle_state_msg.idle = req.idle;
+
+    return res.success;
+}
+
+bool IdlerRt::on_safety_stop_cmd_received(const awesome_leg::SetSafetyStopRequest& req, awesome_leg::SetSafetyStopResponse& res)
+{
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                   "\nIdlerRt: received safety stop request with value: stop: {}.\n", req.stop);
+    }
+
+    _safety_stop_msg.stop = req.stop;
 
     return res.success;
 }
@@ -209,7 +234,7 @@ void IdlerRt::run()
     _queue.run(); // process service callbacks
 
     // publish iq estimate info
-    pub_idle_state(); // publish estimates to topic
+    pub_state(); // publish to topic
 
     add_data2bedumped(); // add data to the logger
 

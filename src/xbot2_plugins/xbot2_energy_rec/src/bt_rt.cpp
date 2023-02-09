@@ -143,7 +143,6 @@ void BtRt::init_bt()
 
     _factory.registerNodeType<StartPlugins>("StartPlugins");
     _factory.registerNodeType<Set2Idle>("CoolDownByWaiting");
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
     _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
     _factory.registerNodeType<Go2TakeoffConfig>("Go2TakeoffConfig");
     _factory.registerNodeType<PerformTakeoff>("PerformTakeoff");
@@ -156,6 +155,9 @@ void BtRt::init_bt()
     _factory.registerNodeType<IsIdle>("IsIdle");
 
     _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence1");
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence2");
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence3");
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence4");
 
 //    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
 //    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
@@ -166,7 +168,7 @@ void BtRt::init_bt()
 
     _factory.registerNodeType<PauseExpired>("PauseExpired1");
     _factory.registerNodeType<PauseExpired>("PauseExpired2");
-    _factory.registerNodeType<PauseExpired>("PauseExpired3");
+//    _factory.registerNodeType<PauseExpired>("PauseExpired3");
 
 
 //    _factory.registerNodeType<StartPlugins>("StartPlugins");

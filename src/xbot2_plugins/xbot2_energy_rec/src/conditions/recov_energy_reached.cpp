@@ -13,7 +13,11 @@ RecovEnergyReached::RecovEnergyReached(const std::string& name, const NodeConfig
     // lambda to define callback
     auto reg_energy_callback = [this](const awesome_leg::RegPowStatus& msg)
     {
+        if(_verbose)
+        {
+            std::cout << Colors::kGreen << "rec energy callback" << Colors::kEndl << std::endl;
 
+        }
         _reg_pow_status.recov_energy = msg.recov_energy;
 
     };
@@ -40,7 +44,11 @@ NodeStatus RecovEnergyReached::tick()
 
     _reg_pow_sub->run();
 
-//    std::cout << Colors::kGreen << "ticking RecovEnergyReached" << Colors::kEndl << std::endl;
+    if(_verbose)
+    {
+        std::cout << Colors::kGreen << "ticking RecovEnergyReached. Rec. energy: " << Colors::kBlue <<_reg_pow_status.recov_energy << Colors::kEndl << std::endl;
+
+    }
 
     NodeStatus result = _reg_pow_status.recov_energy > _recov_energy_thresh? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 
