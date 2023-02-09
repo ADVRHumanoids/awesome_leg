@@ -31,12 +31,9 @@
                     </Inverter>
                     <Action ID="AlwaysRunning1"/>
                 </ReactiveFallback>
-                <ReactiveFallback>
-                    <Inverter>
-                        <Condition ID="IsIdle"/>
-                    </Inverter>
-                    <Action ID="AlwaysRunning2"/>
-                </ReactiveFallback>
+                <Inverter>
+                    <Condition ID="IsIdle"/>
+                </Inverter>
                 <SubTree ID="PerformJumpSequence"/>
                 <Action ID="RestartJumpSequence"/>
             </ReactiveSequence>

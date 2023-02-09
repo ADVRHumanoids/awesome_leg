@@ -141,47 +141,34 @@ void BtRt::init_nrt_ros_bridge()
 void BtRt::init_bt()
 {
 
-    _factory.registerNodeType<StartPlugins>("StartPlugins");
-    _factory.registerNodeType<Set2SafetyStop>("CoolDownByWaiting");
-    _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
-//    _factory.registerNodeType<Go2TakeoffConfig>("Go2TakeoffConfig");
-//    _factory.registerNodeType<PerformTakeoff>("PerformTakeoff");
-    _factory.registerNodeType<Set2Idle>("WaitABit");
-
     _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
-    _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
-    _factory.registerNodeType<TemperatureOk>("TemperatureOk");
-    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
-    _factory.registerNodeType<IsIdle>("IsIdle");
-    _factory.registerNodeType<IsSafetyStop>("IsSafetyStop");
+    _factory.registerNodeType<StartPlugins>("StartPlugins");
 
-    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
+    _factory.registerNodeType<TemperatureOk>("TemperatureOk");
+    _factory.registerNodeType<Set2SafetyStop>("CoolDownByWaiting");
+
+    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
+
+    _factory.registerNodeType<IsSafetyStop>("IsSafetyStop");
     _factory.registerNodeType<AlwaysRunning>("AlwaysRunning1");
+
+    _factory.registerNodeType<IsIdle>("IsIdle");
     _factory.registerNodeType<AlwaysRunning>("AlwaysRunning2");
-    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning3");
-    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning4");
+
+//    _factory.registerNodeType<PauseExpired>("PauseExpired3");
 //    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning5");
 
-
-//    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence4");
-
-//    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
-//    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
-
-//    _factory.registerNodeType<Set2Idle>("WaitABit1");
-//    _factory.registerNodeType<Set2Idle>("WaitABit2");
-//    _factory.registerNodeType<Set2Idle>("WaitABit3");
-
     _factory.registerNodeType<PauseExpired>("PauseExpired1");
+    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning3");
+
     _factory.registerNodeType<PauseExpired>("PauseExpired2");
-//    _factory.registerNodeType<PauseExpired>("PauseExpired3");
+    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning4");
 
+    _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
 
-//    _factory.registerNodeType<StartPlugins>("StartPlugins");
-//    _factory.registerNodeType<Set2Idle>("wait_for_actuators_cooling");
+    _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
 
-//    _factory.registerNodeType<ArePluginsRunning>("ArePluginsRunning");
-//    _factory.registerNodeType<TemperatureOk>("temperature_ok");
+    _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 
@@ -255,6 +242,13 @@ void BtRt::init_plugin_manager()
 
 }
 
+void BtRt::close_plugin_manager()
+{
+    _plugins_man_close_req_pubs->publish(Command::Stop);
+
+    _plugins_man_close_res_subs->run(); // processes plugins command service feedback
+}
+
 bool BtRt::on_initialize()
 {
     std::string sim_flagname = "sim";
@@ -276,18 +270,33 @@ bool BtRt::on_initialize()
     init_bt();
 
     // plugin manager asynchronous starting
-    auto res_callback_cmd = [this](const bool& msg)
+    auto res_start_callback_cmd = [this](const bool& msg)
     {
 
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                           "Received command response {} from plugin manager\n",
+                           "Received starting command response {} from plugin manager\n",
                            msg);
 
     };
 
     _plugins_man_strt_req_pubs = advertise<Runnable::Command>(_async_service_pattern + _plugin_manager_name + "/command/request");
     _plugins_man_strt_res_subs = subscribe<bool>(_async_service_pattern + _plugin_manager_name + "/command/response",
-                                res_callback_cmd,
+                                res_start_callback_cmd,
+                                _queue_size);
+
+    // plugin manager asynchronous stopping
+    auto res_stop_callback_cmd = [this](const bool& msg)
+    {
+
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                           "Received stopping command response {} from plugin manager \n",
+                           msg);
+
+    };
+
+    _plugins_man_close_req_pubs = advertise<Runnable::Command>(_async_service_pattern + _plugin_manager_name + "/command/request");
+    _plugins_man_close_res_subs = subscribe<bool>(_async_service_pattern + _plugin_manager_name + "/command/response",
+                                res_stop_callback_cmd,
                                 _queue_size);
 
     return true;
@@ -314,11 +323,12 @@ void BtRt::run()
     if(!_bt_finished)
     {// continue ticking root
 
+        _bt_root_status_previous = _bt_root_status;
+
         _bt_root_status = _tree.tickRoot();
 
     }
 
-    _bt_root_status = _tree.tickRoot();
 
     if(_verbose)
     {
@@ -346,11 +356,15 @@ void BtRt::run()
 
     }
 
+
+
 }
 
 void BtRt::on_stop()
 {
     init_clocks();
+
+    close_plugin_manager();
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _dump_logger.reset();

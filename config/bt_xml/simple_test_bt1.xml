@@ -12,7 +12,6 @@
                     <Condition ID="TemperatureOk"/>
                     <Action ID="CoolDownByWaiting"/>
                 </ReactiveFallback>
-                <SubTree ID="EnergyRecDemo"/>
             </ReactiveSequence>
             <ReactiveFallback>
                 <Condition ID="ArePluginsClosed"/>
@@ -36,6 +35,10 @@
                         <Condition ID="IsIdle"/>
                     </Inverter>
                     <Action ID="AlwaysRunning2"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
+                    <Condition ID="PauseExpired3"/>
+                    <Action ID="AlwaysRunning5"/>
                 </ReactiveFallback>
                 <SubTree ID="PerformJumpSequence"/>
                 <Action ID="RestartJumpSequence"/>

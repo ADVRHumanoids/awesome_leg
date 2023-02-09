@@ -74,7 +74,7 @@ private:
                 _hw_type,
                 _bt_description_path,
                 _bt_root_topicname = "bt_root",
-                _plugin_manager_name = "",
+                _plugin_manager_name = "plugins_mngr_rt",
                 _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
                 _plugins_stat_topicname  = "plugins_manager/plugins_status",
                 _tree_logpath = "\tmp",
@@ -93,7 +93,7 @@ private:
     awesome_leg::BtRootStatus _bt_root_status_msg;
     PublisherPtr<awesome_leg::BtRootStatus> _bt_root_status_pub;
 
-    NodeStatus _bt_root_status;
+    NodeStatus _bt_root_status, _bt_root_status_previous;
 
     BehaviorTreeFactory _factory;
 
@@ -106,6 +106,10 @@ private:
     // internal publisher and subscribers for triggering the plugin manager
     PublisherPtr<Runnable::Command> _plugins_man_strt_req_pubs;
     SubscriberPtr<bool> _plugins_man_strt_res_subs;
+
+    // internal publisher and subscribers for closing the plugin manager
+    PublisherPtr<Runnable::Command> _plugins_man_close_req_pubs;
+    SubscriberPtr<bool> _plugins_man_close_res_subs;
 
 //    SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
 
@@ -125,6 +129,8 @@ private:
     void init_dump_logger();
 
     void init_plugin_manager();
+
+    void close_plugin_manager();
 
     void init_bt();
 
