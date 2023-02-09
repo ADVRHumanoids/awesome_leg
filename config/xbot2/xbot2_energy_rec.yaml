@@ -49,6 +49,13 @@ xbotcore_plugins:
 
     ec_ros: {thread: nrt_main, type: ec_ros}
 
+    timer_rt:
+        thread: rt_main
+        type: timer_rt
+        params:
+            timer_plugin_topicname: {value: "timer", type: string}
+            reset_timers_servname: {value: "reset_timers", type: string}
+
 #    base_est_rt:
 #        thread: rt_main_slow
 #        type: base_est_rt
@@ -217,7 +224,7 @@ xbotcore_plugins:
             dump_mat_suffix: {value: "base_est_rt", type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
-            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt4.xml, type: file} # used by the model interface
+            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
 #            bt_description_path: {value: $PWD/../bt_xml/simple_test_bt2.xml, type: file} # used by the model interface
 
             plugin_manager_name: {value: "plugins_mngr_rt", type: string}

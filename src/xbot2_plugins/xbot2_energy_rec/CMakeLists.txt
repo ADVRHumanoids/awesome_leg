@@ -70,6 +70,12 @@ target_include_directories(idler_rt PRIVATE include src ${matlogger2_INCLUDE_DIR
 add_dependencies(idler_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(idler_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
+add_xbot2_plugin(timer_rt
+    src/timer_rt.cpp)
+target_include_directories(timer_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(timer_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(timer_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
 if(${behaviortree_cpp_v3_FOUND})
 
     message("Will compile behaviour tree rt plugin")
@@ -114,6 +120,7 @@ install(
     cart_imp_cntrl_rt
     temp_monitor_rt
     idler_rt
+    timer_rt
     DESTINATION lib
 )
 

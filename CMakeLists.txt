@@ -41,6 +41,7 @@ add_message_files(
   IdleState.msg
   IqMeasStatus.msg
   TempOkStatus.msg
+  TimerStatus.msg
 )
 
 generate_messages(
