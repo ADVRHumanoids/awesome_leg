@@ -20,8 +20,9 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
-    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 2}
+    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
+    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
+    rt_main_fast:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
 #    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
 #    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
@@ -88,7 +89,7 @@ xbotcore_plugins:
 #            svd_thresh: {value: 0.1, type: double}
 
     jmp_replayer_rt:
-        thread: rt_main
+        thread: rt_main_fast
         type: jmp_replayer_rt
         params:
 
@@ -139,7 +140,7 @@ xbotcore_plugins:
 
             driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
 
-            resample_err_tolerance: {value: 1e-3, type: double}
+            resample_err_tolerance: {value: 1e-2, type: double}
 
     bus_power_rt_iq_model:
         thread: rt_main
