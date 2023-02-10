@@ -28,7 +28,18 @@ RecovEnergyReached::RecovEnergyReached(const std::string& name, const NodeConfig
 
     _reg_pow_status.recov_energy_tot = 0.0;// fif we tick the node without having received an update
     // from the callback, we assume the recovered energy to be 0
+
 };
+
+RecovEnergyReached::RecovEnergyReached(const std::string& name, const NodeConfiguration& config, double& recov_energy_thresh) :
+    ConditionNode(name, config),
+    Task(name + "_bt_leaf", "")
+{
+    RecovEnergyReached(name, config);
+
+    _recov_energy_thresh = recov_energy_thresh;
+
+}
 
 PortsList RecovEnergyReached::providedPorts()
 {

@@ -111,8 +111,10 @@ xbotcore_plugins:
             replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
             touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
             touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
-            # touchdown_stiffness: {value: [2500.0, 2500.0], type: Eigen::VectorXd}
-            # touchdown_damping: {value: [40.0, 40.0], type: Eigen::VectorXd}
+#            touchdown_stiffness: {value: [15.0, 10.0], type: Eigen::VectorXd}
+#            touchdown_damping: {value: [3.0, 3.0], type: Eigen::VectorXd}
+#            touchdown_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
+#            touchdown_damping: {value: [100.0, 100.0], type: Eigen::VectorXd}
             stop_stiffness: {value: [200.0, 200.0], type: Eigen::VectorXd}
             stop_damping: {value: [8.0, 8.0], type: Eigen::VectorXd}
 
@@ -252,6 +254,8 @@ xbotcore_plugins:
             stop_ticking_root_if_completed: {value: true, type: bool}
 
             verbose: {value: false, type: bool}
+
+            recov_energy_thresh : {value: 1500.0, type: double}
 
     temp_monitor_rt:
         thread: rt_main

@@ -83,7 +83,8 @@ private:
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-           _matlogger_buffer_size = 1e4;
+           _matlogger_buffer_size = 1e4,
+           _recov_energy_thresh = 300 * 5; // [J]
 
     MatLogger2::Ptr _dump_logger;
 

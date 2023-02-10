@@ -49,6 +49,8 @@ void BtRt::read_config_from_yaml()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
+    _recov_energy_thresh = getParamOrThrow<double>("~recov_energy_thresh");
+
 }
 
 void BtRt::is_sim(std::string sim_string = "sim")

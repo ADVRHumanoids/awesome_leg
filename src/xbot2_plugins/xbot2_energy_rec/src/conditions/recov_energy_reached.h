@@ -23,6 +23,7 @@ namespace BT
 
             // You must provide the function to call when tick() is invoked
             RecovEnergyReached(const std::string& name, const NodeConfiguration& config);
+            RecovEnergyReached(const std::string& name, const NodeConfiguration& config, double& recov_energy_thresh);
 
             ~RecovEnergyReached() override = default;
 
@@ -38,7 +39,7 @@ namespace BT
 
             std::string _rec_energy_pluginname = "bus_power_rt_iq_model";
 
-            double _recov_energy_thresh = 200.0; // [J]
+            double _recov_energy_thresh = 5 * 300.0; // [J]
 
             awesome_leg::RegPowStatus _reg_pow_status;
 
