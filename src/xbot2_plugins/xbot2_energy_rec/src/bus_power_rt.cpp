@@ -676,6 +676,10 @@ void BusPowerRt::starting()
 
     init_clocks(); // initialize clocks timers
 
+    _monitor_recov_energy = false;
+    _pow_monitor->disable_rec_energy_monitoring(); // the monitoring of
+    // the recovered energy is in idle by defaults
+
     start_completed(); // Move on to run()
 
 }
@@ -712,6 +716,9 @@ void BusPowerRt::on_stop()
 {
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _dump_logger.reset();
+
+    _pow_monitor->reset_rec_energy(); // we reset the recovered energy level
+
 }
 
 void BusPowerRt::stopping()
