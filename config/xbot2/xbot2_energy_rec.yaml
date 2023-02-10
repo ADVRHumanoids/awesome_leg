@@ -101,7 +101,7 @@ xbotcore_plugins:
             matlogger_buffer_size: {value: 1e5, type: double}
 
             is_first_jnt_passive : {value: true, type: bool}
-            resample: {value: false, type: bool}
+            resample: {value: true, type: bool}
 
             delta_effort_lim: {value: 1e-6, type: double}
             # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
@@ -138,6 +138,8 @@ xbotcore_plugins:
             contact_linkname: {value: "tip1", type: string}
 
             driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
+
+            resample_err_tolerance: {value: 1e-3, type: double}
 
     bus_power_rt_iq_model:
         thread: rt_main

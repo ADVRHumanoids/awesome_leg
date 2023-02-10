@@ -115,7 +115,8 @@ private:
         _pause_time, _traj_pause_time = 2.0, _approach_traj_pause_time = 5.0,
         _epsi_stiffness = 10, _epsi_damping = 0.1,
         _imp_ramp_time = 0.5, _smooth_imp_time = 0.0,
-        _matlogger_buffer_size = 1e4;
+        _matlogger_buffer_size = 1e4,
+        _resample_err_tolerance = 1e-3;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping,
                     _replay_stiffness, _replay_damping,

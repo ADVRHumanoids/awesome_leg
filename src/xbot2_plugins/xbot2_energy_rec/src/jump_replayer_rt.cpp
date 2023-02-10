@@ -167,6 +167,8 @@ void JumpReplayerRt::get_params_from_config()
 
     _driver_temp_threshold = getParamOrThrow<Eigen::VectorXd>("~driver_temp_threshold");
 
+    _resample_err_tolerance = getParamOrThrow<double>("~resample_err_tolerance");
+
 }
 
 void JumpReplayerRt::is_sim(std::string sim_string = "sim")
@@ -517,7 +519,7 @@ void JumpReplayerRt::load_opt_data()
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
         "\n ## Trying to load trajectory .mat file @ {}\n \n", math_full_path);
 
-    _traj = TrajLoader(math_full_path, true, 0.0001, false);
+    _traj = TrajLoader(math_full_path, true, _resample_err_tolerance, false);
 
     int n_traj_jnts = _traj.get_n_jnts();
 
