@@ -28,6 +28,7 @@ add_service_files(
   SimpleTrigger.srv
   SetSafetyStop.srv
   SetRegEnergyMonitoringStatus.srv
+  Go2TakeoffConfig.srv
 )
 
 add_message_files(
