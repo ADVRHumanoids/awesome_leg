@@ -151,14 +151,14 @@ void BtRt::init_bt()
 
     _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
 
-    _factory.registerNodeType<IsSafetyStop>("IsSafetyStop");
-    _factory.registerNodeType<AlwaysRunning>("ReturnRunning1");
-
     _factory.registerNodeType<IsIdle>("IsIdle");
     _factory.registerNodeType<AlwaysRunning>("ReturnRunning2");
 
-//    _factory.registerNodeType<PauseExpired>("PauseExpired3");
-//    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning5");
+    _factory.registerNodeType<IsSafetyStop>("IsSafetyStop");
+    _factory.registerNodeType<AlwaysRunning>("ReturnRunning1");
+
+    _factory.registerNodeType<IsJointDevActive>("IsJointDevActive");
+    _factory.registerNodeType<AlwaysRunning>("ReturnRunning3");
 
     _factory.registerNodeType<PauseExpired>("PauseExpired1");
     _factory.registerNodeType<AlwaysRunning>("WaitABit");

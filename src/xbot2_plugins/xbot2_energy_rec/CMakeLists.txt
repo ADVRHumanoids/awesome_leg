@@ -90,7 +90,7 @@ if(${behaviortree_cpp_v3_FOUND})
 
         src/conditions/are_plugins_running.cpp src/conditions/are_plugins_closed.cpp src/conditions/temperature_ok.cpp
         src/conditions/is_idle.cpp src/conditions/pause_expired.cpp src/conditions/recov_energy_reached.cpp src/conditions/takeoff_performed.cpp
-        src/conditions/takeoff_reached.cpp src/conditions/is_safety_stop.cpp)
+        src/conditions/takeoff_reached.cpp src/conditions/is_safety_stop.cpp src/conditions/is_joint_device_active.cpp)
 
     target_include_directories(${BT_CUSTOM_NODES_LIB} PUBLIC src/actions src/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
     add_dependencies(${BT_CUSTOM_NODES_LIB} ${PROJECT_NAME}_generate_messages)

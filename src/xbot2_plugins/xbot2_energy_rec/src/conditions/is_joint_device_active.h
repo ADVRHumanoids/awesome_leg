@@ -39,7 +39,7 @@ namespace BT
 
             Hal::JointMasterInfo _joint_dev_info;
 
-            SubscriberPtr<Hal::JointMasterInfo> _idle_state_sub;
+            SubscriberPtr<Hal::JointMasterInfo> _joint_master_sub;
 
             NodeStatus tick() override;
 

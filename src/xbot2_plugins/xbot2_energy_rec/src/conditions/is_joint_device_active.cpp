@@ -20,15 +20,14 @@ IsJointDevActive::IsJointDevActive(const std::string& name, const NodeConfigurat
 
         if(_verbose)
         {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                               "Joint master active: {} \n",
-                               _is_joint_master_active);
+            std::cout << Colors::kGreen << "Joint master active: " << _is_joint_master_active << Colors::kEndl << std::endl;
+
         }
 
 
     };
 
-    _joint_master_sub = subscribe<awesome_leg::IdleState>(_joint_dev_info_topicname,
+    _joint_master_sub = subscribe<Hal::JointMasterInfo>(_joint_dev_info_topicname,
                             dev_info_callback,
                             _queue_size);
 

@@ -5,6 +5,10 @@
         <SequenceStar>
             <ReactiveSequence>
                 <ReactiveFallback>
+                    <Condition ID="IsJointDevActive"/>
+                    <Action ID="ReturnRunning1"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
                     <Condition ID="ArePluginsRunning"/>
                     <Action ID="StartPlugins"/>
                 </ReactiveFallback>
@@ -16,13 +20,13 @@
                     <Inverter>
                         <Condition ID="IsSafetyStop"/>
                     </Inverter>
-                    <Action ID="ReturnRunning1"/>
+                    <Action ID="ReturnRunning2"/>
                 </ReactiveFallback>
                 <ReactiveFallback>
                     <Inverter>
                         <Condition ID="IsIdle"/>
                     </Inverter>
-                    <Action ID="ReturnRunning2"/>
+                    <Action ID="ReturnRunning3"/>
                 </ReactiveFallback>
                 <SubTree ID="EnergyRecDemo"/>
             </ReactiveSequence>
@@ -65,6 +69,7 @@
         <Action ID="Go2TakeoffConfig"/>
         <Condition ID="IsFlightPhase"/>
         <Condition ID="IsIdle"/>
+        <Condition ID="IsJointDevActive"/>
         <Condition ID="IsSafetyStop"/>
         <Condition ID="PauseExpired"/>
         <Condition ID="PauseExpired1"/>
@@ -76,6 +81,7 @@
         <Action ID="RestartJumpSequence"/>
         <Action ID="ReturnRunning1"/>
         <Action ID="ReturnRunning2"/>
+        <Action ID="ReturnRunning3"/>
         <Action ID="StartPlugins"/>
         <Condition ID="TakeoffConfigReached"/>
         <Condition ID="TakeoffPerformed"/>
