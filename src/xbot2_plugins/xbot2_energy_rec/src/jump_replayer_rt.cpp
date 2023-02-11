@@ -367,10 +367,12 @@ bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2Takeoff
 
     }
 
-    if(_go2takeoff_config)
+    if(_go2takeoff_config && result)
     {
         _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
         // to last sent position command
+
+        reset_clocks();
 
         _approach_traj_finished = false;
     }
@@ -398,10 +400,12 @@ bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeo
 
     }
 
-    if(_perform_takeoff)
+    if(_perform_takeoff && result)
     {
         _sample_index = 0; // will start sending the loaded trajectory from
         // the first sample
+
+        reset_clocks();
 
         _traj_finished = false;
 
@@ -430,8 +434,11 @@ bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpReque
 
     }
 
-    if(_ramp_imp)
+    if(_ramp_imp && result)
     { // we set the ramp start at the last measured stiffness
+
+        reset_clocks();
+
         _ramp_strt_stiffness = _meas_stiffness;
         _ramp_strt_damping = _meas_damping;
 

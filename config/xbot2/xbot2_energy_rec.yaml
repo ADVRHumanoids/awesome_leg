@@ -92,9 +92,6 @@ xbotcore_plugins:
         type: jmp_replayer_rt
         params:
 
-            urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg_xbot.urdf, type: file} # used by the model interface
-            srdf_path: {value: $PWD/../../description/srdf/awesome_leg.srdf, type: file}
-
             mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
             mat_name: {value: apex_awesome_jump_ref.mat, type: string}
             dump_mat_suffix: {value: traj_replay, type: string}
@@ -102,9 +99,6 @@ xbotcore_plugins:
 
             is_first_jnt_passive : {value: true, type: bool}
             resample: {value: true, type: bool}
-
-            delta_effort_lim: {value: 1e-6, type: double}
-            # cntrl_mode: {value: [25.0, 25.0], type: Eigen::VectorXd}
 
             replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
             replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
@@ -121,11 +115,6 @@ xbotcore_plugins:
             send_vel_ref: {value: true, type: bool}
             send_eff_ref: {value: false, type: bool}
 
-            traj_pause_time: {value: 0.05, type: double} # don't go lower than the control plugin!!
-
-            tip_link_name: {value: tip1, type: string}
-            base_link_name: {value: base_link, type: string}
-
             approach_traj_exec_time: {value: 5.0, type: double}
             imp_ramp_time: {value: 5.0, type: double}
 
@@ -133,13 +122,7 @@ xbotcore_plugins:
 
             send_whole_traj: {value: true, type: bool}
 
-            verbose: {value: false, type: bool}
-
-            test_rig_linkname: {value: "test_rig", type: string}
-            tip_fts_name: {value: "tip1_fts", type: string}
-            contact_linkname: {value: "tip1", type: string}
-
-            driver_temp_threshold: {value: [58.0, 58.0], type: Eigen::VectorXd}
+            verbose: {value: true, type: bool}
 
             resample_err_tolerance: {value: 1e-2, type: double}
 
