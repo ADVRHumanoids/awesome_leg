@@ -438,7 +438,7 @@ bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpReque
         _imp_traj_finished = false;
     }
 
-    res.success = ;
+    res.success = result;
 
     return result;
 
