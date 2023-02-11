@@ -29,6 +29,8 @@ add_service_files(
   SetSafetyStop.srv
   SetRegEnergyMonitoringStatus.srv
   Go2TakeoffConfig.srv
+  PerformTakeoff.srv
+  RampJntImp.srv
 )
 
 add_message_files(

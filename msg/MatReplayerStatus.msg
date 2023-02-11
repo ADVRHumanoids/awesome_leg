@@ -2,6 +2,8 @@ bool approach_traj_finished
 
 bool traj_finished
 
+bool imp_traj_finished
+
 bool send_pos
 bool send_vel
 bool send_eff

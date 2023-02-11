@@ -6,9 +6,53 @@ void JumpReplayerRt::init_clocks()
 {
     _loop_time = 0.0; // reset loop time clock
 
-    _pause_time = 0.0;
     _approach_traj_time = 0.0;
+
     _smooth_imp_time = 0.0;
+
+}
+
+void JumpReplayerRt::reset_clocks()
+{
+
+    _approach_traj_time = 0.0;
+
+    _smooth_imp_time = 0.0;
+
+}
+
+void JumpReplayerRt::update_clocks()
+{
+    // Update timer(s)
+    _loop_time += _plugin_dt;
+
+
+    if(_ramp_imp)
+    {
+        _smooth_imp_time += _plugin_dt;
+    }
+
+    if(_go2takeoff_config)
+    {
+        _approach_traj_time += _plugin_dt;
+    }
+
+    // Reset timers, if necessary
+    if (_loop_time >= _loop_timer_reset_time)
+    {
+        _loop_time = _loop_time - _loop_timer_reset_time;
+    }
+
+    if(_approach_traj_finished)
+    {
+        _approach_traj_time = _approach_traj_exec_time;
+    }
+
+    if(_imp_traj_finished)
+    {
+        _smooth_imp_time = _imp_ramp_time;
+    }
+
 }
 
 void JumpReplayerRt::init_vars()
@@ -35,8 +79,6 @@ void JumpReplayerRt::init_vars()
 
     _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
 
-    _meas_driver_temp = Eigen::VectorXd::Zero(_n_jnts_robot);
-
     _auxiliary_vector = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     _q_p_cmd_vect = std::vector<double>(_n_jnts_robot);
@@ -49,87 +91,9 @@ void JumpReplayerRt::init_vars()
 
 }
 
-void JumpReplayerRt::reset_flags()
-{
-
-    _approach_traj_started = false;
-    _approach_traj_finished = false;
-
-    _imp_traj_started = false;
-    _imp_traj_finished = false;
-
-    _traj_started = false;
-    _traj_finished = false;
-
-    _pause_started = false;
-    _pause_finished = false;
-
-    _jump = false;
-
-    _sample_index = 0.0; // resetting samples index, in case the plugin stopped and started again
-
-    _approach_traj_time = 0.0;
-
-    _smooth_imp_time = 0.0;
-    
-    _jump_now = false;
-    
-    _is_first_trigger = false;
-
-    _is_first_imp_ramp_loop = true;
-
-}
-
-void JumpReplayerRt::update_clocks()
-{
-    // Update timer(s)
-    _loop_time += _plugin_dt;
-    
-    if(_pause_started && !_pause_finished)
-    {
-        _pause_time += _plugin_dt;
-    }
-
-    if(_imp_traj_started && !_imp_traj_finished)
-    {
-        _smooth_imp_time += _plugin_dt;
-    }
-
-    if(_approach_traj_started && !_approach_traj_finished && _jump)
-    {
-        _approach_traj_time += _plugin_dt;
-    }
-
-    // Reset timers, if necessary
-    if (_loop_time >= _loop_timer_reset_time)
-    {
-        _loop_time = _loop_time - _loop_timer_reset_time;
-    }
-
-    if(_pause_time >= _traj_pause_time)
-    {
-        _pause_finished = true;
-        _pause_time = _pause_time - _traj_pause_time;
-    }
-
-    if(_approach_traj_finished)
-    {
-        _approach_traj_time = _approach_traj_exec_time;
-    }
-
-    if(_imp_traj_finished)
-    {
-        _smooth_imp_time = _imp_ramp_time;
-    }
-    
-}
-
 void JumpReplayerRt::get_params_from_config()
 {
     // Reading some parameters from XBot2 config. YAML file
-
-    _urdf_path = getParamOrThrow<std::string>("~urdf_path"); 
-    _srdf_path = getParamOrThrow<std::string>("~srdf_path"); 
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
@@ -137,35 +101,30 @@ void JumpReplayerRt::get_params_from_config()
     _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
     _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
+
     _resample = getParamOrThrow<bool>("~resample"); 
+
     _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
     _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
-    _delta_effort_lim = getParamOrThrow<double>("~delta_effort_lim");
+
     _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
-    // _cntrl_mode =  getParamOrThrow<Eigen::VectorXd>("~cntrl_mode");
+    _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
 
     _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
+
     _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness"); 
     _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping"); 
 
-    _traj_pause_time = getParamOrThrow<double>("~traj_pause_time");
     _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
     _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
     _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
-
-    _tip_link_name = getParamOrThrow<std::string>("~tip_link_name"); 
-    _base_link_name = getParamOrThrow<std::string>("~base_link_name");
-
-    _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
 
     _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
 
     _send_whole_traj = getParamOrThrow<bool>("~send_whole_traj");
 
     _verbose = getParamOrThrow<bool>("~verbose");
-
-    _driver_temp_threshold = getParamOrThrow<Eigen::VectorXd>("~driver_temp_threshold");
 
     _resample_err_tolerance = getParamOrThrow<double>("~resample_err_tolerance");
 
@@ -210,13 +169,6 @@ void JumpReplayerRt::is_dummy(std::string dummy_string = "dummy")
 
 }
 
-void JumpReplayerRt::create_ros_api()
-{
-    /*  Create ros api server */
-    RosServerClass::Options opt;
-    opt.tf_prefix = getParamOr<std::string>("~tf_prefix", "mr");
-    opt.ros_namespace = getParamOr<std::string>("~ros_ns", "jump_replayer_rt");
-}
 
 void JumpReplayerRt::update_state()
 {    
@@ -231,8 +183,6 @@ void JumpReplayerRt::update_state()
     _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
     _robot->getDamping(_meas_damping);
 
-    _robot->getTemperature(_meas_driver_temp); // getting driver temperature
-
 }
 
 void JumpReplayerRt::send_cmds()
@@ -243,12 +193,6 @@ void JumpReplayerRt::send_cmds()
 
     if (_is_first_jnt_passive)
     { // send the last _n_jnts_robot components
-        
-        if (_send_eff_ref)
-        {
-            _auxiliary_vector = _tau_cmd.tail(_n_jnts_robot);
-            _robot->setEffortReference(_auxiliary_vector);
-        }
 
         if(_send_pos_ref)
         {  
@@ -261,14 +205,14 @@ void JumpReplayerRt::send_cmds()
             _auxiliary_vector = _q_p_dot_cmd.tail(_n_jnts_robot);
             _robot->setVelocityReference(_auxiliary_vector);
         }
+        if (_send_eff_ref)
+        {
+            _auxiliary_vector = _tau_cmd.tail(_n_jnts_robot);
+            _robot->setEffortReference(_auxiliary_vector);
+        }
 
     }
     else{
-        
-        if (_send_eff_ref)
-        {
-            _robot->setEffortReference(_tau_cmd);
-        }
 
         if(_send_pos_ref)
         {  
@@ -282,9 +226,14 @@ void JumpReplayerRt::send_cmds()
             _robot->setVelocityReference(_q_p_dot_cmd);
         }
 
+        if (_send_eff_ref)
+        {
+            _robot->setEffortReference(_tau_cmd);
+        }
+
     }
     
-    _robot->move();
+    _robot->move(); // send commands to the robot
 }
 
 void JumpReplayerRt::init_dump_logger()
@@ -322,9 +271,7 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->add("send_vel_ref", int(_send_vel_ref));
     _dump_logger->add("send_eff_ref", int(_send_eff_ref));
 
-    _dump_logger->add("driver_temp_threshold", _driver_temp_threshold);
-
-    // _dump_logger->create("plugin_time", 1);
+    _dump_logger->create("plugin_time", 1);
     _dump_logger->create("jump_replay_times", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("replay_time", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("replay_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
@@ -333,16 +280,13 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->create("meas_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("meas_driver_temp", _n_jnts_robot, 1, _matlogger_buffer_size);
 
-    _dump_logger->create("is_drivers_temp_ok", 1, 1, _matlogger_buffer_size);
-
     _dump_logger->create("q_p_meas", _n_jnts_robot), 1, _matlogger_buffer_size;
     _dump_logger->create("q_p_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+
     _dump_logger->create("q_p_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_p_dot_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
-
-    _dump_logger->create("f_cont_ref", 3, 1, _matlogger_buffer_size);
 
 }
 
@@ -368,16 +312,12 @@ void JumpReplayerRt::add_data2dump_logger()
 
     }
 
-    _dump_logger->add("f_cont_ref", _f_contact_ref);
+    _dump_logger->add("plugin_time", _loop_time);
 
     _dump_logger->add("replay_stiffness", _replay_stiffness);
     _dump_logger->add("replay_damping", _replay_damping);
     _dump_logger->add("meas_stiffness", _meas_stiffness);
     _dump_logger->add("meas_damping", _meas_damping);
-
-    _dump_logger->add("meas_driver_temp", _meas_driver_temp);
-
-    _dump_logger->add("is_drivers_temp_ok", _is_drivers_temp_ok);
 
     _dump_logger->add("q_p_meas", _q_p_meas);
     _dump_logger->add("q_p_dot_meas", _q_p_dot_meas);
@@ -390,25 +330,19 @@ void JumpReplayerRt::add_data2dump_logger()
 void JumpReplayerRt::add_data2bedumped()
 {
     
-    // _dump_logger->add("plugin_time", _loop_time)
 
     if (_reduce_dumped_sol_size)
     {  // only adding data when replaying trajectory to save memory
 
-        if (_traj_started && !_traj_finished)
-        { // trajectory is being published
-            
-            if (_sample_index <= (_traj.get_n_nodes() - 1))
-            {
+        if (_perform_takeoff)
+        {
 
-                add_data2dump_logger();
-
-            }
+            add_data2dump_logger();
 
         }
     }
     else
-    { // dump data at each loop cycle
+    { // dump data at each loop cycle and also during takeoff config approaching
 
          add_data2dump_logger();
 
@@ -416,16 +350,116 @@ void JumpReplayerRt::add_data2bedumped()
     
 }
 
-void JumpReplayerRt::init_nrt_ros_bridge()
+bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2TakeoffConfigRequest & req,
+                                                   awesome_leg::Go2TakeoffConfigResponse& res)
+{
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                      "\nJumpReplayerRt: received go2takeoff_config signal: {}\n", req.go2takeoff_config);
+
+    bool state_changed = _go2takeoff_config != req.go2takeoff_config;
+
+    bool result = state_changed && (!_perform_takeoff && !_ramp_imp)? true : false;
+
+    if(result)
+    { // we only assign the flag if we're not performing the takeoff or ramping impedance
+        _go2takeoff_config = req.go2takeoff_config;
+
+    }
+
+    if(_go2takeoff_config)
+    {
+        _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
+        // to last sent position command
+
+        _approach_traj_finished = false;
+    }
+
+    return result;
+
+}
+
+bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeoffRequest& req,
+                                                 awesome_leg::PerformTakeoffResponse& res)
+{
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                      "\nJumpReplayerRt: received perform_takeoff signal: {}\n", req.perform_takeoff);
+
+    bool state_changed = _perform_takeoff != req.perform_takeoff;
+
+    bool result = state_changed && (!_go2takeoff_config  && !_ramp_imp)? true : false;
+
+    if(result)
+    { // we only assign the flag if we're not performing the approach trajectory or ramping impedance
+        _perform_takeoff = req.perform_takeoff;
+
+    }
+
+    if(_perform_takeoff)
+    {
+        _sample_index = 0; // will start sending the loaded trajectory from
+        // the first sample
+
+        _traj_finished = false;
+
+    }
+
+    return result;
+
+}
+
+bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpRequest& req,
+                                              awesome_leg::RampJntImpResponse& res)
+{
+
+    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                      "\nJumpReplayerRt: received ramp_imp signal: {}\n", req.ramp_imp);
+
+    bool state_changed = _ramp_imp != req.ramp_imp;
+
+    bool result = state_changed && (!_go2takeoff_config && !_perform_takeoff)? true : false;
+
+    if(result)
+    { // we only assign the flag if we're not performing the approach trajectory, nor the jumping trajectory
+        _ramp_imp = req.ramp_imp;
+
+    }
+
+    if(_ramp_imp)
+    { // we set the ramp start at the last measured stiffness
+        _ramp_strt_stiffness = _meas_stiffness;
+        _ramp_strt_damping = _meas_damping;
+
+        _imp_traj_finished = false;
+    }
+
+    return result;
+
+}
+
+void JumpReplayerRt::init_ros_bridge()
 {    
     ros::NodeHandle nh(getName());
 
     _ros = std::make_unique<RosSupport>(nh);
 
-    /* Service server */
-    _jump_now_srv = _ros->advertiseService(
-        "jump_now_srv",
-        &JumpReplayerRt::on_jump_msg_rcvd,
+    /* Service servers */
+    _go2takeoff_config_srvr = _ros->advertiseService(
+        "go2takeoff_srvr",
+        &JumpReplayerRt::on_go2takeoff_config_received,
+        this,
+        &_queue);
+
+    _perform_takeoff_srvr = _ros->advertiseService(
+        "perform_takeoff_srvr",
+        &JumpReplayerRt::on_perform_takeoff_received,
+        this,
+        &_queue);
+
+    _ramp_jnt_imp_srvr = _ros->advertiseService(
+        "ramp_jnt_imp_srvr",
+        &JumpReplayerRt::on_ramp_jnt_imp_received,
         this,
         &_queue);
 
@@ -438,77 +472,6 @@ void JumpReplayerRt::init_nrt_ros_bridge()
         "replay_status_node", 1, replay_st_prealloc);
 
 
-}
-
-int JumpReplayerRt::was_jump_signal_received()
-{
-    int res = -1;
-
-    if (_jump)
-    {
-        _is_first_trigger = !_is_first_trigger;
-        
-        if (!_approach_traj_started && !_traj_started && _is_first_trigger)
-        { // triggered by the first jump signal
-            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                "\n Initializing approach trajectory sequence...\n Please wait for the robot to stop, place it on the ground and clear the jumping area.\n");
-
-            res = 1;
-
-            _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
-
-            _imp_traj_started = true; // start impedance traj
-            _approach_traj_started = true;
-
-            _q_p_init_appr_traj = _q_p_cmd; // setting initial approach traj. point
-            // to last sent position command
-
-//            _approach_traj_started = false; // the pluginwill wait for imp. traj to finish
-//            // before starting the approach trajectory
-
-            _ramp_strt_stiffness = _meas_stiffness;
-            _ramp_strt_damping = _meas_damping;
-        }
-        
-        if (_approach_traj_finished && _imp_traj_finished && !_traj_started && !_is_first_trigger)
-        { // triggered by the second jump signal
-            
-            _traj_started = true; // send actual trajectory
-
-            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                "\n Starting jump sequence! Please clear the jumping area!\n");
-
-            res = 2;
-
-            _sample_index = 0; // will start sending the loaded trajectory
-            
-            _dump_logger->add("jump_replay_times", _loop_time);
-            
-        }
-
-    }
-
-    return res;
-}
-
-bool JumpReplayerRt::on_jump_msg_rcvd(const awesome_leg::JumpNowRequest& req,
-                    awesome_leg::JumpNowResponse& res)
-{
-
-    _jump = req.jump_now; // setting jump flag
-
-    check_driver_temp_limits(); // deactivates jump if temperature of any of the
-    // joint driver goes beyond the prescibed threshold
-
-    std::string message;
-    
-    _jump_phase_state = was_jump_signal_received();
-
-    res.message = (_jump_phase_state == 1) ? "Starting replaying of approach trajectory!" : "Starting replaying of jump trajectory!";
-
-    res.success = true;
-
-    return res.success; 
 }
 
 void JumpReplayerRt::load_opt_data()
@@ -567,33 +530,7 @@ void JumpReplayerRt::saturate_cmds()
 
 }
 
-void JumpReplayerRt::check_driver_temp_limits()
-{
-
-    bool were_drivers_temp_ok = _is_drivers_temp_ok; // getting previous value
-
-    _is_drivers_temp_ok = (_meas_driver_temp.array() < _driver_temp_threshold.array()).all();
-
-    if(!_is_drivers_temp_ok)
-    {
-        _jump = false; // do not start the jumping sequence
-        // even if a positive jumping command was received
-
-        jhigh().jprint(fmt::fg(fmt::terminal_color::red),
-                   "\n Plugin driver temperature threshold exceeded. Disabling jump sequence...\n");
-
-    }
-
-    if(!were_drivers_temp_ok && _is_drivers_temp_ok)
-    { // temperatures went under the threshold --> we can jump again
-        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\n Driver temperatures went under the plugin threshold. We can start jumping again... \n");
-
-        reset_flags(); // resetting flags so that we start from the beginning of the jump pipeline
-    }
-}
-
-void JumpReplayerRt::ramp_imp_smoothly()
+void JumpReplayerRt::ramp_jnt_impedances()
 {
 
     double phase = _smooth_imp_time / _imp_ramp_time;
@@ -616,38 +553,7 @@ void JumpReplayerRt::set_approach_trajectory()
     
 }
 
-void JumpReplayerRt::pub_replay_status()
-{
-    auto status_msg = _replay_status_pub->loanMessage();
-    status_msg->msg().approach_traj_finished = _approach_traj_finished;
-    status_msg->msg().traj_finished = _traj_finished;
-
-    status_msg->msg().send_pos = _send_pos_ref;
-    status_msg->msg().send_vel = _send_vel_ref;
-    status_msg->msg().send_eff = _send_eff_ref;
-
-    for(int i = 0; i < _n_jnts_robot; i++)
-    {
-        _q_p_cmd_vect[i] = _q_p_cmd(i);
-        _q_p_dot_cmd_vect[i] = _q_p_dot_cmd(i);
-        _tau_cmd_vect[i]  = _tau_cmd(i);
-    }
-
-    for(int i = 0; i < 3; i++)
-    {
-        _f_contact_ref_vect[i] = _f_contact_ref(i);
-    }
-
-    status_msg->msg().pos_ref = _q_p_cmd_vect;
-    status_msg->msg().vel_ref = _q_p_dot_cmd_vect;
-    status_msg->msg().eff_ref = _tau_cmd_vect;
-
-    status_msg->msg().f_cont_ref = _f_contact_ref_vect;
-
-    _replay_status_pub->publishLoaned(std::move(status_msg));
-}
-
-void JumpReplayerRt::set_trajectory()
+void JumpReplayerRt::set_cmds()
 { // always called in each plugin loop
   // is made of a number of phases, each signaled by suitable flags
   // remember to increase the sample index at the end of each phase, 
@@ -671,12 +577,14 @@ void JumpReplayerRt::set_trajectory()
 
     }
 
-    if (_imp_traj_started && !_imp_traj_finished)
-    { // still ramping (up) impedance
-        
+    // impedance ramping
+    if (_ramp_imp)
+    {
         if (_smooth_imp_time > _imp_ramp_time - 0.000001)
-        {
-            _imp_traj_finished = true; // finished ramping imp.
+        { // finished ramping impedance
+
+            _ramp_imp = false; // finished ramping imp.
+            _imp_traj_finished = true;
 
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
@@ -685,29 +593,30 @@ void JumpReplayerRt::set_trajectory()
                    "\n Finished ramping joint impedance \n");
         }
         else
-        {
-            ramp_imp_smoothly();
+        {// ramp impedance
+
+            ramp_jnt_impedances();
 
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n (ramping impedance...) \n");
+                   "\n (ramping joint impedance...) \n");
             }
         }
 
     }
 
-    if (_approach_traj_started && !_approach_traj_finished)
+    // approach trajectory
+    if (_go2takeoff_config)
     { // still publishing the approach trajectory
 
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
         {
-            _approach_traj_finished = true; // finished approach traj
-            
-            // start of trajectory replay is triggered by the callback in this case
+            _go2takeoff_config = false; // finished approach traj
+            _approach_traj_finished = true;
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   std::string("\n Approach trajectory finished... ready to jump \n"));
+                   std::string("\n Approach trajectory finished... ready to perform jumping trajectory \n"));
 
         }
         else
@@ -725,7 +634,8 @@ void JumpReplayerRt::set_trajectory()
         
     }
 
-    if (_traj_started && !_traj_finished && _jump)
+    // actual jump trajectory
+    if (_perform_takeoff)
     { // publish current trajectory sample
         
         if (_sample_index <= _takeoff_index)
@@ -746,7 +656,7 @@ void JumpReplayerRt::set_trajectory()
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                   "\n (before takeoff) \n");
+                   "\n (before nominal takeoff) \n");
             }
         
         }
@@ -779,7 +689,7 @@ void JumpReplayerRt::set_trajectory()
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                    "\n (after takeoff) \n");
+                    "\n (after nominal takeoff) \n");
             }
             saturate_cmds(); // perform input torque saturation
             
@@ -799,71 +709,60 @@ void JumpReplayerRt::set_trajectory()
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                       "\n (trajectory end)\n");
+                       "\n (jump trajectory replay ended)\n");
             }
+
+            _perform_takeoff = false;
             _traj_finished = true;
-            _sample_index = 0; // reset publish index (will be used to publish the loaded trajectory)
-            
-        }
 
-        _sample_index++; // incrementing loop counter
-
-    }
-
-    if (_traj_finished && _jump)
-    { // finished publishing trajectory
-
-        _pause_started = true;
-
-        if (!_pause_finished)
-        { // do nothing in this control loop
-
-            if (_verbose)
-            {
-                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                    "\n (in pause) \n");
-            }
-        }
-        else 
-        {
-
-            reset_flags(); // reset flags
-
-            _jump = false; // directly trigger next jump sequence
+            reset_clocks();
 
             _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
 
-            if (_verbose)
-            {
-                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                    "\n (pause ended) \n");
-            }
+            _stiffness_setpoint = _touchdown_stiffness;
+            _damping_setpoint = _touchdown_damping;
+            
+            _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+            _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
         }
 
-        _stiffness_setpoint = _touchdown_stiffness; 
-        _damping_setpoint = _touchdown_damping;
+        _sample_index++; // incrementing trajectory index counter
 
-        if (_verbose)
-        {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                       "\n Finished publishing \n");
-        }
-        
-        _sample_index++; // incrementing loop counter
     }
 
-    if (!_jump)
+}
+
+void JumpReplayerRt::pub_replay_status()
+{
+    auto status_msg = _replay_status_pub->loanMessage();
+
+    status_msg->msg().imp_traj_finished = _imp_traj_finished;
+    status_msg->msg().approach_traj_finished = _approach_traj_finished;
+    status_msg->msg().traj_finished = _traj_finished;
+
+    status_msg->msg().send_pos = _send_pos_ref;
+    status_msg->msg().send_vel = _send_vel_ref;
+    status_msg->msg().send_eff = _send_eff_ref;
+
+    for(int i = 0; i < _n_jnts_robot; i++)
     {
-        _q_p_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
-        _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
-
-        if (_verbose)
-        {
-            jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
-                       "\n Waiting for commands... \n");
-        }
+        _q_p_cmd_vect[i] = _q_p_cmd(i);
+        _q_p_dot_cmd_vect[i] = _q_p_dot_cmd(i);
+        _tau_cmd_vect[i]  = _tau_cmd(i);
     }
 
+    for(int i = 0; i < 3; i++)
+    {
+        _f_contact_ref_vect[i] = _f_contact_ref(i);
+    }
+
+    status_msg->msg().pos_ref = _q_p_cmd_vect;
+    status_msg->msg().vel_ref = _q_p_dot_cmd_vect;
+    status_msg->msg().eff_ref = _tau_cmd_vect;
+
+    status_msg->msg().f_cont_ref = _f_contact_ref_vect;
+
+    _replay_status_pub->publishLoaned(std::move(status_msg));
 }
 
 bool JumpReplayerRt::on_initialize()
@@ -882,18 +781,14 @@ bool JumpReplayerRt::on_initialize()
 
     init_vars();
 
-    _robot->getEffortLimits(_effort_lims);
-
-    init_nrt_ros_bridge();
-    
-    // Initializing CartesIO solver, ros server and spawning the non rt thread
-    // init_cartesio_solver();
-    create_ros_api();
+    init_ros_bridge();
 
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
 
     _peisekah_utils = PeisekahTrans();
+
+    _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
 
     return true;
     
@@ -902,12 +797,10 @@ bool JumpReplayerRt::on_initialize()
 void JumpReplayerRt::starting()
 {
 
-    init_dump_logger(); // needs to be here
-
-    reset_flags(); // reset flags, just in case
+    init_dump_logger();
 
     init_clocks(); // initialize clocks timers
-    
+
     _stiffness_setpoint = _replay_stiffness;
     _damping_setpoint = _replay_damping;
 
@@ -928,17 +821,17 @@ void JumpReplayerRt::run()
 
     update_state(); // update all necessary states
 
-    _queue.run();
+    _queue.run(); // process server callbacks
 
-    set_trajectory();
+    set_cmds(); // set command references
 
-    pub_replay_status();
+    send_cmds(); // send commands to the robot
+
+    pub_replay_status(); // publishes info from the plugin
 
     add_data2dump_logger(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
-
-    send_cmds(); // send commands to the robot
 
     if (_is_first_run)
     { // next control loops are aware that it is not the first control loop
@@ -964,8 +857,6 @@ void JumpReplayerRt::on_stop()
     _robot->move();
 
     _is_first_run = true;
-
-    reset_flags();
 
     init_clocks();
 
