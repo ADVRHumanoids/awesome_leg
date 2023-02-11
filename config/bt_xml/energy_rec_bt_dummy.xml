@@ -5,6 +5,10 @@
         <SequenceStar>
             <ReactiveSequence>
                 <ReactiveFallback>
+                    <Condition ID="IsJointDevActive"/>
+                    <Action ID="ReturnRunning1"/>
+                </ReactiveFallback>
+                <ReactiveFallback>
                     <Condition ID="ArePluginsRunning"/>
                     <Action ID="StartPlugins"/>
                 </ReactiveFallback>
@@ -16,13 +20,13 @@
                     <Inverter>
                         <Condition ID="IsSafetyStop"/>
                     </Inverter>
-                    <Action ID="AlwaysRunning1"/>
+                    <Action ID="ReturnRunning2"/>
                 </ReactiveFallback>
                 <ReactiveFallback>
                     <Inverter>
                         <Condition ID="IsIdle"/>
                     </Inverter>
-                    <Action ID="AlwaysRunning2"/>
+                    <Action ID="ReturnRunning3"/>
                 </ReactiveFallback>
                 <SubTree ID="EnergyRecDemo"/>
             </ReactiveSequence>
@@ -47,31 +51,25 @@
         <SequenceStar>
             <ReactiveFallback>
                 <Condition ID="PauseExpired1"/>
-                <Action ID="AlwaysRunning3"/>
+                <Action ID="WaitABit"/>
             </ReactiveFallback>
             <ReactiveFallback>
                 <Condition ID="PauseExpired2"/>
-                <Action ID="AlwaysRunning4"/>
+                <Action ID="WaitABit2"/>
             </ReactiveFallback>
         </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
-        <Action ID="AlwaysRunning"/>
-        <Action ID="AlwaysRunning1"/>
-        <Action ID="AlwaysRunning2"/>
-        <Action ID="AlwaysRunning3"/>
-        <Action ID="AlwaysRunning4"/>
-        <Action ID="AlwaysRunning5"/>
         <Condition ID="ArePluginsClosed"/>
         <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
-        <Action ID="CloseBtRoot"/>
         <Action ID="CoolDownByWaiting"/>
         <SubTree ID="EnergyRecDemo"/>
         <Action ID="Go2TakeoffConfig"/>
         <Condition ID="IsFlightPhase"/>
         <Condition ID="IsIdle"/>
+        <Condition ID="IsJointDevActive"/>
         <Condition ID="IsSafetyStop"/>
         <Condition ID="PauseExpired"/>
         <Condition ID="PauseExpired1"/>
@@ -81,15 +79,15 @@
         <Action ID="PerformTakeoff"/>
         <Condition ID="RecovEnergyReached"/>
         <Action ID="RestartJumpSequence"/>
-        <Action ID="RestartJumpSequence1"/>
+        <Action ID="ReturnRunning1"/>
+        <Action ID="ReturnRunning2"/>
+        <Action ID="ReturnRunning3"/>
         <Action ID="StartPlugins"/>
         <Condition ID="TakeoffConfigReached"/>
         <Condition ID="TakeoffPerformed"/>
         <Condition ID="TemperatureOk"/>
         <Action ID="WaitABit"/>
-        <Action ID="WaitABit1"/>
         <Action ID="WaitABit2"/>
-        <Action ID="WaitABit3"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>
