@@ -10,5 +10,6 @@
 #include <takeoff_reached.h>
 #include <is_idle.h>
 #include <is_safety_stop.h>
+#include <is_joint_device_active.h>
 
 #endif // CUSTOM_CONDITIONS_H
