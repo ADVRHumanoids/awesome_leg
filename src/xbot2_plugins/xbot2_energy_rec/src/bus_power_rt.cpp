@@ -440,6 +440,8 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
 
     }
 
+    res.success = result;
+
     return result;
 
 }
