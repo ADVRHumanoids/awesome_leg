@@ -599,6 +599,7 @@ void BaseEstRt::pub_base_est_status()
     base_est_msg->msg().meas_wrench = _meas_w_abs_vect;
     base_est_msg->msg().vertex_frames = _vertex_frames;
     base_est_msg->msg().vertex_weights = _vertex_weights;
+
     base_est_msg->msg().contact_state = _contact_state;
 
     base_est_msg->msg().base_vel_meas = _base_link_vel_vect;

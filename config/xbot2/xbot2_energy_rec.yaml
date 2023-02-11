@@ -57,36 +57,35 @@ xbotcore_plugins:
             timer_plugin_topicname: {value: "timer", type: string}
             reset_timers_servname: {value: "reset_timers", type: string}
 
-#    base_est_rt:
-#        thread: rt_main_slow
-#        type: base_est_rt
-#        params:
+    base_est_rt:
+        thread: rt_main_slow
+        type: base_est_rt
+        params:
 
-#            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-#            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-#            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
+            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-#            mat_path: {value: /tmp/, type: string}
-#            dump_mat_suffix: {value: "base_est_rt", type: string}
-#            matlogger_buffer_size: {value: 1e5, type: double}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
-#            tip_link_name: {value: "tip1", type: string}
-#            base_link_name: {value: "base_link", type: string}
-#            test_rig_linkname: {value: "test_rig", type: string}
+            tip_link_name: {value: "tip1", type: string}
+            base_link_name: {value: "base_link", type: string}
+            test_rig_linkname: {value: "test_rig", type: string}
+            tip_fts_name: {value: "tip1_fts", type: string}
+            contact_linkname: {value: "tip1", type: string}
 
-#            tip_fts_name: {value: "tip1_fts", type: string}
-#            contact_linkname: {value: "tip1", type: string}
+            contact_release_thr: {value: 30.0, type: double}
+            contact_attach_thr: {value: 90.0, type: double}
 
-#            contact_release_thr: {value: 30.0, type: double}
-#            contact_attach_thr: {value: 90.0, type: double}
+            mov_avrg_cutoff_freq: {value: 15.0, type: double}
+            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
 
-#            mov_avrg_cutoff_freq: {value: 15.0, type: double}
-#            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
+            obs_bw: {value: 5.0, type: double}
 
-#            obs_bw: {value: 5.0, type: double}
-
-#            svd_thresh: {value: 0.1, type: double}
+            svd_thresh: {value: 0.1, type: double}
 
     jmp_replayer_rt:
         thread: rt_main_fast
@@ -230,7 +229,7 @@ xbotcore_plugins:
         params:
 
             mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: "base_est_rt", type: string}
+            dump_mat_suffix: {value: "bt_root_rt", type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
 #            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
@@ -317,7 +316,7 @@ xbotcore_plugins:
 
             # plugin_list: {value: ["bus_power_rt_iq_meas", "bus_power_rt_iq_model"], type: vector<string>}
 
-            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model", "base_est_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 

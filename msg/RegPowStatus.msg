@@ -13,3 +13,4 @@ string[] iq_jnt_names
 
 float64[] recov_energy
 float64 recov_energy_tot
+bool monitor_recov_energy

@@ -537,6 +537,8 @@ void BusPowerRt::pub_reg_pow()
 
     reg_pow_msg->msg().iq_jnt_names = _iq_jnt_names;
 
+    reg_pow_msg->msg().monitor_recov_energy = _monitor_recov_energy;
+
     _reg_pow_pub->publishLoaned(std::move(reg_pow_msg));
 
 }
