@@ -375,6 +375,8 @@ bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2Takeoff
         _approach_traj_finished = false;
     }
 
+    res.success = result;
+
     return result;
 
 }
@@ -405,6 +407,8 @@ bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeo
 
     }
 
+    res.success = result;
+
     return result;
 
 }
@@ -433,6 +437,8 @@ bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpReque
 
         _imp_traj_finished = false;
     }
+
+    res.success = ;
 
     return result;
 
