@@ -10,11 +10,10 @@ find_package(cartesian_interface REQUIRED)
 find_package(awesome_utils REQUIRED)
 find_package(base_estimation REQUIRED)
 find_package(catkin REQUIRED COMPONENTS behaviortree_cpp_v3)
-#find_package(ZMQ REQUIRED)
 
-add_executable(start_jump_replayer src/start_jump_replayer.cpp)
-add_dependencies(start_jump_replayer ${PROJECT_NAME}_generate_messages)
-target_link_libraries(start_jump_replayer PRIVATE ${catkin_LIBRARIES} ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
+#add_executable(start_jump_replayer src/start_jump_replayer.cpp)
+#add_dependencies(start_jump_replayer ${PROJECT_NAME}_generate_messages)
+#target_link_libraries(start_jump_replayer PRIVATE ${catkin_LIBRARIES} ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(jmp_replayer_rt
     src/jump_replayer_rt.cpp)
@@ -126,4 +125,4 @@ install(
     DESTINATION lib
 )
 
-install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+#install(TARGETS start_jump_replayer DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
