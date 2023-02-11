@@ -33,13 +33,13 @@ PortsList TakeoffReached::providedPorts()
 NodeStatus TakeoffReached::tick()
 {
 
-    setOutput("takeoff_reached", true);
-
     _jump_stat_sub->run();
 
 //    std::cout << Colors::kGreen << "ticking TakeoffReached" << Colors::kEndl << std::endl;
 
     NodeStatus result = _jump_status.approach_traj_finished? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+
+    setOutput("takeoff_reached", _jump_status.approach_traj_finished);
 
     return result;
 

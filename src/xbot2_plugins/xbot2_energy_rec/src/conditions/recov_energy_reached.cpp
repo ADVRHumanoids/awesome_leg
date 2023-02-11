@@ -51,8 +51,6 @@ PortsList RecovEnergyReached::providedPorts()
 NodeStatus RecovEnergyReached::tick()
 {
 
-    setOutput("recov_energy_reached", true);
-
     _reg_pow_sub->run();
 
     if(_verbose)
@@ -62,6 +60,8 @@ NodeStatus RecovEnergyReached::tick()
     }
 
     NodeStatus result = _reg_pow_status.recov_energy_tot > _recov_energy_thresh? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+
+    setOutput("recov_energy_reached", _reg_pow_status.recov_energy_tot);
 
     return result;
 

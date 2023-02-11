@@ -36,13 +36,13 @@ PortsList IsSafetyStop::providedPorts()
 NodeStatus IsSafetyStop::tick()
 {
 
-    setOutput("is_safetystop", true);
-
     _safety_stop_state_sub->run();
 
 //    std::cout << Colors::kGreen << "ticking IsSafetyStop" << Colors::kEndl << std::endl;
 
     NodeStatus result = _safety_stop_state.stop? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+
+    setOutput("is_safetystop", _safety_stop_state.stop);
 
     return result;
 

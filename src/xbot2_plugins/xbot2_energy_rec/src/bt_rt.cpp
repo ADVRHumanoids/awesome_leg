@@ -152,19 +152,19 @@ void BtRt::init_bt()
     _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
 
     _factory.registerNodeType<IsSafetyStop>("IsSafetyStop");
-    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning1");
+    _factory.registerNodeType<AlwaysRunning>("ReturnRunning1");
 
     _factory.registerNodeType<IsIdle>("IsIdle");
-    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning2");
+    _factory.registerNodeType<AlwaysRunning>("ReturnRunning2");
 
 //    _factory.registerNodeType<PauseExpired>("PauseExpired3");
 //    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning5");
 
     _factory.registerNodeType<PauseExpired>("PauseExpired1");
-    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning3");
+    _factory.registerNodeType<AlwaysRunning>("WaitABit");
 
     _factory.registerNodeType<PauseExpired>("PauseExpired2");
-    _factory.registerNodeType<AlwaysRunning>("AlwaysRunning4");
+    _factory.registerNodeType<AlwaysRunning>("WaitABit2");
 
     _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
 

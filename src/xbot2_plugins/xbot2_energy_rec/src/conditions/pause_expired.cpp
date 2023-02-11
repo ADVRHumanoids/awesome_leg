@@ -43,8 +43,6 @@ PortsList PauseExpired::providedPorts()
 NodeStatus PauseExpired::tick()
 {
 
-    setOutput("pause_expired", true);
-
     _timer_status_sub->run();
 
     std::cout << Colors::kGreen << "ticking " + _name  << " " << _timer_stat_msg.hr_time <<  Colors::kEndl << std::endl;
@@ -57,6 +55,8 @@ NodeStatus PauseExpired::tick()
         _ref_time_set = false;
 
     }
+
+    setOutput("pause_expired", _timer_stat_msg.hr_time);
 
     return result;
 

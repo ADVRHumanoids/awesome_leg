@@ -16,14 +16,11 @@
                     <Inverter>
                         <Condition ID="IsSafetyStop"/>
                     </Inverter>
-                    <Action ID="ReturnRunning1"/>
+                    <Action ID="AlwaysRunning1"/>
                 </ReactiveFallback>
-                <ReactiveFallback>
-                    <Inverter>
-                        <Condition ID="IsIdle"/>
-                    </Inverter>
-                    <Action ID="ReturnRunning2"/>
-                </ReactiveFallback>
+                <Inverter>
+                    <Condition ID="IsIdle"/>
+                </Inverter>
                 <SubTree ID="EnergyRecDemo"/>
             </ReactiveSequence>
             <ReactiveFallback>
@@ -47,19 +44,26 @@
         <SequenceStar>
             <ReactiveFallback>
                 <Condition ID="PauseExpired1"/>
-                <Action ID="WaitABit"/>
+                <Action ID="AlwaysRunning3"/>
             </ReactiveFallback>
             <ReactiveFallback>
                 <Condition ID="PauseExpired2"/>
-                <Action ID="WaitABit2"/>
+                <Action ID="AlwaysRunning4"/>
             </ReactiveFallback>
         </SequenceStar>
     </BehaviorTree>
     <!-- ////////// -->
     <TreeNodesModel>
+        <Action ID="AlwaysRunning"/>
+        <Action ID="AlwaysRunning1"/>
+        <Action ID="AlwaysRunning2"/>
+        <Action ID="AlwaysRunning3"/>
+        <Action ID="AlwaysRunning4"/>
+        <Action ID="AlwaysRunning5"/>
         <Condition ID="ArePluginsClosed"/>
         <Condition ID="ArePluginsRunning"/>
         <Action ID="CloseAllPlugins"/>
+        <Action ID="CloseBtRoot"/>
         <Action ID="CoolDownByWaiting"/>
         <SubTree ID="EnergyRecDemo"/>
         <Action ID="Go2TakeoffConfig"/>
@@ -74,14 +78,15 @@
         <Action ID="PerformTakeoff"/>
         <Condition ID="RecovEnergyReached"/>
         <Action ID="RestartJumpSequence"/>
-        <Action ID="ReturnRunning1"/>
-        <Action ID="ReturnRunning2"/>
+        <Action ID="RestartJumpSequence1"/>
         <Action ID="StartPlugins"/>
         <Condition ID="TakeoffConfigReached"/>
         <Condition ID="TakeoffPerformed"/>
         <Condition ID="TemperatureOk"/>
         <Action ID="WaitABit"/>
+        <Action ID="WaitABit1"/>
         <Action ID="WaitABit2"/>
+        <Action ID="WaitABit3"/>
     </TreeNodesModel>
     <!-- ////////// -->
 </root>

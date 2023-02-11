@@ -33,13 +33,13 @@ PortsList ArePluginsRunning::providedPorts()
 NodeStatus ArePluginsRunning::tick()
 {
 
-    setOutput("are_plugins_running", true);
-
     _plugins_status_subs->run();
 
 //    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
 
     NodeStatus result = _plugins_status_msg.all_plugins_running? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+
+    setOutput("are_plugins_running", _plugins_status_msg.all_plugins_running);
 
     return result;
 

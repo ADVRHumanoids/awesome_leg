@@ -59,6 +59,8 @@ NodeStatus TemperatureOk::tick()
 
     }
 
+    setOutput("temperature_ok", _are_temp_ok.drivers_temp_ok);
+
     return result;
 
 }

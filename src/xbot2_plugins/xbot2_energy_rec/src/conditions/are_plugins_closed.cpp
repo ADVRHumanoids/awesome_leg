@@ -33,13 +33,13 @@ PortsList ArePluginsClosed::providedPorts()
 NodeStatus ArePluginsClosed::tick()
 {
 
-    setOutput("are_plugins_closed", true);
-
     _plugins_status_subs->run();
 
 //    std::cout << Colors::kGreen << "ticking ArePluginsRunning" << Colors::kEndl << std::endl;
 
     NodeStatus result = _plugins_status_msg.all_plugins_stopped? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+
+    setOutput("are_plugins_closed", _plugins_status_msg.all_plugins_stopped);
 
     return result;
 

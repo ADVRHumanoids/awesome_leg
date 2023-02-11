@@ -36,13 +36,13 @@ PortsList IsIdle::providedPorts()
 NodeStatus IsIdle::tick()
 {
 
-    setOutput("is_idle", true);
-
     _idle_state_sub->run();
 
 //    std::cout << Colors::kGreen << "ticking IsIdle" << Colors::kEndl << std::endl;
 
     NodeStatus result = _idle_state.idle? NodeStatus::SUCCESS : NodeStatus::FAILURE;
+
+    setOutput("is_idle", _idle_state.idle);
 
     return result;
 
