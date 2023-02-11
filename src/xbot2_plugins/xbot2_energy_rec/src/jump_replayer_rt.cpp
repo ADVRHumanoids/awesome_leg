@@ -595,6 +595,8 @@ void JumpReplayerRt::set_cmds()
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
 
+            reset_clocks();
+
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Finished ramping joint impedance \n");
         }
@@ -620,6 +622,8 @@ void JumpReplayerRt::set_cmds()
         {
             _go2takeoff_config = false; // finished approach traj
             _approach_traj_finished = true;
+
+            reset_clocks();
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    std::string("\n Approach trajectory finished... ready to perform jumping trajectory \n"));
