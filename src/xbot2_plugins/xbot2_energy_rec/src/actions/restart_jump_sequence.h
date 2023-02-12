@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/IdleState.h>
+#include <awesome_leg/RampJntImpRequest.h>
 
 using namespace XBot;
 
@@ -33,7 +33,19 @@ namespace BT
 
             int _queue_size = 1;
 
+            std::string _async_service_pattern = "/xbotcore/async_service/";
+
+            std::string _plugin_name = "jmp_replayer_rt";
+
+            std::string _servername = "ramp_jnt_imp_srvr";
+
+            std::string _asynch_servicepath;
+
             NodeStatus tick() override;
+
+            awesome_leg::RampJntImpRequest _msg;
+
+            PublisherPtr<awesome_leg::RampJntImpRequest> _publisher;
 
 
     };

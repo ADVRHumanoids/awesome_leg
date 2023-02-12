@@ -45,7 +45,11 @@ NodeStatus PauseExpired::tick()
 
     _timer_status_sub->run();
 
-    std::cout << Colors::kGreen << "ticking " + _name  << " " << _timer_stat_msg.hr_time <<  Colors::kEndl << std::endl;
+    if(_verbose)
+    {
+        std::cout << Colors::kGreen << "ticking " + _name  << " " << _timer_stat_msg.hr_time <<  Colors::kEndl << std::endl;
+
+    }
 
     NodeStatus result = _timer_stat_msg.hr_time >= _pause_time? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 

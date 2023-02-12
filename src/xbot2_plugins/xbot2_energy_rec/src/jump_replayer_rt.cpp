@@ -376,6 +376,11 @@ bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2Takeoff
 
         _approach_traj_finished = false;
     }
+    if(!_go2takeoff_config && result)
+    {
+        reset_clocks();
+        _approach_traj_finished = false;
+    }
 
     res.success = result;
 
@@ -410,6 +415,11 @@ bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeo
         _traj_finished = false;
 
     }
+    if(!_perform_takeoff && result)
+    {
+        reset_clocks();
+        _traj_finished = false;
+    }
 
     res.success = result;
 
@@ -442,6 +452,11 @@ bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpReque
         _ramp_strt_stiffness = _meas_stiffness;
         _ramp_strt_damping = _meas_damping;
 
+        _imp_traj_finished = false;
+    }
+    if(!_ramp_imp && result)
+    {
+        reset_clocks();
         _imp_traj_finished = false;
     }
 

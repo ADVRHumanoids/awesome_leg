@@ -31,7 +31,7 @@ namespace BT
 
         private:
 
-            bool _verbose = true;
+            bool _verbose = false;
 
             int _queue_size = 1;
 
