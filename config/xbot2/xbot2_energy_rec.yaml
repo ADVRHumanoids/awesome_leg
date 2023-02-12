@@ -252,7 +252,7 @@ xbotcore_plugins:
 
             queue_size: {value: 5, type: int}
 
-            verbose: {value: false, type: bool}
+            verbose: {value: true, type: bool}
 
             driver_temp_threshold: {value: 60.0, type: double}
             driver_temp_threshold_cooling: {value: 45.0, type: double}

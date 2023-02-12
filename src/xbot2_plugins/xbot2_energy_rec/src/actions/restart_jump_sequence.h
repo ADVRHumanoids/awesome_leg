@@ -11,6 +11,8 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <awesome_leg/RampJntImpRequest.h>
+#include <awesome_leg/Go2TakeoffConfigRequest.h>
+#include <awesome_leg/PerformTakeoffRequest.h>
 
 using namespace XBot;
 
@@ -27,7 +29,7 @@ namespace BT
 
         private:
 
-            bool _verbose = false;
+            bool _verbose = true;
 
             std::string _name;
 
@@ -37,15 +39,23 @@ namespace BT
 
             std::string _plugin_name = "jmp_replayer_rt";
 
-            std::string _servername = "ramp_jnt_imp_srvr";
+            std::string _servername1 = "ramp_jnt_imp_srvr";
+            std::string _servername2 = "go2takeoff_srvr";
+            std::string _servername3 = "perform_takeoff_srvr";
 
-            std::string _asynch_servicepath;
+            std::string _asynch_servicepath1,
+                        _asynch_servicepath2,
+                        _asynch_servicepath3;
 
             NodeStatus tick() override;
 
-            awesome_leg::RampJntImpRequest _msg;
+            awesome_leg::RampJntImpRequest _msg1;
+            awesome_leg::Go2TakeoffConfigRequest _msg2;
+            awesome_leg::PerformTakeoffRequest _msg3;
 
-            PublisherPtr<awesome_leg::RampJntImpRequest> _publisher;
+            PublisherPtr<awesome_leg::RampJntImpRequest> _publisher1;
+            PublisherPtr<awesome_leg::Go2TakeoffConfigRequest> _publisher2;
+            PublisherPtr<awesome_leg::PerformTakeoffRequest> _publisher3;
 
 
     };

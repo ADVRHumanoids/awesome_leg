@@ -376,7 +376,7 @@ bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2Takeoff
 
         _approach_traj_finished = false;
     }
-    if(!_go2takeoff_config && result)
+    if(!_go2takeoff_config)
     {
         reset_clocks();
         _approach_traj_finished = false;
@@ -415,7 +415,7 @@ bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeo
         _traj_finished = false;
 
     }
-    if(!_perform_takeoff && result)
+    if(!_perform_takeoff)
     {
         reset_clocks();
         _traj_finished = false;
@@ -454,8 +454,9 @@ bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpReque
 
         _imp_traj_finished = false;
     }
-    if(!_ramp_imp && result)
+    if(!_ramp_imp)
     {
+
         reset_clocks();
         _imp_traj_finished = false;
     }

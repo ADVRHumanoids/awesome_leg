@@ -47,6 +47,7 @@ NodeStatus PauseExpired::tick()
 
     if(_verbose)
     {
+
         std::cout << Colors::kGreen << "ticking " + _name  << " " << _timer_stat_msg.hr_time <<  Colors::kEndl << std::endl;
 
     }
