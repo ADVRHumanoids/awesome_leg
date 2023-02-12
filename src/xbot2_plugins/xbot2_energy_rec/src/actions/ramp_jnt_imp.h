@@ -1,5 +1,5 @@
-#ifndef PERFORM_TAKEOFF_H
-#define PERFORM_TAKEOFF_H
+#ifndef RAMP_JNT_IMP_H
+#define RAMP_JNT_IMP_H
 
 #include <behaviortree_cpp_v3/action_node.h>
 #include <xbot2/journal/journal.h>
@@ -10,20 +10,20 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/PerformTakeoffRequest.h>
+#include <awesome_leg/RampJntImpRequest.h>
 
 using namespace XBot;
 
 namespace BT
 {
 
-    class PerformTakeoff : public AsyncActionNode, public Task
+    class RampJntImp : public AsyncActionNode, public Task
     { // we are working with rt plugins, so we should minimize blocking code
       // that's why we employ asynchronous action nodes
 
         public:
 
-            PerformTakeoff(const std::string& name);
+            RampJntImp(const std::string& name);
 
         private:
 
@@ -37,18 +37,18 @@ namespace BT
 
             std::string _plugin_name = "jmp_replayer_rt";
 
-            std::string _servername = "perform_takeoff_srvr";
+            std::string _servername = "ramp_jnt_imp_srvr";
 
             std::string _asynch_servicepath;
 
             NodeStatus tick() override;
 
-            awesome_leg::PerformTakeoffRequest _msg;
+            awesome_leg::RampJntImpRequest _msg;
 
-            PublisherPtr<awesome_leg::PerformTakeoffRequest> _publisher;
+            PublisherPtr<awesome_leg::RampJntImpRequest> _publisher;
 
     };
 
 }
 
-#endif // PERFORM_TAKEOFF_H
+#endif // RAMP_JNT_IMP_H

@@ -160,17 +160,22 @@ void BtRt::init_bt()
     _factory.registerNodeType<IsJointDevActive>("IsJointDevActive");
     _factory.registerNodeType<AlwaysRunning>("ReturnRunning3");
 
-    _factory.registerNodeType<PauseExpired>("PauseExpired1");
-    _factory.registerNodeType<AlwaysRunning>("WaitABit");
-
-    _factory.registerNodeType<PauseExpired>("PauseExpired2");
-    _factory.registerNodeType<AlwaysRunning>("WaitABit2");
-
     _factory.registerNodeType<RestartJumpSequence>("RestartJumpSequence");
 
     _factory.registerNodeType<ArePluginsClosed>("ArePluginsClosed");
-
     _factory.registerNodeType<StopPlugins>("CloseAllPlugins");
+
+    _factory.registerNodeType<JntImpRamped>("JntImpRamped");
+    _factory.registerNodeType<RampJntImp>("RampJntImp");
+
+    _factory.registerNodeType<TakeoffReached>("TakeoffConfigReached");
+    _factory.registerNodeType<Go2TakeoffConfig>("Go2TakeoffConfig");
+
+    _factory.registerNodeType<TakeoffPerformed>("TakeoffPerformed");
+    _factory.registerNodeType<PerformTakeoff>("PerformTakeoff");
+
+    _factory.registerNodeType<PauseExpired>("PauseExpired");
+    _factory.registerNodeType<AlwaysRunning>("WaitABit");
 
     _tree = _factory.createTreeFromFile(_bt_description_path);
 

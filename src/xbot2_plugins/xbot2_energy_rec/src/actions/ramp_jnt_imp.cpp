@@ -1,12 +1,12 @@
-#include "go2takeoff_config.h"
-
-#include "../utils_defs.hpp"
+#include "ramp_jnt_imp.h"
 
 #include <xbot2/intraprocess/topic.h>
 
+#include "../utils_defs.hpp"
+
 using namespace BT;
 
-Go2TakeoffConfig::Go2TakeoffConfig(const std::string& name) :
+RampJntImp::RampJntImp(const std::string& name) :
     AsyncActionNode(name, {}),
     Task(name + "_bt_leaf", ""),
     _name{name}
@@ -16,13 +16,13 @@ Go2TakeoffConfig::Go2TakeoffConfig(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + _plugin_name + "/" +_servername + "/request";
 
-    _publisher = advertise<awesome_leg::Go2TakeoffConfigRequest>(_asynch_servicepath);
+    _publisher = advertise<awesome_leg::RampJntImpRequest>(_asynch_servicepath);
 
-    _msg.go2takeoff_config = true;
+    _msg.ramp_imp = true;
 
 }
 
-NodeStatus Go2TakeoffConfig::tick()
+NodeStatus RampJntImp::tick()
 {
 
     _publisher->publish(_msg);

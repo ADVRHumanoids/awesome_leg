@@ -50,12 +50,20 @@
     <BehaviorTree ID="PerformJumpSequence">
         <SequenceStar>
             <ReactiveFallback>
-                <Condition ID="PauseExpired1"/>
-                <Action ID="WaitABit"/>
+                <Condition ID="JntImpRamped"/>
+                <Action ID="RampJntImp"/>
             </ReactiveFallback>
             <ReactiveFallback>
-                <Condition ID="PauseExpired2"/>
-                <Action ID="WaitABit2"/>
+                <Condition ID="TakeoffConfigReached"/>
+                <Action ID="Go2TakeoffConfig"/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="TakeoffPerformed"/>
+                <Action ID="PerformTakeoff"/>
+            </ReactiveFallback>
+            <ReactiveFallback>
+                <Condition ID="PauseExpired"/>
+                <Action ID="WaitABit"/>
             </ReactiveFallback>
         </SequenceStar>
     </BehaviorTree>
@@ -71,12 +79,11 @@
         <Condition ID="IsIdle"/>
         <Condition ID="IsJointDevActive"/>
         <Condition ID="IsSafetyStop"/>
+        <Condition ID="JntImpRamped"/>
         <Condition ID="PauseExpired"/>
-        <Condition ID="PauseExpired1"/>
-        <Condition ID="PauseExpired2"/>
-        <Condition ID="PauseExpired3"/>
         <SubTree ID="PerformJumpSequence"/>
         <Action ID="PerformTakeoff"/>
+        <Action ID="RampJntImp"/>
         <Condition ID="RecovEnergyReached"/>
         <Action ID="RestartJumpSequence"/>
         <Action ID="ReturnRunning1"/>

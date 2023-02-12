@@ -10,7 +10,7 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/IdleState.h>
+#include <awesome_leg/Go2TakeoffConfigRequest.h>
 
 using namespace XBot;
 
@@ -35,16 +35,17 @@ namespace BT
 
             std::string _async_service_pattern = "/xbotcore/async_service/";
 
-            std::string _idle_state_servername = "set_cmd_plugins_2idle";
+            std::string _plugin_name = "jmp_replayer_rt";
+
+            std::string _servername = "go2takeoff_srvr";
 
             std::string _asynch_servicepath;
 
-            service::Empty empty_msg;
-
             NodeStatus tick() override;
 
-            awesome_leg::IdleState _set2idle;
-            PublisherPtr<awesome_leg::IdleState> _set2idle_pub;
+            awesome_leg::Go2TakeoffConfigRequest _msg;
+
+            PublisherPtr<awesome_leg::Go2TakeoffConfigRequest> _publisher;
 
     };
 

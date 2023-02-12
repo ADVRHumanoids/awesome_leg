@@ -14,18 +14,18 @@ PerformTakeoff::PerformTakeoff(const std::string& name) :
 
     setRegistrationID(_name);
 
-    _asynch_servicepath = _async_service_pattern + _idle_state_servername + "/request";
+    _asynch_servicepath = _async_service_pattern + _plugin_name + "/" +_servername + "/request";
 
-    _set2idle_pub = advertise<awesome_leg::IdleState>(_asynch_servicepath);
+    _publisher = advertise<awesome_leg::PerformTakeoffRequest>(_asynch_servicepath);
 
-    _set2idle.idle = true;
+    _msg.perform_takeoff = true;
 
 }
 
 NodeStatus PerformTakeoff::tick()
 {
 
-    _set2idle_pub->publish(_set2idle);
+    _publisher->publish(_msg);
 
     if(_verbose)
     {
