@@ -243,7 +243,22 @@ void ImpactDetectorRt::init_communications()
 
 void ImpactDetectorRt::trigger_reg_pow_monitor()
 {
+    if(_impact_status_msg.contact &&
+            !_jump_replay_status.traj_finished)
+    { // before takeoff --> we don't monitor the energy
+        _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
+    }
+    if(_impact_status_msg.takeoff)
+    { // at takeoff --> we don't monitor the energy
+        _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
+
+    }
+    if(_impact_status_msg.flight)
+    { // flight phase --> we don't monitor the energy
+        _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
+
+    }
     if(_impact_status_msg.impact)
     { // impact instant -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
@@ -251,7 +266,7 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
         std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
 
     }
-    if(!_impact_status_msg.impact && _impact_status_msg.contact && _jump_replay_status.traj_finished)
+    if(_impact_status_msg.contact  && _jump_replay_status.traj_finished)
     { // when we're on the ground and the jump trajectory is finished, we can stop monitoring the recovered energy
       // (the third condition will be replaced by the finishing of the impedance trajectory replay)
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
