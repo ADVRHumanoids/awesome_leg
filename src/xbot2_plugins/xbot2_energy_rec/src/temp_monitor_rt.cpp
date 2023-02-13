@@ -294,7 +294,7 @@ bool TempMonRt::on_initialize()
     if((_is_sim || _is_dummy) && _simulate_temp_if_sim)
     {
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                   "\n\n##TempMonRt: will use fake temp. readings.\\nn");
+                   "\n\n ##TempMonRt: will use fake temp. readings.\n\n");
     }
 
     init_nrt_ros_bridge();
