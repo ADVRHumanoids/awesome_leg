@@ -144,9 +144,9 @@ xbotcore_plugins:
 
             rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
-            R: {value: [0.09, 0.09], type: Eigen::VectorXd} # phase resistance
+            R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
-            L_m: {value: [1e-6, 1e-6], type: Eigen::VectorXd}
+            L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
 
             der_est_order: {value: 1, type: int}
 
