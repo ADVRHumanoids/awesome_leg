@@ -75,6 +75,12 @@ target_include_directories(timer_rt PRIVATE include src ${matlogger2_INCLUDE_DIR
 add_dependencies(timer_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(timer_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
+add_xbot2_plugin(impact_detector_rt
+    src/impact_detector_rt.cpp)
+target_include_directories(impact_detector_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+add_dependencies(impact_detector_rt ${PROJECT_NAME}_generate_messages)
+target_link_libraries(impact_detector_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
+
 if(${behaviortree_cpp_v3_FOUND})
 
     message("Will compile behaviour tree rt plugin")
@@ -123,6 +129,7 @@ install(
     temp_monitor_rt
     idler_rt
     timer_rt
+    impact_detector_rt
     DESTINATION lib
 )
 

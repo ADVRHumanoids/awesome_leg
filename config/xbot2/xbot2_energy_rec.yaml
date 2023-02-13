@@ -290,6 +290,23 @@ xbotcore_plugins:
 
             verbose: {value: true, type: bool}
 
+    impact_detector_rt:
+        thread: rt_main
+        type: impact_detector_rt
+        params:
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "impact_detector_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            queue_size: {value: 5, type: int}
+
+            verbose: {value: true, type: bool}
+
+            topicname: {value: "impact_state", type: string}
+
+            use_gz_truth: {value: true, type: bool}
+
     plugins_mngr_rt:
         thread: rt_main
         type: plugins_mngr_rt

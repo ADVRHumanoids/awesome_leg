@@ -48,6 +48,7 @@ add_message_files(
   TempOkStatus.msg
   TimerStatus.msg
   SafetyStopState.msg
+  ImpactStatus.msg
 )
 
 generate_messages(
