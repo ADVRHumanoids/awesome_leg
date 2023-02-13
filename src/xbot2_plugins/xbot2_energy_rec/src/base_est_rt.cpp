@@ -110,6 +110,9 @@ void BaseEstRt::get_params_from_config()
     _contact_attach_thr = getParamOrThrow<double>("~contact_attach_thr");
 
     _svd_thresh = getParamOrThrow<double>("~svd_thresh");
+
+    _contact_detection_gz_truth = getParamOrThrow<double>("~contact_detection_gz_truth");
+
 }
 
 void BaseEstRt::is_sim(std::string sim_string = "sim")
@@ -391,6 +394,12 @@ void BaseEstRt::update_pin_model()
     _pin_model_ptr->update();
 }
 
+void BaseEstRt::get_contact_state_ground_truth()
+{
+
+    _contact_state_gr_truth = _meas_tip_f_abs(2) >= _contact_detection_gz_truth? true: false;
+}
+
 void BaseEstRt::update_states()
 {
 
@@ -443,6 +452,11 @@ void BaseEstRt::update_states()
     _is_flight_phase_prev = _is_flight_phase;
     _is_flight_phase = !_contact_info[0].contact_state; // we check if
     // we went flying --> next control loop we bypass base estimation
+
+    if(_is_sim || _is_dummy)
+    {
+        get_contact_state_ground_truth();
+    }
 
 
 }
@@ -608,6 +622,8 @@ void BaseEstRt::pub_base_est_status()
 
     base_est_msg->msg().tau_c_raw = _tau_c_raw_vect;
     base_est_msg->msg().tau_c_raw_filt = _tau_c_raw_filt_vect;
+
+    base_est_msg->msg().contact_ground_truth = _contact_state_gr_truth;
 
     _base_est_st_pub->publishLoaned(std::move(base_est_msg));
 }

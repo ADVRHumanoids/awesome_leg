@@ -80,6 +80,8 @@ xbotcore_plugins:
             contact_release_thr: {value: 30.0, type: double}
             contact_attach_thr: {value: 90.0, type: double}
 
+            contact_detection_gz_truth: {value: 10.0, type: double}
+
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
             mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
 

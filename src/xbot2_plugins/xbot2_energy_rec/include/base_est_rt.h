@@ -79,8 +79,8 @@ private:
     bool _rt_active, _nrt_exit,
         _is_sim = true, _is_dummy = false,
         _ft_tip_sensor_found = false,
-        _use_ground_truth_gz = true,
         _contact_state = true,
+        _contact_state_gr_truth = true,
         _is_flight_phase = false,
         _is_flight_phase_prev = false;
 
@@ -107,7 +107,8 @@ private:
            _contact_release_thr = 10.0,
            _contact_attach_thr = 5.0,
            _g_scalar = - 9.81,
-           _est_wrench_norm = 0.0;
+           _est_wrench_norm = 0.0,
+           _contact_detection_gz_truth = 10.0;
 
     utils_defs::Force3D _meas_tip_f_loc,
                    _meas_tip_f_abs;
@@ -226,6 +227,8 @@ private:
     void on_base_link_twist_received(const geometry_msgs::TwistStamped& msg);
 
     void pub_base_est_status();
+
+    void get_contact_state_ground_truth();
 
 };
 
