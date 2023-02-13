@@ -301,7 +301,7 @@ xbotcore_plugins:
 
             queue_size: {value: 5, type: int}
 
-            verbose: {value: true, type: bool}
+            verbose: {value: false, type: bool}
 
             topicname: {value: "impact_state", type: string}
 

@@ -219,7 +219,7 @@ void ImpactDetectorRt::init_communications()
 
         if(_verbose)
         {
-            std::cout << Colors::kMagenta << "\nImpactDetectorRt: received MatReplayerStatus msg\n" << Colors::kEndl << std::endl;
+            std::cout << Colors::kBlue << "\nImpactDetectorRt: received MatReplayerStatus msg\n" << Colors::kEndl << std::endl;
 
         }
 
@@ -248,11 +248,15 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
     { // impact instant -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
 
+        std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
+
     }
     if(!_impact_status_msg.impact && _impact_status_msg.contact && _jump_replay_status.traj_finished)
     { // when we're on the ground and the jump trajectory is finished, we can stop monitoring the recovered energy
       // (the third condition will be replaced by the finishing of the impedance trajectory replay)
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
+
+        std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to stop regenerative power monitoring \n" << Colors::kEndl << std::endl;
 
     }
 
