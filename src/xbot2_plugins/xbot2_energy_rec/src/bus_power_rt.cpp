@@ -440,6 +440,13 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
 
     }
 
+    if(req.reset_energy)
+    {
+        _pow_monitor->reset_rec_energy(); // we reset the recovered energy level
+
+    }
+
+
     res.success = result;
 
     return result;

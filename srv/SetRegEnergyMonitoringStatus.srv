@@ -1,4 +1,5 @@
 bool monitor_energy
+bool reset_energy
 
 ---
 
