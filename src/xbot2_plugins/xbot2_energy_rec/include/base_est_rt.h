@@ -82,7 +82,8 @@ private:
         _contact_state = true,
         _contact_state_gr_truth = true,
         _is_flight_phase = false,
-        _is_flight_phase_prev = false;
+        _is_flight_phase_prev = false,
+        _use_gz_truth = false;
 
     int _n_jnts_robot,
         _nv_be, _nq_be;

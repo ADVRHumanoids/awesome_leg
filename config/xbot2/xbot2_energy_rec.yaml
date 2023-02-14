@@ -89,6 +89,8 @@ xbotcore_plugins:
 
             svd_thresh: {value: 0.1, type: double}
 
+            use_gz_truth: {value: "false", type: bool}
+
     jmp_replayer_rt:
         thread: rt_main_fast
         type: jmp_replayer_rt
@@ -305,7 +307,7 @@ xbotcore_plugins:
 
             topicname: {value: "impact_state", type: string}
 
-            use_gz_truth: {value: true, type: bool}
+            use_gz_truth: {value: false, type: bool}
 
     plugins_mngr_rt:
         thread: rt_main

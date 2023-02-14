@@ -113,6 +113,8 @@ void BaseEstRt::get_params_from_config()
 
     _contact_detection_gz_truth = getParamOrThrow<double>("~contact_detection_gz_truth");
 
+    _use_gz_truth = getParamOrThrow<bool>("~use_gz_truth");
+
 }
 
 void BaseEstRt::is_sim(std::string sim_string = "sim")
