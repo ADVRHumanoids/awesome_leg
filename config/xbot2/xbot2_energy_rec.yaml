@@ -318,7 +318,7 @@ xbotcore_plugins:
 
             # plugin_list: {value: ["bus_power_rt_iq_meas", "bus_power_rt_iq_model"], type: vector<string>}
 
-            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model", "base_est_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model", "base_est_rt", "impact_detector_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 
