@@ -86,6 +86,7 @@ private:
         _verbose = false,
         _is_first_imp_ramp_loop = false,
         _perform_takeoff = false, _go2takeoff_config = false, _ramp_imp = false,
+        _approach_traj_started = false, _traj_started = false, _imp_traj_started = false,
         _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false;
 
     int _n_jnts_robot,

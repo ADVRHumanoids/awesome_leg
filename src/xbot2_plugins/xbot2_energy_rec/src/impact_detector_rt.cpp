@@ -223,6 +223,10 @@ void ImpactDetectorRt::init_communications()
 
         }
 
+        _jump_replay_status.approach_traj_started = msg.approach_traj_started;
+        _jump_replay_status.traj_started = msg.traj_started;
+        _jump_replay_status.imp_traj_started = msg.imp_traj_started;
+
         _jump_replay_status.approach_traj_finished = msg.approach_traj_finished;
         _jump_replay_status.traj_finished = msg.traj_finished;
         _jump_replay_status.imp_traj_finished = msg.imp_traj_finished;
@@ -244,31 +248,47 @@ void ImpactDetectorRt::init_communications()
 void ImpactDetectorRt::trigger_reg_pow_monitor()
 {
     if(_impact_status_msg.contact &&
-            !_jump_replay_status.traj_finished)
-    { // before takeoff --> we don't monitor the energy
+            _jump_replay_status.imp_traj_started)
+    { // ramping impedance with contact --> we don't monitor the energy
+        _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
+
+    }
+    if(_impact_status_msg.contact &&
+            _jump_replay_status.approach_traj_started)
+    { // approach trajectory with contact --> we don't monitor the energy
+        _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
+
+    }
+    if(_impact_status_msg.contact &&
+            _jump_replay_status.traj_started)
+    { // during jump trajectory with contact --> we don't monitor the energy
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
     }
     if(_impact_status_msg.takeoff)
-    { // at takeoff --> we don't monitor the energy
+    { // at takeoff --> we don't monitor the energy in any case
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
     }
     if(_impact_status_msg.flight)
-    { // flight phase --> we don't monitor the energy
+    { // flight phase --> we don't monitor the energy in any case
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
     }
-    if(_impact_status_msg.impact)
-    { // impact instant -> we trigger the monitoring of reg power
+    if(_impact_status_msg.impact && !_jump_replay_status.traj_finished)
+    { // impact instant, but we didn't finish replaying jump trajectory -> we don't monitor the energy
+        _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
+
+    }
+    if(_impact_status_msg.impact && _jump_replay_status.traj_finished)
+    { // impact instant, after replaying jump trajectory -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
 
         std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
 
     }
-    if(_impact_status_msg.contact  && _jump_replay_status.traj_finished)
-    { // when we're on the ground and the jump trajectory is finished, we can stop monitoring the recovered energy
-      // (the third condition will be replaced by the finishing of the impedance trajectory replay)
+    if(_impact_status_msg.contact  && _jump_replay_status.imp_traj_started && !_jump_replay_status_prev.imp_traj_started)
+    { // after landing and just before restarting the jump sequence --> we stop monitoring the power
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
         std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to stop regenerative power monitoring \n" << Colors::kEndl << std::endl;
@@ -312,6 +332,7 @@ void ImpactDetectorRt::starting()
 void ImpactDetectorRt::run()
 {
     _base_est_status_prev = _base_est_status; // we first get the latest base estimation state
+    _jump_replay_status_prev = _jump_replay_status;
 
     // we then update the necessary states by processing the callbacks
 //    _queue.run(); // process service callbacks

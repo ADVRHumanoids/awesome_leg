@@ -1,8 +1,11 @@
+bool imp_traj_started
+bool imp_traj_finished
+
+bool approach_traj_started
 bool approach_traj_finished
 
+bool traj_started
 bool traj_finished
-
-bool imp_traj_finished
 
 bool send_pos
 bool send_vel

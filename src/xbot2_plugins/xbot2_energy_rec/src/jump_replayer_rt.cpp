@@ -614,6 +614,7 @@ void JumpReplayerRt::set_cmds()
 
             _ramp_imp = false; // finished ramping imp.
             _imp_traj_finished = true;
+            _imp_traj_started = false;
 
             _stiffness_setpoint = _replay_stiffness; 
             _damping_setpoint = _replay_damping;
@@ -625,6 +626,11 @@ void JumpReplayerRt::set_cmds()
         }
         else
         {// ramp impedance
+
+            if(!_imp_traj_started)
+            {// triggered only the first time
+                _imp_traj_started = true;
+            }
 
             ramp_jnt_impedances();
 
@@ -645,6 +651,7 @@ void JumpReplayerRt::set_cmds()
         {
             _go2takeoff_config = false; // finished approach traj
             _approach_traj_finished = true;
+            _approach_traj_started = false;
 
             reset_clocks();
 
@@ -653,7 +660,12 @@ void JumpReplayerRt::set_cmds()
 
         }
         else
-        {
+        {// set approach traj
+
+            if(!_approach_traj_started)
+            {// triggered only the first time
+                _approach_traj_started = true;
+            }
             if (_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
@@ -674,6 +686,11 @@ void JumpReplayerRt::set_cmds()
         if (_sample_index <= _takeoff_index)
         { // before takeoff
             
+            if(!_traj_started)
+            {// triggered only the first time
+                _traj_started = true;
+            }
+
             // by default assign all commands anyway
             _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
             _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
@@ -696,7 +713,7 @@ void JumpReplayerRt::set_cmds()
 
         if (_sample_index <= (_traj.get_n_nodes() - 1) && _sample_index > _takeoff_index)
         { // after the optimized takeoff phase
-            
+
             if (_send_whole_traj)
             {
                 _q_p_cmd = _q_p_ref.col(_sample_index).tail(_n_jnts_robot);
@@ -747,6 +764,7 @@ void JumpReplayerRt::set_cmds()
 
             _perform_takeoff = false;
             _traj_finished = true;
+            _traj_started = false;
 
             reset_clocks();
 
@@ -768,6 +786,10 @@ void JumpReplayerRt::set_cmds()
 void JumpReplayerRt::pub_replay_status()
 {
     auto status_msg = _replay_status_pub->loanMessage();
+
+    status_msg->msg().imp_traj_started = _imp_traj_started;
+    status_msg->msg().approach_traj_started = _approach_traj_started;
+    status_msg->msg().traj_started = _traj_started;
 
     status_msg->msg().imp_traj_finished = _imp_traj_finished;
     status_msg->msg().approach_traj_finished = _approach_traj_finished;

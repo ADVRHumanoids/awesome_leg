@@ -88,7 +88,7 @@ private:
     awesome_leg::SetRegEnergyMonitoringStatusRequest _stop_monitoring_msg;
     awesome_leg::ImpactStatus _impact_status_msg;
 
-    awesome_leg::MatReplayerStatus _jump_replay_status;
+    awesome_leg::MatReplayerStatus _jump_replay_status, _jump_replay_status_prev;
 
     PublisherPtr<awesome_leg::SetRegEnergyMonitoringStatusRequest> _monitoring_pow_switch_pub;
     PublisherPtr<awesome_leg::ImpactStatus> _impact_status_pub;
