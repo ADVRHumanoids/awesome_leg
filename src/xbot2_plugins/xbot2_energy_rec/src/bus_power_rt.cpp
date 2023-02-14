@@ -434,7 +434,6 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
         if(!_monitor_recov_energy)
         {
             _pow_monitor->disable_rec_energy_monitoring(); // we disable energy recovery monitoring
-//            _pow_monitor->reset_rec_energy();
 
         }
 
