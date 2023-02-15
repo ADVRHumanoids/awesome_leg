@@ -85,7 +85,7 @@ xbotcore_plugins:
             mov_avrg_cutoff_freq: {value: 15.0, type: double}
             mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
 
-            obs_bw: {value: 5.0, type: double}
+            obs_bw: {value: 25.0, type: double}
 
             svd_thresh: {value: 0.1, type: double}
 
@@ -320,11 +320,11 @@ xbotcore_plugins:
 
             async_service_pattern: {value: "/xbotcore/async_service/xbot_internal/scheduler/", type: string}
 
-            # plugin_list: {value: ["idler_rt", "base_est_rt", "temp_monitor_rt", "jmp_replayer_rt", "base_est_rt", "cartesio_imp_cntrl_rt", "bus_power_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "base_est_rt", "temp_monitor_rt", "jmp_replayer_rt", "base_est_rt", "cartesio_imp_cntrl_rt", "bus_power_rt"], type: vector<string>}
 
-            # plugin_list: {value: ["bus_power_rt_iq_meas", "bus_power_rt_iq_model"], type: vector<string>}
+            plugin_list: {value: ["base_est_rt"], type: vector<string>}
 
-            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model", "base_est_rt", "impact_detector_rt"], type: vector<string>}
+            # plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model", "base_est_rt", "impact_detector_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 
