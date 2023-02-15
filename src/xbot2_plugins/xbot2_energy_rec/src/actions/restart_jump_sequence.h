@@ -29,7 +29,7 @@ namespace BT
 
         private:
 
-            bool _verbose = true;
+            bool _verbose = false;
 
             std::string _name;
 
