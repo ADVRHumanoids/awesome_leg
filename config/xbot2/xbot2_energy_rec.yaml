@@ -233,8 +233,8 @@ xbotcore_plugins:
             tree_logpath: {value: "/tmp", type: string}
             tree_logname: {value: "bt_trace", type: string}
 
-            use_zmq_pub: {value: true, type: bool}
-            use_bt_log: {value: true, type: bool}
+            use_zmq_pub: {value: false, type: bool}
+            use_bt_log: {value: false, type: bool}
 
             stop_on_completion: {value: true, type: bool}
             stop_ticking_root_if_completed: {value: true, type: bool}
