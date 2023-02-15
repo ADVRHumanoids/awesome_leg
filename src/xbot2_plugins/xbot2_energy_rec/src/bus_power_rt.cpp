@@ -129,6 +129,8 @@ void BusPowerRt::get_params_from_config()
 
     _set_monitor_state_servname = getParamOrThrow<std::string>("~set_monitor_state_servname");
 
+    _verbose = getParamOrThrow<bool>("~verbose");
+
 }
 
 void BusPowerRt::is_sim(std::string sim_string = "sim")
@@ -415,8 +417,11 @@ void BusPowerRt::init_nrt_ros_bridge()
 bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitoringStatusRequest& req, awesome_leg::SetRegEnergyMonitoringStatusResponse& res)
 {
 
-    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                       "\nBusPowerRt: received regenerative energy monitor trigger signal: {}\n", req.monitor_energy);
+    }
 
     bool state_changed = _monitor_recov_energy != req.monitor_energy;
 
