@@ -354,9 +354,12 @@ bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2Takeoff
                                                    awesome_leg::Go2TakeoffConfigResponse& res)
 {
 
-    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                       "\nJumpReplayerRt: received go2takeoff_config signal: {}\n", req.go2takeoff_config);
-
+    }
+    
     bool state_changed = _go2takeoff_config != req.go2takeoff_config;
 
     bool result = state_changed && (!_perform_takeoff && !_ramp_imp)? true : false;
@@ -391,9 +394,12 @@ bool JumpReplayerRt::on_go2takeoff_config_received(const awesome_leg::Go2Takeoff
 bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeoffRequest& req,
                                                  awesome_leg::PerformTakeoffResponse& res)
 {
-
-    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                      "\nJumpReplayerRt: received perform_takeoff signal: {}\n", req.perform_takeoff);
+    
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                        "\nJumpReplayerRt: received perform_takeoff signal: {}\n", req.perform_takeoff);
+    }
 
     bool state_changed = _perform_takeoff != req.perform_takeoff;
 
@@ -430,10 +436,12 @@ bool JumpReplayerRt::on_perform_takeoff_received(const awesome_leg::PerformTakeo
 bool JumpReplayerRt::on_ramp_jnt_imp_received(const awesome_leg::RampJntImpRequest& req,
                                               awesome_leg::RampJntImpResponse& res)
 {
-
-    jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
-                      "\nJumpReplayerRt: received ramp_imp signal: {}\n", req.ramp_imp);
-
+    if(_verbose)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                           "\nJumpReplayerRt: received ramp_imp signal: {}\n", req.ramp_imp);
+    }
+    
     bool state_changed = _ramp_imp != req.ramp_imp;
 
     bool result = state_changed && (!_go2takeoff_config && !_perform_takeoff)? true : false;
