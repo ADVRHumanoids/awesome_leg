@@ -572,9 +572,9 @@ void JumpReplayerRt::ramp_jnt_impedances()
 
     double phase = _smooth_imp_time / _imp_ramp_time;
 
-    _ramp_stiffness = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_stiffness, _replay_stiffness);
+    _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_stiffness, _replay_stiffness, _ramp_stiffness);
 
-    _ramp_damping = _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping);
+    _peisekah_utils.compute_peisekah_vect_val(phase, _ramp_strt_damping, _replay_damping, _ramp_damping);
 
     _stiffness_setpoint = _ramp_stiffness; 
     _damping_setpoint = _ramp_damping;
@@ -586,7 +586,7 @@ void JumpReplayerRt::set_approach_trajectory()
 
     double phase = _approach_traj_time / _approach_traj_exec_time; // phase ([0, 1] inside the approach traj)
 
-    _q_p_cmd = _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj);
+    _peisekah_utils.compute_peisekah_vect_val(phase, _q_p_init_appr_traj, _q_p_trgt_appr_traj, _q_p_cmd);
     
 }
 
