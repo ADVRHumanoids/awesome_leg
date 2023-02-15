@@ -5,6 +5,7 @@ xbotcore_devices:
         thread: rt_main
         params:
             robot_name: &rn {value: NoNe, type: string}
+            ignore_id: {value: [66], type: vector<int>}
             config_ec_pos: 
                 value: $PWD/../joint_config/awesome_leg_pos3b.yaml
                 type: yamlfile

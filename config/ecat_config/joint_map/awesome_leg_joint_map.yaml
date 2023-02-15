@@ -1,3 +1,4 @@
 joint_map:
   11: hip_pitch_1
   12: knee_pitch_1
+  66: power_sensor
