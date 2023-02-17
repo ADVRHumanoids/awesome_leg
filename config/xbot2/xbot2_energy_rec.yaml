@@ -143,8 +143,8 @@ xbotcore_plugins:
 
             K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
 
-            K_d0: {value: [3.0, 10.0], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-            K_d1: {value: [1.5, 2.0], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
 
             rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
@@ -185,8 +185,8 @@ xbotcore_plugins:
 
 #            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
 
-#            K_d0: {value: [3.0, 10.0], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-#            K_d1: {value: [1.5, 2.0], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+#            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+#            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
 
 #            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
 
