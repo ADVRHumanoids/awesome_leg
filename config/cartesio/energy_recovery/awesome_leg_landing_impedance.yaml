@@ -64,8 +64,9 @@ effort_limits:
     lib_name: "libcartesio_acceleration_support.so"
     type: "TorqueLimits"
     name: "effort_limits"
-#    bound_scaling: 1
-#    indices: [0, 1, 2] # how to handle the passive joint and the fact that we don't want to use an estimate of the contact force?
+    contacts: ["tip1"]
+    bound_scaling: 1
+    indices: [0, 1, 2] # how to handle the passive joint and the fact that we don't want to use an estimate of the contact force?
 
 #JointLimits:
 #  lib_name: "libcartesio_acceleration_support.so"
