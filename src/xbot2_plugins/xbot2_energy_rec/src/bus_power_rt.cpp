@@ -31,6 +31,8 @@ void BusPowerRt::init_vars()
 
     _tau_rot_est = Eigen::VectorXd::Zero(_n_jnts_robot);
 
+    _dummy_eig_scalar = Eigen::VectorXd::Zero(1);
+
     // used to convert to ros messages-compatible types
     _iq_est_vect = std::vector<double>(_n_jnts_robot);
     _q_p_ddot_est_vect = std::vector<double>(_n_jnts_robot);
@@ -131,6 +133,8 @@ void BusPowerRt::get_params_from_config()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
+    _bus_p_leak = getParamOrThrow<double>("~bus_p_leak");
+
 }
 
 void BusPowerRt::is_sim(std::string sim_string = "sim")
@@ -159,7 +163,6 @@ void BusPowerRt::is_dummy(std::string dummy_string = "dummy")
     _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
 
     size_t dummy_found = _hw_type.find(dummy_string);
-
 
     if (dummy_found != std::string::npos) { // we are running the plugin in dummy mode
 
@@ -206,6 +209,27 @@ void BusPowerRt::update_state()
         _iq_getter->get_last_iq_out_filt(_iq_meas_filt);
     }
 
+}
+
+void BusPowerRt::update_sensed_power()
+{
+    _vbatt = _pow_sensor->get_battery_voltage();
+    _ibatt = - _pow_sensor->get_load_current(); // current is measured positive if flowing towards the robot
+    // hence, if we want the current goint into the battery, we have to switch sign
+    _p_batt = _vbatt * _ibatt;
+
+    _dummy_eig_scalar(0) = _p_batt;
+    _meas_pow_int.add_sample(_dummy_eig_scalar);
+    _meas_pow_int.get(_dummy_eig_scalar);
+    _e_batt = _dummy_eig_scalar(0);
+
+    if (_enable_meas_rec_energy_monitoring && _p_batt > 0)
+    {// only integrate if monitoring reg. power and if power is flowing towards the battery
+        _dummy_eig_scalar(0) = _p_batt;
+        _reg_meas_pow_int.add_sample(_dummy_eig_scalar);
+        _reg_meas_pow_int.get(_dummy_eig_scalar);
+        _reg_energy = _dummy_eig_scalar(0);
+    }
 }
 
 void BusPowerRt::init_dump_logger()
@@ -266,11 +290,19 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->create("alpha_f0", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("alpha_f1", _n_jnts_robot, 1, _matlogger_buffer_size);
 
-    _dump_logger->add("mov_avrg_window_size_iq", _mov_avrg_window_size_iq);
+    _dump_logger->add("mov_avrpub_meas_reg_powg_window_size_iq", _mov_avrg_window_size_iq);
     _dump_logger->add("mov_avrg_cutoff_freq_iq", _mov_avrg_cutoff_freq_iq);
 
     _dump_logger->add("mov_avrg_window_size_tau", _mov_avrg_window_size_iq);
     _dump_logger->add("mov_avrg_cutoff_freq_tau", _mov_avrg_cutoff_freq_iq);
+
+    // power sensor
+    _dump_logger->create("vbatt", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("ibatt", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("e_batt", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("p_batt", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("reg_power", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("reg_energy", 1, 1, _matlogger_buffer_size);
 
 }
 
@@ -301,6 +333,13 @@ void BusPowerRt::add_data2dump_logger()
     _dump_logger->add("red_ratio", _red_ratio);
 
     _dump_logger->add("tau_rot_est", _tau_rot_est);
+
+    // power sensor
+    _dump_logger->add("vbatt", _vbatt);
+    _dump_logger->add("ibatt", _ibatt);
+    _dump_logger->add("e_batt", _e_batt);
+    _dump_logger->add("p_batt", _p_batt);
+    _dump_logger->add("reg_energy", _reg_energy);
 
 }
 
@@ -366,7 +405,7 @@ void BusPowerRt::init_nrt_ros_bridge()
 
     // regenerative pow. status publisher
 
-    awesome_leg::RegPowStatus reg_pow_prealloc;
+    awesome_leg::EstRegPowStatus reg_pow_prealloc;
 
     double er_prealloc = 0.0, pr_prealloc = 0.0;
     std::vector<double> er_k_prealloc(_n_jnts_robot);
@@ -391,9 +430,29 @@ void BusPowerRt::init_nrt_ros_bridge()
 
     reg_pow_prealloc.iq_jnt_names = iq_jnt_names_prealloc;
 
-    std::string reg_pow_topic = "reg_pow_node_" + _topic_ns;
-    
-    _reg_pow_pub = _ros->advertise<awesome_leg::RegPowStatus>(reg_pow_topic.c_str(), 1, reg_pow_prealloc);
+    std::string est_reg_pow_topic = "est_reg_pow_node_" + _topic_ns;
+
+    _est_reg_pow_pub = _ros->advertise<awesome_leg::EstRegPowStatus>(est_reg_pow_topic.c_str(), 1, reg_pow_prealloc);
+
+    // regenerative pow. sensor status publisher
+    awesome_leg::MeasRegPowStatus meas_reg_pow_prealloc;
+
+    double vbatt_prealloc(_n_jnts_robot);
+    double iload_prealloc(_n_jnts_robot);
+    double e_batt_prealloc(_n_jnts_robot);
+    double p_batt_prealloc(_n_jnts_robot);
+    double reg_power_prealloc(_n_jnts_robot);
+    double reg_energy_prealloc(_n_jnts_robot);
+
+    meas_reg_pow_prealloc.vbatt = vbatt_prealloc;
+    meas_reg_pow_prealloc.ibatt = iload_prealloc;
+    meas_reg_pow_prealloc.e_batt = e_batt_prealloc;
+    meas_reg_pow_prealloc.p_batt = p_batt_prealloc;
+    meas_reg_pow_prealloc.reg_energy = reg_energy_prealloc;
+
+    std::string meas_reg_pow_topic = "meas_reg_pow_node";
+
+    _meas_reg_pow_pub = _ros->advertise<awesome_leg::MeasRegPowStatus>(meas_reg_pow_topic.c_str(), 1, meas_reg_pow_prealloc);
 
     // iq measurement publisher
 
@@ -433,12 +492,16 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
 
         if(_monitor_recov_energy)
         {
-            _pow_monitor->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
+            _pow_estimator->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
+
+            _enable_meas_rec_energy_monitoring = true; // we reset sensor readings
 
         }
         if(!_monitor_recov_energy)
         {
-            _pow_monitor->disable_rec_energy_monitoring(); // we disable energy recovery monitoring
+            _pow_estimator->disable_rec_energy_monitoring(); // we disable energy recovery monitoring
+
+            _enable_meas_rec_energy_monitoring = false; // we reset sensor readings
 
         }
 
@@ -446,10 +509,12 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
 
     if(req.reset_energy)
     {
-        _pow_monitor->reset_rec_energy(); // we reset the recovered energy level
+        _pow_estimator->reset_rec_energy(); // we reset the recovered energy level
+
+        _reg_meas_pow_int.reset(); // we reset sensor readings
+        _reg_energy = 0.0;
 
     }
-
 
     res.success = result;
 
@@ -462,7 +527,7 @@ void BusPowerRt::add_data2bedumped()
 
     add_data2dump_logger();
 
-    _pow_monitor->add2log();
+    _pow_estimator->add2log();
 
     _iq_estimator->add2log();
 
@@ -506,10 +571,10 @@ void BusPowerRt::pub_iq_est()
 
 }
 
-void BusPowerRt::pub_reg_pow()
+void BusPowerRt::pub_est_reg_pow()
 {
 
-    auto reg_pow_msg = _reg_pow_pub->loanMessage();
+    auto reg_pow_msg = _est_reg_pow_pub->loanMessage();
 
     // mapping EigenVectorXd data to std::vector, so that they can be published
 
@@ -530,9 +595,6 @@ void BusPowerRt::pub_reg_pow()
     reg_pow_msg->msg().er = _er;
     reg_pow_msg->msg().pr = _pr;
 
-    // fake readings
-//    _recov_energy_tot+= _plugin_dt * 5.0;
-
     reg_pow_msg->msg().recov_energy_tot = _recov_energy_tot;
 
     reg_pow_msg->msg().er_k = _er_k_vect;
@@ -550,7 +612,21 @@ void BusPowerRt::pub_reg_pow()
 
     reg_pow_msg->msg().monitor_recov_energy = _monitor_recov_energy;
 
-    _reg_pow_pub->publishLoaned(std::move(reg_pow_msg));
+    _est_reg_pow_pub->publishLoaned(std::move(reg_pow_msg));
+
+}
+
+void BusPowerRt::pub_meas_reg_pow()
+{
+    auto reg_pow_msg = _meas_reg_pow_pub->loanMessage();
+
+    reg_pow_msg->msg().vbatt = _vbatt;
+    reg_pow_msg->msg().ibatt = _ibatt;
+    reg_pow_msg->msg().e_batt = _e_batt;
+    reg_pow_msg->msg().p_batt = _p_batt;
+    reg_pow_msg->msg().reg_energy = _reg_energy;
+
+    _meas_reg_pow_pub->publishLoaned(std::move(reg_pow_msg));
 
 }
 
@@ -594,19 +670,19 @@ void BusPowerRt::run_iq_estimation()
 
 void BusPowerRt::run_reg_pow_estimation()
 {
-     _pow_monitor->update(); // update power and energy estimates using current state
+     _pow_estimator->update(); // update power and energy estimates using current state
      // and current estimates from iq estimator (or iq measurements if _use_iq_meas == true)
 
-     _pow_monitor->get(_er_k, _pr_k);
+     _pow_estimator->get(_er_k, _pr_k);
 
-     _pow_monitor->get_e(_er);
-     _pow_monitor->get_p(_pr);
+     _pow_estimator->get_e(_er);
+     _pow_estimator->get_p(_pr);
 
-     _pow_monitor->get_p_terms(_pk_joule, _pk_mech, _pk_indct);
-     _pow_monitor->get_e_terms(_ek_joule, _ek_mech, _ek_indct);
+     _pow_estimator->get_p_terms(_pk_joule, _pk_mech, _pk_indct);
+     _pow_estimator->get_e_terms(_ek_joule, _ek_mech, _ek_indct);
 
-     _pow_monitor->get_current_e_recov(_recov_energy);
-     _pow_monitor->get_current_e_recov(_recov_energy_tot);
+     _pow_estimator->get_current_e_recov(_recov_energy);
+     _pow_estimator->get_current_e_recov(_recov_energy_tot);
 
 }
 
@@ -629,7 +705,7 @@ bool BusPowerRt::on_initialize()
 
     // using the order given by _jnt_names
     _iq_getter.reset(new IqRosGetter(_plugin_dt, 
-                                    false, 
+                                    false,
                                     _mov_avrg_cutoff_freq_iq_meas));
 
     // quadrature current from XBot2 ROS topic (they need to be activated
@@ -647,14 +723,15 @@ bool BusPowerRt::on_initialize()
                                         _dump_iq_data));
 
     // bus power estimator
-    _pow_monitor.reset(new RegEnergy(_iq_getter,
+    _pow_estimator.reset(new RegEnergy(_iq_getter,
                                      _iq_estimator,
                                      _R,
                                      _L_leak, _L_m,
+                                     _bus_p_leak,
                                      _plugin_dt,
                                      _use_iq_meas,
                                      _dump_iq_data));
-    _pow_monitor->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
+    _pow_estimator->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
     // by default
 
     // numerical differentiation
@@ -679,7 +756,11 @@ bool BusPowerRt::on_initialize()
     init_nrt_ros_bridge();
 
     // get power sensor handle
-    _pow = _robot->getDevices<Hal::PowerBoardEc>().get_device("power_sensor");
+    _pow_sensor = _robot->getDevices<Hal::PowerBoardEc>().get_device("power_sensor");
+    _power_sensor_found = _pow_sensor != nullptr ? true : false;
+
+    _meas_pow_int = NumIntRt(1, _plugin_dt);
+    _reg_meas_pow_int = NumIntRt(1, _plugin_dt);
 
     return true;
 
@@ -695,7 +776,7 @@ void BusPowerRt::starting()
     init_clocks(); // initialize clocks timers
 
     _monitor_recov_energy = false;
-    _pow_monitor->disable_rec_energy_monitoring(); // the monitoring of
+    _pow_estimator->disable_rec_energy_monitoring(); // the monitoring of
     // the recovered energy is in idle by defaults
 
     start_completed(); // Move on to run()
@@ -709,17 +790,21 @@ void BusPowerRt::run()
 
     _queue.run();
 
-    // // computing and updating iq estimates
+    // computing and updating iq estimates
     run_iq_estimation();
 
-    // // publish iq estimate info
+    // publish iq estimate info
     pub_iq_est(); // publish estimates to topic
 
-    // // computing and updating reg. power and energy estimates
+    // computing and updating reg. power and energy estimates
     run_reg_pow_estimation();
 
-    // // publish reg. pow. info
-    pub_reg_pow();
+    // computing measured power @power supply and energy
+    update_sensed_power();
+
+    // publish reg. pow. info
+    pub_est_reg_pow();
+    pub_meas_reg_pow();
 
     // publishes iq measurements to rostopic
     pub_iq_meas();
@@ -728,8 +813,12 @@ void BusPowerRt::run()
 
     update_clocks(); // last, update the clocks (loop + any additional one)
 
-    jhigh().jinfo("v = {} \ni= {}\n\n", 
-                _pow->get_battery_voltage(), _pow->get_load_current());
+    if(_power_sensor_found)
+    {
+        jhigh().jinfo("v = {} \ni= {}\n\n",
+                    _pow_sensor->get_battery_voltage(), _pow_sensor->get_load_current());
+    }
+
 
 }
 
@@ -738,7 +827,7 @@ void BusPowerRt::on_stop()
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _dump_logger.reset();
 
-    _pow_monitor->reset_rec_energy(); // we reset the recovered energy level
+    _pow_estimator->reset_rec_energy(); // we reset the recovered energy level
 
 }
 

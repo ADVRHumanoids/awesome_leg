@@ -39,7 +39,8 @@ add_message_files(
   IqEstStatus.msg
   IqCalStatus.msg
   ContactEstStatus.msg
-  RegPowStatus.msg
+  EstRegPowStatus.msg
+  MeasRegPowStatus.msg
   BaseEstStatus.msg
   BtRootStatus.msg
   PluginsManStatus.msg

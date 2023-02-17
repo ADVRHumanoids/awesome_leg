@@ -31,7 +31,8 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 
 #include <awesome_leg/IqEstStatus.h>
-#include <awesome_leg/RegPowStatus.h>
+#include <awesome_leg/EstRegPowStatus.h>
+#include <awesome_leg/MeasRegPowStatus.h>
 #include <awesome_leg/IqMeasStatus.h>
 
 #include <awesome_leg/SetRegEnergyMonitoringStatus.h>
@@ -79,14 +80,15 @@ public:
     // callback for 'On Abort' state
     void on_abort() override;
 
-
 private:
 
     bool _is_sim = true, _is_dummy = false,
          _use_iq_meas = true, 
          _dump_iq_data = false,
          _monitor_recov_energy = false, 
-         _verbose = false;
+         _verbose = false,
+         _power_sensor_found = false,
+         _enable_meas_rec_energy_monitoring = false;
 
     int _n_jnts_robot,
         _der_est_order = 1,
@@ -105,6 +107,10 @@ private:
         _q_dot_3sigma = 0.001;
 
     double _er = 0.0, _pr = 0.0, _recov_energy_tot = 0.0;
+
+    // power sensor
+    double _vbatt = 0.0, _ibatt = 0.0, _e_batt = 0.0, _p_batt = 0.0, _reg_energy = 0.0;
+    double _bus_p_leak = 0.0;
 
     Eigen::VectorXd _q_p_meas,
                     _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
@@ -151,7 +157,8 @@ private:
     SubscriberPtr<xbot_msgs::JointState> _js_signals_sub;
 
     PublisherPtr<awesome_leg::IqEstStatus> _iq_est_pub;
-    PublisherPtr<awesome_leg::RegPowStatus> _reg_pow_pub;
+    PublisherPtr<awesome_leg::EstRegPowStatus> _est_reg_pow_pub;
+    PublisherPtr<awesome_leg::MeasRegPowStatus> _meas_reg_pow_pub;
     PublisherPtr<awesome_leg::IqMeasStatus> _iq_meas_pub;
 
     ServiceServerPtr<awesome_leg::SetRegEnergyMonitoringStatusRequest, awesome_leg::SetRegEnergyMonitoringStatusResponse> _set_monitoring_state_srvr;
@@ -159,7 +166,10 @@ private:
     IqRosGetter::Ptr _iq_getter;
     IqEstimator::Ptr _iq_estimator;
 
-    RegEnergy::Ptr _pow_monitor;
+    RegEnergy::Ptr _pow_estimator;
+    std::shared_ptr<Hal::PowerBoardEc> _pow_sensor;
+    NumIntRt _meas_pow_int, _reg_meas_pow_int;
+    Eigen::VectorXd _dummy_eig_scalar; // aux variable
 
     NumDiff _num_diff;
 
@@ -176,8 +186,6 @@ private:
     int _mov_avrg_window_size_q_dot= 10;
     double _mov_avrg_cutoff_freq_q_dot = 15.0;
 
-    std::shared_ptr<Hal::PowerBoardEc> _pow;
-
     void get_params_from_config();
 
     void init_vars();
@@ -187,7 +195,7 @@ private:
     void reset_flags();
 
     void update_state();
-
+    void update_sensed_power();
     void update_clocks();
 
     void add_data2dump_logger();
@@ -201,14 +209,14 @@ private:
     void is_dummy(std::string dummy_string);
 
     void pub_iq_est();
-    void pub_reg_pow();
+    void pub_est_reg_pow();
+    void pub_meas_reg_pow();
     void pub_iq_meas();
 
     void run_iq_estimation();
     void run_reg_pow_estimation();
 
     bool on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitoringStatusRequest& req, awesome_leg::SetRegEnergyMonitoringStatusResponse& res);
-
 
 };
 

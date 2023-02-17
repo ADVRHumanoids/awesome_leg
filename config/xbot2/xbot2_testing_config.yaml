@@ -36,7 +36,7 @@ xbotcore_plugins:
     
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-    bus_power_rt_iq_model:
+    bus_power_rt:
         thread: rt_main
         type: bus_power_rt
         params:
@@ -57,6 +57,8 @@ xbotcore_plugins:
             R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
+
+            bus_p_leak: {value: 48, type: double} # [W]
 
             der_est_order: {value: 1, type: int}
 

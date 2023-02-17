@@ -130,7 +130,7 @@ xbotcore_plugins:
 
             resample_err_tolerance: {value: 1e-2, type: double}
 
-    bus_power_rt_iq_model:
+    bus_power_rt:
         thread: rt_main
         type: bus_power_rt
         params:
@@ -324,7 +324,7 @@ xbotcore_plugins:
 
 #            plugin_list: {value: ["base_est_rt"], type: vector<string>}
 
-            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt_iq_model", "base_est_rt", "impact_detector_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "base_est_rt", "impact_detector_rt"], type: vector<string>}
 
             plugins_stat_topicname: {value: "plugins_manager/plugins_status", type: string}
 

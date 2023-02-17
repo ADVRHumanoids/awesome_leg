@@ -10,7 +10,8 @@
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
 
-#include <awesome_leg/RegPowStatus.h>
+#include <awesome_leg/EstRegPowStatus.h>
+#include <awesome_leg/MeasRegPowStatus.h>
 
 using namespace XBot;
 
@@ -35,15 +36,47 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _rec_evergy_topicname = "reg_pow_node_iq_model";
+            std::string _rec_evergy_topicname = "est_reg_pow_node_iq_model";
 
-            std::string _rec_energy_pluginname = "bus_power_rt_iq_model";
+            std::string _rec_energy_pluginname = "bus_power_rt";
 
             double _recov_energy_thresh = 3 * 300.0; // [J]
 
-            awesome_leg::RegPowStatus _reg_pow_status;
+            awesome_leg::EstRegPowStatus _reg_pow_status;
 
-            SubscriberPtr<awesome_leg::RegPowStatus> _reg_pow_sub;
+            SubscriberPtr<awesome_leg::EstRegPowStatus> _reg_pow_sub;
+
+            NodeStatus tick() override;
+
+    };
+
+    class RecovEnergyReachedMeas : public ConditionNode, public Task
+    {
+        public:
+
+            // You must provide the function to call when tick() is invoked
+            RecovEnergyReachedMeas(const std::string& name, const NodeConfiguration& config);
+            RecovEnergyReachedMeas(const std::string& name, const NodeConfiguration& config, double& recov_energy_thresh);
+
+            ~RecovEnergyReachedMeas() override = default;
+
+            static PortsList providedPorts(); // this is required to be a static method
+
+        private:
+
+            bool _verbose = false;
+
+            int _queue_size = 1;
+
+            std::string _rec_evergy_topicname = "meas_reg_pow_node";
+
+            std::string _rec_energy_pluginname = "bus_power_rt";
+
+            double _recov_energy_thresh = 3 * 300.0; // [J]
+
+            awesome_leg::MeasRegPowStatus _reg_pow_status;
+
+            SubscriberPtr<awesome_leg::MeasRegPowStatus> _reg_pow_sub;
 
             NodeStatus tick() override;
 
