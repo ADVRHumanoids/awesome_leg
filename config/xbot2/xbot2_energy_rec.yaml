@@ -151,6 +151,7 @@ xbotcore_plugins:
             R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
+            bus_p_leak: {value: 48, type: double} # [W]
 
             der_est_order: {value: 1, type: int}
 
@@ -193,6 +194,7 @@ xbotcore_plugins:
 #            R: {value: [0.09, 0.09], type: Eigen::VectorXd} # phase resistance
 #            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
 #            L_m: {value: [1e-6, 1e-6], type: Eigen::VectorXd}
+#            bus_p_leak: {value: 48, type: double} # [W]
 
 #            der_est_order: {value: 1, type: int}
 
@@ -311,7 +313,7 @@ xbotcore_plugins:
 
             topicname: {value: "impact_state", type: string}
 
-            use_gz_truth: {value: false, type: bool}
+            use_gz_truth: {value: true, type: bool}
 
     plugins_mngr_rt:
         thread: rt_main

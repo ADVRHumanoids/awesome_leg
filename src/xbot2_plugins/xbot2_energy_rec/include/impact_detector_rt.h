@@ -65,7 +65,7 @@ private:
                 _base_est_pluginname = "base_est_rt",
                 _jump_replay_topicname = "replay_status_node",
                 _jump_replay_pluginname = "jmp_replayer_rt",
-                _pow_monitor_pluginname = "bus_power_rt_iq_model",
+                _pow_monitor_pluginname = "bus_power_rt",
                 _pow_monitor_servicename = "start_rec_energy_monitor",
                 _async_service_pattern = "/xbotcore/async_service/",
                 _impact_state_topicname = "impact_state",
