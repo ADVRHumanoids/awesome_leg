@@ -20,6 +20,7 @@
 #include <Eigen/Geometry>
 
 #include <xbot2/hal/dev_ft.h>
+#include <ec_xbot2/pow_ec.h>
 
 #include <xbot2/ros/ros_support.h>
 #include <xbot_msgs/CustomState.h>
@@ -174,6 +175,8 @@ private:
     double _mov_avrg_cutoff_freq_iq_meas = 15.0;
     int _mov_avrg_window_size_q_dot= 10;
     double _mov_avrg_cutoff_freq_q_dot = 15.0;
+
+    std::shared_ptr<Hal::PowerBoardEc> _pow;
 
     void get_params_from_config();
 

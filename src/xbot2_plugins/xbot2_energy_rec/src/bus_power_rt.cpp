@@ -678,6 +678,9 @@ bool BusPowerRt::on_initialize()
 
     init_nrt_ros_bridge();
 
+    // get power sensor handle
+    _pow = _robot->getDevices<Hal::PowerBoardEc>().get_device("power_sensor");
+
     return true;
 
 }
@@ -724,6 +727,9 @@ void BusPowerRt::run()
     add_data2bedumped(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
+
+    jhigh().jinfo("v = {} \ni= {}\n\n", 
+                _pow->get_battery_voltage(), _pow->get_load_current());
 
 }
 
