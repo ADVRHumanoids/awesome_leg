@@ -13,7 +13,7 @@ stack: # tasks
 constraints:
     - "ground_contact"
     - "actuated_jnt_tracking"
-#    - "effort_limits"
+    - "effort_limits"
 
 ground_contact: # tip is supposed in contact with the environment when using the landing controller
     lib_name: "libcartesio_acceleration_support.so"
