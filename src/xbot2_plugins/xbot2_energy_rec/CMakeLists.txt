@@ -11,6 +11,8 @@ find_package(awesome_utils REQUIRED)
 find_package(base_estimation REQUIRED)
 find_package(catkin REQUIRED COMPONENTS behaviortree_cpp_v3)
 
+set(ON_REAL_ROBOT FALSE)
+
 #add_executable(start_jump_replayer src/start_jump_replayer.cpp)
 #add_dependencies(start_jump_replayer ${PROJECT_NAME}_generate_messages)
 #target_link_libraries(start_jump_replayer PRIVATE ${catkin_LIBRARIES} ${cartesian_interface_LIBRARIES} xbot2::xbot2_ros_support)

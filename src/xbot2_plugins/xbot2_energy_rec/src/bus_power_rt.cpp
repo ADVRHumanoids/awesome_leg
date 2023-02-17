@@ -213,9 +213,17 @@ void BusPowerRt::update_state()
 
 void BusPowerRt::update_sensed_power()
 {
-    _vbatt = _pow_sensor->get_battery_voltage();
-    _ibatt = - _pow_sensor->get_load_current(); // current is measured positive if flowing towards the robot
-    // hence, if we want the current goint into the battery, we have to switch sign
+    #if defined(ON_REAL_ROBOT)
+
+    if(_power_sensor_found)
+    {
+        _vbatt = _pow_sensor->get_battery_voltage();
+        _ibatt = - _pow_sensor->get_load_current(); // current is measured positive if flowing towards the robot
+        // hence, if we want the current goint into the battery, we have to switch sign
+    }
+
+    #endif
+
     _p_batt = _vbatt * _ibatt;
 
     _dummy_eig_scalar(0) = _p_batt;
@@ -755,9 +763,13 @@ bool BusPowerRt::on_initialize()
 
     init_nrt_ros_bridge();
 
+    #if defined(ON_REAL_ROBOT)
+
     // get power sensor handle
     _pow_sensor = _robot->getDevices<Hal::PowerBoardEc>().get_device("power_sensor");
     _power_sensor_found = _pow_sensor != nullptr ? true : false;
+
+    #endif
 
     _meas_pow_int = NumIntRt(1, _plugin_dt);
     _reg_meas_pow_int = NumIntRt(1, _plugin_dt);
@@ -812,13 +824,6 @@ void BusPowerRt::run()
     add_data2bedumped(); // add data to the logger
 
     update_clocks(); // last, update the clocks (loop + any additional one)
-
-    if(_power_sensor_found)
-    {
-        jhigh().jinfo("v = {} \ni= {}\n\n",
-                    _pow_sensor->get_battery_voltage(), _pow_sensor->get_load_current());
-    }
-
 
 }
 

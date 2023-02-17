@@ -20,7 +20,10 @@
 #include <Eigen/Geometry>
 
 #include <xbot2/hal/dev_ft.h>
-#include <ec_xbot2/pow_ec.h>
+
+#if defined(ON_REAL_ROBOT)
+    #include <ec_xbot2/pow_ec.h>
+#endif
 
 #include <xbot2/ros/ros_support.h>
 #include <xbot_msgs/CustomState.h>
@@ -167,7 +170,9 @@ private:
     IqEstimator::Ptr _iq_estimator;
 
     RegEnergy::Ptr _pow_estimator;
+    #if defined(ON_REAL_ROBOT)
     std::shared_ptr<Hal::PowerBoardEc> _pow_sensor;
+    #endif
     NumIntRt _meas_pow_int, _reg_meas_pow_int;
     Eigen::VectorXd _dummy_eig_scalar; // aux variable
 
