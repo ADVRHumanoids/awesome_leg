@@ -368,10 +368,7 @@ void BaseEstRt::update_base_estimates()
         _q_p_be(0) = _q_p_be_aux(0);
     }
 
-    if(_is_sim)
-    { // we don't use this on the real robot
-        update_pin_model(); // update pin model with estimates
-    }
+    update_pin_model(); // update pin model with estimates
 
     _num_diff_v.add_sample(_q_p_dot_be); // update differentiation
     _num_diff_v.dot(_q_p_ddot_be); // getting differentiated state acceleration
@@ -423,29 +420,26 @@ void BaseEstRt::update_states()
 
     update_base_estimates();
 
-    if(_is_sim)
-    {
-        _pin_model_ptr->get_frame_pose(_tip_link_name,
-                                  _M_world_from_tip);
-        _R_world_from_tip = _M_world_from_tip.rotation();
-
-        // getting other quantities which are useful to compute the raw residual vector
-        _pin_model_ptr->get_C(_C);
-        _pin_model_ptr->get_g(_g);
-        _pin_model_ptr->get_p(_p);
-
-        _num_diff_p.add_sample(_p); // differentiating the generalized momentum
-        _num_diff_p.dot(_p_dot);
-        _CT_v.noalias() = _C.transpose() * _q_p_dot_be;
-        _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
-        // and without observer)
-        _tau_c_raw_filter.add_sample(_tau_c_raw);
-        _tau_c_raw_filter.get(_tau_c_raw_filt);
-    }
+    _pin_model_ptr->get_frame_pose(_tip_link_name,
+                              _M_world_from_tip);
+    _R_world_from_tip = _M_world_from_tip.rotation();
 
     get_fts_force(); // after update tip pose, we get the local force and
     // rotate it to the world (errors on the position of the passive joint won't
     // affect the correctness of the tip orientation)
+
+    // getting other quantities which are useful to compute the raw residual vector
+    _pin_model_ptr->get_C(_C);
+    _pin_model_ptr->get_g(_g);
+    _pin_model_ptr->get_p(_p);
+
+    _num_diff_p.add_sample(_p); // differentiating the generalized momentum
+    _num_diff_p.dot(_p_dot);
+    _CT_v.noalias() = _C.transpose() * _q_p_dot_be;
+    _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
+    // and without observer)
+    _tau_c_raw_filter.add_sample(_tau_c_raw);
+    _tau_c_raw_filter.get(_tau_c_raw_filt);
 
     _contact_info = _est->contact_info;// get base estimation info
 
