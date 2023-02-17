@@ -20,7 +20,7 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_main:  {sched: fifo , prio: 60, period: 0.01}
+    rt_main:  {sched: fifo , prio: 60, period: 0.003}
     nrt_main: {sched: other, prio: 0 , period: 0.005}
 
 # plugins
@@ -79,6 +79,40 @@ xbotcore_plugins:
             set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
 
             verbose: {value: false, type: bool}
+
+    base_est_rt:
+        thread: rt_main
+        type: base_est_rt
+        params:
+
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+
+            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
+
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: "base_est_rt", type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
+
+            tip_link_name: {value: "tip1", type: string}
+            base_link_name: {value: "base_link", type: string}
+            test_rig_linkname: {value: "test_rig", type: string}
+            tip_fts_name: {value: "tip1_fts", type: string}
+            contact_linkname: {value: "tip1", type: string}
+
+            contact_release_thr: {value: 30.0, type: double}
+            contact_attach_thr: {value: 90.0, type: double}
+
+            contact_detection_gz_truth: {value: 10.0, type: double}
+
+            mov_avrg_cutoff_freq: {value: 15.0, type: double}
+            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
+
+            obs_bw: {value: 25.0, type: double}
+
+            svd_thresh: {value: 0.1, type: double}
+
+            use_gz_truth: {value: "false", type: bool}
 
 # global parameters
 xbotcore_param:
