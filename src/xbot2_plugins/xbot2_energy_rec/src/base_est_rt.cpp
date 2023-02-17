@@ -400,6 +400,7 @@ void BaseEstRt::get_contact_state_ground_truth()
 {
 
     _contact_state_gr_truth = _meas_tip_f_abs(2) >= _contact_detection_gz_truth? true: false;
+
 }
 
 void BaseEstRt::update_states()
