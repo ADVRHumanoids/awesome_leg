@@ -7,28 +7,28 @@ solver_options:
     # nhqp_min_sv_ratio: 0.1
 
 stack: # tasks
-    - ["hip_impedance"]
-    - ["touchdown_conf"]
+    - ["cart_impedance"]
+#    - ["touchdown_conf"]
 
 constraints:
-    - "ground_contact"
-    - "actuated_jnt_tracking"
-    - "effort_limits"
+#    - "ground_contact"
+#    - "actuated_jnt_tracking"
+#    - "effort_limits"
 
-ground_contact: # tip is supposed in contact with the environment when using the landing controller
-    lib_name: "libcartesio_acceleration_support.so"
-    type: "Cartesian"
-    name: "ground_contact"
-    distal_link: "tip1"
-    lambda: 0.0 # no pos feedback
-    lambda2: 1.0 # vel gain
-    indices: [0, 2]
-    active: true
+#ground_contact: # tip is supposed in contact with the environment when using the landing controller
+#    lib_name: "libcartesio_acceleration_support.so"
+#    type: "Cartesian"
+#    name: "ground_contact"
+#    distal_link: "tip1"
+#    lambda: 0.0 # no pos feedback
+#    lambda2: 1.0 # vel gain
+#    indices: [0, 2]
+#    active: true
 
-hip_impedance:
+cart_impedance:
     lib_name: "libcartesio_acceleration_support.so"
     type: "Interaction" # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
-    name: "hip_impedance"
+    name: "cart_impedance"
     lambda: 1.0 # if using Interaction, this is simply a scaling factor
     lambda2: 1.0 # vel feedback gain
     weight: 1
@@ -39,17 +39,18 @@ hip_impedance:
     indices: [0, 2]
     active: true
 
-actuated_jnt_tracking: # we track joint measurements and leave the base free, so that it can be estimated via IK
-    lib_name: "libcartesio_acceleration_support.so"
-    type: "Postural"
-    name: "actuated_jnt_tracking"
-    lambda: 0.0 # no pos feedback
-    lambda2: 1.0 # vel gain
-    active: true
-    disabled_joints:
-       - "test_rig2base"
+#actuated_jnt_tracking: # we track joint measurements and leave the base free, so that it can be estimated via IK
+#    lib_name: "libcartesio_acceleration_support.so"
+#    type: "Postural"
+#    name: "actuated_jnt_tracking"
+#    lambda: 0.0 # no pos feedback
+#    lambda2: 1.0 # vel gain
+#    active: true
+#    disabled_joints:
+#       - "test_rig2base"
 
-touchdown_conf: # tracking of touchdown configuration (to be used during flight phase)
+touchdown_conf: # tracking of touchdown configuration (to be used only during flight phase, so that at the impact we
+    #land as expected)
     lib_name: "libcartesio_acceleration_support.so"
     type: "Postural"
     name: "touchdown_conf"
@@ -60,13 +61,13 @@ touchdown_conf: # tracking of touchdown configuration (to be used during flight 
     disabled_joints:
       - "test_rig2base"
 
-effort_limits:
-    lib_name: "libcartesio_acceleration_support.so"
-    type: "TorqueLimits"
-    name: "effort_limits"
-    contacts: ["tip1"]
-    bound_scaling: 1
-    indices: [0, 1, 2] # how to handle the passive joint and the fact that we don't want to use an estimate of the contact force?
+#effort_limits:
+#    lib_name: "libcartesio_acceleration_support.so"
+#    type: "TorqueLimits"
+#    name: "effort_limits"
+#    contacts: ["tip1"]
+#    bound_scaling: 1
+#    indices: [0, 1, 2] # how to handle the passive joint and the fact that we don't want to use an estimate of the contact force?
 
 #JointLimits:
 #  lib_name: "libcartesio_acceleration_support.so"

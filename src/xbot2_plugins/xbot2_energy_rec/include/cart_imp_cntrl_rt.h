@@ -56,10 +56,13 @@ private:
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-           _matlogger_buffer_size = 1e6;
+           _matlogger_buffer_size = 1e6,
+           _torque_cntrl_stiffness_setpoint = 0.0,
+           _torque_cntrl_damping_setpoint = 0.0;
 
-    Eigen::VectorXd _q_p_meas, _q_p_dot_meas,
-                    _meas_jnt_stiff, _meas_jnt_damp,
+    Eigen::VectorXd _q_meas, _q_dot_meas,
+                    _q_model, _v_model, _v_dot_model, _tau_model,
+                    _jnt_stiffness_setpoint, _jnt_damping_setpoint,
                     _tau_ff,
                     _tau_cmd,
                     _tau_meas,
@@ -72,21 +75,30 @@ private:
     Cartesian::CartesianInterfaceImpl::Ptr _ci_solver;
 
     Cartesian::CartesianTask::Ptr _ground_contact;
-    Cartesian::InteractionTask::Ptr _hip_impedance;
+    Cartesian::InteractionTask::Ptr _cart_impedance_task;
     Cartesian::PosturalTask::Ptr _actuated_jnt_tracking;
     Cartesian::PosturalTask::Ptr _touchdown_conf;
     Cartesian::acceleration::TorqueLimits::Ptr _torque_limits;
 
     MatLogger2::Ptr _logger;
 
-    Cartesian::Impedance _cart_impedance;
-    Eigen::Vector6d _cart_stiffness;
-    Eigen::Vector6d _cart_damping;
-    Eigen::Matrix6d _K;
-    Eigen::Matrix6d _D;
-    Eigen::Matrix6d _Lambda;
+    Cartesian::Impedance _cart_impedance, _cart_impedance_setpoint;
+    Eigen::Vector6d _k_setpoint, _k;
+    Eigen::Vector6d _d_setpoint, _d;
+    Eigen::Matrix6d _K_setpoint, _K;
+    Eigen::Matrix6d _D_setpoint, _D;
 
+    Eigen::Matrix6d _Lambda_inv;
+    Eigen::MatrixXd _Jc, _B;
+
+    Eigen::Vector6d _v_ref, _a_ref;
+    Eigen::Vector3d _pos_ref;
+    Eigen::Matrix3d _R_ref;
     Eigen::Affine3d _M_ref_imp;
+
+    void init_vars();
+    void init_logger();
+    void add_data2logger();
 
     void get_params_from_config();
     void init_model_interface();
@@ -101,6 +113,9 @@ private:
     void update_ci_solver();
 
     void compute_inverse_dyn();
+
+    void is_sim(std::string);
+    void is_dummy(std::string);
 
 };
 

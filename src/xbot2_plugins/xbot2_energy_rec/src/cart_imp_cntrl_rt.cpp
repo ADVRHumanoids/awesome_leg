@@ -18,6 +18,84 @@ void CartImpCntrlRt::update_clocks()
 
 }
 
+void CartImpCntrlRt::is_sim(std::string sim_string = "sim")
+{
+    XBot::Context ctx;
+    auto& pm = ctx.paramManager();
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+
+    size_t sim_found = _hw_type.find(sim_string);
+
+    if (sim_found != std::string::npos) { // we are running the plugin in simulation
+
+        _is_sim = true;
+    }
+    else // we are running on the real robot
+    {
+        _is_sim = false;
+    }
+
+}
+
+void CartImpCntrlRt::is_dummy(std::string dummy_string = "dummy")
+{
+    XBot::Context ctx;
+    auto& pm = ctx.paramManager();
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+
+    size_t dummy_found = _hw_type.find(dummy_string);
+
+    if (dummy_found != std::string::npos) { // we are running the plugin in dummy mode
+
+        _is_dummy = true;
+    }
+    else // we are running on the real robot
+    {
+        _is_dummy = false;
+    }
+
+}
+
+void CartImpCntrlRt::init_vars()
+{
+
+    _q_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _jnt_stiffness_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _jnt_damping_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _tau_ff = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _tau_cmd = Eigen::VectorXd::Zero(_n_jnts_model);
+    _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _effort_lims = Eigen::VectorXd::Zero(_n_jnts_robot);
+
+    _q_model = Eigen::VectorXd::Zero(_n_jnts_model);
+    _v_model = Eigen::VectorXd::Zero(_n_jnts_model);
+    _v_dot_model = Eigen::VectorXd::Zero(_n_jnts_model);
+    _tau_model = Eigen::VectorXd::Zero(_n_jnts_model);
+
+    _Jc = Eigen::MatrixXd::Zero(6, _n_jnts_model);
+    _B = Eigen::MatrixXd::Zero(6, _n_jnts_model);
+
+    for(int i = 0; i < _n_jnts_robot; i++)
+    {
+        _jnt_stiffness_setpoint(i) = _torque_cntrl_stiffness_setpoint;
+        _jnt_damping_setpoint(i) = _torque_cntrl_damping_setpoint;
+
+    }
+
+    _K.setZero();
+    _D.setZero();
+    _Lambda_inv.setZero();
+
+    _k.setZero();
+    _d.setZero();
+    _pos_ref << 0.0, 0.0, -0.3;
+    _R_ref = Eigen::MatrixXd::Identity(3, 3);
+    _v_ref.setZero();
+    _a_ref.setZero();
+
+}
+
 void CartImpCntrlRt::get_params_from_config()
 {
 
@@ -82,26 +160,41 @@ void CartImpCntrlRt::init_cartesio_solver()
     }
 
     // getting tasks
-    _ground_contact = task_as<Cartesian::CartesianTask>(_ci_solver->getTask("ground_contact"));
-    _hip_impedance = task_as<Cartesian::InteractionTask>(_ci_solver->getTask("hip_impedance"));
-    _actuated_jnt_tracking = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("actuated_jnt_tracking"));
-    _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
-    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
+//    _ground_contact = task_as<Cartesian::CartesianTask>(_ci_solver->getTask("ground_contact"));
+//    _actuated_jnt_tracking = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("actuated_jnt_tracking"));
+//    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
 
-    _cart_impedance = _hip_impedance->getImpedance();
+    _cart_impedance_task = task_as<Cartesian::InteractionTask>(_ci_solver->getTask("cart_impedance"));
+//    _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
+
+    _cart_impedance = _cart_impedance_task->getImpedance();
     _K = _cart_impedance.stiffness;
     _D = _cart_impedance.damping;
-//    _Lambda = _cart_impedance.inertia;
-
-    _hip_impedance->getPoseReference(_M_ref_imp);
+    _k_setpoint = _K.diagonal();
+    _d_setpoint = _D.diagonal();
+    _cart_impedance_task->getPoseReference(_M_ref_imp);
 
 }
 
 void CartImpCntrlRt::update_tasks()
 {
-    _hip_impedance->setImpedance(_cart_impedance);
+    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix
 
-    _hip_impedance->setPoseReference(_M_ref_imp);
+    _K_setpoint.noalias() = _Lambda_inv * _k_setpoint.asDiagonal();
+    _D_setpoint.noalias() = _Lambda_inv * _d_setpoint.asDiagonal();
+
+    _cart_impedance_setpoint.stiffness = _K_setpoint;
+    _cart_impedance_setpoint.damping = _D_setpoint;
+
+    _cart_impedance_task->setImpedance(_cart_impedance_setpoint);
+
+    _M_ref_imp.translation() = _pos_ref;
+    _M_ref_imp.linear() = _R_ref;
+    _v_ref.setZero();
+    _a_ref.setZero();
+    _cart_impedance_task->setPoseReference(_M_ref_imp);
+    _cart_impedance_task->setVelocityReference(_v_ref);
+    _cart_impedance_task->setAccelerationReference(_a_ref);
 
      // _touchdown_conf->setActivationState(Cartesian::ActivationState::Enabled);
     // _touchdown_conf->setActivationState(Cartesian::ActivationState::Disabled);
@@ -128,43 +221,113 @@ void CartImpCntrlRt::update_state()
     _robot->sense();
 
     // Getting robot state
-    _robot->getJointPosition(_q_p_meas);
-    _robot->getMotorVelocity(_q_p_dot_meas);    
+    _robot->getJointPosition(_q_meas);
+    _robot->getMotorVelocity(_q_dot_meas);
     
     // Updating the model with the measurements
-//    _model->setJointPosition(_q_p_meas);
-//    _model->setJointVelocity(_q_p_dot_meas);
-//    _model->update();
-
-//    Eigen::Vector6d::Map(inertia.data()).asDiagonal()
+    _q_model.segment(1, _n_jnts_robot) = _q_meas;
+    _v_model.segment(1, _n_jnts_robot) = _q_dot_meas;
+    _model->setJointPosition(_q_model);
+    _model->setJointVelocity(_v_model);
+    _model->update();
+    _model->getRelativeJacobian(_cart_impedance_task->getDistalLink(),
+                        _cart_impedance_task->getBaseLink(),
+                        _Jc);
+    _model->getInertiaMatrix(_B);
 
     update_tasks();
 
     update_ci_solver();
 
-    compute_inverse_dyn();
+    _model->getJointEffort(_tau_cmd);
+//    _model->setJointPosition(_q_model);
+//    _model->setJointVelocity(_v_model);
+//    _model->update();
 
+//    compute_inverse_dyn();
     
 }
 
-//void CartImpCntrlRt::saturate_input()
-//{
-//    int input_sign = 1; // defaults to positive sign
+void CartImpCntrlRt::saturate_input()
+{
 
-//    for(int i = 0; i < _n_jnts_model; i++)
-//    {
-//        if (abs(_effort_command[i]) >= abs(_effort_lims[i]))
-//        {
-//            input_sign = (signbit(_effort_command[i])) ? -1: 1;
+    _robot->enforceEffortLimit(_tau_ff);
+}
 
-//            _effort_command[i] = input_sign * (abs(_effort_lims[i]) - _delta_effort_lim);
-//        }
-//    }
-//}
+void CartImpCntrlRt::init_logger()
+{
+    MatLogger2::Options opt;
+    opt.default_buffer_size = 1e6; // set default buffer size
+    opt.enable_compression = true; // enable ZLIB compression
+    _logger = MatLogger2::MakeLogger("/tmp/LandingImpCntrlRt", opt); // date-time automatically appended
+    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+
+    _logger->add("plugin_dt", _plugin_dt);
+    _logger->add("is_sim", int(_is_sim));
+    _logger->add("eff_limits", _effort_lims);
+
+    _logger->create("Lambda_inv", 6, 6, _matlogger_buffer_size);
+    _logger->create("Jc", 6, _n_jnts_model, _matlogger_buffer_size);
+    _logger->create("B", _n_jnts_model, _n_jnts_model, _matlogger_buffer_size);
+    _logger->create("k", 6, 1, _matlogger_buffer_size);
+    _logger->create("d", 6, 1, _matlogger_buffer_size);
+    _logger->create("k_setpoint", 6, 1, _matlogger_buffer_size);
+    _logger->create("d_setpoint", 6, 1, _matlogger_buffer_size);
+    _logger->create("p_ref", 3, 1, _matlogger_buffer_size);
+    _logger->create("R_ref", 3, 3, _matlogger_buffer_size);
+    _logger->create("v_ref", 6, 1, _matlogger_buffer_size);
+    _logger->create("a_ref", 6, 1, _matlogger_buffer_size);
+
+    _logger->create("q_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _logger->create("q_dot_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _logger->create("q_model", _n_jnts_model, 1, _matlogger_buffer_size);
+    _logger->create("v_model", _n_jnts_model, 1, _matlogger_buffer_size);
+    _logger->create("v_dot_model", _n_jnts_model, 1, _matlogger_buffer_size);
+    _logger->create("tau_model", _n_jnts_model, 1, _matlogger_buffer_size);
+    _logger->create("jnt_stiffness_setpoint", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _logger->create("jnt_damping_setpoint", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _logger->create("tau_ff", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _logger->create("tau_cmd", _n_jnts_model, 1, _matlogger_buffer_size);
+    _logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+
+}
+
+void CartImpCntrlRt::add_data2logger()
+{
+
+    _logger->add("Lambda_inv", _Lambda_inv);
+    _logger->add("Jc", _Jc);
+    _logger->add("B", _B);
+    _logger->add("k", _k);
+    _logger->add("d", _d);
+    _logger->add("k_setpoint", _k_setpoint);
+    _logger->add("d_setpoint", _d_setpoint);
+    _logger->add("R_ref", _R_ref);
+    _logger->add("p_ref", _pos_ref);
+    _logger->add("v_ref", _v_ref);
+    _logger->add("a_ref", _a_ref);
+
+    _logger->add("q_meas", _q_meas);
+    _logger->add("q_dot_meas", _q_dot_meas);
+    _logger->add("q_model", _q_model);
+    _logger->add("v_model", _v_model);
+    _logger->add("v_dot_model", _v_dot_model);
+    _logger->add("tau_model", _tau_model);
+    _logger->add("jnt_stiffness_setpoint", _jnt_stiffness_setpoint);
+    _logger->add("jnt_damping_setpoint", _jnt_damping_setpoint);
+    _logger->add("tau_ff", _tau_ff);
+    _logger->add("tau_cmd", _tau_cmd);
+    _logger->add("tau_meas", _tau_meas);
+
+}
 
 bool CartImpCntrlRt::on_initialize()
 {
-    
+    is_sim();
+
+    is_dummy();
+
     // Getting nominal control period from plugin method
     _plugin_dt = getPeriodSec();
 
@@ -179,7 +342,9 @@ bool CartImpCntrlRt::on_initialize()
 
     // Reading joint effort limits (used for saturating the trajectory)
     _model->getEffortLimits(_effort_lims);
-    
+
+    init_vars();
+
     return true;
 }
 
@@ -187,14 +352,7 @@ void CartImpCntrlRt::starting()
 {
     init_clocks();
 
-    // Creating a logger for post-processing (inserted here and not in on_initialize() 
-    // so that when the plugin is restarted, the object is recreated)
-
-    MatLogger2::Options opt;
-    opt.default_buffer_size = 1e6; // set default buffer size
-    opt.enable_compression = true; // enable ZLIB compression
-    _logger = MatLogger2::MakeLogger("/tmp/LandingImpCntrlRt", opt); // date-time automatically appended
-    _logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
+    init_logger();
 
     // Initializing CartesIO solver (inserted here and not in on_initialize() 
     // so that when the plugin is restarted, the solver is recreated)
@@ -222,34 +380,31 @@ void CartImpCntrlRt::run()
 {   
 
     // Update the measured state
-//    update_state();
-     
-    // and update CartesIO solver using the measured state
-//    _solver->update(_loop_time, _plugin_dt);
-
-    // Read the joint efforts computed via CartesIO (computed using acceleration_support)
-//    _model->getJointEffort(_effort_command);
-//    _robot->getJointEffort(_meas_effort);
-    
-    // Check input for bound violations
-//    saturate_input();
+    update_state();
 
     // Set the effort commands (and also stiffness/damping)
-//    _robot->setEffortReference(_effort_command);
-//    _robot->setPositionReference(_q_p_meas); // sending also position reference only to avoid bad behavior when stopping the plugin
-//    _robot->setStiffness(_stiffness);
-//    _robot->setDamping(_damping);
+    _tau_ff = _tau_cmd.segment(1, _n_jnts_robot);
 
-    // Send commands to the robot
-//    _robot->move();
+    // Check input for bound violations
+    saturate_input();
 
-    // Getting cartesian damping and stiffness for debugging purposes
-//    _impedance= _int_task->getImpedance();
-//    _cart_stiffness = _impedance.stiffness;
-//    _cart_damping = _impedance.damping;
+    _robot->setEffortReference(_tau_ff);
+    _robot->setPositionReference(_q_meas); // this way the error is 0
+    _robot->setVelocityReference(_q_dot_meas); // this way the error is 0
+    _robot->setStiffness(_jnt_stiffness_setpoint);
+    _robot->setDamping(_jnt_damping_setpoint);
+    _robot->move();
+
+    // Getting cartesian imp. for debugging purposes
+    _cart_impedance= _cart_impedance_task->getImpedance();
+    _K = _cart_impedance.stiffness;
+    _D = _cart_impedance.damping;
+    _k = _K.diagonal();
+    _d = _D.diagonal();
+
+    add_data2logger();
 
     update_clocks(); // updating clocks
-
 
 }
 
@@ -258,17 +413,6 @@ void CartImpCntrlRt::on_stop()
 
     // Read the current state
     _robot->sense();
-
-    // Setting references before exiting
-//    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
-
-//    _robot->setStiffness(_stop_stiffness);
-//    _robot->setDamping(_stop_damping);
-//    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
-//    _robot->setPositionReference(_q_p_meas);
-
-//    // Sending references
-//    _robot->move();
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
     _logger.reset();
