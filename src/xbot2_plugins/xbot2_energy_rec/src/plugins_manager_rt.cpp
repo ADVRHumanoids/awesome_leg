@@ -4,11 +4,11 @@ void PluginsManagerRt::read_config_from_yaml()
 {
     _plugin_list = getParamOrThrow<std::vector<std::string>>("~plugin_list");
 
-    _queue_size = getParamOrThrow<int>("~queue_size");
+//    _queue_size = getParamOrThrow<int>("~queue_size");
 
-    _async_service_pattern = getParamOrThrow<std::string>("~async_service_pattern");
+//    _async_service_pattern = getParamOrThrow<std::string>("~async_service_pattern");
 
-    _plugins_stat_topicname = getParamOrThrow<std::string>("~plugins_stat_topicname");
+//    _plugins_stat_topicname = getParamOrThrow<std::string>("~plugins_stat_topicname");
 
     _verbose = getParamOrThrow<bool>("~verbose");
 

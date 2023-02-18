@@ -45,9 +45,9 @@ void TempMonRt::update_clocks()
 void TempMonRt::get_params_from_config()
 {
 
-    _temp_stat_topicname = getParamOrThrow<std::string>("~temp_stat_topicname");
+//    _temp_stat_topicname = getParamOrThrow<std::string>("~temp_stat_topicname");
 
-    _queue_size = getParamOrThrow<int>("~queue_size");
+//    _queue_size = getParamOrThrow<int>("~queue_size");
 
     _driver_temp_threshold = getParamOrThrow<double>("~driver_temp_threshold");
     _driver_temp_threshold_cooling  = getParamOrThrow<double>("~driver_temp_threshold_cooling");
@@ -55,15 +55,16 @@ void TempMonRt::get_params_from_config()
     _verbose = getParamOrThrow<bool>("~verbose");
 
     _mat_path = getParamOrThrow<std::string>("~mat_path");
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
-    _idler_pluginname = getParamOrThrow<std::string>("~idler_pluginname");
-    _safety_stop_topicname = getParamOrThrow<std::string>("~safety_stop_topicname");
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _temp_rise_rate = getParamOrThrow<double>("~temp_rise_rate");
-    _temp_cooling_rate = getParamOrThrow<double>("~temp_cooling_rate");
+//    _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
+//    _idler_pluginname = getParamOrThrow<std::string>("~idler_pluginname");
+//    _safety_stop_topicname = getParamOrThrow<std::string>("~safety_stop_topicname");
+
+//    _temp_rise_rate = getParamOrThrow<double>("~temp_rise_rate");
+//    _temp_cooling_rate = getParamOrThrow<double>("~temp_cooling_rate");
 
 }
 

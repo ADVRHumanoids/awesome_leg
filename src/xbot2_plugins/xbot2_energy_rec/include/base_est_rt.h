@@ -82,25 +82,25 @@ private:
         _contact_state = true,
         _contact_state_gr_truth = true,
         _is_flight_phase = false,
-        _is_flight_phase_prev = false,
-        _use_gz_truth = false;
+        _is_flight_phase_prev = false;
 
     int _n_jnts_robot,
         _nv_be, _nq_be;
 
-    std::string _mat_path, _dump_mat_suffix,
+    std::string _mat_path = "/tmp/",
+                _dump_mat_suffix = "base_est_rt",
                 _srdf_path_base_est,
                 _urdf_path_base_est,
-                _tip_link_name, _base_link_name, _test_rig_linkname = "test_rig",
+                _tip_link_name = "tip1", _base_link_name = "base_link", _test_rig_linkname = "test_rig",
                 _hw_type,
-                _tip_fts_name,
+                _tip_fts_name = "tip1_fts",
                 _contact_linkname = "tip1",
                 _ik_problem_path,
                 _be_msg_name;
 
     double _plugin_dt,
            _loop_time = 0.0, _flight_time = 0.0, _loop_timer_reset_time = 3600.0,
-           _matlogger_buffer_size = 1e4,
+           _matlogger_buffer_size = 1e5,
            _mov_avrg_cutoff_freq = 15.0,
            _mov_avrg_cutoff_freq_tau_c = 15.0,
            _obs_bw = 20.0,

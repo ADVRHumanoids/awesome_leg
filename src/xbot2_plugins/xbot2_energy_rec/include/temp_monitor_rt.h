@@ -68,11 +68,11 @@ private:
          _simulate_temp_if_sim = true,
          _cooling_down = false;
 
-    int _n_jnts_robot, _queue_size = 1;
+    int _n_jnts_robot, _queue_size = 5;
 
-    std::string _mat_path, _dump_mat_suffix,
+    std::string _mat_path = "/tmp/", _dump_mat_suffix = "temp_monitor_rt",
                 _hw_type,
-                _temp_stat_topicname = "temp_status",
+                _temp_stat_topicname = "temp_monitor/temp_status",
                 _idle_status_topicname = "idle_status",
                 _safety_stop_topicname = "safety_stop_status",
                 _idler_pluginname = "idler_rt";
@@ -80,11 +80,11 @@ private:
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
         _matlogger_buffer_size = 1e6,
-        _driver_temp_threshold = 58.0,
-        _driver_temp_threshold_cooling = 55.0,
+        _driver_temp_threshold = 55.0,
+        _driver_temp_threshold_cooling = 45.0,
         _fake_starting_temp = 40.0,
-        _temp_rise_rate = 1.0/60.0,
-        _temp_cooling_rate = 5.0/60.0; // deg/s
+        _temp_rise_rate = 1.0,
+        _temp_cooling_rate = 2.0; // deg/s
 
     std::vector<std::string> _jnt_names;
 

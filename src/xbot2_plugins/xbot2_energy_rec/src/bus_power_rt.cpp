@@ -100,32 +100,32 @@ void BusPowerRt::get_params_from_config()
     // Reading some parameters from XBot2 config. YAML file
 
     _mat_path = getParamOrThrow<std::string>("~mat_path");
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
     _red_ratio = getParamOrThrow<Eigen::VectorXd>("~red_ratio");
     _K_t = getParamOrThrow<Eigen::VectorXd>("~K_t");
     _K_d0 = getParamOrThrow<Eigen::VectorXd>("~K_d0");
     _K_d1 = getParamOrThrow<Eigen::VectorXd>("~K_d1");
     _rot_MoI = getParamOrThrow<Eigen::VectorXd>("~rotor_axial_MoI");
-
-    _der_est_order = getParamOrThrow<int>("~der_est_order");
-    _mov_avrg_cutoff_freq_iq = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq");
-    _mov_avrg_cutoff_freq_tau = getParamOrThrow<double>("~mov_avrg_cutoff_freq_tau");
-    _mov_avrg_cutoff_freq_iq_meas = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq_meas");
-    _mov_avrg_cutoff_freq_q_dot = getParamOrThrow<double>("~mov_avrg_cutoff_freq_q_dot");
-
-    _alpha = getParamOrThrow<int>("~alpha");
-
-    _q_dot_3sigma = getParamOrThrow<double>("~q_dot_3sigma");
-
     _R = getParamOrThrow<Eigen::VectorXd>("~R");
     _L_m = getParamOrThrow<Eigen::VectorXd>("~L_m");
     _L_leak = getParamOrThrow<Eigen::VectorXd>("~L_leak");
+    _bus_p_leak = getParamOrThrow<double>("~bus_p_leak");
 
-    _use_iq_meas = getParamOrThrow<bool>("~use_iq_meas");
+//    _der_est_order = getParamOrThrow<int>("~der_est_order");
+//    _mov_avrg_cutoff_freq_iq = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq");
+//    _mov_avrg_cutoff_freq_tau = getParamOrThrow<double>("~mov_avrg_cutoff_freq_tau");
+//    _mov_avrg_cutoff_freq_iq_meas = getParamOrThrow<double>("~mov_avrg_cutoff_freq_iq_meas");
+//    _mov_avrg_cutoff_freq_q_dot = getParamOrThrow<double>("~mov_avrg_cutoff_freq_q_dot");
 
-    _dump_iq_data = getParamOrThrow<bool>("~dump_iq_data");
+//    _alpha = getParamOrThrow<int>("~alpha");
+
+//    _q_dot_3sigma = getParamOrThrow<double>("~q_dot_3sigma");
+
+//    _use_iq_meas = getParamOrThrow<bool>("~use_iq_meas");
+
+//    _dump_iq_data = getParamOrThrow<bool>("~dump_iq_data");
 
     _topic_ns = getParamOrThrow<std::string>("~topic_ns");
 
@@ -133,7 +133,6 @@ void BusPowerRt::get_params_from_config()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
-    _bus_p_leak = getParamOrThrow<double>("~bus_p_leak");
 
 }
 

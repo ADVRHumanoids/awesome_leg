@@ -27,29 +27,27 @@ void BtRt::update_clocks()
 void BtRt::read_config_from_yaml()
 {
     _mat_path = getParamOrThrow<std::string>("~mat_path");
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
-
     _bt_description_path = getParamOrThrow<std::string>("~bt_description_path");
 
-    _plugin_manager_name = getParamOrThrow<std::string>("~plugin_manager_name");
-
-    _plugins_stat_topicname = getParamOrThrow<std::string>("~plugins_stat_topicname");
-
-    _queue_size = getParamOrThrow<int>("~queue_size");
-
-    _tree_logpath = getParamOrThrow<std::string>("~tree_logpath");
+    _verbose = getParamOrThrow<bool>("~verbose");
 
     _use_zmq_pub = getParamOrThrow<bool>("~use_zmq_pub");
     _use_bt_log =  getParamOrThrow<bool>("~use_bt_log");
 
-    _stop_on_completion = getParamOrThrow<bool>("~stop_on_completion");
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _stop_ticking_root_if_completed = getParamOrThrow<bool>("~stop_ticking_root_if_completed");
 
-    _verbose = getParamOrThrow<bool>("~verbose");
+//    _plugin_manager_name = getParamOrThrow<std::string>("~plugin_manager_name");
 
-    _recov_energy_thresh = getParamOrThrow<double>("~recov_energy_thresh");
+//    _plugins_stat_topicname = getParamOrThrow<std::string>("~plugins_stat_topicname");
+
+//    _queue_size = getParamOrThrow<int>("~queue_size");
+
+//    _tree_logpath = getParamOrThrow<std::string>("~tree_logpath");
+
+
+//    _stop_on_completion = getParamOrThrow<bool>("~stop_on_completion");
 
 }
 

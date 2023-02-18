@@ -86,7 +86,7 @@ public:
 private:
 
     bool _is_sim = true, _is_dummy = false,
-         _use_iq_meas = true, 
+         _use_iq_meas = false,
          _dump_iq_data = false,
          _monitor_recov_energy = false, 
          _verbose = false,
@@ -96,18 +96,18 @@ private:
     int _n_jnts_robot,
         _der_est_order = 1,
         _iq_calib_window_size = 1000,
-        _alpha = 10;
+        _alpha = 5.0;
 
-    std::string _mat_path, _dump_mat_suffix,
+    std::string _mat_path = "/tmp/", _dump_mat_suffix = "bus_power_rt",
                 _hw_type, 
                 _topic_ns = "",
                 _set_monitor_state_servname = "start_rec_energy_monitor";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-        _matlogger_buffer_size = 1e4,
+        _matlogger_buffer_size = 1e5,
         _lambda_qp_reg = 1.0,
-        _q_dot_3sigma = 0.001;
+        _q_dot_3sigma = 0.01;
 
     double _er = 0.0, _pr = 0.0, _recov_energy_tot = 0.0;
 

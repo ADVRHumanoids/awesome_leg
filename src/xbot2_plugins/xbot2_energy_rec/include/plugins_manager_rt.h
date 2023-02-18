@@ -46,7 +46,7 @@ private:
         _verbose = false,
         _is_first_trigger = true;
 
-    int _queue_size = 1,
+    int _queue_size = 5,
         _queue_size_status = 1,
         _n_plugins = 0,
         _running_plugins_counter = 0,

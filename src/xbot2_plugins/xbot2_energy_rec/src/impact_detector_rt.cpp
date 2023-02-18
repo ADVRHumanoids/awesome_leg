@@ -33,15 +33,15 @@ void ImpactDetectorRt::update_clocks()
 void ImpactDetectorRt::get_params_from_config()
 {
 
-    _queue_size = getParamOrThrow<int>("~queue_size");
+//    _queue_size = getParamOrThrow<int>("~queue_size");
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
     _mat_path = getParamOrThrow<std::string>("~mat_path");
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _impact_state_topicname = getParamOrThrow<std::string>("~topicname");
+//    _impact_state_topicname = getParamOrThrow<std::string>("~topicname");
 
     _use_gz_ground_truth =getParamOrThrow<bool>("~use_gz_truth");
 

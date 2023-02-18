@@ -32,17 +32,17 @@ void IdlerRt::update_clocks()
 void IdlerRt::get_params_from_config()
 {
 
-    _queue_size = getParamOrThrow<int>("~queue_size");
+//    _queue_size = getParamOrThrow<int>("~queue_size");
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
-    _mat_path = getParamOrThrow<std::string>("~mat_path");
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
+//    _mat_path = getParamOrThrow<std::string>("~mat_path");
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
+//    _idle_status_topicname = getParamOrThrow<std::string>("~idle_status_topicname");
 
-    _idler_servicename = getParamOrThrow<std::string>("~idler_servicename");
+//    _idler_servicename = getParamOrThrow<std::string>("~idler_servicename");
 
 }
 

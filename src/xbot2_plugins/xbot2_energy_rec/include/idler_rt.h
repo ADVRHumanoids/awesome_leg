@@ -66,9 +66,9 @@ private:
     bool _is_sim = true, _is_dummy = false,
          _verbose = false;
 
-    int _queue_size = 1;
+    int _queue_size = 5;
 
-    std::string _mat_path, _dump_mat_suffix,
+    std::string _mat_path = "/tmp/", _dump_mat_suffix = "idler_rt",
                 _hw_type,
                 _idle_status_topicname = "idle_status",
                 _idler_servicename = "set_cmd_plugins_2idle",

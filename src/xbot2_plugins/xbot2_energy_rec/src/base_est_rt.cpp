@@ -86,18 +86,18 @@ void BaseEstRt::get_params_from_config()
     _ik_problem_path = getParamOrThrow<std::string>("~ik_problem_path");
 
     _mat_path = getParamOrThrow<std::string>("~mat_path");
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
 
-    _tip_link_name = getParamOrThrow<std::string>("~tip_link_name");
-    _base_link_name = getParamOrThrow<std::string>("~base_link_name");
-    _test_rig_linkname = getParamOrThrow<std::string>("~test_rig_linkname");
+//    _tip_link_name = getParamOrThrow<std::string>("~tip_link_name");
+//    _base_link_name = getParamOrThrow<std::string>("~base_link_name");
+//    _test_rig_linkname = getParamOrThrow<std::string>("~test_rig_linkname");
 
-    _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
-    _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
+//    _tip_fts_name = getParamOrThrow<std::string>("~tip_fts_name");
+//    _contact_linkname = getParamOrThrow<std::string>("~contact_linkname");
 
-    _mov_avrg_cutoff_freq = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
-    _mov_avrg_cutoff_freq_tau_c = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
+//    _mov_avrg_cutoff_freq = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
+//    _mov_avrg_cutoff_freq_tau_c = getParamOrThrow<double>("~mov_avrg_cutoff_freq");
 
     _obs_bw = getParamOrThrow<double>("~obs_bw");
 
@@ -106,9 +106,7 @@ void BaseEstRt::get_params_from_config()
 
     _svd_thresh = getParamOrThrow<double>("~svd_thresh");
 
-    _contact_detection_gz_truth = getParamOrThrow<double>("~contact_detection_gz_truth");
-
-    _use_gz_truth = getParamOrThrow<bool>("~use_gz_truth");
+//    _contact_detection_gz_truth = getParamOrThrow<double>("~contact_detection_gz_truth");
 
 }
 

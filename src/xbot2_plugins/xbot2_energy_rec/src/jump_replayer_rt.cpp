@@ -97,36 +97,39 @@ void JumpReplayerRt::get_params_from_config()
 
     _mat_path = getParamOrThrow<std::string>("~mat_path"); 
     _mat_name = getParamOrThrow<std::string>("~mat_name"); 
-    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix"); 
-    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
-
-    _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive"); 
-
-    _resample = getParamOrThrow<bool>("~resample"); 
-
-    _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
-    _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
-
-    _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
-    _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
-
-    _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness"); 
-    _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
-
-    _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness"); 
-    _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping"); 
-
-    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
-    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
-    _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
-
-    _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
-
-    _send_whole_traj = getParamOrThrow<bool>("~send_whole_traj");
-
     _verbose = getParamOrThrow<bool>("~verbose");
 
-    _resample_err_tolerance = getParamOrThrow<double>("~resample_err_tolerance");
+    _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness");
+    _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
+
+    _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness");
+    _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping");
+
+//    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
+//    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
+
+//    _is_first_jnt_passive = getParamOrThrow<bool>("~is_first_jnt_passive");
+
+//    _resample = getParamOrThrow<bool>("~resample");
+
+//    _stop_stiffness = getParamOrThrow<Eigen::VectorXd>("~stop_stiffness");
+//    _stop_damping = getParamOrThrow<Eigen::VectorXd>("~stop_damping");
+
+//    _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
+//    _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
+
+
+
+//    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
+//    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
+//    _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
+
+//    _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
+
+//    _send_whole_traj = getParamOrThrow<bool>("~send_whole_traj");
+
+
+//    _resample_err_tolerance = getParamOrThrow<double>("~resample_err_tolerance");
 
 }
 
@@ -245,7 +248,7 @@ void JumpReplayerRt::init_dump_logger()
     opt.enable_compression = true; // enable ZLIB compression
     if (_dump_mat_suffix == std::string(""))
     { // if empty, then dump to tmp with plugin name
-        _dump_logger = MatLogger2::MakeLogger("/tmp/JumpReplayerRt", opt); // date-time automatically appended
+        _dump_logger = MatLogger2::MakeLogger(_dump_path, opt); // date-time automatically appended
     }
     else
     {
@@ -263,8 +266,6 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->set_buffer_mode(XBot::VariableBuffer::Mode::circular_buffer);
 
     _dump_logger->add("plugin_dt", _plugin_dt);
-    _dump_logger->add("stop_stiffness", _stop_stiffness);
-    _dump_logger->add("stop_damping", _stop_damping);
     _dump_logger->add("is_sim", int(_is_sim));
     
     _dump_logger->add("send_pos_ref", int(_send_pos_ref));
@@ -906,18 +907,18 @@ void JumpReplayerRt::run()
 void JumpReplayerRt::on_stop()
 {
     // Read the current state
-    _robot->sense();
+//    _robot->sense();
 
     // Setting references before exiting
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+//    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
     
-    _robot->setStiffness(_stop_stiffness);
-    _robot->setDamping(_stop_damping);
-    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
-    _robot->setPositionReference(_q_p_meas);
+//    _robot->setStiffness(_stop_stiffness);
+//    _robot->setDamping(_stop_damping);
+//    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
+//    _robot->setPositionReference(_q_p_meas);
 
     // Sending references
-    _robot->move();
+//    _robot->move();
 
     _is_first_run = true;
 
@@ -937,18 +938,18 @@ void JumpReplayerRt::stopping()
 void JumpReplayerRt::on_abort()
 {
     // Read the current state
-    _robot->sense();
+//    _robot->sense();
 
     // Setting references before exiting
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
+//    _robot->setControlMode(ControlMode::Position() + ControlMode::Stiffness() + ControlMode::Damping());
 
-    _robot->setStiffness(_stop_stiffness);
-    _robot->setDamping(_stop_damping);
-    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
-    _robot->setPositionReference(_q_p_meas);
+//    _robot->setStiffness(_stop_stiffness);
+//    _robot->setDamping(_stop_damping);
+//    _robot->getPositionReference(_q_p_meas); // to avoid jumps in the references when stopping the plugin
+//    _robot->setPositionReference(_q_p_meas);
 
     // Sending references
-    _robot->move();
+//    _robot->move();
 
     // Destroy logger and dump .mat file
     _dump_logger.reset();

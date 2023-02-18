@@ -57,9 +57,9 @@ private:
          _verbose = false,
         _use_gz_ground_truth = false;
 
-    int _queue_size = 1;
+    int _queue_size = 5;
 
-    std::string _mat_path, _dump_mat_suffix,
+    std::string _mat_path = "/tmp/", _dump_mat_suffix = "impact_detector_rt",
                 _hw_type,
                 _base_est_status_topicname = "base_estimation_node",
                 _base_est_pluginname = "base_est_rt",

@@ -64,27 +64,25 @@ private:
         _is_sim = true, _is_dummy = false, 
         _use_zmq_pub = false, _use_bt_log = false,
         _bt_finished = false,
-        _stop_on_completion = false,
-        _stop_ticking_root_if_completed = true,
+        _stop_on_completion = true,
         _verbose = false;
 
-    int _queue_size = 1;
+    int _queue_size = 5;
 
-    std::string _mat_path, _dump_mat_suffix,
+    std::string _mat_path = "/tmp/", _dump_mat_suffix = "bt_root_rt",
                 _hw_type,
                 _bt_description_path,
                 _bt_root_topicname = "bt_root",
                 _plugin_manager_name = "plugins_mngr_rt",
                 _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
                 _plugins_stat_topicname  = "plugins_manager/plugins_status",
-                _tree_logpath = "\tmp",
+                _tree_logpath = "/tmp",
                 _tree_logname = "bt_trace",
                 _tree_log_fullpaths;
 
     double _plugin_dt,
            _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-           _matlogger_buffer_size = 1e4,
-           _recov_energy_thresh = 300 * 5; // [J]
+           _matlogger_buffer_size = 1e5;
 
     MatLogger2::Ptr _dump_logger;
 

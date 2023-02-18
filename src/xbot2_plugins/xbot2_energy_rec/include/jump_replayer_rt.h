@@ -76,13 +76,13 @@ public:
 private:
 
     bool _is_first_run = true,
-        _send_pos_ref = true, _send_vel_ref = false,  _send_eff_ref = false,
-        _is_first_jnt_passive = false,
+        _send_pos_ref = true, _send_vel_ref = true,  _send_eff_ref = false,
+        _is_first_jnt_passive = true,
         _resample = false,
         _is_first_trigger = true,
         _is_sim = true, _is_dummy = false,
         _reduce_dumped_sol_size = false,
-        _send_whole_traj = false,
+        _send_whole_traj = true,
         _verbose = false,
         _is_first_imp_ramp_loop = false,
         _perform_takeoff = false, _go2takeoff_config = false, _ramp_imp = false,
@@ -94,16 +94,19 @@ private:
         _takeoff_index = -1,
         _jump_phase_state = -1;
 
-    std::string _mat_path, _mat_name, _dump_mat_suffix,
-                _hw_type;
+    std::string _mat_path, _mat_name,
+                _dump_mat_suffix = "traj_replay",
+                _hw_type,
+                _dump_path = "/tmp/JumpReplayerRt";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-        _approach_traj_exec_time = 4.0,
+        _approach_traj_exec_time = 5.0,
         _approach_traj_time = 0.0,
-        _imp_ramp_time = 0.5, _smooth_imp_time = 0.0,
-        _matlogger_buffer_size = 1e6,
-        _resample_err_tolerance = 1e-3;
+        _imp_ramp_time = 4.0,
+        _smooth_imp_time = 0.0,
+        _matlogger_buffer_size = 1e5,
+        _resample_err_tolerance = 1e-2;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping,
                     _replay_stiffness, _replay_damping,
