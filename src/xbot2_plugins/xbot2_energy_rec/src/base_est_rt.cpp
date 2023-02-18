@@ -14,15 +14,9 @@ void BaseEstRt::init_vars()
     _q_p_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     _q_p_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
-
     _q_p_dot_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _tau_ff = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _meas_stiff = Eigen::VectorXd::Zero(_n_jnts_robot);
-    _meas_damp = Eigen::VectorXd::Zero(_n_jnts_robot);
-
-    _K_p = Eigen::MatrixXd::Zero(_n_jnts_robot, _n_jnts_robot);
-    _K_d = Eigen::MatrixXd::Zero(_n_jnts_robot, _n_jnts_robot);
 
     _base_link_vel = Eigen::VectorXd::Zero(3);
     _base_link_omega = Eigen::VectorXd::Zero(3);
@@ -30,6 +24,7 @@ void BaseEstRt::init_vars()
     _q_p_be = Eigen::VectorXd::Zero(_nq_be);
     _q_p_dot_be = Eigen::VectorXd::Zero(_nv_be);
     _q_p_ddot_be = Eigen::VectorXd::Zero(_nv_be);
+
     _q_p_be_takeoff = Eigen::VectorXd::Zero(_nv_be);
     _q_p_dot_be_takeoff =  Eigen::VectorXd::Zero(_nv_be);
     _tau_be = Eigen::VectorXd::Zero(_nv_be);
@@ -272,12 +267,9 @@ void BaseEstRt::get_robot_state()
     _robot->getJointEffort(_tau_meas);
     _robot->getPositionReference(_q_p_ref);
     _robot->getVelocityReference(_q_p_dot_ref);
-    _robot->getEffortReference(_tau_ff);
-    _robot->getStiffness(_meas_stiff);
-    _robot->getDamping(_meas_damp);
 }
 
-void BaseEstRt::get_fts_force()
+void BaseEstRt::get_meas_fts_force()
 {
   if(_is_sim && _ft_tip_sensor_found)
   { // fts only available in simulation (for now)
@@ -301,9 +293,6 @@ void BaseEstRt::get_fts_force()
     _ft_meas_filt.get(_meas_w_filt);
 
   }
-
-  _ft_virt_sensor->getWrench(_est_w); // we get the force from the virtual ft sensor
-  // which is inside the base estimator
 
 }
 
@@ -390,10 +379,13 @@ void BaseEstRt::update_be_model()
 void BaseEstRt::update_pin_model()
 {
     _pin_model_ptr->set_q(_q_p_be);
-    _pin_model_ptr->set_v(_q_p_dot_be);
-    _pin_model_ptr->set_tau(_tau_be);
+//    _pin_model_ptr->set_v(_q_p_dot_be);
+//    _pin_model_ptr->set_tau(_tau_be);
 
-    _pin_model_ptr->update();
+//    _pin_model_ptr->update();
+    _pin_model_ptr->update_frames_forward_kin(); // we only update this, not to waste
+    // computational power
+
 }
 
 void BaseEstRt::get_contact_state_ground_truth()
@@ -424,22 +416,20 @@ void BaseEstRt::update_states()
                               _M_world_from_tip);
     _R_world_from_tip = _M_world_from_tip.rotation();
 
-    get_fts_force(); // after update tip pose, we get the local force and
-    // rotate it to the world (errors on the position of the passive joint won't
-    // affect the correctness of the tip orientation)
+    get_meas_fts_force(); // only in sim, we get the measured force
 
     // getting other quantities which are useful to compute the raw residual vector
-    _pin_model_ptr->get_C(_C);
-    _pin_model_ptr->get_g(_g);
-    _pin_model_ptr->get_p(_p);
+//    _pin_model_ptr->get_C(_C);
+//    _pin_model_ptr->get_g(_g);
+//    _pin_model_ptr->get_p(_p);
 
-    _num_diff_p.add_sample(_p); // differentiating the generalized momentum
-    _num_diff_p.dot(_p_dot);
-    _CT_v.noalias() = _C.transpose() * _q_p_dot_be;
-    _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
-    // and without observer)
-    _tau_c_raw_filter.add_sample(_tau_c_raw);
-    _tau_c_raw_filter.get(_tau_c_raw_filt);
+//    _num_diff_p.add_sample(_p); // differentiating the generalized momentum
+//    _num_diff_p.dot(_p_dot);
+//    _CT_v.noalias() = _C.transpose() * _q_p_dot_be;
+//    _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
+//    // and without observer)
+//    _tau_c_raw_filter.add_sample(_tau_c_raw);
+//    _tau_c_raw_filter.get(_tau_c_raw_filt);
 
     _contact_info = _est->contact_info;// get base estimation info
 
@@ -457,10 +447,9 @@ void BaseEstRt::update_states()
     // we went flying --> next control loop we bypass base estimation
 
     if(_is_sim || _is_dummy)
-    {
+    { // in simulation, we get the ground truth of the contact state from gazebo
         get_contact_state_ground_truth();
     }
-
 
 }
 
@@ -526,7 +515,6 @@ void BaseEstRt::add_data2dump_logger()
     _dump_logger->add("tau_meas", _tau_meas);
     _dump_logger->add("q_p_ref", _q_p_ref);
     _dump_logger->add("q_p_dot_ref", _q_p_dot_ref);
-    _dump_logger->add("tau_ff", _tau_ff);
 
     _dump_logger->add("tip_w_est_abs", _est_w);
 
@@ -699,7 +687,7 @@ void BaseEstRt::run()
     update_states(); // update all necessary states
 
     if(_is_sim)
-    {
+    { // we check the subscribers queue only in simulation (no feedback on the real robot)
         _queue.run();
     }
 

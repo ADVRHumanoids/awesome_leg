@@ -139,7 +139,6 @@ private:
 
     Eigen::VectorXd _q_p_meas, _q_p_dot_meas,
                     _tau_meas, _q_p_ref, _q_p_dot_ref,
-                    _tau_ff, _meas_stiff, _meas_damp,
                     _tau_cmd;
 
     Eigen::VectorXd _q_p_be, _q_p_dot_be, _q_p_ddot_be, _tau_be,
@@ -152,8 +151,6 @@ private:
     Eigen::VectorXd _tau_c_raw, _tau_c_raw_filt,
                     _CT_v, _g, _p, _p_dot;
     Eigen::MatrixXd _C;
-
-    Eigen::MatrixXd _K_p, _K_d;
 
     utils_defs::RotMat3D _R_world_from_tip;
 
@@ -222,7 +219,7 @@ private:
     void add_data2dump_logger();
 
     void get_tau_cmd();
-    void get_fts_force();
+    void get_meas_fts_force();
 
     void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
     void on_base_link_twist_received(const geometry_msgs::TwistStamped& msg);
