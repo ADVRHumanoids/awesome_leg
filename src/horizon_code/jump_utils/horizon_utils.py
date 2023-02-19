@@ -103,9 +103,9 @@ class JumpSolPlotter:
                 sim_postproc_filename = None, 
                 test_postproc_filename = None):
 
-        self.solution_path_raw = solution_dirpath + "/" + opt_base_sol_name
-        self.solution_path_res = solution_dirpath + "/" + opt_base_sol_name + res_sol_suffix
-        self.solution_path_ref = solution_dirpath + "/" + opt_base_sol_name + ref_sol_suffix
+        self.solution_path_raw = solution_dirpath + "/" + opt_base_sol_name + ".mat"
+        self.solution_path_res = solution_dirpath + "/" + opt_base_sol_name + res_sol_suffix + ".mat"
+        self.solution_path_ref = solution_dirpath + "/" + opt_base_sol_name + ref_sol_suffix + ".mat"
         
         self.__run_opt_sol_postproc()
 

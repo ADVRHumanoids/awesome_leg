@@ -107,6 +107,8 @@ class up2ApexGen:
 
         self.dt_res = self.yaml_file[self.yaml_tag]["resampling"]["dt"] 
         
+        self.f_z_ub = self.yaml_file[self.yaml_tag]["problem"]["f_z_ub"] 
+
         self.use_same_weights = self.yaml_file[self.yaml_tag]["problem"]["weights"]["use_same_weights"]
 
         weight_selector = self.ref_prb_weight_tag if (self.is_ref_prb and not self.use_same_weights) else self.raw_prb_weight_tag
@@ -140,7 +142,6 @@ class up2ApexGen:
 
         self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
         self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
-        self.apex_perc = self.yaml_file[self.yaml_tag]["problem"]["apex_perc"]
         self.q_p_touchdown_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_touchdown_conf"]
         self.q_p_retraction_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_retraction_conf"]
 
@@ -159,7 +160,7 @@ class up2ApexGen:
             self.contact_nodes = list(range(0, self.takeoff_node + 1))
             self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
-            self.apex_node = self.takeoff_node + round((self.last_node - self.takeoff_node) * (1 - self.apex_perc))
+            self.apex_node = self.last_node
 
     def __init_sol_dumpers(self):
 
@@ -196,7 +197,7 @@ class up2ApexGen:
         self.contact_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
-        self.apex_node = self.takeoff_node + round((self.last_node - self.takeoff_node) * (1 - self.apex_perc))
+        self.apex_node = self.last_node
 
     def __set_igs(self):
         
@@ -285,15 +286,12 @@ class up2ApexGen:
 
         self.prb.createConstraint("tip_stays_on_ground", self.v_foot_tip, self.contact_nodes) 
 
-        # self.prb.createConstraint("tip_starts_under_hip", self.foot_tip_position[1], nodes=0)
-        # self.prb.createConstraint("tip_stays_under_hip", self.foot_tip_position[1])
-
-        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
-        hip_above_ground.setBounds(0.0, cs.inf)
-        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
-        knee_above_ground.setBounds(0.0, cs.inf)
-        tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
-        tip_above_ground.setBounds(0.0, cs.inf)
+        # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
+        # hip_above_ground.setBounds(0.0, cs.inf)
+        # knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
+        # knee_above_ground.setBounds(0.0, cs.inf)
+        # tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
+        # tip_above_ground.setBounds(0.0, cs.inf)
 
         com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
         com_towards_vertical.setBounds(0.0, cs.inf)
@@ -305,14 +303,14 @@ class up2ApexGen:
 
         self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
-#        grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.contact_nodes)  # 0 GRF during flight
-#        grf_positive.setBounds(0.001, cs.inf)
+        grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.contact_nodes)  # 0 GRF during flight
+        grf_positive.setBounds(0.001, self.f_z_ub)
 
         self.prb.createConstraint("leg_starts_still", self.q_p_dot,
                             nodes=0) # leg starts still
 
-        self.prb.createConstraint("leg_ends_at_touchdown_conf", self.q_p[1:3] - self.q_p_touchdown_conf,
-                            nodes=self.last_node)
+        # self.prb.createConstraint("leg_ends_at_touchdown_conf", self.q_p[1:3] - self.q_p_touchdown_conf,
+        #                     nodes=self.last_node)
 
         # term_vel_perc = 0.2
         # terminal_vel_node = self.apex_node + round((self.last_node - self.apex_node) * (1 - term_vel_perc))
