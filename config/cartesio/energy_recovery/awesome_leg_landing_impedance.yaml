@@ -1,14 +1,14 @@
 solver_options:
-    regularization: 0.001
+    regularization: 1e-8
     back_end: qpoases
     front_end: ihqp
     # back_end: osqp
-    # front_end: nhqp
-    # nhqp_min_sv_ratio: 0.1
+#    front_end: nhqp
+#    nhqp_min_sv_ratio: 0.1
 
 stack: # tasks
     - ["cart_impedance"]
-#    - ["touchdown_conf"]
+    - ["touchdown_conf"]
 
 constraints:
 #    - "ground_contact"
@@ -29,11 +29,10 @@ cart_impedance:
     lib_name: "libcartesio_acceleration_support.so"
     type: "Interaction" # Interaction wraps Cartesian and adds functionalities to allow cartesian impedance control
     name: "cart_impedance"
-    lambda: 1.0 # if using Interaction, this is simply a scaling factor
-    lambda2: 1.0 # vel feedback gain
+    lambda: 1.0
     weight: 1
-    stiffness: [0, 100, 100, 0, 0, 0]
-    damping: [0, 5, 5, 0, 0, 0]
+    stiffness: [100, 0, 100, 0, 0, 0]
+    damping: [50, 0, 50, 0, 0, 0]
     base_link: "base_link"
     distal_link: "tip1"
     indices: [0, 2]
@@ -54,12 +53,13 @@ touchdown_conf: # tracking of touchdown configuration (to be used only during fl
     lib_name: "libcartesio_acceleration_support.so"
     type: "Postural"
     name: "touchdown_conf"
-    lambda: 1.0 # pos feedback gain
-    lambda2: 0.0 # vel feedback gain
-    weight: 1.0 # task weight
+    lambda: 0.0 # pos feedback gain
+    lambda2: 1.0 # vel feedback gain
+    weight: 1 # task weight
     active: true
     disabled_joints:
       - "test_rig2base"
+    use_inertia: true
 
 #effort_limits:
 #    lib_name: "libcartesio_acceleration_support.so"

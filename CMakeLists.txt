@@ -50,6 +50,7 @@ add_message_files(
   TimerStatus.msg
   SafetyStopState.msg
   ImpactStatus.msg
+  PostImpImpStatus.msg
 )
 
 generate_messages(

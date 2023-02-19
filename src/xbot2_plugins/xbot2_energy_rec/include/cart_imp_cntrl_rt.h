@@ -13,6 +13,10 @@
 
 #include <iostream>
 #include <cartesian_interface/ros/RosClient.h>
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+
+#include <awesome_leg/PostImpImpStatus.h>
 
 using namespace std;
 using namespace XBot;
@@ -60,7 +64,7 @@ private:
            _torque_cntrl_stiffness_setpoint = 0.0,
            _torque_cntrl_damping_setpoint = 0.0;
 
-    Eigen::VectorXd _q_meas, _q_dot_meas,
+    Eigen::VectorXd _q_meas, _q_dot_meas, _q_cmd, _q_dot_cmd,
                     _q_model, _v_model, _v_dot_model, _tau_model,
                     _jnt_stiffness_setpoint, _jnt_damping_setpoint,
                     _tau_ff,

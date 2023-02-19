@@ -40,6 +40,8 @@ xbotcore_plugins:
 
     ros_io: {thread: nrt_main, type: ros_io}
 
+    ros_control: {thread: nrt_main, type: ros_control}
+
     ec_ros: {thread: nrt_main, type: ec_ros}
 
     timer_rt:

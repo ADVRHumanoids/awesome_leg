@@ -1,4 +1,5 @@
 #include "cart_imp_cntrl_rt.h"
+Eigen::IOFormat CleanFmt(4, 0, ", ", "\n", "[", "]");
 
 void CartImpCntrlRt::init_clocks()
 {
@@ -61,6 +62,8 @@ void CartImpCntrlRt::init_vars()
 
     _q_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_dot_cmd = Eigen::VectorXd::Zero(_n_jnts_robot);
     _jnt_stiffness_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
     _jnt_damping_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_ff = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -89,7 +92,7 @@ void CartImpCntrlRt::init_vars()
 
     _k.setZero();
     _d.setZero();
-    _pos_ref << 0.0, 0.0, -0.3;
+    _pos_ref << -0.3, 0.0, -0.3;
     _R_ref = Eigen::MatrixXd::Identity(3, 3);
     _v_ref.setZero();
     _a_ref.setZero();
@@ -165,7 +168,7 @@ void CartImpCntrlRt::init_cartesio_solver()
 //    _torque_limits = task_as<Cartesian::acceleration::TorqueLimits>(_ci_solver->getTask("effort_limits"));
 
     _cart_impedance_task = task_as<Cartesian::InteractionTask>(_ci_solver->getTask("cart_impedance"));
-//    _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
+    _touchdown_conf = task_as<Cartesian::PosturalTask>(_ci_solver->getTask("touchdown_conf"));
 
     _cart_impedance = _cart_impedance_task->getImpedance();
     _K = _cart_impedance.stiffness;
@@ -173,31 +176,6 @@ void CartImpCntrlRt::init_cartesio_solver()
     _k_setpoint = _K.diagonal();
     _d_setpoint = _D.diagonal();
     _cart_impedance_task->getPoseReference(_M_ref_imp);
-
-}
-
-void CartImpCntrlRt::update_tasks()
-{
-    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix
-
-    _K_setpoint.noalias() = _Lambda_inv * _k_setpoint.asDiagonal();
-    _D_setpoint.noalias() = _Lambda_inv * _d_setpoint.asDiagonal();
-
-    _cart_impedance_setpoint.stiffness = _K_setpoint;
-    _cart_impedance_setpoint.damping = _D_setpoint;
-
-    _cart_impedance_task->setImpedance(_cart_impedance_setpoint);
-
-    _M_ref_imp.translation() = _pos_ref;
-    _M_ref_imp.linear() = _R_ref;
-    _v_ref.setZero();
-    _a_ref.setZero();
-    _cart_impedance_task->setPoseReference(_M_ref_imp);
-    _cart_impedance_task->setVelocityReference(_v_ref);
-    _cart_impedance_task->setAccelerationReference(_a_ref);
-
-     // _touchdown_conf->setActivationState(Cartesian::ActivationState::Enabled);
-    // _touchdown_conf->setActivationState(Cartesian::ActivationState::Disabled);
 
 }
 
@@ -215,42 +193,10 @@ void CartImpCntrlRt::compute_inverse_dyn()
 
 }
 
-void CartImpCntrlRt::update_state()
-{
-    // "sensing" the robot
-    _robot->sense();
-
-    // Getting robot state
-    _robot->getJointPosition(_q_meas);
-    _robot->getMotorVelocity(_q_dot_meas);
-    
-    // Updating the model with the measurements
-    _q_model.segment(1, _n_jnts_robot) = _q_meas;
-    _v_model.segment(1, _n_jnts_robot) = _q_dot_meas;
-    _model->setJointPosition(_q_model);
-    _model->setJointVelocity(_v_model);
-    _model->update();
-    _model->getRelativeJacobian(_cart_impedance_task->getDistalLink(),
-                        _cart_impedance_task->getBaseLink(),
-                        _Jc);
-    _model->getInertiaMatrix(_B);
-
-    update_tasks();
-
-    update_ci_solver();
-
-    _model->getJointEffort(_tau_cmd);
-//    _model->setJointPosition(_q_model);
-//    _model->setJointVelocity(_v_model);
-//    _model->update();
-
-//    compute_inverse_dyn();
-    
-}
-
 void CartImpCntrlRt::saturate_input()
 {
-
+    _robot->enforceJointLimits(_q_cmd);
+    _robot->enforceVelocityLimit(_q_dot_cmd);
     _robot->enforceEffortLimit(_tau_ff);
 }
 
@@ -290,6 +236,8 @@ void CartImpCntrlRt::init_logger()
     _logger->create("tau_cmd", _n_jnts_model, 1, _matlogger_buffer_size);
     _logger->create("tau_meas", _n_jnts_robot, 1, _matlogger_buffer_size);
 
+    _logger->create("K_setpoint", 6, 6, _matlogger_buffer_size);
+    _logger->create("D_setpoint", 6, 6, _matlogger_buffer_size);
 
 }
 
@@ -320,6 +268,8 @@ void CartImpCntrlRt::add_data2logger()
     _logger->add("tau_cmd", _tau_cmd);
     _logger->add("tau_meas", _tau_meas);
 
+    _logger->add("K_setpoint", _K_setpoint);
+    _logger->add("D_setpoint", _D_setpoint);
 }
 
 bool CartImpCntrlRt::on_initialize()
@@ -359,21 +309,76 @@ void CartImpCntrlRt::starting()
 
     init_cartesio_solver();
 
-    // load opt imp trajectory and touchdown pose --> set reference hip position and flight cartesian reference
-    // command reaching motion
-//    _int_task->setPoseTarget(_target_pose, _t_exec);
-
-    // // Update the model with the current robot state
-//    update_state();
-
     // Reset CartesIO solver
     _ci_solver->reset(_loop_time);
 
     // setting the control mode to effort + stiffness + damping
-    _robot->setControlMode(ControlMode::Position() + ControlMode::Effort() + ControlMode::Stiffness() + ControlMode::Damping());
+    _robot->setControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() +
+                           ControlMode::Stiffness() + ControlMode::Damping());
 
     // Move on to run()
     start_completed();
+}
+
+void CartImpCntrlRt::update_tasks()
+{
+    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix
+
+//    _K_setpoint.noalias() = _Lambda_inv * _k_setpoint.asDiagonal();
+//    _D_setpoint.noalias() = _Lambda_inv * _d_setpoint.asDiagonal();
+
+    _K_setpoint = _k_setpoint.asDiagonal();
+    _D_setpoint = _d_setpoint.asDiagonal();
+
+    _cart_impedance_setpoint.stiffness = _K_setpoint;
+    _cart_impedance_setpoint.damping = _D_setpoint;
+
+    _cart_impedance_task->setImpedance(_cart_impedance_setpoint);
+
+    _M_ref_imp.translation() = _pos_ref;
+    _M_ref_imp.linear() = _R_ref;
+    _v_ref.setZero();
+    _a_ref.setZero();
+    _cart_impedance_task->setPoseReference(_M_ref_imp);
+    _cart_impedance_task->setVelocityReference(_v_ref);
+    _cart_impedance_task->setAccelerationReference(_a_ref);
+
+     // _touchdown_conf->setActivationState(Cartesian::ActivationState::Enabled);
+    // _touchdown_conf->setActivationState(Cartesian::ActivationState::Disabled);
+
+}
+
+void CartImpCntrlRt::update_state()
+{
+    // "sensing" the robot
+    _robot->sense();
+
+    // Getting robot state
+    _robot->getJointPosition(_q_meas);
+    _robot->getMotorVelocity(_q_dot_meas);
+
+    // Updating the model with the measurements
+    _q_model.segment(1, _n_jnts_robot) = _q_meas;
+    _v_model.segment(1, _n_jnts_robot) = _q_dot_meas;
+    _model->setJointPosition(_q_model);
+    _model->setJointVelocity(_v_model);
+    _model->update();
+    _model->getRelativeJacobian(_cart_impedance_task->getDistalLink(),
+                        _cart_impedance_task->getBaseLink(),
+                        _Jc);
+    _model->getInertiaMatrix(_B);
+
+    update_tasks();
+
+    update_ci_solver();
+
+    _model->getJointEffort(_tau_cmd);
+//    _model->setJointPosition(_q_model);
+//    _model->setJointVelocity(_v_model);
+//    _model->update();
+
+//    compute_inverse_dyn();
+
 }
 
 void CartImpCntrlRt::run()
@@ -384,13 +389,15 @@ void CartImpCntrlRt::run()
 
     // Set the effort commands (and also stiffness/damping)
     _tau_ff = _tau_cmd.segment(1, _n_jnts_robot);
-
+    _q_cmd = _q_meas;
+    _q_dot_cmd = _q_dot_meas;
     // Check input for bound violations
     saturate_input();
 
     _robot->setEffortReference(_tau_ff);
-    _robot->setPositionReference(_q_meas); // this way the error is 0
-    _robot->setVelocityReference(_q_dot_meas); // this way the error is 0
+
+    _robot->setPositionReference(_q_cmd); // this way the error is 0
+    _robot->setVelocityReference(_q_dot_cmd); // this way the error is 0
     _robot->setStiffness(_jnt_stiffness_setpoint);
     _robot->setDamping(_jnt_damping_setpoint);
     _robot->move();
