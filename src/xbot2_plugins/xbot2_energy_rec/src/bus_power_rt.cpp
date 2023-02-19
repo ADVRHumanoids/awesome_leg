@@ -677,6 +677,13 @@ void BusPowerRt::run_iq_estimation()
 
 void BusPowerRt::run_reg_pow_estimation()
 {
+    if(_use_iq_meas)
+    { // rotor velocity has to be set externally by the user
+
+        _pow_estimator->set_omega_r(_q_p_dot_meas_filt.array() * 1.0 / _red_ratio.array());
+
+    }
+
      _pow_estimator->update(); // update power and energy estimates using current state
      // and current estimates from iq estimator (or iq measurements if _use_iq_meas == true)
 
@@ -801,7 +808,8 @@ void BusPowerRt::run()
 
     _queue.run();
 
-    // computing and updating iq estimates
+    // computing and updating iq estimates (even if use_iq_meas == true, for debugging
+    // purposes)
     run_iq_estimation();
 
     // publish iq estimate info
