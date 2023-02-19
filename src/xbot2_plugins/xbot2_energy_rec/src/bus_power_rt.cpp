@@ -736,6 +736,9 @@ bool BusPowerRt::on_initialize()
                                         _q_dot_3sigma,
                                         _dump_iq_data));
 
+    _use_iq_meas = _is_dummy || _is_sim ? false : true; // when using the real robot
+    // we use the actual measurements
+
     // bus power estimator
     _pow_estimator.reset(new RegEnergy(_iq_getter,
                                      _iq_estimator,
