@@ -12,7 +12,9 @@ find_package(base_estimation REQUIRED)
 find_package(catkin REQUIRED COMPONENTS behaviortree_cpp_v3)
 
 option(USE_ECAT_COMPONENTS "Flag to allow compilation even without low level ecat-packages on the machine" OFF)
-set(ON_REAL_ROBOT ${USE_ECAT_COMPONENTS})
+if(USE_ECAT_COMPONENTS)
+  add_definitions(-DUSE_ECAT_COMPONENTS)
+endif()
 
 #add_executable(start_jump_replayer src/start_jump_replayer.cpp)
 #add_dependencies(start_jump_replayer ${PROJECT_NAME}_generate_messages)

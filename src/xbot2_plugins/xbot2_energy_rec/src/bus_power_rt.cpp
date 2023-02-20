@@ -213,7 +213,7 @@ void BusPowerRt::update_state()
 
 void BusPowerRt::update_sensed_power()
 {
-    #if defined(ON_REAL_ROBOT)
+    #if defined(USE_ECAT_COMPONENTS)
 
     if(_power_sensor_found)
     {
@@ -773,7 +773,7 @@ bool BusPowerRt::on_initialize()
 
     init_nrt_ros_bridge();
 
-    #if defined(ON_REAL_ROBOT)
+    #if defined(USE_ECAT_COMPONENTS)
 
     // get power sensor handle
     _pow_sensor = _robot->getDevices<Hal::PowerBoardEc>().get_device("power_sensor");

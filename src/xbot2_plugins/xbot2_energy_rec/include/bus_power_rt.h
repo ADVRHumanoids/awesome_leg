@@ -21,7 +21,7 @@
 
 #include <xbot2/hal/dev_ft.h>
 
-#if defined(ON_REAL_ROBOT)
+#if defined(USE_ECAT_COMPONENTS)
     #include <ec_xbot2/pow_ec.h>
 #endif
 
@@ -170,7 +170,7 @@ private:
     IqEstimator::Ptr _iq_estimator;
 
     RegEnergy::Ptr _pow_estimator;
-    #if defined(ON_REAL_ROBOT)
+    #if defined(USE_ECAT_COMPONENTS)
     std::shared_ptr<Hal::PowerBoardEc> _pow_sensor;
     #endif
     NumIntRt _meas_pow_int, _reg_meas_pow_int;
