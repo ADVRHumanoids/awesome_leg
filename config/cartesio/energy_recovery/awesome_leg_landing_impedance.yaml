@@ -8,7 +8,7 @@ solver_options:
 
 stack: # tasks
     - ["cart_impedance"]
-    - ["touchdown_conf"]
+#    - ["touchdown_conf"]
 
 constraints:
 #    - "ground_contact"
@@ -48,18 +48,18 @@ cart_impedance:
 #    disabled_joints:
 #       - "test_rig2base"
 
-touchdown_conf: # tracking of touchdown configuration (to be used only during flight phase, so that at the impact we
-    #land as expected)
-    lib_name: "libcartesio_acceleration_support.so"
-    type: "Postural"
-    name: "touchdown_conf"
-    lambda: 0.0 # pos feedback gain
-    lambda2: 1.0 # vel feedback gain
-    weight: 1 # task weight
-    active: true
-    disabled_joints:
-      - "test_rig2base"
-    use_inertia: true
+#touchdown_conf: # tracking of touchdown configuration (to be used only during flight phase, so that at the impact we
+#    #land as expected)
+#    lib_name: "libcartesio_acceleration_support.so"
+#    type: "Postural"
+#    name: "touchdown_conf"
+#    lambda: 0.0 # pos feedback gain
+#    lambda2: 1.0 # vel feedback gain
+#    weight: 1 # task weight
+#    active: true
+#    disabled_joints:
+#      - "test_rig2base"
+#    use_inertia: true
 
 #effort_limits:
 #    lib_name: "libcartesio_acceleration_support.so"

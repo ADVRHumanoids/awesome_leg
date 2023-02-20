@@ -49,7 +49,8 @@ public:
 private:
 
     bool _rt_active, _nrt_exit,
-        _is_sim = true, _is_dummy = false;
+        _is_sim = true, _is_dummy = false,
+        _test_bare_imp_cntrl = false;
 
     int _n_jnts_model, _n_jnts_robot;
 
@@ -70,7 +71,8 @@ private:
                     _tau_ff,
                     _tau_cmd,
                     _tau_meas,
-                    _effort_lims;
+                    _effort_lims,
+                    _non_lin_terms;
 
     std::vector<std::string> _task_list;
 
@@ -95,10 +97,10 @@ private:
     Eigen::Matrix6d _Lambda_inv;
     Eigen::MatrixXd _Jc, _B;
 
-    Eigen::Vector6d _v_ref, _a_ref;
-    Eigen::Vector3d _pos_ref;
+    Eigen::Vector6d _v_ref, _v_meas, _a_ref, _v_err, _p_err;
+    Eigen::Vector3d _pos_ref, _pos_meas;
     Eigen::Matrix3d _R_ref;
-    Eigen::Affine3d _M_ref_imp;
+    Eigen::Affine3d _M_ref_imp, _M_meas_imp;
 
     void init_vars();
     void init_logger();
