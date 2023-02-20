@@ -14,6 +14,7 @@ void BusPowerRt::init_vars()
 
     _q_p_dot_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _q_p_dot_meas_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_dot_motor = Eigen::VectorXd::Zero(_n_jnts_robot);
 
     _tau_meas = Eigen::VectorXd::Zero(_n_jnts_robot);
     _tau_meas_filt = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -679,8 +680,8 @@ void BusPowerRt::run_reg_pow_estimation()
 {
     if(_use_iq_meas)
     { // rotor velocity has to be set externally by the user
-
-        _pow_estimator->set_omega_r(_q_p_dot_meas_filt.array() * 1.0 / _red_ratio.array());
+        _q_dot_motor = _q_p_dot_meas_filt.array() * 1.0 / _red_ratio.array();
+        _pow_estimator->set_omega_r(_q_dot_motor);
 
     }
 

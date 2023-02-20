@@ -116,7 +116,7 @@ private:
     double _bus_p_leak = 0.0;
 
     Eigen::VectorXd _q_p_meas,
-                    _q_p_dot_meas, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
+                    _q_p_dot_meas, _q_dot_motor, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
                     _tau_meas, _tau_meas_filt,
                     _iq_meas, _iq_meas_filt,
                     _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
