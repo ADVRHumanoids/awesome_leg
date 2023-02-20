@@ -171,6 +171,8 @@ xbotcore_plugins:
 
                 ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
 
+                test_bare_imp_cntrl : {value: true, type: bool}
+
 # global parameters
 xbotcore_param:
     /jm/tx_filter_autostart: {value: true, type: bool}

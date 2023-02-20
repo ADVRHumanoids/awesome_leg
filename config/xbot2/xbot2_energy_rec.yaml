@@ -67,7 +67,7 @@ xbotcore_plugins:
 
             ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-            obs_bw: {value: 25.0, type: double}
+            obs_bw: {value: 1.0, type: double}
             svd_thresh: {value: 0.1, type: double}
 
             contact_release_thr: {value: 30.0, type: double}
@@ -289,6 +289,9 @@ xbotcore_plugins:
                 srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
                 ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
+
+                test_bare_imp_cntrl : {value: true, type: bool}
+
 
     # contact_est_rt:
     #     thread: rt_main

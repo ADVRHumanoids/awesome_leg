@@ -109,6 +109,8 @@ void CartImpCntrlRt::get_params_from_config()
 
     _ci_yaml_path = getParamOrThrow<std::string>("~ci_yaml_path");
 
+    _test_bare_imp_cntrl = getParamOrThrow<bool>("~test_bare_imp_cntrl");
+
 }
 
 void CartImpCntrlRt::init_model_interface()
