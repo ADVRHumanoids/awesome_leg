@@ -21,7 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 0}
-    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
+#    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
 #    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
 #    bt_root: {sched: fifo , prio: 60, period: 0.001, core_id: 2}
@@ -52,7 +52,7 @@ xbotcore_plugins:
             reset_timers_servname: {value: "reset_timers", type: string}
 
     base_est_rt:
-        thread: rt_main_slow
+        thread: rt_main
         type: base_est_rt
         params:
 
@@ -107,19 +107,19 @@ xbotcore_plugins:
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
             bus_p_leak: {value: 48, type: double} # [W]
 
-    bt_rt:
-        thread: rt_main
-        type: bt_rt
-        params:
+    # bt_rt:
+    #     thread: rt_main
+    #     type: bt_rt
+    #     params:
 
-            mat_path: {value: /tmp/, type: string}
+    #         mat_path: {value: /tmp/, type: string}
 
-            use_zmq_pub: {value: true, type: bool}
-            use_bt_log: {value: false, type: bool}
+    #         use_zmq_pub: {value: false, type: bool}
+    #         use_bt_log: {value: false, type: bool}
 
-            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
+    #         bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
 
-            verbose: {value: false, type: bool}
+    #         verbose: {value: false, type: bool}
 
     temp_monitor_rt:
         thread: rt_main
@@ -161,17 +161,17 @@ xbotcore_plugins:
             verbose: {value: false, type: bool}
 
     cartesio_imp_cntrl_rt:
-            thread: rt_main
-            type: cart_imp_cntrl_rt
-            params:
+           thread: rt_main
+           type: cart_imp_cntrl_rt
+           params:
 
-                urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
+               urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
 
-                srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+               srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-                ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
+               ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
 
-                test_bare_imp_cntrl : {value: true, type: bool}
+               test_bare_imp_cntrl : {value: true, type: bool}
 
 # global parameters
 xbotcore_param:

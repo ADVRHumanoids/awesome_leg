@@ -20,8 +20,8 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_main:  {sched: fifo , prio: 60, period: 0.02}
-    nrt_main: {sched: other, prio: 0 , period: 0.005}
+    rt_main:  {sched: fifo , prio: 60, period: 0.01}
+    nrt_main: {sched: other, prio: 0 , period: 0.01}
 
 # plugins
 xbotcore_plugins:
@@ -36,50 +36,6 @@ xbotcore_plugins:
     
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-    bus_power_rt:
-        thread: rt_main
-        type: bus_power_rt
-        params:
-
-            mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: bus_power_rt, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
-
-            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
-
-            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
-
-            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
-
-            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
-
-            R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
-            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
-            L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
-
-            bus_p_leak: {value: 48, type: double} # [W]
-
-            der_est_order: {value: 1, type: int}
-
-            mov_avrg_cutoff_freq_iq: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_iq_meas: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_q_dot: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-            mov_avrg_cutoff_freq_tau: {value: 15.0, type: double} # cutoff frequency of the moving average filter ([Hz])
-
-            alpha: {value: 5, type: int}
-            q_dot_3sigma: {value: 0.01, type: double} # max amplitute of the noise contained in the velocity signal
-            # (basically equal to 3 * sigma, where sigma is the standard deviation of the noise)
-
-            use_iq_meas: {value: false, type: bool}
-            dump_iq_data: {value: false, type: bool}
-
-            topic_ns: {value: "iq_model", type: string}
-
-            set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
-
-            verbose: {value: false, type: bool}
-
     base_est_rt:
         thread: rt_main
         type: base_est_rt
@@ -90,29 +46,37 @@ xbotcore_plugins:
 
             ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-            mat_path: {value: /tmp/, type: string}
-            dump_mat_suffix: {value: "base_est_rt", type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
-
-            tip_link_name: {value: "tip1", type: string}
-            base_link_name: {value: "base_link", type: string}
-            test_rig_linkname: {value: "test_rig", type: string}
-            tip_fts_name: {value: "tip1_fts", type: string}
-            contact_linkname: {value: "tip1", type: string}
+            obs_bw: {value: 25.0, type: double}
+            svd_thresh: {value: 0.1, type: double}
 
             contact_release_thr: {value: 30.0, type: double}
             contact_attach_thr: {value: 90.0, type: double}
 
-            contact_detection_gz_truth: {value: 10.0, type: double}
+            mat_path: {value: /tmp/, type: string}
 
-            mov_avrg_cutoff_freq: {value: 15.0, type: double}
-            mov_avrg_cutoff_freq_tau_c: {value: 15.0, type: double}
+    bus_power_rt:
+        thread: rt_main
+        type: bus_power_rt
+        params:
 
-            obs_bw: {value: 25.0, type: double}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: bus_power_rt, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
-            svd_thresh: {value: 0.1, type: double}
+            topic_ns: {value: "iq_model", type: string}
+            set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
 
-            use_gz_truth: {value: "false", type: bool}
+            verbose: {value: false, type: bool}
+
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+            R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
+            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
+            bus_p_leak: {value: 48, type: double} # [W]
 
 # global parameters
 xbotcore_param:
