@@ -324,7 +324,6 @@ void BtRt::starting()
 
 void BtRt::run()
 {
-
     if(!_bt_finished)
     {// continue ticking root
 

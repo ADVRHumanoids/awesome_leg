@@ -6,7 +6,7 @@
 using namespace BT;
 
 StopPlugins::StopPlugins(const std::string& name) :
-    AsyncActionNode(name, {}),
+    NoThreadAsychActionNode(name, {}),
     Task(name + "_bt_leaf", "")
 {
 

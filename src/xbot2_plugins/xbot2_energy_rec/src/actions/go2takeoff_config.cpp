@@ -7,7 +7,7 @@
 using namespace BT;
 
 Go2TakeoffConfig::Go2TakeoffConfig(const std::string& name) :
-    AsyncActionNode(name, {}),
+    NoThreadAsychActionNode(name, {}),
     Task(name + "_bt_leaf", ""),
     _name{name}
 {

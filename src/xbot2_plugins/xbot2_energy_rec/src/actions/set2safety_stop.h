@@ -17,7 +17,7 @@ using namespace XBot;
 namespace BT
 {
 
-    class Set2SafetyStop : public AsyncActionNode, public Task
+    class Set2SafetyStop : public NoThreadAsychActionNode, public Task
     { // we are working with rt plugins, so we should minimize blocking code
       // that's why we employ asynchronous action nodes
 
