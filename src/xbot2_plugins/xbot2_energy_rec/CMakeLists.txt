@@ -96,16 +96,20 @@ if(${behaviortree_cpp_v3_FOUND})
     add_library(${BT_CUSTOM_NODES_LIB} SHARED
         src/actions/start_plugins.cpp src/actions/stop_plugins.cpp src/actions/set2idle.cpp
         src/actions/restart_jump_sequence.cpp src/actions/perform_takeoff.cpp src/actions/go2takeoff_config.cpp
-        src/actions/set2safety_stop.cpp src/actions/always_running.cpp src/actions/ramp_jnt_imp.cpp
+        src/actions/set2safety_stop.cpp  src/actions/ramp_jnt_imp.cpp
+
+        src/actions/always_running.cpp
 
         src/conditions/are_plugins_running.cpp src/conditions/are_plugins_closed.cpp src/conditions/temperature_ok.cpp
         src/conditions/is_idle.cpp src/conditions/pause_expired.cpp src/conditions/recov_energy_reached.cpp src/conditions/takeoff_performed.cpp
         src/conditions/takeoff_reached.cpp src/conditions/is_safety_stop.cpp src/conditions/is_joint_device_active.cpp
-        src/conditions/jnt_imp_ramped.cpp)
+        src/conditions/jnt_imp_ramped.cpp
+        )
 
     target_include_directories(${BT_CUSTOM_NODES_LIB} PUBLIC src/actions src/conditions ${behaviortree_cpp_v3_INCLUDE_DIRS})
     add_dependencies(${BT_CUSTOM_NODES_LIB} ${PROJECT_NAME}_generate_messages)
     target_link_libraries(${BT_CUSTOM_NODES_LIB} PUBLIC ${behaviortree_cpp_v3_LIBRARIES} xbot2::xbot2 xbot2::xbot2_ros_support)
+
     install(
         TARGETS ${BT_CUSTOM_NODES_LIB} DESTINATION lib
     )

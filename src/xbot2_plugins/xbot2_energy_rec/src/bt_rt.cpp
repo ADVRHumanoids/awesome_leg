@@ -175,6 +175,9 @@ void BtRt::init_bt()
     _factory.registerNodeType<PauseExpired>("PauseExpired");
     _factory.registerNodeType<AlwaysRunning>("WaitABit");
 
+//    _factory.registerNodeType<AlwaysRunning>("ReturnRunning1");
+//    _factory.registerNodeType<AlwaysRunning>("ReturnRunning2");
+
     _tree = _factory.createTreeFromFile(_bt_description_path);
 
 //    // This logger prints state changes on console
@@ -333,7 +336,6 @@ void BtRt::run()
 
     }
 
-
     if(_verbose)
     {
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
@@ -359,8 +361,6 @@ void BtRt::run()
         }
 
     }
-
-
 
 }
 

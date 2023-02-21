@@ -106,7 +106,8 @@ private:
         _imp_ramp_time = 4.0,
         _smooth_imp_time = 0.0,
         _matlogger_buffer_size = 1e5,
-        _resample_err_tolerance = 1e-2;
+        _resample_err_tolerance = 1e-2,
+        _phase = 0.0;
 
     Eigen::VectorXd _stop_stiffness, _stop_damping,
                     _replay_stiffness, _replay_damping,

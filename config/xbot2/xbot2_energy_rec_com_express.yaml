@@ -20,8 +20,9 @@ xbotcore_device_configs:
 
 # threads
 xbotcore_threads:
-    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 0}
+    rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
     nrt_bt_root: {sched: other, prio: 0 , period: 0.01}
+    traj_replay_thread: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
 #    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
 #    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
@@ -45,68 +46,68 @@ xbotcore_plugins:
 
     ec_ros: {thread: nrt_main, type: ec_ros}
 
-#    timer_rt:
-#        thread: rt_main
-#        type: timer_rt
-#        params:
-#            timer_plugin_topicname: {value: "timer", type: string}
-#            reset_timers_servname: {value: "reset_timers", type: string}
+    timer_rt:
+        thread: rt_main
+        type: timer_rt
+        params:
+            timer_plugin_topicname: {value: "timer", type: string}
+            reset_timers_servname: {value: "reset_timers", type: string}
 
-#    base_est_rt:
-#        thread: rt_main
-#        type: base_est_rt
-#        params:
+    base_est_rt:
+        thread: rt_main
+        type: base_est_rt
+        params:
 
-#            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-#            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-#            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
+            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-#            obs_bw: {value: 25.0, type: double}
-#            svd_thresh: {value: 0.1, type: double}
+            obs_bw: {value: 25.0, type: double}
+            svd_thresh: {value: 0.1, type: double}
 
-#            contact_release_thr: {value: 30.0, type: double}
-#            contact_attach_thr: {value: 90.0, type: double}
+            contact_release_thr: {value: 30.0, type: double}
+            contact_attach_thr: {value: 90.0, type: double}
 
-#            mat_path: {value: /tmp/, type: string}
+            mat_path: {value: /tmp/, type: string}
 
-#    jmp_replayer_rt:
-#        thread: rt_main
-#        type: jmp_replayer_rt
-#        params:
+    jmp_replayer_rt:
+        thread: traj_replay_thread
+        type: jmp_replayer_rt
+        params:
 
-#            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-#            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
-#            replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
-#            replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
-#            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
-#            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
+            mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
+            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
+            replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
+            replay_damping: {value: [50.0, 50.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [35.0, 20.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [6.0, 6.0], type: Eigen::VectorXd}
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#    bus_power_rt:
-#        thread: rt_main
-#        type: bus_power_rt
-#        params:
+    bus_power_rt:
+        thread: rt_main
+        type: bus_power_rt
+        params:
 
-#            mat_path: {value: /tmp/, type: string}
-#            dump_mat_suffix: {value: bus_power_rt, type: string}
-#            matlogger_buffer_size: {value: 1e5, type: double}
+            mat_path: {value: /tmp/, type: string}
+            dump_mat_suffix: {value: bus_power_rt, type: string}
+            matlogger_buffer_size: {value: 1e5, type: double}
 
-#            topic_ns: {value: "iq_model", type: string}
-#            set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
+            topic_ns: {value: "iq_model", type: string}
+            set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
-#            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
-#            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
-#            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
-#            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
-#            R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
-#            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
-#            L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
-#            bus_p_leak: {value: 48, type: double} # [W]
+            red_ratio: {value: [0.02, 0.02], type: Eigen::VectorXd}  # gear reduction ratio of the actuator (always <=1)
+            K_t: {value: [0.045, 0.045], type: Eigen::VectorXd} # from datasheets: 0.045; torque constant ([Nm/A])
+            K_d0: {value: [3.24, 10.72], type: Eigen::VectorXd} # static friction torque coefficient ( tau_d0 = K_d* sign(joint_vel) )
+            K_d1: {value: [1.45, 1.77], type: Eigen::VectorXd} # dynamical friction torque coefficient ( tau_d1 = K_d* joint_vel )
+            rotor_axial_MoI: {value: [6.6e-5, 6.6e-5], type: Eigen::VectorXd}  # approximate axial moment of inertia of the rotor ([Kg m^2]); real value 6.5717708e-5
+            R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
+            L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
+            bus_p_leak: {value: 48, type: double} # [W]
 
     bt_rt:
         thread: nrt_bt_root
@@ -118,61 +119,62 @@ xbotcore_plugins:
             use_zmq_pub: {value: false, type: bool}
             use_bt_log: {value: false, type: bool}
 
+#            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt_rt_test2.xml, type: file} # used by the model interface
             bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
 
             verbose: {value: false, type: bool}
 
-#    temp_monitor_rt:
-#        thread: rt_main
-#        type: temp_monitor_rt
-#        params:
+    temp_monitor_rt:
+        thread: rt_main
+        type: temp_monitor_rt
+        params:
 
-#            mat_path: {value: "/tmp/", type: string}
+            mat_path: {value: "/tmp/", type: string}
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#            driver_temp_threshold: {value: 55.0, type: double}
-#            driver_temp_threshold_cooling: {value: 45.0, type: double}
+            driver_temp_threshold: {value: 55.0, type: double}
+            driver_temp_threshold_cooling: {value: 45.0, type: double}
 
-#    idler_rt:
-#        thread: rt_main
-#        type: idler_rt
-#        params:
+    idler_rt:
+        thread: rt_main
+        type: idler_rt
+        params:
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#    impact_detector_rt:
-#        thread: rt_main
-#        type: impact_detector_rt
-#        params:
+    impact_detector_rt:
+        thread: rt_main
+        type: impact_detector_rt
+        params:
 
-#            mat_path: {value: /tmp/, type: string}
+            mat_path: {value: /tmp/, type: string}
 
-#            use_gz_truth: {value: true, type: bool}
+            use_gz_truth: {value: true, type: bool}
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#    plugins_mngr_rt:
-#        thread: rt_main
-#        type: plugins_mngr_rt
-#        params:
+    plugins_mngr_rt:
+        thread: rt_main
+        type: plugins_mngr_rt
+        params:
 
-#            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "base_est_rt", "impact_detector_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "base_est_rt", "impact_detector_rt"], type: vector<string>}
 
-#            verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
-#    cartesio_imp_cntrl_rt:
-#           thread: rt_main
-#           type: cart_imp_cntrl_rt
-#           params:
+    cartesio_imp_cntrl_rt:
+           thread: rt_main
+           type: cart_imp_cntrl_rt
+           params:
 
-#               urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
+               urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file}
 
-#               srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+               srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-#               ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
+               ci_yaml_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_landing_impedance.yaml, type: file}
 
-#               test_bare_imp_cntrl : {value: true, type: bool}
+               test_bare_imp_cntrl : {value: true, type: bool}
 
 # global parameters
 xbotcore_param:
