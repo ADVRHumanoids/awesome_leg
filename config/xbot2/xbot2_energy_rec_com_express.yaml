@@ -21,6 +21,7 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 0}
+    nrt_bt_root: {sched: other, prio: 0 , period: 0.01}
 #    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
 #    bt_components: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
@@ -107,19 +108,19 @@ xbotcore_plugins:
 #            L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
 #            bus_p_leak: {value: 48, type: double} # [W]
 
-     bt_rt:
-         thread: rt_main
-         type: bt_rt
-         params:
+    bt_rt:
+        thread: nrt_bt_root
+        type: bt_rt
+        params:
 
-             mat_path: {value: /tmp/, type: string}
+            mat_path: {value: /tmp/, type: string}
 
-             use_zmq_pub: {value: false, type: bool}
-             use_bt_log: {value: false, type: bool}
+            use_zmq_pub: {value: false, type: bool}
+            use_bt_log: {value: false, type: bool}
 
-             bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
+            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt.xml, type: file} # used by the model interface
 
-             verbose: {value: false, type: bool}
+            verbose: {value: false, type: bool}
 
 #    temp_monitor_rt:
 #        thread: rt_main
