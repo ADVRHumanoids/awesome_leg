@@ -571,7 +571,7 @@ void JumpReplayerRt::saturate_cmds()
 void JumpReplayerRt::ramp_jnt_impedances()
 {
 
-    _phase = _smooth_imp_time / _imp_ramp_time;
+    double phase = _smooth_imp_time / _imp_ramp_time;
 
     _peisekah_utils.compute_peisekah_vect_val(_phase, _ramp_strt_stiffness, _replay_stiffness, _ramp_stiffness);
 
