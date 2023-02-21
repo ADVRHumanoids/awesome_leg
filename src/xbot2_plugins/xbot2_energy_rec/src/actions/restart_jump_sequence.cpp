@@ -6,7 +6,7 @@
 using namespace BT;
 
 RestartJumpSequence::RestartJumpSequence(const std::string& name) :
-    NoThreadAsychActionNode(name, {}),
+    AsyncActionNode(name, {}),
     Task(name + "_bt_leaf", ""),
     _name{name}
 {

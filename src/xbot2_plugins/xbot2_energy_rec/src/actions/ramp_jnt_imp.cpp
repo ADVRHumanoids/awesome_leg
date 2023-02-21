@@ -7,7 +7,7 @@
 using namespace BT;
 
 RampJntImp::RampJntImp(const std::string& name) :
-    NoThreadAsychActionNode(name, {}),
+    AsyncActionNode(name, {}),
     Task(name + "_bt_leaf", ""),
     _name{name}
 {

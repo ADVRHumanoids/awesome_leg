@@ -18,7 +18,7 @@ using namespace XBot;
 namespace BT
 {
 
-    class StartPlugins : public NoThreadAsychActionNode, public Task
+    class StartPlugins : public AsyncActionNode, public Task
     { // we are working with rt plugins, so we should minimize blocking code
       // that's why we employ asynchronous action nodes
 

@@ -6,7 +6,7 @@
 using namespace BT;
 
 AlwaysRunning::AlwaysRunning(const std::string& name) :
-    NoThreadAsychActionNode(name, {}),
+    AsyncActionNode(name, {}),
     Task(name + "_bt_leaf", ""),
     _name{name}
 {
