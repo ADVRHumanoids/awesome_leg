@@ -34,6 +34,21 @@ void BusPowerRt::init_vars()
 
     _dummy_eig_scalar = Eigen::VectorXd::Zero(1);
 
+    _q_model = Eigen::VectorXd::Zero(_n_jnts_model);
+    _v_model = Eigen::VectorXd::Zero(_n_jnts_model);
+    _tau_model = Eigen::VectorXd::Zero(_n_jnts_model);
+    _v_dot_model = Eigen::VectorXd::Zero(_n_jnts_model);
+
+    _Jc = Eigen::MatrixXd::Zero(6, _n_jnts_model);
+    _B = Eigen::MatrixXd::Zero(6, _n_jnts_model);
+
+    _Lambda_inv.setZero();
+
+    _jnt_stiffness_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _jnt_damping_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _q_dot_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
+
     // used to convert to ros messages-compatible types
     _iq_est_vect = std::vector<double>(_n_jnts_robot);
     _q_p_ddot_est_vect = std::vector<double>(_n_jnts_robot);
@@ -75,6 +90,13 @@ void BusPowerRt::init_vars()
     _ek_mech_vect = std::vector<double>(_n_jnts_robot);
     _ek_indct_vect = std::vector<double>(_n_jnts_robot);
 
+    // additional data
+
+    _q_model_vect = std::vector<double>(_n_jnts_model);
+    _stiffness_setpoint_vect = std::vector<double>(_n_jnts_robot);
+    _damping_setpoint_vect = std::vector<double>(_n_jnts_robot);
+    _q_ref_vect = std::vector<double>(_n_jnts_robot);
+    _q_dot_ref_vect = std::vector<double>(_n_jnts_robot);
 
 }
 
@@ -134,6 +156,8 @@ void BusPowerRt::get_params_from_config()
 
     _verbose = getParamOrThrow<bool>("~verbose");
 
+    _urdf_path = getParamOrThrow<std::string>("~urdf_path");
+    _srdf_path = getParamOrThrow<std::string>("~srdf_path");
 
 }
 
@@ -208,6 +232,29 @@ void BusPowerRt::update_state()
         _iq_getter->get_last_iq_out(_iq_meas);
         _iq_getter->get_last_iq_out_filt(_iq_meas_filt);
     }
+
+    // Updating the model with the measurements (needed only to compute the
+    // "impact severity ratio")
+    _q_model.segment(1, _n_jnts_robot) = _q_p_meas; // we don't care about the passive sliding
+    // guide here
+    _v_model.segment(1, _n_jnts_robot) = _q_p_dot_meas;
+    _model->setJointPosition(_q_model);
+    _model->setJointVelocity(_v_model);
+    _model->update();
+    _model->getJacobian("tip1",
+                        _Jc);
+    _model->getInertiaMatrix(_B);
+
+    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix
+
+    // valid for vertical collision with horizontal flat surface
+    _imp_severity_ratio = (1 + _rest_coeff) / _Lambda_inv(2, 2);
+
+    // quantities useful for debugging
+    _robot->getStiffness(_jnt_stiffness_setpoint);
+    _robot->getDamping(_jnt_stiffness_setpoint);
+    _robot->getPositionReference(_q_ref);
+    _robot->getVelocityReference(_q_dot_ref);
 
 }
 
@@ -312,6 +359,14 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->create("reg_power", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("reg_energy", 1, 1, _matlogger_buffer_size);
 
+    // impact stuff
+    _dump_logger->create("q_model", _n_jnts_model, 1, _matlogger_buffer_size);
+    _dump_logger->create("imp_severity_ratio", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("jnt_stiffness_setpoint", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("jnt_damping_setpoint", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("q_dot_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
+
 }
 
 void BusPowerRt::add_data2dump_logger()
@@ -349,6 +404,28 @@ void BusPowerRt::add_data2dump_logger()
     _dump_logger->add("p_batt", _p_batt);
     _dump_logger->add("reg_energy", _reg_energy);
 
+    // impact stuff
+    _dump_logger->add("q_model", _q_model);
+    _dump_logger->add("imp_severity_ratio", _imp_severity_ratio);
+
+    _dump_logger->add("jnt_stiffness_setpoint", _jnt_stiffness_setpoint);
+    _dump_logger->add("jnt_damping_setpoint", _jnt_damping_setpoint);
+    _dump_logger->add("q_ref", _q_ref);
+    _dump_logger->add("q_dot_ref", _q_dot_ref);
+
+}
+
+void BusPowerRt::init_model_interface()
+{
+    // Initializing XBot2 ModelInterface
+    XBot::ConfigOptions xbot_cfg;
+    xbot_cfg.set_urdf_path(_urdf_path);
+    xbot_cfg.set_srdf_path(_srdf_path);
+    xbot_cfg.generate_jidmap();
+    xbot_cfg.set_parameter("is_model_floating_base", false);
+    xbot_cfg.set_parameter<std::string>("model_type", "RBDL");
+    _model = XBot::ModelInterface::getModel(xbot_cfg);
+    _n_jnts_model = _model->getJointNum();
 }
 
 void BusPowerRt::init_nrt_ros_bridge()
@@ -597,6 +674,13 @@ void BusPowerRt::pub_est_reg_pow()
         _ek_joule_vect[i] = _ek_joule(i);
         _ek_mech_vect[i] = _ek_mech(i);
         _ek_indct_vect[i] = _ek_indct(i);
+
+        _q_model_vect[i] = _q_model(i + 1);
+        _stiffness_setpoint_vect[i] = _jnt_stiffness_setpoint(i);
+        _damping_setpoint_vect[i] = _jnt_damping_setpoint(i);
+        _q_ref_vect[i] = _q_ref(i);
+        _q_dot_ref_vect[i] = _q_dot_ref(i);
+
     }
 
     // filling message
@@ -619,6 +703,13 @@ void BusPowerRt::pub_est_reg_pow()
     reg_pow_msg->msg().iq_jnt_names = _iq_jnt_names;
 
     reg_pow_msg->msg().monitor_recov_energy = _monitor_recov_energy;
+
+    reg_pow_msg->msg().q_model = _q_model_vect;
+    reg_pow_msg->msg().stiffness_setpoint = _stiffness_setpoint_vect;
+    reg_pow_msg->msg().damping_setpoint = _damping_setpoint_vect;
+    reg_pow_msg->msg().q_ref = _q_ref_vect;
+    reg_pow_msg->msg().q_dot_ref = _q_dot_ref_vect;
+    reg_pow_msg->msg().imp_severity_ratio = _imp_severity_ratio;
 
     _est_reg_pow_pub->publishLoaned(std::move(reg_pow_msg));
 
@@ -710,6 +801,9 @@ bool BusPowerRt::on_initialize()
     is_dummy(dummy_flagname); // see if we are running in dummy mode
 
     get_params_from_config(); // load params from yaml file
+
+    // Initializing XBot2 model interface using the read parameters
+    init_model_interface();
 
     _plugin_dt = getPeriodSec();
 

@@ -94,6 +94,7 @@ private:
          _enable_meas_rec_energy_monitoring = false;
 
     int _n_jnts_robot,
+        _n_jnts_model,
         _der_est_order = 1,
         _iq_calib_window_size = 1000,
         _alpha = 5.0;
@@ -101,7 +102,8 @@ private:
     std::string _mat_path = "/tmp/", _dump_mat_suffix = "bus_power_rt",
                 _hw_type, 
                 _topic_ns = "",
-                _set_monitor_state_servname = "start_rec_energy_monitor";
+                _set_monitor_state_servname = "start_rec_energy_monitor",
+                _urdf_path, _srdf_path;
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -117,17 +119,25 @@ private:
 
     Eigen::VectorXd _q_p_meas,
                     _q_p_dot_meas, _q_dot_motor, _q_p_dot_meas_filt, _q_p_ddot_est, _q_p_ddot_est_filt,
+                    _q_model, _v_model, _tau_model, _v_dot_model,
                     _tau_meas, _tau_meas_filt,
                     _iq_meas, _iq_meas_filt,
                     _K_t, _K_d0, _K_d1, _rot_MoI, _red_ratio,
                     _tau,
                     _iq_est, _iq_friction_torque, _tau_rot_est,
                     _alpha_f0, _alpha_f1,
-                    _R, _L_leak, _L_m;
+                    _R, _L_leak, _L_m,
+                    _jnt_stiffness_setpoint, _jnt_damping_setpoint,
+                    _q_ref, _q_dot_ref;
 
     Eigen::VectorXd _er_k, _pr_k, _recov_energy,
                     _pk_joule, _pk_mech, _pk_indct,
                     _ek_joule, _ek_mech, _ek_indct;
+
+    Eigen::Matrix6d _Lambda_inv; // used for computing the "impact severity ratio"
+    Eigen::MatrixXd _Jc, _B;
+    double _rest_coeff = 0.0;
+    double _imp_severity_ratio = -1.0;
 
     std::vector<double> _iq_est_vect, _q_p_ddot_est_vect, _q_p_ddot_est_filt_vect,
                         _q_p_dot_meas_vect, _q_p_dot_meas_filt_vect,
@@ -145,6 +155,9 @@ private:
     std::vector<double> _er_k_vect, _pr_k_vect, _recov_energy_vect,
                         _pk_joule_vect, _pk_mech_vect, _pk_indct_vect,
                         _ek_joule_vect, _ek_mech_vect, _ek_indct_vect;
+
+    std::vector<double> _q_model_vect, _stiffness_setpoint_vect, _damping_setpoint_vect,
+                        _q_ref_vect, _q_dot_ref_vect;
 
     std::vector<std::string> _jnt_names, _iq_jnt_names;
 
@@ -191,6 +204,8 @@ private:
     int _mov_avrg_window_size_q_dot= 10;
     double _mov_avrg_cutoff_freq_q_dot = 15.0;
 
+    XBot::ModelInterface::Ptr _model;
+
     void get_params_from_config();
 
     void init_vars();
@@ -209,6 +224,7 @@ private:
     void spawn_nrt_thread();
 
     void init_nrt_ros_bridge();
+    void init_model_interface();
 
     void is_sim(std::string sim_string);
     void is_dummy(std::string dummy_string);
