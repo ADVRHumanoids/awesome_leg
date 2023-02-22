@@ -252,7 +252,7 @@ void BusPowerRt::update_state()
 
     // quantities useful for debugging
     _robot->getStiffness(_jnt_stiffness_setpoint);
-    _robot->getDamping(_jnt_stiffness_setpoint);
+    _robot->getDamping(_jnt_damping_setpoint);
     _robot->getPositionReference(_q_ref);
     _robot->getVelocityReference(_q_dot_ref);
 
@@ -366,6 +366,11 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->create("jnt_damping_setpoint", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("q_dot_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("dropdown_rec_energy", 1, 1, _matlogger_buffer_size);
+    _dump_logger->create("dropdown_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("dropdown_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("dropdown_q_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
 
 }
 
@@ -588,6 +593,14 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
 
             _enable_meas_rec_energy_monitoring = false; // we reset sensor readings
 
+            if(req.reset_energy)
+            { // we log the recovered energy up to this point
+                _dump_logger->add("dropdown_rec_energy", _recov_energy_tot);
+                _dump_logger->add("dropdown_stiffness", _jnt_stiffness_setpoint);
+                _dump_logger->add("dropdown_damping", _jnt_damping_setpoint);
+                _dump_logger->add("dropdown_q_ref", _q_ref);
+
+            }
         }
 
     }
