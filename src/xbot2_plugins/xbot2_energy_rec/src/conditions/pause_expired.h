@@ -30,7 +30,7 @@ namespace BT
 
         private:
 
-            bool _verbose = true;
+            bool _verbose = false;
 
             bool _ref_time_set = false;
 

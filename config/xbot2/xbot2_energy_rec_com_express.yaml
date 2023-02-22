@@ -21,7 +21,8 @@ xbotcore_device_configs:
 # threads
 xbotcore_threads:
     rt_main:  {sched: fifo , prio: 60, period: 0.01, core_id: 0}
-    nrt_bt_root: {sched: other, prio: 0 , period: 0.01}
+#    bt_root: {sched: other, prio: 0 , period: 0.01}
+    bt_root: {sched: fifo, prio: 60 , period: 0.01}
     traj_replay_thread: {sched: fifo , prio: 60, period: 0.001, core_id: 1}
 #    rt_main_slow:  {sched: fifo , prio: 60, period: 0.01, core_id: 1}
     nrt_main: {sched: other, prio: 0 , period: 0.01}
@@ -110,7 +111,7 @@ xbotcore_plugins:
             bus_p_leak: {value: 48, type: double} # [W]
 
     bt_rt:
-        thread: nrt_bt_root
+        thread: bt_root
         type: bt_rt
         params:
 
