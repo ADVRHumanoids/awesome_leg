@@ -325,19 +325,15 @@ void CartImpCntrlRt::starting()
 
 void CartImpCntrlRt::update_tasks()
 {
-    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix
-
-    _K_setpoint.noalias() = _Lambda_inv * _k_setpoint.asDiagonal();
-    _D_setpoint.noalias() = _Lambda_inv * _d_setpoint.asDiagonal();
-
-//    _K_setpoint = _k_setpoint.asDiagonal();
-//    _D_setpoint = _d_setpoint.asDiagonal();
+    _K_setpoint = _k_setpoint.asDiagonal();
+    _D_setpoint = _d_setpoint.asDiagonal();
 
     _cart_impedance_setpoint.stiffness = _K_setpoint;
     _cart_impedance_setpoint.damping = _D_setpoint;
 
     _cart_impedance_task->setImpedance(_cart_impedance_setpoint);
-
+    // a lambda-inv weight is already applied internally by OpenSot
+    // so here nothing has to be done
     _M_ref_imp.translation() = _pos_ref;
     _M_ref_imp.linear() = _R_ref;
     _v_ref.setZero();
@@ -370,15 +366,16 @@ void CartImpCntrlRt::update_state()
                         _cart_impedance_task->getBaseLink(),
                         _Jc);
     _model->getInertiaMatrix(_B);
+    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix, just for debugging
 
     update_tasks();
 
     update_ci_solver();
 
-    if(!_test_bare_imp_cntrl)
-    {
-        _model->getJointEffort(_tau_cmd);
-    }
+//    if(!_test_bare_imp_cntrl)
+//    {
+    _model->getJointEffort(_tau_cmd);
+//    }
 }
 
 void CartImpCntrlRt::run()
@@ -393,17 +390,17 @@ void CartImpCntrlRt::run()
     _q_dot_cmd = _q_dot_meas;
 
     // just a test to compute the actuation tau without the QP-based impedance control
-    if(_test_bare_imp_cntrl)
-    {
-        _cart_impedance_task->getCurrentPose(_M_meas_imp);
-        _pos_meas = _M_meas_imp.translation();
-        _M_meas_imp.linear() = _R_ref;
-        _model->computeNonlinearTerm(_non_lin_terms);
-        _p_err.segment(0, 3).noalias() = _pos_meas - _pos_ref;
-        _v_err = _Jc * _v_model - _v_ref;
-        _tau_cmd.noalias() = _non_lin_terms - _Jc.transpose() * (_k_setpoint.asDiagonal() * _p_err + _d_setpoint.asDiagonal() * _v_err);
-        _tau_ff = _tau_cmd.segment(1, _n_jnts_robot);
-    }
+//    if(_test_bare_imp_cntrl)
+//    {
+//        _cart_impedance_task->getCurrentPose(_M_meas_imp);
+//        _pos_meas = _M_meas_imp.translation();
+//        _M_meas_imp.linear() = _R_ref;
+//        _model->computeNonlinearTerm(_non_lin_terms);
+//        _p_err.segment(0, 3).noalias() = _pos_meas - _pos_ref;
+//        _v_err = _Jc * _v_model - _v_ref;
+//        _tau_cmd.noalias() = _non_lin_terms - _Jc.transpose() * (_k_setpoint.asDiagonal() * _p_err + _d_setpoint.asDiagonal() * _v_err);
+//        _tau_ff = _tau_cmd.segment(1, _n_jnts_robot);
+//    }
 
     // Check input for bound violations
     saturate_input();
