@@ -106,6 +106,8 @@ void BaseEstRt::get_params_from_config()
 
     _svd_thresh = getParamOrThrow<double>("~svd_thresh");
 
+    _use_g_during_flight = getParamOrThrow<bool>("~use_g_during_flight");
+
 //    _contact_detection_gz_truth = getParamOrThrow<double>("~contact_detection_gz_truth");
 
 }
@@ -333,7 +335,7 @@ void BaseEstRt::update_base_estimates()
     _tau_be(0) = 0; // no effort on passive joints
     _tau_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _tau_meas; // measured torque
 
-    if(_is_flight_phase)
+    if(_is_flight_phase && _use_g_during_flight)
     { // we are flying --> the force estimator won't use the estimate of the base estimation (which assumes ground contact).
       // instead, we assume the base, once in flight phase, accelerates with - g (which is an approximation)
         _q_p_be[0] = _q_p_be_takeoff[0] + _q_p_dot_be_takeoff[0] * _flight_time + 1.0/2.0* _g_scalar * std::pow(_flight_time, 2);
@@ -349,11 +351,22 @@ void BaseEstRt::update_base_estimates()
 
     get_base_est(); // first updated the f estimation
     // using the internal model state and then performs the base estimation
-    if(!_is_flight_phase)
-    { // we are one the ground --> we can employ base estimation, otherwise we use the integrated base
+
+    if(_use_g_during_flight)
+    {
+        if(!_is_flight_phase)
+        { // we are one the ground --> we can employ base estimation, otherwise we use the integrated base
+            _q_p_dot_be(0) = _q_p_dot_be_aux(0);
+            _q_p_be(0) = _q_p_be_aux(0);
+        }
+
+    }
+    else
+    {
         _q_p_dot_be(0) = _q_p_dot_be_aux(0);
         _q_p_be(0) = _q_p_be_aux(0);
     }
+
 
     update_pin_model(); // update pin model with estimates
 
@@ -398,14 +411,17 @@ void BaseEstRt::update_states()
 
     get_robot_state(); // gets states from the robot
 
-    if (!_is_flight_phase_prev && _is_flight_phase)
-    { // we are right after the takeoff instant --> we store the current state
-        _q_p_be_takeoff = _q_p_be;
-        _q_p_dot_be_takeoff = _q_p_dot_be;
-    }
-    if (_is_flight_phase_prev && !_is_flight_phase)
-    { // we are at the touchdown instant
+    if(_use_g_during_flight)
+    {
+        if (!_is_flight_phase_prev && _is_flight_phase)
+        { // we are right after the takeoff instant --> we store the current state
+            _q_p_be_takeoff = _q_p_be;
+            _q_p_dot_be_takeoff = _q_p_dot_be;
+        }
+        if (_is_flight_phase_prev && !_is_flight_phase)
+        { // we are at the touchdown instant
 
+        }
     }
 
     update_base_estimates();
