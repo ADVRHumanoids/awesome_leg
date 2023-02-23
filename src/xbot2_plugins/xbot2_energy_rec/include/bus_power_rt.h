@@ -135,7 +135,7 @@ private:
                     _ek_joule, _ek_mech, _ek_indct;
 
     Eigen::Matrix6d _Lambda_inv; // used for computing the "impact severity ratio"
-    Eigen::MatrixXd _Jc, _B;
+    Eigen::MatrixXd _Jc, _B, _Lambda_inv_tmp;
     double _rest_coeff = 0.0;
     double _imp_severity_ratio = -1.0;
 

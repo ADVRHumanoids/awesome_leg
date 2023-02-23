@@ -42,6 +42,8 @@ void BusPowerRt::init_vars()
     _Jc = Eigen::MatrixXd::Zero(6, _n_jnts_model);
     _B = Eigen::MatrixXd::Zero(6, _n_jnts_model);
 
+    _Lambda_inv_tmp = Eigen::MatrixXd::Zero(_n_jnts_model, 6);
+
     _Lambda_inv.setZero();
 
     _jnt_stiffness_setpoint = Eigen::VectorXd::Zero(_n_jnts_robot);
@@ -244,8 +246,9 @@ void BusPowerRt::update_state()
     _model->getJacobian("tip1",
                         _Jc);
     _model->getInertiaMatrix(_B);
-
-    _Lambda_inv.noalias() = _Jc * _B.inverse() * _Jc.transpose(); // inverse of cartesian inertia matrix
+    
+    _Lambda_inv_tmp.noalias() = _B.inverse() * _Jc.transpose();
+    _Lambda_inv.noalias() = _Jc * _Lambda_inv_tmp; // inverse of cartesian inertia matrix
 
     // valid for vertical collision with horizontal flat surface
     _imp_severity_ratio = (1 + _rest_coeff) / _Lambda_inv(2, 2);
