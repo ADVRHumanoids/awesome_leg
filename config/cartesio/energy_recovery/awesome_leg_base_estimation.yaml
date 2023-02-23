@@ -26,8 +26,6 @@ Postural_reg: # we want to track the measurements at the joint level and estimat
     type: "Postural"
     name: "Postural_reg"
     lambda: 0.0 # pos gain
-    disabled_joints:
-        - "test_rig2base"
 
 ground_contact:
   type: "Cartesian"

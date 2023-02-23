@@ -64,12 +64,16 @@ void BaseEstRt::update_clocks()
 {
     // Update timer(s)
     _loop_time += _plugin_dt;
-    _flight_time += _plugin_dt;
 
     // Reset timers, if necessary
     if (_loop_time >= _loop_timer_reset_time)
     {
         _loop_time = _loop_time - _loop_timer_reset_time;
+    }
+
+    if(_is_flight_phase)
+    {
+        _flight_time += _plugin_dt;
     }
 
     if (_is_flight_phase_prev && !_is_flight_phase)
@@ -312,7 +316,7 @@ void BaseEstRt::update_base_estimates()
 
 //    _q_p_dot_be(0) = passive_jnt_vel; // assign passive dofs
     // _q_p_dot_be(0) is left to the last estimated value
-    _q_p_dot_be(0) = 0;
+//    _q_p_dot_be(0) = 0;
     _q_p_dot_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
     // from encoders
 
@@ -354,16 +358,13 @@ void BaseEstRt::update_base_estimates()
         return;
     }
 
-    if()
-    {
-
+    if(!_is_flight_phase)
+    { // we only employ base estimation when in contact
+        _base_est_model->getJointPosition(_q_p_be_aux);
+        _base_est_model->getJointVelocity(_q_p_dot_be_aux);
+        _q_p_be(0) = _q_p_be_aux(0);
+        _q_p_dot_be(0) = _q_p_dot_be_aux(0);
     }
-
-    _base_est_model->getJointPosition(_q_p_be_aux);
-    _base_est_model->getJointVelocity(_q_p_dot_be_aux);
-
-    _q_p_be(0) = _q_p_be_aux(0);
-    _q_p_dot_be(0) = _q_p_dot_be_aux(0);
 
     _kinematics_model->setJointPosition(_q_p_be);
     _kinematics_model->setJointVelocity(_q_p_dot_be);
