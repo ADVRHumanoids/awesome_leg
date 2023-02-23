@@ -19,7 +19,13 @@ constraints: ["Postural"]
 Postural: # we want to track the measurements at the joint level and estimate the rest
     type: "Postural"
     lambda: 0.0 # pos gain
-    lambda2: 0.05 # vel gain
+    disabled_joints:
+        - "test_rig2base"
+
+Postural_reg: # we want to track the measurements at the joint level and estimate the rest
+    type: "Postural"
+    name: "Postural_reg"
+    lambda: 0.0 # pos gain
     disabled_joints:
         - "test_rig2base"
 
