@@ -64,11 +64,11 @@ xbotcore_plugins:
 
             ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-            obs_bw: {value: 5.0, type: double}
+            obs_bw: {value: 3.0, type: double}
             svd_thresh: {value: 0.1, type: double}
 
             contact_release_thr: {value: 30.0, type: double}
-            contact_attach_thr: {value: 90.0, type: double}
+            contact_attach_thr: {value: 50.0, type: double}
 
             mat_path: {value: /tmp/, type: string}
 

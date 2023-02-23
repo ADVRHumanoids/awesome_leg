@@ -3,7 +3,6 @@
 
 #include <awesome_utils/awesome_utils/typedefs.hpp>
 #include <awesome_utils/awesome_utils/sign_proc_utils.hpp>
-#include <awesome_utils/awesome_utils/model_interface.hpp>
 
 #include <matlogger2/matlogger2.h>
 
@@ -83,7 +82,7 @@ private:
         _contact_state_gr_truth = true,
         _is_flight_phase = false,
         _is_flight_phase_prev = false,
-        _use_g_during_flight = false;
+        _use_g_during_flight = true;
 
     int _n_jnts_robot,
         _nv_be, _nq_be;
@@ -181,9 +180,9 @@ private:
 
     PublisherPtr<awesome_leg::BaseEstStatus> _base_est_st_pub;
 
-    ModelInterface::Model::Ptr _pin_model_ptr;
-
     XBot::ModelInterface::Ptr _base_est_model;
+    XBot::ModelInterface::Ptr _kinematics_model;
+
     BaseEstimation::UniquePtr _est;
     XBot::ForceTorqueSensor::ConstPtr _ft_virt_sensor;
     BaseEstimation::Options _be_options;
@@ -214,7 +213,7 @@ private:
     void get_base_est();
     void update_base_estimates();
     void update_be_model();
-    void update_pin_model();
+    void update_kinematics_model();
     void update_states();
 
     void add_data2dump_logger();
