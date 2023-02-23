@@ -50,6 +50,9 @@ void BaseEstRt::init_vars()
     _tau_c_raw_filt_vect = std::vector<double>(_nv_be);
     _tau_c_raw_vect = std::vector<double>(_nv_be);
 
+    _q_p_be_vect = std::vector<double>(_nv_be);
+    _q_p_dot_be_vect = std::vector<double>(_nv_be);
+    _tau_be_vect = std::vector<double>(_nv_be);
 }
 
 void BaseEstRt::reset_flags()
@@ -61,7 +64,7 @@ void BaseEstRt::update_clocks()
 {
     // Update timer(s)
     _loop_time += _plugin_dt;
-    _flight_time += _flight_time;
+    _flight_time += _plugin_dt;
 
     // Reset timers, if necessary
     if (_loop_time >= _loop_timer_reset_time)
@@ -295,23 +298,7 @@ void BaseEstRt::get_meas_fts_force()
 void BaseEstRt::get_base_est()
 {
 
-        // we employ estimates from the virtual wrench sensor and ik base estimator
 
-        /* Update estimate */
-        Eigen::Affine3d base_pose;
-        Eigen::Vector6d base_vel, raw_base_vel;
-
-        // will update the base estimator
-        // and update the model with the latest solution
-        // for the ik (both q and q_dot are updated)
-        if(!_est->update(base_pose, base_vel, raw_base_vel))
-        {
-            jerror("unable to solve");
-            return;
-        }
-
-        _base_est_model->getJointVelocity(_q_p_dot_be_aux);
-        _base_est_model->getJointPosition(_q_p_be_aux);
 
 
 }
@@ -325,6 +312,7 @@ void BaseEstRt::update_base_estimates()
 
 //    _q_p_dot_be(0) = passive_jnt_vel; // assign passive dofs
     // _q_p_dot_be(0) is left to the last estimated value
+    _q_p_dot_be(0) = 0;
     _q_p_dot_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
     // from encoders
 
@@ -343,28 +331,46 @@ void BaseEstRt::update_base_estimates()
 
     }
 
-    update_be_model(); // update xbot2 model with the measurements
+    // update base estimation model
 
-    get_base_est(); // first updated the f estimation
-    // using the internal model state and then performs the base estimation
+    _base_est_model->setJointPosition(_q_p_be);
+    _base_est_model->setJointVelocity(_q_p_dot_be);
+    _base_est_model->setJointEffort(_tau_be);
 
-    if(_use_g_during_flight)
+    _base_est_model->update();
+
+    // we employ estimates from the virtual wrench sensor and ik base estimator
+
+    /* Update estimate */
+    Eigen::Affine3d base_pose;
+    Eigen::Vector6d base_vel, raw_base_vel;
+
+    // will  eupdate the basestimator
+    // and update the model with the latest solution
+    // for the ik (both q and q_dot are updated)
+    if(!_est->update(base_pose, base_vel, raw_base_vel))
     {
-        if(!_is_flight_phase)
-        { // we are one the ground --> we can employ base estimation, otherwise we use the integrated base
-            _q_p_dot_be(0) = _q_p_dot_be_aux(0);
-            _q_p_be(0) = _q_p_be_aux(0);
-        }
+        jerror("unable to solve");
+        return;
+    }
+
+    if()
+    {
 
     }
-    else
-    {
-        _q_p_dot_be(0) = _q_p_dot_be_aux(0);
-        _q_p_be(0) = _q_p_be_aux(0);
-    }
 
+    _base_est_model->getJointPosition(_q_p_be_aux);
+    _base_est_model->getJointVelocity(_q_p_dot_be_aux);
 
-    update_kinematics_model(); // update kinematics model with estimates
+    _q_p_be(0) = _q_p_be_aux(0);
+    _q_p_dot_be(0) = _q_p_dot_be_aux(0);
+
+    _kinematics_model->setJointPosition(_q_p_be);
+    _kinematics_model->setJointVelocity(_q_p_dot_be);
+    _kinematics_model->update();
+    _kinematics_model->getPose(_tip_link_name,
+                              _M_world_from_tip);
+    _R_world_from_tip = _M_world_from_tip.rotation();
 
     _num_diff_v.add_sample(_q_p_dot_be); // update differentiation
     _num_diff_v.dot(_q_p_ddot_be); // getting differentiated state acceleration
@@ -373,19 +379,12 @@ void BaseEstRt::update_base_estimates()
 
 void BaseEstRt::update_be_model()
 {
-    _base_est_model->setJointPosition(_q_p_be);
-    _base_est_model->setJointVelocity(_q_p_dot_be);
-    _base_est_model->setJointEffort(_tau_be);
 
-    _base_est_model->update();
 
 }
 
 void BaseEstRt::update_kinematics_model()
 {
-    _kinematics_model->setJointPosition(_q_p_be);
-    _kinematics_model->setJointVelocity(_q_p_dot_be);
-    _kinematics_model->update();
 
 }
 
@@ -401,24 +400,13 @@ void BaseEstRt::update_states()
 
     get_robot_state(); // gets states from the robot
 
-    if(_use_g_during_flight)
-    {
-        if (!_is_flight_phase_prev && _is_flight_phase)
-        { // we are right after the takeoff instant --> we store the current state
-            _q_p_be_takeoff = _q_p_be;
-            _q_p_dot_be_takeoff = _q_p_dot_be;
-        }
-        if (_is_flight_phase_prev && !_is_flight_phase)
-        { // we are at the touchdown instant
-
-        }
+    if (!_is_flight_phase_prev && _is_flight_phase)
+    { // we are right after the takeoff instant --> we store the current state
+        _q_p_be_takeoff = _q_p_be;
+        _q_p_dot_be_takeoff = _q_p_dot_be;
     }
 
     update_base_estimates();
-
-    _kinematics_model->getPose(_tip_link_name,
-                              _M_world_from_tip);
-    _R_world_from_tip = _M_world_from_tip.rotation();
 
     get_meas_fts_force(); // only in sim, we get the measured force
 
@@ -431,7 +419,6 @@ void BaseEstRt::update_states()
     _est_wrench_norm = _est_w.norm();
     _vertex_frames = _contact_info[0].vertex_frames;
     _vertex_weights = _contact_info[0].vertex_weights;
-
     _contact_state = _contact_info[0].contact_state;
 
     _is_flight_phase_prev = _is_flight_phase;
@@ -589,6 +576,10 @@ void BaseEstRt::pub_base_est_status()
 
     Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_vect[0], _tau_c_raw.size(), 1) = _tau_c_raw;
     Eigen::Map<Eigen::VectorXd>(&_tau_c_raw_filt_vect[0], _tau_c_raw_filt.size(), 1) = _tau_c_raw_filt;
+
+    Eigen::Map<Eigen::VectorXd>(&_q_p_be_vect[0], _q_p_be.size(), 1) = _q_p_be;
+    Eigen::Map<Eigen::VectorXd>(&_q_p_dot_be_vect[0], _q_p_dot_be.size(), 1) = _q_p_dot_be;
+    Eigen::Map<Eigen::VectorXd>(&_tau_be_vect[0], _tau_be.size(), 1) = _tau_be;
     
     base_est_msg->msg().name = _be_msg_name;
     base_est_msg->msg().est_wrench = _est_w_vect;
@@ -608,6 +599,11 @@ void BaseEstRt::pub_base_est_status()
     base_est_msg->msg().tau_c_raw_filt = _tau_c_raw_filt_vect;
 
     base_est_msg->msg().contact_ground_truth = _contact_state_gr_truth;
+
+    base_est_msg->msg().q_p_be = _q_p_be_vect;
+    base_est_msg->msg().q_p_dot_be = _q_p_dot_be_vect;
+    base_est_msg->msg().tau_be = _tau_be_vect;
+
 
     _base_est_st_pub->publishLoaned(std::move(base_est_msg));
 }

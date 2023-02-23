@@ -131,6 +131,9 @@ private:
     std::vector<double> _base_link_omega_vect;
     std::vector<double> _tau_c_raw_vect;
     std::vector<double> _tau_c_raw_filt_vect;
+    std::vector<double> _q_p_be_vect;
+    std::vector<double> _q_p_dot_be_vect;
+    std::vector<double> _tau_be_vect;
 
     std::vector<BaseEstimation::ContactInformation> _contact_info;
 
