@@ -1,21 +1,23 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
- <tabbed_widget name="Main Window" parent="main_window">
+ <tabbed_widget parent="main_window" name="Main Window">
   <Tab containers="1" tab_name="tab1">
    <Container>
-    <DockSplitter count="2" sizes="0.500561;0.499439" orientation="-">
+    <DockSplitter orientation="-" sizes="0.500564;0.499436" count="2">
      <DockArea name="...">
-      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-       <range bottom="-0.025000" left="5.927300" right="25.926700" top="1.025000"/>
+      <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+       <range top="171.705332" left="21.819500" bottom="93.502842" right="30.809500"/>
        <limitY/>
-       <curve name="/base_est_rt/base_estimation_node/contact_state" color="#1f77b4"/>
+       <curve color="#1f77b4" name="/base_est_rt/base_estimation_node/est_wrench.2"/>
+       <curve color="#d62728" name="/base_est_rt/base_estimation_node/est_wrench_norm"/>
       </plot>
      </DockArea>
      <DockArea name="...">
-      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-       <range bottom="-2.504258" left="5.927300" right="25.926700" top="102.674563"/>
+      <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+       <range top="1.100000" left="21.819500" bottom="0.900000" right="30.809500"/>
        <limitY/>
-       <curve name="/base_est_rt/base_estimation_node/vertex_weights.0" color="#d62728"/>
+       <curve color="#1ac938" name="/base_est_rt/base_estimation_node/contact_state"/>
+       <curve color="#ff7f0e" name="/base_est_rt/base_estimation_node/contact_ground_truth"/>
       </plot>
      </DockArea>
     </DockSplitter>
@@ -23,87 +25,90 @@
   </Tab>
   <Tab containers="1" tab_name="tab2">
    <Container>
-    <DockSplitter count="3" sizes="0.332584;0.334831;0.332584" orientation="-">
-     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
-      <DockArea name="...">
-       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-        <range bottom="-0.000000" left="5.927300" right="25.926700" top="0.000000"/>
-        <limitY/>
-        <curve name="/base_est_rt/base_estimation_node/wrench.0" color="#1ac938"/>
-       </plot>
-      </DockArea>
-      <DockArea name="...">
-       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-        <range bottom="-0.100000" left="5.927300" right="25.926700" top="0.100000"/>
-        <limitY/>
-        <curve name="/base_est_rt/base_estimation_node/wrench.3" color="#9467bd"/>
-       </plot>
-      </DockArea>
-     </DockSplitter>
-     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
-      <DockArea name="...">
-       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-        <range bottom="-1268.006819" left="5.927300" right="25.926700" top="471.697603"/>
-        <limitY/>
-        <curve name="/base_est_rt/base_estimation_node/wrench.1" color="#ff7f0e"/>
-       </plot>
-      </DockArea>
-      <DockArea name="...">
-       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-        <range bottom="-0.100000" left="5.927300" right="25.926700" top="0.100000"/>
-        <limitY/>
-        <curve name="/base_est_rt/base_estimation_node/wrench.4" color="#17becf"/>
-       </plot>
-      </DockArea>
-     </DockSplitter>
-     <DockSplitter count="2" sizes="0.5;0.5" orientation="|">
-      <DockArea name="...">
-       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-        <range bottom="-5060.739180" left="5.927300" right="25.926700" top="11449.385617"/>
-        <limitY/>
-        <curve name="/base_est_rt/base_estimation_node/wrench.2" color="#f14cc1"/>
-       </plot>
-      </DockArea>
-      <DockArea name="...">
-       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-        <range bottom="-0.100000" left="5.927300" right="25.926700" top="0.100000"/>
-        <limitY/>
-        <curve name="/base_est_rt/base_estimation_node/wrench.5" color="#bcbd22"/>
-       </plot>
-      </DockArea>
-     </DockSplitter>
-    </DockSplitter>
-   </Container>
-  </Tab>
-  <Tab containers="1" tab_name="tab2">
-   <Container>
-    <DockSplitter count="1" sizes="1" orientation="-">
+    <DockSplitter orientation="-" sizes="0.321308;0.678692" count="2">
      <DockArea name="...">
-      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-       <range bottom="-4.089428" left="5.927300" right="25.926700" top="21.096165"/>
+      <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+       <range top="0.183033" left="21.819500" bottom="-0.532013" right="30.809500"/>
        <limitY/>
-       <curve name="/base_est_rt/base_estimation_node/base_vel_meas.2" color="#1f77b4"/>
-       <curve name="/base_est_rt/base_estimation_node/passive_jnt_v_est" color="#d62728"/>
+       <curve color="#f14cc1" name="/base_est_rt/base_estimation_node/passive_jnt_v_est"/>
+       <curve color="#9467bd" name="/base_est_rt/base_estimation_node/base_vel_meas.2"/>
       </plot>
      </DockArea>
+     <DockSplitter orientation="|" sizes="0.304631;0.384949;0.31042" count="3">
+      <DockSplitter orientation="-" sizes="0.333333;0.333333;0.333333" count="3">
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="0.034539" left="21.819500" bottom="-0.483717" right="30.809500"/>
+         <limitY/>
+         <curve color="#17becf" name="/base_est_rt/base_estimation_node/q_p_be.0"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="0.183033" left="21.819500" bottom="-0.532013" right="30.809500"/>
+         <limitY/>
+         <curve color="#d62728" name="/base_est_rt/base_estimation_node/q_p_dot_be.0"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="0.100000" left="21.819500" bottom="-0.100000" right="30.809500"/>
+         <limitY/>
+         <curve color="#f14cc1" name="/base_est_rt/base_estimation_node/tau_be.0"/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+      <DockSplitter orientation="-" sizes="0.333333;0.333333;0.333333" count="3">
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="2.449677" left="21.819500" bottom="-0.856087" right="30.809500"/>
+         <limitY/>
+         <curve color="#bcbd22" name="/base_est_rt/base_estimation_node/q_p_be.1"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="1.645943" left="21.819500" bottom="-0.047898" right="30.809500"/>
+         <limitY/>
+         <curve color="#1ac938" name="/base_est_rt/base_estimation_node/q_p_dot_be.1"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="73.619776" left="21.819500" bottom="-74.928644" right="30.809500"/>
+         <limitY/>
+         <curve color="#9467bd" name="/base_est_rt/base_estimation_node/tau_be.1"/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+      <DockSplitter orientation="-" sizes="0.333333;0.333333;0.333333" count="3">
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="2.438034" left="21.819500" bottom="-1.446358" right="30.809500"/>
+         <limitY/>
+         <curve color="#1f77b4" name="/base_est_rt/base_estimation_node/q_p_be.2"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="1.866800" left="21.819500" bottom="-0.045917" right="30.809500"/>
+         <limitY/>
+         <curve color="#ff7f0e" name="/base_est_rt/base_estimation_node/q_p_dot_be.2"/>
+        </plot>
+       </DockArea>
+       <DockArea name="...">
+        <plot style="Lines" mode="TimeSeries" flip_x="false" flip_y="false">
+         <range top="65.660971" left="21.819500" bottom="-57.680972" right="30.809500"/>
+         <limitY/>
+         <curve color="#17becf" name="/base_est_rt/base_estimation_node/tau_be.2"/>
+        </plot>
+       </DockArea>
+      </DockSplitter>
+     </DockSplitter>
     </DockSplitter>
    </Container>
   </Tab>
-  <Tab containers="1" tab_name="tab3">
-   <Container>
-    <DockSplitter count="1" sizes="1" orientation="-">
-     <DockArea name="...">
-      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
-       <range bottom="-23043.936844" left="5.927300" right="25.926700" top="24368.135437"/>
-       <limitY/>
-       <curve name="/base_est_rt/base_estimation_node/tau_c_raw.0" color="#1ac938"/>
-       <curve name="/base_est_rt/base_estimation_node/tau_c_raw_filt.0" color="#ff7f0e"/>
-      </plot>
-     </DockArea>
-    </DockSplitter>
-   </Container>
-  </Tab>
-  <currentTabIndex index="3"/>
+  <currentTabIndex index="1"/>
  </tabbed_widget>
  <use_relative_time_offset enabled="1"/>
  <!-- - - - - - - - - - - - - - - -->
