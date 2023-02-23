@@ -160,7 +160,7 @@ void IdlerRt::init_nrt_ros_bridge()
                                                     this,
                                                     &_queue);
 
-    _idle_state_msg.idle = false;
+    _idle_state_msg.idle = true;
     _idle_state_pub = _ros->advertise<awesome_leg::IdleState>(
         _idle_status_topicname, 1);
 
@@ -196,7 +196,14 @@ bool IdlerRt::on_idle_cmd_received(const awesome_leg::SetIdleStateRequest& req, 
                    "\nIdlerRt: received idle request with value: idle: {}.\n", req.idle);
     }
 
+
+    bool state_changed = _idle_state_msg.idle != req.idle;
+
     _idle_state_msg.idle = req.idle;
+
+    bool result = state_changed ? true : false;
+
+    res.success = result;
 
     return res.success;
 }
@@ -209,7 +216,13 @@ bool IdlerRt::on_safety_stop_cmd_received(const awesome_leg::SetSafetyStopReques
                    "\nIdlerRt: received safety stop request with value: stop: {}.\n", req.stop);
     }
 
+    bool state_changed = _safety_stop_msg.stop != req.stop;
+
     _safety_stop_msg.stop = req.stop;
+
+    bool result = state_changed ? true : false;
+
+    res.success = result;
 
     return res.success;
 }
