@@ -371,6 +371,7 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->create("dropdown_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("dropdown_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("dropdown_q_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("dropdown_impact_severity_ratio", 1, 1, _matlogger_buffer_size);
 
 }
 
@@ -599,6 +600,7 @@ bool BusPowerRt::on_monitor_state_signal(const awesome_leg::SetRegEnergyMonitori
                 _dump_logger->add("dropdown_stiffness", _jnt_stiffness_setpoint);
                 _dump_logger->add("dropdown_damping", _jnt_damping_setpoint);
                 _dump_logger->add("dropdown_q_ref", _q_ref);
+                _dump_logger->add("dropdown_impact_severity_ratio", _imp_severity_ratio);
 
             }
         }
