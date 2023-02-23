@@ -34,11 +34,11 @@
     </scene>
 
     <gui fullscreen='0'>
-      <camera name='user_camera'>
-        <pose>3.42632 -0.395908 1.44937 0 0.227643 3.0522</pose>
-        <view_controller>orbit</view_controller>
-        <projection_type>perspective</projection_type>
-      </camera>
+        <camera name='user_camera'>
+            <pose>3.59823 -0.092914 1.10537 -0 0.175643 3.1362</pose>
+            <view_controller>orbit</view_controller>
+            <projection_type>perspective</projection_type>
+        </camera>
     </gui>
 
     <!--%%%%%%%%%%%%%%%% PHYSICS SETTINGS %%%%%%%%%%%%%%%%-->

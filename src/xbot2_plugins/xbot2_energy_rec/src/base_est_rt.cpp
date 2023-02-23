@@ -168,16 +168,13 @@ void BaseEstRt::init_model_interfaces()
 
     // Initializing XBot2 ModelInterface for the rt thread
     _base_est_model = XBot::ModelInterface::getModel(xbot_cfg);
+    _kinematics_model = XBot::ModelInterface::getModel(xbot_cfg);
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::green),
         "\n BaseEstRt: XBot2 model interface initialized successfully \n \n");
 
-    _pin_model_ptr.reset(new ModelInterface::Model(_urdf_path_base_est));
-    _nq_be = _pin_model_ptr->get_nq();
-    _nv_be = _pin_model_ptr->get_nv();
-
-    jhigh().jprint(fmt::fg(fmt::terminal_color::green),
-        "\n BaseEstRt: Pinocchio-based model interface initialized successfully \n \n");
+    _nq_be = _kinematics_model->getActuatedJointNum(); // robot is not floating base
+    _nv_be = _kinematics_model->getActuatedJointNum();
 
 }
 
@@ -215,20 +212,19 @@ void BaseEstRt::init_base_estimator()
 void BaseEstRt::init_transforms()
 {
     // getting link poses from model
-    _pin_model_ptr->get_frame_pose(_base_link_name,
-                              _M_world_from_base_link_ref); // the passive joint dof is
+    _kinematics_model->getPose(_base_link_name, _M_world_from_base_link_ref);
 
     _M_world_from_base_link = _M_world_from_base_link_ref; // initialization
 
     // defined wrt its neutral position
 
-    _pin_model_ptr->get_frame_pose(_test_rig_linkname,
+    _kinematics_model->getPose(_test_rig_linkname,
                               _M_test_rig_from_world); // test rig pose
 
     _M_world_from_test_rig = _M_test_rig_from_world.inverse(); // from world to test rig
     // (it's constant, so we get it here)
 
-    _pin_model_ptr->get_frame_pose(_tip_link_name,
+    _kinematics_model->getPose(_tip_link_name,
                               _M_world_from_tip);
 }
 
@@ -368,7 +364,7 @@ void BaseEstRt::update_base_estimates()
     }
 
 
-    update_pin_model(); // update pin model with estimates
+    update_kinematics_model(); // update kinematics model with estimates
 
     _num_diff_v.add_sample(_q_p_dot_be); // update differentiation
     _num_diff_v.dot(_q_p_ddot_be); // getting differentiated state acceleration
@@ -380,22 +376,16 @@ void BaseEstRt::update_be_model()
     _base_est_model->setJointPosition(_q_p_be);
     _base_est_model->setJointVelocity(_q_p_dot_be);
     _base_est_model->setJointEffort(_tau_be);
-//    _base_est_model->setStiffness();
-//    _base_est_model->setDamping();
 
     _base_est_model->update();
 
 }
 
-void BaseEstRt::update_pin_model()
+void BaseEstRt::update_kinematics_model()
 {
-    _pin_model_ptr->set_q(_q_p_be);
-//    _pin_model_ptr->set_v(_q_p_dot_be);
-//    _pin_model_ptr->set_tau(_tau_be);
-
-//    _pin_model_ptr->update();
-    _pin_model_ptr->update_frames_forward_kin(); // we only update this, not to waste
-    // computational power
+    _kinematics_model->setJointPosition(_q_p_be);
+    _kinematics_model->setJointVelocity(_q_p_dot_be);
+    _kinematics_model->update();
 
 }
 
@@ -426,24 +416,11 @@ void BaseEstRt::update_states()
 
     update_base_estimates();
 
-    _pin_model_ptr->get_frame_pose(_tip_link_name,
+    _kinematics_model->getPose(_tip_link_name,
                               _M_world_from_tip);
     _R_world_from_tip = _M_world_from_tip.rotation();
 
     get_meas_fts_force(); // only in sim, we get the measured force
-
-    // getting other quantities which are useful to compute the raw residual vector
-//    _pin_model_ptr->get_C(_C);
-//    _pin_model_ptr->get_g(_g);
-//    _pin_model_ptr->get_p(_p);
-
-//    _num_diff_p.add_sample(_p); // differentiating the generalized momentum
-//    _num_diff_p.dot(_p_dot);
-//    _CT_v.noalias() = _C.transpose() * _q_p_dot_be;
-//    _tau_c_raw = _p_dot - _CT_v + _g - _tau_be; // raw disturbance torques (not filtered
-//    // and without observer)
-//    _tau_c_raw_filter.add_sample(_tau_c_raw);
-//    _tau_c_raw_filter.get(_tau_c_raw_filt);
 
     _contact_info = _est->contact_info;// get base estimation info
 
@@ -454,6 +431,7 @@ void BaseEstRt::update_states()
     _est_wrench_norm = _est_w.norm();
     _vertex_frames = _contact_info[0].vertex_frames;
     _vertex_weights = _contact_info[0].vertex_weights;
+
     _contact_state = _contact_info[0].contact_state;
 
     _is_flight_phase_prev = _is_flight_phase;
@@ -517,7 +495,7 @@ void BaseEstRt::init_dump_logger()
       _dump_logger->create("meas_tip_t_abs", 3, 1, _matlogger_buffer_size);
 
       _dump_logger->create("meas_tip_w_filt", _meas_w_abs.size(), 1, _matlogger_buffer_size);
-
+      _dump_logger->create("base_link_vel_vect", 3, 1, _matlogger_buffer_size);
     }
 
 }
@@ -550,6 +528,7 @@ void BaseEstRt::add_data2dump_logger()
         _dump_logger->add("meas_tip_t_abs", _meas_tip_t_abs);
 
         _dump_logger->add("meas_tip_w_filt", _meas_w_abs);
+        _dump_logger->add("base_link_vel_vect", _base_link_vel_vect);
 
     }
 
@@ -666,11 +645,6 @@ bool BaseEstRt::on_initialize()
     _ft_meas_filt = MovAvrgFilt(_meas_w_abs.size(), _plugin_dt, _mov_avrg_cutoff_freq);
 
     _tau_c_raw_filter = MovAvrgFilt(_tau_c_raw.size(), _plugin_dt, _mov_avrg_cutoff_freq_tau_c);
-
-    // setting pin model q to neutral to get the reference base link
-    // height wrt the passive dof is defined
-    _pin_model_ptr->set_neutral();
-    _pin_model_ptr->update();
 
     init_transforms(); // we get/initialize some useful link poses
 
