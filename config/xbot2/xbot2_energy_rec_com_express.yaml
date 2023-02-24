@@ -80,16 +80,17 @@ xbotcore_plugins:
         params:
 
             # mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-            # mat_path: {value: /tmp/jump_generation_24-02-2023-00_50_48/, type: string}
-            mat_path: {value: /tmp/jump_generation_24-02-2023-02_05_21/, type: string}
+            mat_path: {value: /tmp/jump_generation_24-02-2023-11_00_02/, type: string}            
+            # mat_path: {value: /tmp/jump_generation_24-02-2023-12_13_45/, type: string}
 
             mat_name: {value: apex_awesome_jump_ref.mat, type: string}
+
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
             # touchdown_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd}
             # touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
-            touchdown_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd}
-            touchdown_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
+            touchdown_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
+            touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
             verbose: {value: false, type: bool}
 
     bus_power_rt:
