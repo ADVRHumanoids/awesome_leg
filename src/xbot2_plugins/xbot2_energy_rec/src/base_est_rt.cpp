@@ -316,7 +316,7 @@ void BaseEstRt::update_base_estimates()
 
 //    _q_p_dot_be(0) = passive_jnt_vel; // assign passive dofs
     // _q_p_dot_be(0) is left to the last estimated value
-//    _q_p_dot_be(0) = 0;
+    // _q_p_dot_be(0) = 0;
     _q_p_dot_be.block(_nv_be - _n_jnts_robot, 0, _n_jnts_robot, 1) = _q_p_dot_meas; // assign actuated dofs with meas.
     // from encoders
 
