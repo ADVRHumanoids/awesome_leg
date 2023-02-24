@@ -172,7 +172,6 @@ void JumpReplayerRt::is_dummy(std::string dummy_string = "dummy")
 
 }
 
-
 void JumpReplayerRt::update_state()
 {    
     // "sensing" the robot
@@ -778,7 +777,7 @@ void JumpReplayerRt::set_cmds()
             _traj_finished = true;
             _traj_started = false;
 
-            _performed_jumps += 1; 
+            _performed_jumps += 1;
 
             reset_clocks();
 
