@@ -226,6 +226,7 @@ class JumpSolPlotter:
         self.i_q_res=self.solution_res["i_q"]
         self.GRF_res=self.solution_res["f_contact"]
         self.tau_res=self.solution_res["tau"][1:3,:] 
+        self.floating_base_defects=self.solution_res["tau"][0,:]  
         self.dt_res=self.solution_res["dt_opt"].flatten()
         self.hip_height_res=self.solution_res["hip_height"]
         self.foot_tip_height_res=self.solution_res["foot_tip_height"]
@@ -571,6 +572,15 @@ class JumpSolPlotter:
         plt.title("Hip velocity (cartesian components) - res solution", fontdict=None, loc='center')
         plt.grid()
 
+        f13=plt.figure()
+        plt.plot(self.time_vector_res.flatten()[:-1], self.floating_base_defects,label=r"$\tau_{0}$")
+        legend =  plt.legend(loc="upper left")
+        legend.set_draggable(state = True)
+        plt.xlabel(r"t [s]")
+        plt.ylabel(r"[Nm]")
+        plt.title("Defects on passive joints - res solution", fontdict=None, loc='center')
+        plt.grid()
+
     def __make_ref_opt_plots(self):
 
         f1=plt.figure()
@@ -807,13 +817,16 @@ class JumpSolPlotter:
 
         f1=plt.figure()
 
-        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[0, :-1], label=r"F_x_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
+        ref_linestyle = '-'
+        res_linestyle = 'dashed'
 
-        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[0, :-1], label=r"F_x_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[0, :-1], label=r"F_x_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z_res", linestyle=res_linestyle, linewidth=2)
+
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[0, :-1], label=r"F_x_ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[1, :-1], label=r"F_y_ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[1:-1].flatten(), self.GRF_ref[2, :-1], label=r"F_z_ref", linestyle=ref_linestyle, linewidth=2)
 
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
@@ -825,10 +838,10 @@ class JumpSolPlotter:
         #     plt.savefig(save_path+"GRF.pdf", format="pdf")
 
         f2=plt.figure()
-        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], label=r"$\mathrm{q}_{\mathrm{hip}}$_ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], label=r"$\mathrm{q}_{\mathrm{knee}}$_ref", linestyle=ref_linestyle, linewidth=2)
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
@@ -837,10 +850,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f3=plt.figure()
-        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_dot_res[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}_res$", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[0, :-1], label=r"$\dot{q}_{\mathrm{hip}}$_ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_dot_ref[1, :-1], label=r"$\dot{q}_{\mathrm{knee}}$_ref", linestyle=ref_linestyle, linewidth=2)
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
@@ -849,10 +862,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f4=plt.figure()
-        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[0, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{hip}}$_ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.q_p_ddot_ref[1, :], label=r"$\ddot{\mathrm{q}}_{\mathrm{knee}}$_ref", linestyle=ref_linestyle, linewidth=2)
         
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
@@ -862,10 +875,10 @@ class JumpSolPlotter:
         plt.grid()
     
         f5=plt.figure()
-        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{hip}}$ torque ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :],  drawstyle='steps-post', label=r"$\tau_{\mathrm{knee}}$ torque ref", linestyle=ref_linestyle, linewidth=2)
         
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
@@ -875,10 +888,10 @@ class JumpSolPlotter:
         plt.grid()
         
         f6=plt.figure()
-        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res[:-1].flatten(), self.i_q_res[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[0, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{hip}}$ current ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref[:-1].flatten(), self.i_q_ref[1, :], label=r"$\mathrm{i}_\mathrm{q}^{\mathrm{knee}}$ current ref", linestyle=ref_linestyle, linewidth=2)
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
@@ -887,10 +900,10 @@ class JumpSolPlotter:
         plt.grid()
 
         f10=plt.figure()
-        plt.plot(self.time_vector_res.flatten(), self.hip_height_res,label="hip height res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_height_res,label="hip height res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_height_res,label="foot tip height res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_height_ref,label="hip height ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref,label="foot tip height ref", linestyle=ref_linestyle, linewidth=2)
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
@@ -899,13 +912,13 @@ class JumpSolPlotter:
         plt.grid()
         
         f11=plt.figure()
-        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle='-', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[0,:],label="tip vel. x res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[1,:],label="tip vel. y res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.foot_tip_vel_res[2,:],label="tip vel. z res", linestyle=res_linestyle, linewidth=2)
 
-        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[0,:],label="tip vel. x ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[0,:],label="tip vel. x ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[1,:],label="tip vel. y ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.foot_tip_vel_ref[2,:],label="tip vel. z ref", linestyle=ref_linestyle, linewidth=2)
 
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
@@ -915,12 +928,12 @@ class JumpSolPlotter:
         plt.grid()
         
         f12=plt.figure()
-        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[0,:],label="hip vel. x res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[1,:],label="hip vel. y res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[2,:],label="hip vel. z res", linestyle='-', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[0,:],label="hip vel. x res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[1,:],label="hip vel. y res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_res.flatten(), self.hip_vel_res[2,:],label="hip vel. z res", linestyle=res_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[0,:],label="hip vel. x ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[1,:],label="hip vel. y ref", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_ref.flatten(), self.hip_vel_ref[2,:],label="hip vel. z ref", linestyle=ref_linestyle, linewidth=2)
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
         plt.xlabel(r"t [s]")
@@ -936,9 +949,9 @@ class JumpSolPlotter:
         plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[1, :-1], label=r"F_y_res", linestyle='-', linewidth=2)
         plt.plot(self.time_vector_res[1:-1].flatten(), self.GRF_res[2, :-1], label=r"F_z_res", linestyle='-', linewidth=2)
 
-        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[0, :-1], label=r"F_x_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle='dashed', linewidth=2)
-        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle='dashed', linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[0, :-1], label=r"F_x_raw", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[1, :-1], label=r"F_y_raw", linestyle=ref_linestyle, linewidth=2)
+        plt.plot(self.time_vector_raw[1:-1].flatten(), self.GRF_raw[2, :-1], label=r"F_z_raw", linestyle=ref_linestyle, linewidth=2)
 
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
