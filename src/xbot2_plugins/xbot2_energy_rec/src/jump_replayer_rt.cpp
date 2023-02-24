@@ -775,6 +775,8 @@ void JumpReplayerRt::set_cmds()
             _traj_finished = true;
             _traj_started = false;
 
+            _performed_jumps += 1; 
+
             reset_clocks();
 
             _q_p_safe_cmd = _q_p_meas; // keep position reference to currently measured state
@@ -807,6 +809,8 @@ void JumpReplayerRt::pub_replay_status()
     status_msg->msg().send_pos = _send_pos_ref;
     status_msg->msg().send_vel = _send_vel_ref;
     status_msg->msg().send_eff = _send_eff_ref;
+
+    status_msg->msg().performed_jumps = _performed_jumps;
 
     for(int i = 0; i < _n_jnts_robot; i++)
     {

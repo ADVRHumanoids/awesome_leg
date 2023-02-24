@@ -92,7 +92,8 @@ private:
     int _n_jnts_robot,
         _sample_index = 0,
         _takeoff_index = -1,
-        _jump_phase_state = -1;
+        _jump_phase_state = -1, 
+        _performed_jumps = 0;
 
     std::string _mat_path, _mat_name,
                 _dump_mat_suffix = "traj_replay",
@@ -101,7 +102,7 @@ private:
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-        _approach_traj_exec_time = 5.0,
+        _approach_traj_exec_time = 3.0,
         _approach_traj_time = 0.0,
         _imp_ramp_time = 4.0,
         _smooth_imp_time = 0.0,
