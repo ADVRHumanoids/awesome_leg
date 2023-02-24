@@ -147,7 +147,16 @@ void BtRt::init_bt()
     _factory.registerNodeType<TemperatureOk>("TemperatureOk");
     _factory.registerNodeType<Set2SafetyStop>("CoolDownByWaiting");
 
-    _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
+    if(_is_sim || _is_dummy)
+    {
+        _factory.registerNodeType<RecovEnergyReached>("RecovEnergyReached");
+
+    }
+    else
+    {
+        _factory.registerNodeType<RecovEnergyReachedMeas>("RecovEnergyReached");
+
+    }
 
     _factory.registerNodeType<IsIdle>("IsIdle");
     _factory.registerNodeType<AlwaysRunning>("ReturnRunning2");
