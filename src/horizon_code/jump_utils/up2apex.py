@@ -134,6 +134,8 @@ class up2ApexGen:
         
         self.weight_max_leg_retraction = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_max_leg_retraction"] 
         
+        self.weight_max_touchdown_travel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_max_touchdown_travel"]
+
         # these are only used in the refinement stage
         self.weight_q_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_q_tracking"] 
         self.weight_tip_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_tip_tracking"] 
@@ -286,8 +288,7 @@ class up2ApexGen:
 
         # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
         # hip_above_ground.setBounds(0.0, cs.inf)
-        # knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
-        # knee_above_ground.setBounds(0.0, cs.inf)
+
         # tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
         # tip_above_ground.setBounds(0.0, cs.inf)
 
@@ -339,6 +340,7 @@ class up2ApexGen:
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
 
+
     def __scale_weights(self):
 
         self.cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
@@ -376,6 +378,8 @@ class up2ApexGen:
         self.weight_tip_tracking = self.weight_tip_tracking / self.cost_scaling_factor
 
         self.weight_max_leg_retraction = self.weight_max_leg_retraction / self.cost_scaling_factor
+
+        self.weight_max_touchdown_travel = self.weight_max_touchdown_travel / self.cost_scaling_factor
 
     def __set_costs(self):
         
@@ -422,12 +426,7 @@ class up2ApexGen:
         if self.weight_f_contact_diff > 0:
             self.prb.createIntermediateCost("min_f_contact_diff",\
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
-
-        # if self.weight_tip_under_hip > 0:
-        #     self.prb.createIntermediateCost("max_tip_under_hip", \
-        #         self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])),\
-        #         nodes = 0)
-
+            
         if self.weight_tip_under_hip > 0:
             self.prb.createIntermediateCost("max_tip_under_hip", \
                 self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])))
@@ -464,6 +463,10 @@ class up2ApexGen:
             self.prb.createCost("max_leg_retraction", \
                 self.weight_max_leg_retraction * (cs.sumsqr(self.q_p[1:3] - self.q_p_retraction_conf)), self.apex_node)
 
+        if self.weight_max_touchdown_travel > 0:
+            self.prb.createCost("weight_max_touchdown_travel", \
+                self.weight_max_touchdown_travel * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), 
+                self.apex_node)
 
     def __get_solution(self):
 
@@ -529,6 +532,8 @@ class up2ApexGen:
         solution_hip_position = self.fk_hip(q=sol_q_p)["ee_pos"][2,:].toarray()   # hip position
         solution_v_foot_tip = self.dfk_foot(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
         solution_v_foot_hip = self.dfk_hip(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
+        com_pos = self.com_fk(q=sol_q_p)["com"]
+        com_vel = self.com_fk(q=sol_q_p, v=sol_q_p_dot)["vcom"]
 
         self.other_stuff = {
                     "i_q":i_q_est_raw,\
@@ -537,6 +542,8 @@ class up2ApexGen:
                     "hip_height": np.transpose(solution_hip_position), 
                     "tip_velocity": np.transpose(np.transpose(solution_v_foot_tip)),
                     "hip_velocity": np.transpose(np.transpose(solution_v_foot_hip)),
+                    "com_pos": np.transpose(np.transpose(com_pos)), 
+                    "com_vel": np.transpose(np.transpose(com_vel)),
                     "sol_time": self.solution_time,
                     "weight_min_input_diff": self.weight_jnt_input_diff, 
                     "weight_min_f_contact_diff": self.weight_f_contact_diff}
@@ -560,6 +567,8 @@ class up2ApexGen:
         res_v_foot_tip = self.dfk_foot(q=self.p_res, qdot=self.v_res)["ee_vel_linear"]  # foot velocity
         res_v_foot_hip = self.dfk_hip(q=self.p_res, qdot=self.v_res)["ee_vel_linear"]  # foot velocity
         dt_res_vector = np.tile(self.dt_res, n_res_samples - 1)
+        res_com_pos = self.com_fk(q=self.p_res)["com"]
+        res_com_vel = self.com_fk(q=self.p_res, v=self.v_res)["vcom"]
 
         self.useful_solutions_res={"q_p":self.p_res,"q_p_dot":self.v_res, "q_p_ddot":self.a_res,
                         "tau":self.tau_res, 
@@ -569,6 +578,8 @@ class up2ApexGen:
                         "hip_height":np.transpose(res_hip_position), 
                         "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),
                         "hip_velocity":np.transpose(np.transpose(res_v_foot_hip)), 
+                        "com_pos": np.transpose(np.transpose(res_com_pos)), 
+                        "com_vel": np.transpose(np.transpose(res_com_vel)),
                         self.dt_flight_name: self.solution[self.dt_flight_name], 
                         self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name],
                         "dt_opt_raw": self.slvr.getDt(), "dt_opt":dt_res_vector, 
