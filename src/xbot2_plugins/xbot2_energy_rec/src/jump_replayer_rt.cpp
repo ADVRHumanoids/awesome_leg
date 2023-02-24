@@ -543,7 +543,7 @@ bool JumpReplayerRt::on_go2landing_config_received(const awesome_leg::Go2Landing
         _ramp_strt_stiffness = _meas_stiffness; // we prepare to ramp impedances from currently measured value
         _ramp_strt_damping = _meas_damping;
 
-        _q_p_init_appr_traj = _q_cmd; // we also prepare to ramp the joint reference position
+        _q_p_init_appr_traj = _q_p_cmd; // we also prepare to ramp the joint reference position
 
         _landing_config_reached = false;
     }
