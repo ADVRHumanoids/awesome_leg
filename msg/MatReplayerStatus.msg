@@ -7,6 +7,9 @@ bool approach_traj_finished
 bool traj_started
 bool traj_finished
 
+bool landing_config_started
+bool landing_config_reached
+
 bool send_pos
 bool send_vel
 bool send_eff

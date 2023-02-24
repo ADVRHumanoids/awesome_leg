@@ -79,19 +79,25 @@ xbotcore_plugins:
         type: jmp_replayer_rt
         params:
 
-            # mat_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-            mat_path: {value: /tmp/jump_generation_24-02-2023-11_00_02/, type: string}            
-            # mat_path: {value: /tmp/jump_generation_24-02-2023-12_13_45/, type: string}
+            # takeoff_traj_path: {value: /tmp/jump_generation_24-02-2023-12_13_45/, type: string}
+            # takeoff_traj_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
+            takeoff_traj_path: {value: /tmp/jump_generation_24-02-2023-11_00_02/, type: string}
+            takeoff_traj_name: {value: apex_awesome_jump_ref.mat, type: string}
 
-            mat_name: {value: apex_awesome_jump_ref.mat, type: string}
+            landing_config_path: {value: /home/andreap/Desktop/, type: string}
+            landing_config_name: {value: landing_config_test.mat, type: string}
 
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
             # touchdown_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd}
             # touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
-            touchdown_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
+#            touchdown_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
+#            touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
             verbose: {value: false, type: bool}
+
+            go2touchdown_exec_time: {value: 3, type: double}
+
+            go2touchdown_config_auto: {value: true, type: bool}
 
     bus_power_rt:
         thread: rt_main
