@@ -277,7 +277,10 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->create("replay_time", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("replay_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("replay_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("replay_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("meas_stiffness", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->add("touchdown_stiffness", _touchdown_stiffness);
+    _dump_logger->add("touchdown_damping", _touchdown_damping);
     _dump_logger->create("meas_damping", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("meas_driver_temp", _n_jnts_robot, 1, _matlogger_buffer_size);
 
@@ -929,6 +932,7 @@ void JumpReplayerRt::on_stop()
     init_clocks();
 
     // Destroy logger and dump .mat file (will be recreated upon plugin restart)
+    _dump_logger->add("performed_jumps", _performed_jumps);
     _dump_logger.reset();
 }
 
