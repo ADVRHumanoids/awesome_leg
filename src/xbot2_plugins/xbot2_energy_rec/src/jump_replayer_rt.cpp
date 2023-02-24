@@ -664,11 +664,28 @@ void JumpReplayerRt::load_opt_data()
     bool damping_read_ok = _landing_config_logger->readvar(_landing_damping_varname, _touchdown_damping_aux, slices); // here fix _dt_opt (should change to MatrixXd)
     bool config_read_ok = _landing_config_logger->readvar(_landing_config_varname, _landing_config_aux, slices); // here fix _dt_opt (should change to MatrixXd)
 
+    if(_touchdown_stiffness_aux.rows() == _n_jnts_robot && _touchdown_stiffness_aux.cols()!= 1)
+    {
+        throw std::runtime_error(std::string("The optimal landing stiffness should be a n_jnts_robot x 1 array. Check the dimensions!"));
+
+    }
+    if(_touchdown_damping_aux.rows() == _n_jnts_robot && _touchdown_damping_aux.cols()!= 1)
+    {
+        throw std::runtime_error(std::string("The optimal landing damping should be a n_jnts_robot x 1 array. Check the dimensions!"));
+
+    }
+    if(_touchdown_damping_aux.rows() == _n_jnts_robot && _touchdown_damping_aux.cols()!= 1)
+    {
+        throw std::runtime_error(std::string("The optimal landing configuration should be a n_jnts_robot x 1 array. Check the dimensions!"));
+
+    }
+
     for(int i = 0; i < _n_jnts_robot; i++)
     {// we map values to VectorXd to avoid run time resize/non-rt-safe stuff
-        _touchdown_damping(i) = _touchdown_damping_aux(i, 1);
-        _touchdown_stiffness(i) = _touchdown_stiffness_aux(i, 1);
-        _landing_config(i) = _landing_config_aux(i, 1);
+
+        _touchdown_damping(i) = _touchdown_damping_aux(i);
+        _touchdown_stiffness(i) = _touchdown_stiffness_aux(i);
+        _landing_config(i) = _landing_config_aux(i);
     }
 
     if (!stiff_read_ok)
@@ -759,6 +776,8 @@ void JumpReplayerRt::set_cmds()
     // impedance ramping
     if (_ramp_imp)
     {
+        _idle = false;
+
         if (_smooth_imp_time > _imp_ramp_time - 0.000001)
         { // finished ramping impedance
 
@@ -797,6 +816,8 @@ void JumpReplayerRt::set_cmds()
     if (_go2takeoff_config)
     { // still publishing the approach trajectory
 
+        _idle = false;
+
         if (_approach_traj_time > _approach_traj_exec_time - 0.000001)
         {
             _go2takeoff_config = false; // finished approach traj
@@ -830,7 +851,9 @@ void JumpReplayerRt::set_cmds()
     // actual jump trajectory
     if (_perform_takeoff)
     { // publish current trajectory sample
-        
+
+        _idle = false;
+
         if (_sample_index <= _takeoff_index)
         { // before takeoff
             
@@ -931,6 +954,8 @@ void JumpReplayerRt::set_cmds()
     // fast ramp towards the touchdown configuration and jnt impedance setpoints
     if (_go2landing_config)
     {
+        _idle = false;
+
         if (_go2touchdown_time > _go2touchdown_exec_time - 0.000001)
         { // finished ramping impedance
 
@@ -976,10 +1001,12 @@ void JumpReplayerRt::pub_replay_status()
     status_msg->msg().imp_traj_started = _imp_traj_started;
     status_msg->msg().approach_traj_started = _approach_traj_started;
     status_msg->msg().traj_started = _traj_started;
+    status_msg->msg().landing_config_started = _landing_config_started;
 
     status_msg->msg().imp_traj_finished = _imp_traj_finished;
     status_msg->msg().approach_traj_finished = _approach_traj_finished;
     status_msg->msg().traj_finished = _traj_finished;
+    status_msg->msg().landing_config_reached = _landing_config_reached;
 
     status_msg->msg().send_pos = _send_pos_ref;
     status_msg->msg().send_vel = _send_vel_ref;
@@ -1056,7 +1083,8 @@ void JumpReplayerRt::starting()
 
 void JumpReplayerRt::run()
 {  
-    int i = 0;
+
+    _idle = true;
 
     update_state(); // update all necessary states
 
@@ -1064,8 +1092,10 @@ void JumpReplayerRt::run()
 
     set_cmds(); // compute and set command references
 
-    send_cmds(); // send commands to the robot (we always call this so that references are always provided to the robot). We need
-    // to make sure references are as much continuous as possible
+    if(!_idle)
+    {
+        send_cmds(); // send commands to the robot
+    }
 
     pub_replay_status(); // publishes info from the plugin to ros and internal xbot2 topics
 

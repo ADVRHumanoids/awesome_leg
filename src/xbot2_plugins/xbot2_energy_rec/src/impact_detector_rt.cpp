@@ -228,10 +228,12 @@ void ImpactDetectorRt::init_communications()
         _jump_replay_status.approach_traj_started = msg.approach_traj_started;
         _jump_replay_status.traj_started = msg.traj_started;
         _jump_replay_status.imp_traj_started = msg.imp_traj_started;
+        _jump_replay_status.landing_config_reached = msg.landing_config_reached;
 
         _jump_replay_status.approach_traj_finished = msg.approach_traj_finished;
         _jump_replay_status.traj_finished = msg.traj_finished;
         _jump_replay_status.imp_traj_finished = msg.imp_traj_finished;
+        _jump_replay_status.landing_config_started = msg.landing_config_started;
 
 
     };
@@ -285,7 +287,7 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
 
     }
 
-    if(_impact_status_msg.impact && _jump_replay_status.traj_finished && _use_contact2trigger_pow)
+    if(_impact_status_msg.impact && _jump_replay_status.landing_config_reached && _use_contact2trigger_pow)
     { // impact instant, after replaying jump trajectory -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
 
@@ -303,7 +305,7 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
 
     // "acroccata" operation: to trigger the reg pow monitor we look at the contact status (either from Gazebo or the base estimator)
 
-    if(_jump_replay_status.traj_finished && !_use_contact2trigger_pow)
+    if(_jump_replay_status.landing_config_reached && !_use_contact2trigger_pow)
     { // we suppose that no energy is recovered right after the trajectory replay (more or less an approximation) -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
 

@@ -15,14 +15,17 @@ RestartJumpSequence::RestartJumpSequence(const std::string& name) :
     _asynch_servicepath1 = _async_service_pattern + _plugin_name + "/" + _servername1 + "/request";
     _asynch_servicepath2 = _async_service_pattern + _plugin_name + "/" + _servername2 + "/request";
     _asynch_servicepath3 = _async_service_pattern + _plugin_name + "/" + _servername3 + "/request";
+    _asynch_servicepath4 = _async_service_pattern + _plugin_name + "/" + _servername4 + "/request";
 
     _publisher1 = advertise<awesome_leg::RampJntImpRequest>(_asynch_servicepath1);
     _publisher2 = advertise<awesome_leg::Go2TakeoffConfigRequest>(_asynch_servicepath2);
     _publisher3 = advertise<awesome_leg::PerformTakeoffRequest>(_asynch_servicepath3);
+    _publisher4= advertise<awesome_leg::Go2LandingConfigRequest>(_asynch_servicepath4);
 
     _msg1.ramp_imp = false;
     _msg2.go2takeoff_config = false;
     _msg3.perform_takeoff = false;
+    _msg4.go2landing_config = false;
 
 }
 
@@ -32,6 +35,7 @@ NodeStatus RestartJumpSequence::tick()
     _publisher1->publish(_msg1);
     _publisher2->publish(_msg2);
     _publisher3->publish(_msg3);
+    _publisher4->publish(_msg4);
 
     if(_verbose)
     {

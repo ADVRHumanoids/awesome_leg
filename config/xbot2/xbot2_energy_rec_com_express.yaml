@@ -67,8 +67,8 @@ xbotcore_plugins:
             obs_bw: {value: 1.0, type: double}
             svd_thresh: {value: 0.5, type: double}
 
-            contact_release_thr: {value: 40.0, type: double}
-            contact_attach_thr: {value: 50.0, type: double}
+            contact_release_thr: {value: 50.0, type: double}
+            contact_attach_thr: {value: 60.0, type: double}
 
             mat_path: {value: /tmp/, type: string}
 
@@ -95,7 +95,7 @@ xbotcore_plugins:
 #            touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
             verbose: {value: false, type: bool}
 
-            go2touchdown_exec_time: {value: 3, type: double}
+            go2touchdown_exec_time: {value: 0.05, type: double}
 
             go2touchdown_config_auto: {value: true, type: bool}
 

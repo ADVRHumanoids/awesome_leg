@@ -89,7 +89,8 @@ private:
         _go2takeoff_config = false, _perform_takeoff = false, _ramp_imp = false, _go2landing_config = false,
         _approach_traj_started = false, _traj_started = false, _imp_traj_started = false, _landing_config_started = false,
         _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false, _landing_config_reached = false,
-        _go2touchdown_config_auto = true;
+        _go2touchdown_config_auto = true,
+        _idle = true;
 
     int _n_jnts_robot,
         _sample_index = 0,
