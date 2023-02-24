@@ -13,20 +13,31 @@ from horizon.solvers import solver
 from horizon.transcriptions import transcriptor
 from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
 
-from jump_utils.horizon_utils import inv_dyn_from_sol
+from jump_utils.horizon_utils import inv_dyn_from_sol, forw_dyn_from_sol, \
+                                        compute_required_iq_estimate, compute_required_iq_estimate_num
 
-class preTakeoffTO:
+class up2ApexGen:
 
-    def __init__(self,
-                yaml_path: str,
-                actuators_yaml_path: str, 
+    def __init__(self, yaml_path: str, actuators_yaml_path: str, 
                 urdf_path: str,
                 results_path: str,
-                sol_mat_name =  "awesome_jump", sol_mat_name_res = "awesome_jump_res", sol_mat_name_ref = "awesome_jump_ref",   
+                sol_mat_name =  "up2apex", sol_mat_name_res = "up2apex_res", sol_mat_name_ref = "up2apex_ref",   
                 cost_epsi = 1.0, 
-                yaml_tag = "pretakeoff_gen", 
+                yaml_tag = "up2apex_gen", 
+                is_ref_prb = False, 
+                load_ig = True, 
                 acc_based_formulation = True):
         
+        self.acc_based_formulation = acc_based_formulation
+
+        self.is_ref_prb = is_ref_prb
+
+        self.raw_prb_weight_tag = "ig_generation"
+        self.ref_prb_weight_tag = "refinement"
+        
+        self.dt_pretakeoff_name = "dt_pretakeoff"
+        self.dt_flight_name = "dt_flight"
+
         self.yaml_tag = yaml_tag
 
         self.yaml_path = yaml_path
@@ -44,7 +55,7 @@ class preTakeoffTO:
 
         self.cost_epsi = cost_epsi
 
-        self.load_ig = False
+        self.load_ig = load_ig # whether to use the ig during the ref. phase
 
     def __parse_config_yamls(self):
 
@@ -77,6 +88,7 @@ class preTakeoffTO:
             "ipopt.linear_solver": self.yaml_file[self.yaml_tag]["solver"]["ipopt_lin_solver"]
         }
 
+
         self.slvr_name = self.yaml_file[self.yaml_tag]["solver"]["name"] 
 
         self.trans_name = self.yaml_file[self.yaml_tag]["transcription"]["name"] 
@@ -85,15 +97,98 @@ class preTakeoffTO:
         self.n_actuators = len(self.act_yaml_file["K_d0"])
 
         self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
+
+        self.sliding_guide_kd = self.yaml_file[self.yaml_tag]["sliding_guide_friction"]["kd"]
+        self.is_sliding_guide_friction = self.yaml_file[self.yaml_tag]["problem"]["is_sliding_guide_friction"]
         
         self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
 
         self.mu_friction_cone = abs(self.yaml_file[self.yaml_tag]["problem"]["friction_cnstrnt"]["mu_friction_cone"])
 
-        self.scale_factor_base = self.yaml_file[self.yaml_tag]["problem"]["weights"]["scale_factor_costs_base"]  
+        self.dt_res = self.yaml_file[self.yaml_tag]["resampling"]["dt"] 
+        
+        self.use_same_weights = self.yaml_file[self.yaml_tag]["problem"]["weights"]["use_same_weights"]
 
-        self.n_int = self.yaml_file[self.yaml_tag]["problem"]["n_int"]
-        self.takeoff_node = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"]
+        weight_selector = self.ref_prb_weight_tag if (self.is_ref_prb and not self.use_same_weights) else self.raw_prb_weight_tag
+
+        self.scale_factor_base = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["scale_factor_costs_base"]  
+
+        self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact_diff"]  
+        self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_f_contact"] 
+        self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_p_dot"] 
+        self.weight_q_dot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_q_dot_diff"] 
+        self.weight_jnt_input = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input"] 
+        self.weight_jnt_input_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_jnt_input_diff"] 
+
+        self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_term_vel"] 
+        self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel"] 
+        self.weight_tip_under_hip = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_tip_under_hip"] 
+        self.weight_sat_i_q = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_sat_i_q"] 
+
+        self.weight_hip_height = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_hip_height"] 
+        self.weight_tip_clearance = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_tip_clearance"] 
+
+        self.weight_com_vel_vert_at_takeoff = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_vel_vert_at_takeoff"] 
+        
+        self.weight_com_pos = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_com_pos"] 
+        
+        self.weight_max_leg_retraction = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_max_leg_retraction"] 
+        
+        self.weight_max_touchdown_travel = self.yaml_file[self.yaml_tag]["problem"]["weights"][weight_selector]["weight_max_touchdown_travel"]
+
+        # these are only used in the refinement stage
+        self.weight_q_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_q_tracking"] 
+        self.weight_tip_tracking = self.yaml_file[self.yaml_tag]["problem"]["weights"][self.ref_prb_weight_tag]["ig_tracking"]["weight_tip_tracking"] 
+
+        self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
+        self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
+        self.q_p_touchdown_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_touchdown_conf"]
+        self.q_p_retraction_conf = self.yaml_file[self.yaml_tag]["problem"]["q_p_retraction_conf"]
+
+        if not self.is_ref_prb:
+            
+            # only read problem interval/node specification if not performing the refinement stage 
+
+            self.n_int = self.yaml_file[self.yaml_tag]["problem"]["n_int"]
+            self.takeoff_node = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"]
+        
+            self.n_nodes = self.n_int + 1 
+            self.last_node = self.n_nodes - 1
+            self.input_nodes = list(range(0, self.n_nodes - 1))
+            self.input_diff_nodes = list(range(1, self.n_nodes - 1))
+            self.f_diff_nodes = list(range(1, self.takeoff_node))
+            self.contact_nodes = list(range(0, self.takeoff_node + 1))
+            self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
+
+            self.apex_node = self.last_node
+
+    def __init_sol_dumpers(self):
+
+        self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
+
+        self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.res_sol_mat_name + ".mat")  # resampled opt. sol
+
+        self.ms_refined = mat_storer.matStorer(self.results_path + "/" + self.ref_sol_mat_name + ".mat")  # refined opt. sol
+    
+    def __load_ig(self):
+
+        ms_ig_path = self.results_path + "/" + self.res_sol_mat_name + ".mat" # load resampled sol.
+        ms_loaded_ig = mat_storer.matStorer(ms_ig_path)
+        self.loaded_sol=ms_loaded_ig.load() # loading the solution dictionary
+ 
+        dt_res = self.loaded_sol["dt_opt"].flatten()[0]
+        
+        t_exec = sum(self.loaded_sol["dt_opt_raw"].flatten()) # total raw opt trajectory execution time
+
+        # f_z_raw = self.loaded_sol["f_contact_raw"][2]
+
+        # raw_pretakeoff_dt = self.loaded_sol["dt_opt"][0][0]
+
+        raw_n_int_pretakeoff = self.yaml_file[self.yaml_tag]["problem"]["takeoff_node"] + 1 # n int. of the pretakeoff phase
+        takeoff_time = raw_n_int_pretakeoff * self.loaded_sol[self.dt_pretakeoff_name][0][0]
+
+        self.n_int = int(np.round(t_exec/dt_res))
+        self.takeoff_node = int(np.round(takeoff_time/dt_res))
 
         self.n_nodes = self.n_int + 1 
         self.last_node = self.n_nodes - 1
@@ -102,63 +197,38 @@ class preTakeoffTO:
         self.contact_nodes = list(range(0, self.takeoff_node + 1))
         self.flight_nodes = list(range(self.takeoff_node + 1, self.n_nodes))
 
-        self.dt_lb = self.yaml_file[self.yaml_tag]["problem"]["dt_lb"]
-        self.dt_ub = self.yaml_file[self.yaml_tag]["problem"]["dt_ub"] 
-
-        self.dt_res = self.yaml_file[self.yaml_tag]["resampling"]["dt"] 
-        
-        self.weight_f_contact_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact_diff"]  
-        self.weight_f_contact_cost = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_f_contact"] 
-        self.weight_q_dot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_dot"] 
-        self.weight_q_ddot = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_q_p_ddot"] 
-        self.weight_q_p_ddot_diff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_jnt_input_diff"]
-
-        self.weight_term_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_term_vel"] 
-        self.weight_com_vel = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel"] 
-        self.weight_tip_under_hip = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_tip_under_hip"] 
-        self.weight_sat_i_q = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_sat_i_q"] 
-
-        self.weight_com_vel_vert_at_takeoff = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_vel_vert_at_takeoff"] 
-        
-        self.weight_com_pos = self.yaml_file[self.yaml_tag]["problem"]["weights"]["weight_com_pos"] 
-
-    def __init_sol_dumpers(self):
-
-        self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
-
-        self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.res_sol_mat_name + ".mat")  # original opt. sol
-
-    def __load_ig(self):
-
-        ms_ig_path = self.results_path + "/" + self.res_sol_mat_name + ".mat"
-        ms_loaded_ig = mat_storer.matStorer(ms_ig_path)
-        self.loaded_sol=ms_loaded_ig.load() # loading the solution dictionary
- 
-        dt_res = self.loaded_sol["dt_opt"].flatten()[0]
-
-        t_exec = sum(self.loaded_sol["dt_opt_raw"].flatten())
-    
-        self.n_int = int(np.round(t_exec/dt_res))
-
-        self.cost_scaling_factor = self.loaded_sol["cost_scaling_factor"]
+        self.apex_node = self.last_node
 
     def __set_igs(self):
         
-        if not self.load_ig:
-
-            self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-            self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-            self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
-
-            self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
-
-        else:
+        if self.load_ig and self.is_ref_prb: # only use if in the refinement phase
 
             self.q_p.setInitialGuess(self.loaded_sol["q_p"])
             self.q_p_dot.setInitialGuess(self.loaded_sol["q_p_dot"])
-            self.q_p_ddot.setInitialGuess(self.loaded_sol["q_p_ddot"])
+            
+            if self.acc_based_formulation:
+
+                self.q_p_ddot.setInitialGuess(self.loaded_sol["q_p_ddot"])
+            else:
+                
+                self.tau.setInitialGuess(self.loaded_sol["tau"])
 
             self.f_contact.setInitialGuess(self.loaded_sol["f_contact"])
+
+        else:
+            
+            self.q_p.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+            self.q_p_dot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            if self.acc_based_formulation:
+
+                self.q_p_ddot.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            else:
+                
+                self.tau.setInitialGuess(np.array([0.0, 0.0, 0.0]))
+
+            self.f_contact[2].setInitialGuess(self.urdf_kin_dyn.mass() * 9.81)
 
     def __get_quantities_from_urdf(self):
         
@@ -190,47 +260,72 @@ class preTakeoffTO:
         self.vcom = self.com_fk(q = self.q_p, v = self.q_p_dot, a = self.q_p_ddot)["vcom"]
 
     def __set_constraints(self):
-        
+
         # constraints
-        self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau)  # torque limits
-        self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
-        # self.tau_limits.setBounds(-np.array([0, cs.inf, cs.inf]), np.array([0, cs.inf, cs.inf]))  # setting input limits
+        if self.is_sliding_guide_friction:
+            # limits only on active joints and friction constraint on the sliding guide
+            self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau[1:])  # torque limits
+            self.tau_limits.setBounds(- self.tau_lim[1:], self.tau_lim[1:])  # setting input limits
 
-        self.prb.createConstraint("foot_vel_zero", self.v_foot_tip, self.contact_nodes) 
+            self.friction_torque_sliding_guide_cnstrnt = self.prb.createIntermediateConstraint("friction_torque_sliding_guide",\
+                self.tau[0] - self.sliding_guide_friction_torque) 
 
+        else:
+
+            self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau)  # torque limits
+            self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
+
+        if not self.acc_based_formulation: # creating constraint just to have q_p_ddot in the dumped solution
+
+            inf_array = np.array([cs.inf, cs.inf, cs.inf])
+
+            self.q_p_ddot_lim = self.prb.createIntermediateConstraint("q_p_ddot_lim", self.q_p_ddot) 
+            self.q_p_ddot_lim.setBounds(-inf_array, inf_array)  # setting input limits
+        
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  
 
-        self.prb.createConstraint("tip_under_hip", self.foot_tip_position[1], nodes=0)
+        self.prb.createConstraint("tip_stays_on_ground", self.v_foot_tip, self.contact_nodes) 
 
-        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizoin
-        hip_above_ground.setBounds(0.0, cs.inf)
-        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizoin
-        knee_above_ground.setBounds(0.0, cs.inf)
+        # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
+        # hip_above_ground.setBounds(0.0, cs.inf)
+
+        # tip_above_ground = self.prb.createConstraint("tip_above_ground", self.foot_tip_position[2])  # no ground penetration on all the horizon
+        # tip_above_ground.setBounds(0.0, cs.inf)
+
+        # com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
+        # com_towards_vertical.setBounds(0.0, cs.inf)
+
+        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], \
+                    nodes = self.apex_node) # reach the apex at the end of the trajectory 
         
-        com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2]) # intermediate, so all except last node
-        com_towards_vertical.setBounds(0.0, cs.inf)
-        
-        # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1])  
+        # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
 
-        self.prb.createIntermediateConstraint("GRF_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
+        self.prb.createIntermediateConstraint("grf_zero", self.f_contact, nodes = self.flight_nodes[:-1])  # 0 GRF during flight
 
-        self.prb.createConstraint("init_joint_vel_zero", self.q_p_dot,
-                            nodes=0) 
+        grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2], nodes = self.contact_nodes)  # 0 GRF during flight
+        grf_positive.setBounds(0.0, cs.inf)
+
+        self.prb.createConstraint("leg_starts_still", self.q_p_dot,
+                            nodes=0) # leg starts still
+
+        # self.prb.createConstraint("leg_ends_at_touchdown_conf", self.q_p[1:3] - self.q_p_touchdown_conf,
+        #                     nodes=self.last_node)
+
+        # term_vel_perc = 0.2
+        # terminal_vel_node = self.apex_node + round((self.last_node - self.apex_node) * (1 - term_vel_perc))
+        # terminal_vel_nodes = [*range(terminal_vel_node, self.last_node + 1, 1)]
+        # self.prb.createConstraint("no_residual_jnt_vel_at_touchdown_conf", self.q_p_dot[1:3],
+        #                         nodes=terminal_vel_nodes)
 
         # Keep the ESTIMATED (with the calibrated current model) quadrature currents within bounds
 
         self.compensated_tau = []
         self.i_q_cnstr = []
-        self.i_q = []
-        for i in range(self.n_q -1):
-            self.compensated_tau.append(self.tau[i + 1] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.q_p_dot[i + 1]) + self.act_yaml_file["K_d1"][i] * self.q_p_dot[i + 1])
-            self.i_q.append((self.act_yaml_file["rotor_axial_MoI"][i] * self.q_p_ddot[i + 1] / self.act_yaml_file["red_ratio"][i] +\
-                self.compensated_tau[i] * self.act_yaml_file["red_ratio"][i] / \
-                self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i])
-
+        self.i_q_estimate = compute_required_iq_estimate(self.act_yaml_file, self.q_p_dot, self.q_p_ddot, self.tau, self.tanh_coeff)
+        
         if self.is_iq_cnstrnt:
             for i in range(self.n_q -1):
-                self.i_q_cnstr.append( self.prb.createIntermediateConstraint("quadrature_current_j" + str(i), self.i_q[i]) )
+                self.i_q_cnstr.append( self.prb.createIntermediateConstraint("quadrature_current_jnt_n" + str(i), self.i_q_estimate[i]) )
                 self.i_q_cnstr[i].setBounds(- self.I_lim[i], self.I_lim[i])  # setting input limits
 
         # friction constraints
@@ -245,6 +340,7 @@ class preTakeoffTO:
                                                 self.f_contact[1] + (self.mu_friction_cone * self.f_contact[2]))
             friction_cone_2.setBounds(0, cs.inf)
 
+
     def __scale_weights(self):
 
         self.cost_scaling_factor = self.dt_lb * self.n_int * self.scale_factor_base
@@ -252,14 +348,20 @@ class preTakeoffTO:
         self.weight_f_contact_cost = self.weight_f_contact_cost / self.cost_scaling_factor
 
         self.weight_q_dot = self.weight_q_dot / self.cost_scaling_factor
+        
+        self.weight_q_dot_diff = self.weight_q_dot_diff / self.cost_scaling_factor
 
-        self.weight_q_ddot = self.weight_q_ddot / self.cost_scaling_factor
+        self.weight_jnt_input = self.weight_jnt_input / self.cost_scaling_factor
 
         self.weight_com_vel = self.weight_com_vel / self.cost_scaling_factor
 
         self.weight_term_com_vel = self.weight_term_com_vel / self.cost_scaling_factor
 
-        self.weight_q_p_ddot_diff = self.weight_q_p_ddot_diff / self.cost_scaling_factor
+        self.weight_hip_height = self.weight_hip_height / self.cost_scaling_factor
+
+        self.weight_tip_clearance = self.weight_tip_clearance / self.cost_scaling_factor
+
+        self.weight_jnt_input_diff = self.weight_jnt_input_diff / self.cost_scaling_factor
 
         self.weight_f_contact_diff = self.weight_f_contact_diff / self.cost_scaling_factor
 
@@ -271,6 +373,14 @@ class preTakeoffTO:
 
         self.weight_com_pos = self.weight_com_pos / self.cost_scaling_factor
 
+        self.weight_q_tracking = self.weight_q_tracking / self.cost_scaling_factor
+
+        self.weight_tip_tracking = self.weight_tip_tracking / self.cost_scaling_factor
+
+        self.weight_max_leg_retraction = self.weight_max_leg_retraction / self.cost_scaling_factor
+
+        self.weight_max_touchdown_travel = self.weight_max_touchdown_travel / self.cost_scaling_factor
+
     def __set_costs(self):
         
         self.__scale_weights()
@@ -280,10 +390,13 @@ class preTakeoffTO:
                 self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]), nodes = self.input_nodes)
 
         if self.weight_q_dot > 0:
-            self.prb.createIntermediateCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot[1:])) 
+            self.prb.createCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot)) 
 
-        if self.weight_q_ddot > 0:
-            self.prb.createIntermediateCost("min_q_ddot", self.weight_q_ddot * cs.sumsqr(self.q_p_ddot[1:]), nodes = self.input_nodes) 
+        if self.weight_q_dot_diff > 0:
+            self.prb.createIntermediateCost("min_q_dot_diff", self.weight_q_dot_diff * cs.sumsqr(self.q_p_dot - self.q_p_dot.getVarOffset(-1)))
+
+        if self.weight_jnt_input > 0:
+            self.prb.createIntermediateCost("min_q_ddot", self.weight_jnt_input * cs.sumsqr(self.q_p_ddot[1:]), nodes = self.input_nodes) 
 
         if self.weight_com_vel > 0:
             self.prb.createIntermediateCost("max_com_vel", self.weight_com_vel * 1/ ( cs.sumsqr(self.vcom[2]) + 0.0001 ))
@@ -292,14 +405,28 @@ class preTakeoffTO:
             self.prb.createIntermediateCost("max_com_term_vel", self.weight_term_com_vel * 1/ ( cs.sumsqr(self.vcom[2]) + 0.0001 ), \
                                             nodes = self.contact_nodes[-1])
 
-        if self.weight_q_p_ddot_diff > 0:
-            self.prb.createIntermediateCost("min_input_diff", \
-                self.weight_q_p_ddot_diff * cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1)), nodes = self.input_diff_nodes)  
+        if self.weight_hip_height > 0:
+            self.prb.createIntermediateCost("max_hip_height_jump",\
+                self.weight_hip_height * cs.sumsqr(1 / (self.hip_position +  0.0001)),\
+                nodes=self.flight_nodes)
+
+        if self.weight_tip_clearance > 0:
+            self.prb.createIntermediateCost("max_foot_tip_clearance",\
+                self.weight_tip_clearance * cs.sumsqr(1 / (self.foot_tip_position[2] + 0.0001)),\
+                nodes=self.flight_nodes)
+
+        if self.weight_jnt_input_diff > 0:
+       
+            jnt_input_diff = cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1)) if self.acc_based_formulation \
+                            else cs.sumsqr(self.tau[1:] - self.tau[1:].getVarOffset(-1))
+
+            self.prb.createIntermediateCost("min_jnt_input_diff", \
+                self.weight_jnt_input_diff * jnt_input_diff, nodes = self.input_diff_nodes)  
 
         if self.weight_f_contact_diff > 0:
             self.prb.createIntermediateCost("min_f_contact_diff",\
                 self.weight_f_contact_diff * cs.sumsqr(self.f_contact - self.f_contact.getVarOffset(-1)), nodes = self.input_diff_nodes)
-
+            
         if self.weight_tip_under_hip > 0:
             self.prb.createIntermediateCost("max_tip_under_hip", \
                 self.weight_tip_under_hip * (cs.sumsqr(self.hip_position[1] - self.foot_tip_position[1])))
@@ -309,15 +436,37 @@ class preTakeoffTO:
                 self.weight_com_vel_vert_at_takeoff * (self.vcom[1]**2),\
                 nodes = self.contact_nodes[-1])
 
-        if self.weight_com_vel > 0:
-            self.prb.createIntermediateCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
-                nodes = self.last_node - 1)
+        if self.weight_com_pos > 0:
+            self.prb.createCost("max_com_pos", self.weight_com_pos * 1/ ( cs.sumsqr(self.com[2]) + 0.0001 ), \
+                nodes = self.apex_node)
 
         if self.weight_sat_i_q > 0:
             
             for i in range(self.n_q -1):
 
                 self.prb.createIntermediateCost("saturate_i_q_j" + str(i), self.weight_sat_i_q * 1/(cs.sumsqr(self.i_q[i]) + self.cost_epsi))
+
+        if self.is_ref_prb:
+
+            for i in range(self.n_int + 1):
+                
+                if self.weight_q_tracking > 0:
+                    self.prb.createIntermediateCost("q_tracking_tracking_cost_node" + str(i),\
+                        self.weight_q_tracking * cs.sumsqr(self.q_p - self.loaded_sol["q_p"][:, i]),\
+                        nodes= i)
+
+                if self.weight_tip_tracking > 0:
+                    self.prb.createIntermediateCost("tip_tracking_tracking_cost_node" + str(i),\
+                        self.weight_tip_tracking * cs.sumsqr(self.foot_tip_position[2] - self.fk_foot(q = self.loaded_sol["q_p"][:, i])["ee_pos"][2]), nodes= i)
+
+        if self.weight_max_leg_retraction > 0:
+            self.prb.createCost("max_leg_retraction", \
+                self.weight_max_leg_retraction * (cs.sumsqr(self.q_p[1:3] - self.q_p_retraction_conf)), self.apex_node)
+
+        if self.weight_max_touchdown_travel > 0:
+            self.prb.createCost("weight_max_touchdown_travel", \
+                self.weight_max_touchdown_travel * 1/(cs.sumsqr(self.hip_position[2] - self.foot_tip_position[2])), 
+                self.apex_node)
 
     def __get_solution(self):
 
@@ -343,81 +492,110 @@ class preTakeoffTO:
                                                                                             
         self.p_res = x_res[:self.n_q]
         self.v_res = x_res[self.n_q:]
-        self.a_res = resampler_trajectory.resample_input(self.solution["q_p_ddot"],\
-                                        self.slvr.getDt().flatten(), self.dt_res)
 
         self.res_f_contact = resampler_trajectory.resample_input(self.solution["f_contact"],\
                                                 self.slvr.getDt().flatten(), self.dt_res)
         self.res_f_contact_map = dict(tip1 = self.res_f_contact)
 
-        self.tau_res = inv_dyn_from_sol(self.urdf_kin_dyn, 
+        if self.acc_based_formulation:
+        
+            self.a_res = resampler_trajectory.resample_input(self.solution["q_p_ddot"],\
+                                            self.slvr.getDt().flatten(), self.dt_res)
+
+            self.tau_res = inv_dyn_from_sol(self.urdf_kin_dyn, 
                                 self.p_res, self.v_res, self.a_res,\
                                 casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED,\
                                 self.res_f_contact_map)
 
+        else:
+
+            self.tau_res = resampler_trajectory.resample_input(self.solution["tau"],\
+                                            self.slvr.getDt().flatten(), self.dt_res)
+
+            self.a_res = forw_dyn_from_sol(self.urdf_kin_dyn, 
+                                self.p_res, self.v_res, self.tau_res,\
+                                casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED,\
+                                self.res_f_contact_map) 
+
     def __postproc_raw_sol(self):
         
         # Hip and knee quadrature current estimation
-        i_q_n_samples = len(self.solution["q_p_ddot"][0, :])
-        i_q = np.zeros((self.n_q - 1, i_q_n_samples))
-        for i in range(self.n_q - 1):
-            compensated_tau = self.tau_sol[i + 1, :] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]) + \
-                                                self.act_yaml_file["K_d1"][i] * self.solution["q_p_dot"][i + 1, 1:(i_q_n_samples + 1)]
-            i_q[i, :] = (self.act_yaml_file["rotor_axial_MoI"][i] * self.solution["q_p_ddot"][i + 1, :] / self.act_yaml_file["red_ratio"][i] +\
-                        compensated_tau * self.act_yaml_file["red_ratio"][i] / self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i]
 
-        solution_q_p = self.solution["q_p"]
-        solution_foot_tip_position = self.fk_foot(q = solution_q_p)["ee_pos"][2,:].toarray()  # foot position
-        solution_hip_position = self.fk_hip(q=solution_q_p)["ee_pos"][2,:].toarray()   # hip position
-        solution_v_foot_tip = self.dfk_foot(q=self.solution["q_p"], qdot=self.solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
-        solution_v_foot_hip = self.dfk_hip(q=self.solution["q_p"], qdot=self.solution["q_p_dot"])["ee_vel_linear"]  # foot velocity
+        sol_q_p = self.solution["q_p"]
+        sol_q_p_dot = self.solution["q_p_dot"]
+        sol_q_p_ddot = self.solution["q_p_ddot"] if self.acc_based_formulation else self.cnstr_opt["q_p_ddot_lim"]
+        sol_tau = self.cnstr_opt["tau_limits"] if self.acc_based_formulation else self.solution["tau"]
 
-        self.other_stuff = {"tau":self.cnstr_opt["tau_limits"],\
-                    "i_q":i_q,\
+        i_q_est_raw = compute_required_iq_estimate_num(self.act_yaml_file, sol_q_p_dot, sol_q_p_ddot, sol_tau, self.tanh_coeff)
+
+        solution_foot_tip_position = self.fk_foot(q = sol_q_p)["ee_pos"][2,:].toarray()  # foot position
+        solution_hip_position = self.fk_hip(q=sol_q_p)["ee_pos"][2,:].toarray()   # hip position
+        solution_v_foot_tip = self.dfk_foot(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
+        solution_v_foot_hip = self.dfk_hip(q=sol_q_p, qdot=sol_q_p_dot)["ee_vel_linear"]  # foot velocity
+        com_pos = self.com_fk(q=sol_q_p)["com"]
+        com_vel = self.com_fk(q=sol_q_p, v=sol_q_p_dot)["vcom"]
+
+        self.other_stuff = {
+                    "i_q":i_q_est_raw,\
                     "dt_opt":self.slvr.getDt(),
                     "foot_tip_height": np.transpose(solution_foot_tip_position), 
                     "hip_height": np.transpose(solution_hip_position), 
                     "tip_velocity": np.transpose(np.transpose(solution_v_foot_tip)),
                     "hip_velocity": np.transpose(np.transpose(solution_v_foot_hip)),
+                    "com_pos": np.transpose(np.transpose(com_pos)), 
+                    "com_vel": np.transpose(np.transpose(com_vel)),
                     "sol_time": self.solution_time,
-                    "weight_min_input_diff": self.weight_q_p_ddot_diff, 
+                    "weight_min_input_diff": self.weight_jnt_input_diff, 
                     "weight_min_f_contact_diff": self.weight_f_contact_diff}
+
+        if self.acc_based_formulation: # we add what is not in the sol. dictionary by default
+            
+            self.other_stuff["tau"] =  sol_tau
+
+        else:
+            
+            self.other_stuff["q_p_ddot"] =  sol_q_p_ddot
 
     def __postproc_res_sol(self):
 
-        # Hip and knee quadrature current estimation
         n_res_samples = len(self.p_res[0, :])
-        i_q_res = np.zeros((self.n_q - 1, n_res_samples - 1))
 
-        for i in range(self.n_q - 1):
-            compensated_tau = self.tau_res[i + 1, :] + self.act_yaml_file["K_d0"][i] * np.tanh( self.tanh_coeff * self.v_res[i + 1, 1:(n_res_samples)]) +\
-                                                self.act_yaml_file["K_d1"][i] * self.v_res[i + 1, 1:(n_res_samples)]
-            i_q_res[i, :] = (self.act_yaml_file["rotor_axial_MoI"][i] * self.a_res[i + 1, 0:(n_res_samples)] / self.act_yaml_file["red_ratio"][i] + \
-                            compensated_tau * self.act_yaml_file["red_ratio"][i] / self.act_yaml_file["efficiency"][i]) / self.act_yaml_file["K_t"][i]
+        i_q_est_res = compute_required_iq_estimate_num(self.act_yaml_file, self.v_res, self.a_res, self.tau_res, self.tanh_coeff)
 
         res_foot_tip_position = self.fk_foot(q = self.p_res)["ee_pos"][2,:].toarray()  # foot position
         res_hip_position = self.fk_hip(q=self.p_res)["ee_pos"][2,:].toarray()   # hip position
         res_v_foot_tip = self.dfk_foot(q=self.p_res, qdot=self.v_res)["ee_vel_linear"]  # foot velocity
         res_v_foot_hip = self.dfk_hip(q=self.p_res, qdot=self.v_res)["ee_vel_linear"]  # foot velocity
         dt_res_vector = np.tile(self.dt_res, n_res_samples - 1)
+        res_com_pos = self.com_fk(q=self.p_res)["com"]
+        res_com_vel = self.com_fk(q=self.p_res, v=self.v_res)["vcom"]
 
         self.useful_solutions_res={"q_p":self.p_res,"q_p_dot":self.v_res, "q_p_ddot":self.a_res,
-                        "tau":self.tau_res, "f_contact":self.res_f_contact, "i_q":i_q_res, "dt_opt":dt_res_vector,
+                        "tau":self.tau_res, 
+                        "f_contact":self.res_f_contact, "f_contact_raw": self.solution["f_contact"],
+                        "i_q":i_q_est_res,
                         "foot_tip_height":np.transpose(res_foot_tip_position), 
                         "hip_height":np.transpose(res_hip_position), 
                         "tip_velocity":np.transpose(np.transpose(res_v_foot_tip)),
                         "hip_velocity":np.transpose(np.transpose(res_v_foot_hip)), 
-                        "dt": self.solution["dt"], 
-                        "dt_opt_raw": self.slvr.getDt(), 
-                        "cost_scaling_factor": self.cost_scaling_factor}
+                        "com_pos": np.transpose(np.transpose(res_com_pos)), 
+                        "com_vel": np.transpose(np.transpose(res_com_vel)),
+                        self.dt_flight_name: self.solution[self.dt_flight_name], 
+                        self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name],
+                        "dt_opt_raw": self.slvr.getDt(), "dt_opt":dt_res_vector, 
+                        self.dt_pretakeoff_name: self.solution[self.dt_pretakeoff_name], 
+                        self.dt_flight_name: self.solution[self.dt_flight_name]}
 
     def __postproc_sol(self):
 
-        self.__postproc_raw_sol()
+        self.__postproc_raw_sol() # will dump ref solutions in case of 
+        # refinement phase
 
-        self.__postproc_res_sol()
+        if not self.is_ref_prb:
 
-        self.sol_dict_full_res_sol= {**self.useful_solutions_res}
+            self.__postproc_res_sol()
+
+            self.sol_dict_full_res_sol= {**self.useful_solutions_res}
 
         self.sol_dict_full_raw_sol = {**self.solution,
                 **self.cnstr_opt,
@@ -425,11 +603,21 @@ class preTakeoffTO:
                 **self.other_stuff}
 
     def __dump_sol2file(self):
+        
+        if not self.is_ref_prb:
 
-        self.ms_sol.store(self.sol_dict_full_raw_sol) # saving solution data to file
-        self.ms_resampl.store(self.sol_dict_full_res_sol) # saving solution data to file
+            self.ms_sol.store(self.sol_dict_full_raw_sol) # saving solution data to file
+            self.ms_resampl.store(self.sol_dict_full_res_sol) # saving solution data to file
 
-    def __init_raw_prb(self, n_passive_joints = 1):
+        else:
+            
+            self.ms_refined.store(self.sol_dict_full_raw_sol)
+
+    def __init_prb(self, n_passive_joints = 1):
+
+        if self.is_ref_prb:
+
+            self.__load_ig()
 
         self.urdf = open(self.urdf_path, "r").read()
         self.urdf_kin_dyn = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(self.urdf)
@@ -452,10 +640,21 @@ class preTakeoffTO:
         
         self.prb = Problem(self.n_int)  # initialization of a problem object
 
-        dt_sing_var = self.prb.createSingleVariable("dt", 1)  # dt before the takeoff
-        dt_sing_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+        dt = None
 
-        dt=[dt_sing_var]* (self.n_int) # holds the complete time list
+        if not self.is_ref_prb:
+
+            dt_pretakeoff = self.prb.createSingleVariable(self.dt_pretakeoff_name, 1)  # dt before the takeoff
+            dt_flight = self.prb.createSingleVariable(self.dt_flight_name, 1)  # dt before the takeoff
+
+            dt_pretakeoff.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+            dt_flight.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt3
+
+            dt = [dt_pretakeoff]* (len(self.contact_nodes) - 1) +  [dt_flight]* (len(self.flight_nodes)) # holds the complete time list
+
+        else:
+
+            dt = self.dt_res
 
         self.prb.setDt(dt)
 
@@ -466,35 +665,48 @@ class preTakeoffTO:
         self.q_p.setBounds(self.lbs, self.ubs) 
         self.q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
-        # Defining the input/s (joint accelerations)
-        self.q_p_ddot = self.prb.createInputVariable("q_p_ddot", self.n_v)  # using joint accelerations as an input variable
-
-        self.xdot = utils.double_integrator(self.q_p, self.q_p_dot, self.q_p_ddot)  # building the full state
-
         # Creating an additional input variable for the contact forces on the foot tip
         self.f_contact = self.prb.createInputVariable("f_contact", 3)  # dimension 3
-        
+        self.f_contact[2].setLowerBounds(0)  # tip cannot be pulled from the ground
+        self.contact_map = dict(tip1 = self.f_contact)  # creating a contact map for applying the input to the foot
+
+        # Defining the input/s
+
+        if self.acc_based_formulation:
+            
+            self.q_p_ddot = self.prb.createInputVariable("q_p_ddot", self.n_v)  # using joint accelerations as an input variable
+            
+            self.tau = kin_dyn.InverseDynamics(self.urdf_kin_dyn, self.contact_map.keys(), \
+                    casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(self.q_p,\
+                                                            self.q_p_dot, self.q_p_ddot, self.contact_map) 
+
+        else: # torque as input
+
+            self.tau = self.prb.createInputVariable("tau", self.n_q)  # using joint accelerations as an input variable
+
+            self.q_p_ddot = kin_dyn.ForwardDynamics(self.urdf_kin_dyn, self.contact_map.keys(),\
+                        casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(self.q_p,\
+                                                            self.q_p_dot, self.tau, self.contact_map)
+
+        self.xdot = utils.double_integrator(self.q_p, self.q_p_dot, self.q_p_ddot)  # integrator for the system's dynamics
+
+        if self.is_sliding_guide_friction:
+            
+            self.sliding_guide_friction_torque = - self.sliding_guide_kd * self.q_p_dot[0]
+
         return self.prb
 
     def init_prb(self):
 
-        self.__init_raw_prb()
+        self.__init_prb()
         
     def setup_prb(self):
         
-        self.__set_igs()
-
-        self.f_contact[2].setLowerBounds(0)  # tip cannot be pulled from the ground
-
-        self.contact_map = dict(tip1 = self.f_contact)  # creating a contact map for applying the input to the foot
+        self.__set_igs() # setting the initial guesses for the problem
 
         self.prb.setDynamics(self.xdot)  # setting the dynamics we are interested of in the problem object (xdot)
 
         transcriptor.Transcriptor.make_method(self.trans_name, self.prb, dict(integrator = self.trans_integrator))  # setting the transcriptor
-
-        self.tau = kin_dyn.InverseDynamics(self.urdf_kin_dyn, self.contact_map.keys(), \
-                casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(self.q_p,\
-                                                        self.q_p_dot, self.q_p_ddot, self.contact_map) 
 
         self.__get_quantities_from_urdf()
 
@@ -516,7 +728,9 @@ class preTakeoffTO:
 
         self.__get_solution()
         
-        self.__resample_sol()
+        if not self.is_ref_prb:
+
+            self.__resample_sol()
 
         self.__postproc_sol()
 
