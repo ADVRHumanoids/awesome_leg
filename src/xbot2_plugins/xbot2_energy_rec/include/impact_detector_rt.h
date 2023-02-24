@@ -55,7 +55,8 @@ private:
 
     bool _is_sim = true, _is_dummy = false,
          _verbose = false,
-        _use_gz_ground_truth = false;
+        _use_gz_ground_truth = false,
+        _use_contact2trigger_pow = true;
 
     int _queue_size = 5;
 
