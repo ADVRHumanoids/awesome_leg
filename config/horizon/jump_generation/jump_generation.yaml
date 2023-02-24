@@ -125,9 +125,9 @@ up2apex_gen:
 
   problem:
 
-    n_int: 500
+    n_int: 100
 
-    takeoff_node: 249
+    takeoff_node: 59
 
     dt_lb: 0.001
     dt_ub: 0.01
@@ -159,12 +159,12 @@ up2apex_gen:
         weight_f_contact: 0.01 # cost for penalizing contact forces
         weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
         weight_jnt_input: 0.01 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff: 0.1 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff: 0.05 # cost for penalizing differences between successive inputs
 
         weight_q_p_dot: -1
         weight_q_dot_diff: -1
 
-        weight_com_term_vel: 1
+        weight_com_term_vel: -1
         weight_com_vel: -1
         weight_tip_under_hip: -1
 
@@ -177,7 +177,9 @@ up2apex_gen:
 
         weight_com_vel_vert_at_takeoff: -1 # try to keep vertical CoM at takeoff
 
-        weight_com_pos: 0.0000001 # maximize terminal com pos at the end of the horizon
+        weight_com_pos: 20000 # maximize terminal com pos at the end of the horizon
+
+        weight_max_touchdown_travel: 100
 
       refinement:
 
@@ -206,9 +208,11 @@ up2apex_gen:
 
         weight_com_pos: 1 # maximize terminal com pos at the end of the horizon
 
+        weight_max_touchdown_travel: 1 
+
         ig_tracking:
           
-          weight_q_tracking: -1
+          weight_q_tracking: 10000000
 
           weight_tip_tracking: -1
 
