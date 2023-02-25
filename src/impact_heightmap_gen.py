@@ -55,14 +55,11 @@ n_jnts_model = model.getJointNum()
 # range_q1 = np.linspace(lbs[0], ubs[0], n_discr)
 # range_q2 = np.linspace(lbs[1], ubs[1], n_discr)
 
-# range_q1 = np.linspace(0.58, 1.2, n_discr)
-# range_q2 = np.linspace(0.58, 1.2, n_discr)
+# range_q1 = np.linspace(0, ubs[0], n_discr)
+# range_q2 = np.linspace(0, ubs[1], n_discr)
 
-range_q1 = np.linspace(0, ubs[0], n_discr)
-range_q2 = np.linspace(0, ubs[1], n_discr)
-
-# range_q1 = np.array([0.0, 1.5708])
-# range_q2 = np.array([0.0, 0.0])
+range_q1 = np.linspace(2 * lbs[0], 2 * ubs[0], n_discr)
+range_q2 = np.linspace(2 * lbs[1], 2 * ubs[1], n_discr)
 
 X, Y = np.meshgrid(range_q1, range_q2)
 
@@ -105,13 +102,6 @@ ax.legend()
 fig3d, ax3d = plt.subplots(subplot_kw={"projection": "3d"})
 ax3d.plot_surface(X, Y, impact_severity_ratio)
 ax3d.scatter(q_home_refq1, q_home_refq2, impact_meas_ref, s = 50, marker = 'x', c='white')
-# plt.title('Impact severity ratio')
-# p = plt.imshow(impact_severity_ratio)
-# plt.colorbar(p)
-
-# fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
-# surf = ax.plot_surface(q1, q2, impact_severity_ratio, cmap=cm.coolwarm,
-#                        linewidth=0, antialiased=False)
 
 fig2d, ax2d = plt.subplots()
 ax2d.scatter(range(len(impact_meas_ref)), impact_meas_ref, marker = 'x')
@@ -119,4 +109,31 @@ ax2d.set_xlabel('configuration n.')
 ax2d.set_ylabel('impact severity ratio')
 ax2d.grid()
 
+n_samples_q1eqq2 = 1000
+data1 = np.zeros((n_samples_q1eqq2, 1))
+data2 = np.zeros((n_samples_q1eqq2, 1))
+data3 = np.zeros((n_samples_q1eqq2, 1))
+data4 = np.zeros((n_samples_q1eqq2, 1))
+
+q1 = np.linspace(0, ubs[0]/2, n_samples_q1eqq2)
+
+for i in range(0, n_samples_q1eqq2):
+  data1[i] = impact_sev_ratio(q1[i], q1[i])
+  data2[i] = impact_sev_ratio(q1[i], - q1[i])
+  data3[i] = impact_sev_ratio(q1[i], q1[i]/2)
+  data4[i] = impact_sev_ratio(q1[i], 2 * q1[i])
+
+
+f4=plt.figure()
+plt.plot(q1, data1[:, 0], label=r"${{q_2 = q_1}}$")
+plt.plot(q1, data2[:, 0], label=r"${q_2 = -q_1}$")
+plt.plot(q1, data3[:, 0], label=r"${{q_2 = q_1/2}}$")
+plt.plot(q1, data4[:, 0], label=r"${{q_2 = 2\,q_1}}$")
+
+legend = plt.legend(loc="upper left")
+legend.set_draggable(state = True)
+plt.xlabel(r"$q_1$ [rad]")
+plt.ylabel(r"$\rho$ [$\mathrm{N\,s^2}/\mathrm{m}$]")
+plt.title("Impact ratio VS landing configuration", fontdict=None, loc='center')
+plt.grid()
 plt.show()
