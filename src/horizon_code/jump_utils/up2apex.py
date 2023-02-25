@@ -295,7 +295,7 @@ class up2ApexGen:
         # com_towards_vertical = self.prb.createIntermediateConstraint("com_towards_vertical", self.vcom[2], self.contact_nodes) # intermediate, so all except last node
         # com_towards_vertical.setBounds(0.0, cs.inf)
 
-        com_towards_vertical = self.prb.createConstraint("com_apex", self.vcom[2], \
+        apex_cnstrnt = self.prb.createConstraint("com_apex", self.vcom[2], \
                     nodes = self.apex_node) # reach the apex at the end of the trajectory 
         
         # com_vel_only_vertical_y = self.prb.createConstraint("com_vel_only_vertical_y", self.vcom[1], nodes = self.contact_nodes[-1]) # keep CoM on the hip vertical
