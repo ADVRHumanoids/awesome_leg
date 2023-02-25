@@ -32,71 +32,41 @@ xbotcore_plugins:
 #        params:
 #            qhome: {value: [1.5708, 0.0], type: Eigen::VectorXd}
 
-#    homing0:
-#        thread: rt_main
-#        type: homing_example
-#        params:
-#            qhome: {value: [1.58, 0.58], type: Eigen::VectorXd}
-
-#    homing1:
-#        thread: rt_main
-#        type: homing_example
-#        params:
-#            qhome: {value: [2.10, 1.3], type: Eigen::VectorXd}
-
-#    homing2:
-#        thread: rt_main
-#        type: homing_example
-#        params:
-#            qhome: {value: [1.73, 2.40], type: Eigen::VectorXd}
-
-#    homing3:
-#        thread: rt_main
-#        type: homing_example
-#        params:
-#            qhome: {value: [1.25, 0.58], type: Eigen::VectorXd}
+    homing0:
+        thread: rt_main
+        type: homing_example
+        params:
+            qhome: {value: [0, 0], type: Eigen::VectorXd}
 
     homing1:
         thread: rt_main
         type: homing_example
         params:
-            qhome: {value: [1.3, 2.0], type: Eigen::VectorXd}
+            qhome: {value: [0.6, 0.6], type: Eigen::VectorXd}
 
     homing2:
         thread: rt_main
         type: homing_example
         params:
-            qhome: {value: [1.01, 1.54], type: Eigen::VectorXd}
+            qhome: {value: [1.2, 1.2], type: Eigen::VectorXd}
 
     homing3:
         thread: rt_main
         type: homing_example
         params:
-            qhome: {value: [0.58, 0.96], type: Eigen::VectorXd}
+            qhome: {value: [0.8, 0.4], type: Eigen::VectorXd}
 
     homing4:
         thread: rt_main
         type: homing_example
         params:
-            qhome: {value: [0.43, 0.67], type: Eigen::VectorXd}
+            qhome: {value: [0.6, 1.2], type: Eigen::VectorXd}
 
-#    homing6:
-#        thread: rt_main
-#        type: homing_example
-#        params:
-#            qhome: {value: [2.16, 2.02], type: Eigen::VectorXd}
-
-#    homing7:
-#        thread: rt_main
-#        type: homing_example
-#        params:
-#            qhome: {value: [2.3562, 2.3562], type: Eigen::VectorXd}
-
-    homing_terrible:
+    homing5:
         thread: rt_main
         type: homing_example
         params:
-            qhome: {value: [0.0, 0.0], type: Eigen::VectorXd}
+            qhome: {value: [0.4, -0.4], type: Eigen::VectorXd}
 
     ros_io: {thread: nrt_main, type: ros_io}
 
@@ -129,7 +99,8 @@ xbotcore_plugins:
             R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
-            bus_p_leak: {value: 48, type: double} # [W]
+            bus_p_leak: {value: 0.0, type: double} # [W]
+            # bus_p_leak: {value: 46.0, type: double} # [W]
 
 # global parameters
 xbotcore_param:
