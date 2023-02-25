@@ -132,8 +132,10 @@ void JumpReplayerRt::get_params_from_config()
 
     _go2touchdown_config_auto = getParamOrThrow<bool>("~go2touchdown_config_auto");
 
-//    _touchdown_stiffness = getParamOrThrow<Eigen::VectorXd>("~touchdown_stiffness");
-//    _touchdown_damping = getParamOrThrow<Eigen::VectorXd>("~touchdown_damping");
+    _ramp2touchdown_config = getParamOrThrow<bool>("~ramp2touchdown_config");
+
+    _landing_stiffness = getParamOrThrow<Eigen::VectorXd>("~landing_stiffness");
+    _landing_damping = getParamOrThrow<Eigen::VectorXd>("~landing_damping");
 
 //    _dump_mat_suffix = getParamOrThrow<std::string>("~dump_mat_suffix");
 //    _matlogger_buffer_size = getParamOrThrow<double>("~matlogger_buffer_size");
@@ -325,29 +327,17 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->create("q_p_dot_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
+    _dump_logger->create("f_contact_ref", 3, 1, _matlogger_buffer_size);
+
 }
 
 void JumpReplayerRt::add_data2dump_logger()
 {
 
-    if (_is_first_jnt_passive)
-    { // remove first joint from logged commands
-        _auxiliary_vector = _q_p_cmd.tail(_n_jnts_robot);
-        _dump_logger->add("q_p_cmd", _auxiliary_vector);
-        _auxiliary_vector = _q_p_dot_cmd.tail(_n_jnts_robot);
-        _dump_logger->add("q_p_dot_cmd", _auxiliary_vector);
-        _auxiliary_vector = _tau_cmd.tail(_n_jnts_robot);
-        _dump_logger->add("tau_cmd", _auxiliary_vector);
 
-    }
-    else
-    {
-
-        _dump_logger->add("q_p_cmd", _q_p_cmd);
-        _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
-        _dump_logger->add("tau_cmd", _tau_cmd);
-
-    }
+    _dump_logger->add("q_p_cmd", _q_p_cmd);
+    _dump_logger->add("q_p_dot_cmd", _q_p_dot_cmd);
+    _dump_logger->add("tau_cmd", _tau_cmd);
 
     _dump_logger->add("plugin_time", _loop_time);
 
@@ -365,6 +355,8 @@ void JumpReplayerRt::add_data2dump_logger()
 
     _dump_logger->add("ramp_stiffness", _ramp_stiffness);
     _dump_logger->add("ramp_damping", _ramp_damping);
+
+    _dump_logger->add("f_contact_ref", _f_contact_ref);
 
 }
 
@@ -928,8 +920,9 @@ void JumpReplayerRt::set_cmds()
             _traj_finished = true;
             _traj_started = false;
 
-            if(_go2touchdown_config_auto)
-            {
+            if(_go2touchdown_config_auto && _ramp2touchdown_config)
+            { // we trigger the ramp towards the touchdown configuration
+
                 _ramp_strt_stiffness = _stiffness_setpoint; // we prepare to ramp impedances from the last sent command
                 _ramp_strt_damping = _damping_setpoint;
 
@@ -938,6 +931,19 @@ void JumpReplayerRt::set_cmds()
                 _landing_config_reached = false;
 
                 _go2landing_config = true; // we directly go to next phase
+            }
+            if(!_ramp2touchdown_config)
+            { // we prevent the execution of the touchdown ramp and directly set the landing impedance
+
+                _stiffness_setpoint = _landing_stiffness;
+                _damping_setpoint = _landing_damping;
+
+                _go2landing_config = false;
+                _landing_config_reached = true;
+                _landing_config_started = false;
+
+                _performed_jumps += 1; // incrementing jump counter
+
             }
 
             reset_clocks();

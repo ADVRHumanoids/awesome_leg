@@ -91,7 +91,7 @@ private:
         _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false, _landing_config_reached = false,
         _go2touchdown_config_auto = true,
         _idle = true,
-        _ramp2tpuchdown_config = true;
+        _ramp2touchdown_config = true;
 
     int _n_jnts_robot,
         _sample_index = 0,
