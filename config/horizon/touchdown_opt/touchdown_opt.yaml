@@ -2,17 +2,9 @@
 
 energy_recov_opt:
 
-#  i_q_estimation:
+  i_q_estimation:
 
-#    tanh_coeff: 20 # used by the continous iq estimation model
-
-#  sliding_guide_friction:
-
-#    kd: 0.0 # estimation of the dynamic friction coefficient on the sliding guide
-
-#  resampling:
-
-#    dt: 0.001 # dt at which the trajectory is resampled (and refined)
+    tanh_coeff: 20 # used by the continous iq estimation model
 
   problem:
 
@@ -21,11 +13,11 @@ energy_recov_opt:
     dt_lb: 0.1
     dt_ub: 0.1
     
-#    is_iq_cnstrnt: true # whether to use the iq constraint or not
-#    is_friction_cone: true # whether to use a friction constraint or not
+    is_iq_cnstrnt: true # whether to use the iq constraint or not
+    is_friction_cone: true # whether to use a friction constraint or not
 
-#    friction_cnstrnt:
-#      mu_friction_cone: 0.6
+    friction_cnstrnt:
+      mu_friction_cone: 0.6
 
     weights:
 
@@ -33,15 +25,10 @@ energy_recov_opt:
       weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
       weight_jnt_input: 0.01 # cost for penalizing joint accelerations (which are the input)
       weight_jnt_input_diff: 0.05 # cost for penalizing differences between successive inputs
-
       weight_q_dot: 0.1
-#      weight_q_ddot: 0.01
-
-      weight_q_p_dot: -1
       weight_q_dot_diff: -1
-      weight_q_p_ddot_diff: 0.1
 
-      weight_recov_energy_max: 1
+      weight_reg_energy: 1
       weight_impact_min: 1
 
   solver:
