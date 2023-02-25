@@ -354,6 +354,20 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->add("mov_avrg_window_size_tau", _mov_avrg_window_size_iq);
     _dump_logger->add("mov_avrg_cutoff_freq_tau", _mov_avrg_cutoff_freq_iq);
 
+    // power estimation
+    _dump_logger->create("est_er", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_pr", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_recov_energy", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_pk_joule", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_pk_induct", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_pk_mech", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_ek_joule", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_ek_induct", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_ek_mech", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->create("est_recov_energy_tot", 1, 1, _matlogger_buffer_size);
+
+    _dump_logger->create("monitor_recov_energy", 1, 1, _matlogger_buffer_size);
+
     // power sensor
     _dump_logger->create("vbatt", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("ibatt", 1, 1, _matlogger_buffer_size);
@@ -405,6 +419,18 @@ void BusPowerRt::add_data2dump_logger()
     _dump_logger->add("red_ratio", _red_ratio);
 
     _dump_logger->add("tau_rot_est", _tau_rot_est);
+
+    // power estimation
+    _dump_logger->add("est_er", _er_k);
+    _dump_logger->add("est_pr", _pr_k);
+    _dump_logger->add("est_recov_energy", _recov_energy);
+    _dump_logger->add("est_pk_joule", _pk_joule);
+    _dump_logger->add("est_pk_induct", _pk_mech);
+    _dump_logger->add("est_pk_mech", _pk_indct);
+    _dump_logger->add("est_ek_joule", _ek_joule);
+    _dump_logger->add("est_ek_induct", _ek_mech);
+    _dump_logger->add("est_ek_mech", _ek_indct);
+    _dump_logger->add("est_recov_energy_tot", _recov_energy_tot);
 
     // power sensor
     _dump_logger->add("vbatt", _vbatt);
