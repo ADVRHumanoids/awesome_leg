@@ -89,15 +89,16 @@ xbotcore_plugins:
 
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
-            # touchdown_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd}
-            # touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
-#            touchdown_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-#            touchdown_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
+
             verbose: {value: false, type: bool}
 
+            ramp2tpuchdown_config: {value: true, type: bool}
             go2touchdown_exec_time: {value: 0.05, type: double}
-
             go2touchdown_config_auto: {value: true, type: bool}
+
+            landing_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd} # only used if ramp2tpuchdown_config==false
+            landing_damping: {value: [10.0, 10.0], type: Eigen::VectorXd} # only used if ramp2tpuchdown_config==false
+
 
     bus_power_rt:
         thread: rt_main

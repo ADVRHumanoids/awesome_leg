@@ -114,7 +114,7 @@ install(DIRECTORY description/new_meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DEST
 install(TARGETS robot_state_logger DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(PROGRAMS 
-        src/horizon_code/plot_horizon_jump.py src/horizon_code/jump_generation.py 
+        src/horizon_code/plot_horizon_jump.py src/horizon_code/rviz_traj_replayer.py src/horizon_code/jump_generation.py
         src/awesome_leg_utils/robot_state_log_plotter.py
         src/awesome_leg_utils/logger_utilities.py
         src/awesome_leg_utils/param_identification_utilities.py
