@@ -2,58 +2,53 @@
 
 energy_recov_opt:
 
-  i_q_estimation:
+#  i_q_estimation:
 
-    tanh_coeff: 20 # used by the continous iq estimation model
+#    tanh_coeff: 20 # used by the continous iq estimation model
 
-  sliding_guide_friction:
+#  sliding_guide_friction:
 
-    kd: 0.0 # estimation of the dynamic friction coefficient on the sliding guide
+#    kd: 0.0 # estimation of the dynamic friction coefficient on the sliding guide
 
-  resampling: 
+#  resampling:
 
-    dt: 0.001 # dt at which the trajectory is resampled (and refined)
+#    dt: 0.001 # dt at which the trajectory is resampled (and refined)
 
   problem:
 
     n_int: 100
 
-    dt_lb: 0.001
-    dt_ub: 0.01
+    dt_lb: 0.1
+    dt_ub: 0.1
     
-    is_iq_cnstrnt: true # whether to use the iq constraint or not
-    is_friction_cone: true # whether to use a friction constraint or not
+#    is_iq_cnstrnt: true # whether to use the iq constraint or not
+#    is_friction_cone: true # whether to use a friction constraint or not
 
-    is_sliding_guide_friction: false # whether to use the sliding guide estimation of friction
+#    friction_cnstrnt:
+#      mu_friction_cone: 0.6
 
-    friction_cnstrnt: 
-      mu_friction_cone: 0.6
+    weights:
 
-    weights: 
+      weight_f_contact: 0.01 # cost for penalizing contact forces
+      weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
+      weight_jnt_input: 0.01 # cost for penalizing joint accelerations (which are the input)
+      weight_jnt_input_diff: 0.05 # cost for penalizing differences between successive inputs
 
-      use_same_weights: true 
-      
-      ig_generation:
+      weight_q_dot: 0.1
+#      weight_q_ddot: 0.01
 
-        scale_factor_costs_base: 1 # scale factor for costs (other scalings are applied internally)
-        
-        weight_f_contact: 0.01 # cost for penalizing contact forces
-        weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
-        weight_jnt_input: 0.01 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff: 0.05 # cost for penalizing differences between successive inputs
+      weight_q_p_dot: -1
+      weight_q_dot_diff: -1
+      weight_q_p_ddot_diff: 0.1
 
-        weight_q_p_dot: -1
-        weight_q_dot_diff: -1
-
-        weight_recov_energy_max: 1
-        weight_impact_min: 1
+      weight_recov_energy_max: 1
+      weight_impact_min: 1
 
   solver:
 
     ipopt_tol: 0.000001
     ipopt_maxiter: 10000
     ipopt_cnstr_viol_tol: 0.000001 # 1e-6 is a reasonable value for accurate results
-    ipopt_lin_solver: "mumps" 
     name: "ipopt"
 
   transcription:
