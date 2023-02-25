@@ -65,6 +65,8 @@ class landingEnergyRecover:
 
         yaml_info_weights = yaml_info["problem"]["weights"]
 
+        self.landing_vel = yaml_info["problem"]["landing_vel"]
+        
         self.slvr_name = yaml_info["solver"]["name"]
 
         self.trans_name = yaml_info["transcription"]["name"]
@@ -116,10 +118,11 @@ class landingEnergyRecover:
 
         self.prb = Problem(self.n_int)  # initialization of a problem object
 
-        dt_single_var = self.prb.createSingleVariable("dt", 1)  # dt before the takeoff
+        dt_single_var = self.prb.createSingleVariable("dt_landing", 1)  # dt before the takeoff
         dt_single_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt
-        # dt = 0.01
         dt = [dt_single_var] * (self.n_int)  # holds the complete time list
+        #####PROBLEM HERE: why if I set a variable dt I find symbolic variables in the solution???
+        dt = 0.01
 
         self.prb.setDt(dt)
 
@@ -151,13 +154,13 @@ class landingEnergyRecover:
 
         self.q_landing = self.prb.createSingleVariable('q_landing', self.n_q - 1)
     
-        self.v_ee_param = self.prb.createParameter('v_ee_param', 1) # vertical vel component of tip @ touchdown
+        self.v_ee_param = self.prb.createSingleParameter('v_ee_param', 1) # vertical vel component of tip @ touchdown
 
-        self.q_p_dot_pretakeoff = cs.veccat(- self.v_ee_param, 0.0, 0.0)
+        self.q_p_dot_pretouchdown = cs.veccat(-self.v_ee_param, 0.0, 0.0)
 
         self.delta_chi_impact = cs.veccat(0.0, 0.0, 0.0 - self.v_ee_param, 0.0, 0.0, 0.0) # total "task" twist vector [[linear], [angular]] @ touchdown
 
-        self.impact = self.prb.createVariable('impact', 6, nodes=0) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
+        self.impact = self.prb.createSingleVariable('impact', 6) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
         #(vertical impact for simplicity)
 
         return self.prb
@@ -204,7 +207,7 @@ class landingEnergyRecover:
 
         self.JT_i = self.J_tip.T @ self.impact
 
-        self.J_delta_v = self.J_tip @ (self.q_p_dot - self.q_p_dot_pretakeoff)
+        self.J_delta_v = self.J_tip @ (self.q_p_dot - self.q_p_dot_pretouchdown)
 
         # variation of kin energy due to impact
 
@@ -228,15 +231,22 @@ class landingEnergyRecover:
         for i in range(0, self.n_v):
             self.prb.createConstraint('impact_dyn_jnt' + str(i), self.B_q_p_dot[i] - self.JT_i[i], nodes=0) # impact law
 
-        for i in range(0, 6):
+        # for i in range(0, 6):
 
-            self.prb.createConstraint(f'post_impact_jnt_vel_{i}', self.delta_chi_impact[i] - self.J_delta_v[i], nodes=0)
+        #     self.prb.createConstraint(f'post_impact_jnt_vel_{i}', self.delta_chi_impact[i] - self.J_delta_v[i], nodes=0)
+        
+        # self.prb.createConstraint(f'post_impact_jnt_vel1', - self.delta_chi_impact[0] - self.J_delta_v[0], nodes=0)
+        self.prb.createConstraint(f'post_impact_jnt_vel2', - self.delta_chi_impact[1] - self.J_delta_v[1], nodes=0)
+        self.prb.createConstraint(f'post_impact_jnt_vel3', - self.delta_chi_impact[2] - self.J_delta_v[2], nodes=0)
+        self.prb.createConstraint(f'post_impact_jnt_vel4', - self.delta_chi_impact[3] - self.J_delta_v[3], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel5', - self.delta_chi_impact[4] - self.J_delta_v[4], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel6', - self.delta_chi_impact[6] - self.J_delta_v[6], nodes=0)
 
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2])
         grf_positive.setBounds(0.0001, cs.inf)
         
         no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
-        no_energy_violation.setBounds(-cs.inf, 0)
+        no_energy_violation.setBounds(-cs.inf, 0.0)
 
         self.prb.createFinalConstraint("braking_q_dot", self.q_p_dot)
         self.prb.createConstraint("braking_q_ddot", self.q_p_ddot, nodes = self.last_node -1 )
@@ -277,22 +287,20 @@ class landingEnergyRecover:
         self.solution = self.slvr.getSolutionDict()  # extracting solution
         self.cnstr_opt = self.slvr.getConstraintSolutionDict()
         self.lambda_cnstrnt = self.slvr.getCnstrLmbdSolDict()
-
         self.tau_sol = self.cnstr_opt["tau_limits"]
-
+    
     def __postproc_sol(self):
 
-        self.sol_dict_full_raw_sol = {**self.solution,
-                                      **self.cnstr_opt,
-                                      **self.lambda_cnstrnt,
-                                      **{'n_int': self.n_int},
-                                      **{'tau_sol': self.tau_sol},
-                                      **{'dt': self.prb.getDt()}}
+        self.sol_dict = {**self.solution,
+                        **self.cnstr_opt,
+                        **self.lambda_cnstrnt,
+                        **{'n_int': self.n_int},
+                        **{'tau_sol': self.tau_sol},
+                        **{'dt': self.prb.getDt()}}
 
     def __dump_sol2file(self):
 
-        self.ms_sol.store(self.sol_dict_full_raw_sol)  # saving solution data to file
-
+        self.ms_sol.store(self.sol_dict)  # saving solution data to file
 
     def init_prb(self):
 
@@ -317,6 +325,8 @@ class landingEnergyRecover:
         self.__set_constraints()
 
         self.__set_costs()
+
+        self.v_ee_param.assign(self.landing_vel)
 
         return True
 

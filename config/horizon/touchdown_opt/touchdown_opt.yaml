@@ -19,6 +19,8 @@ energy_recov_opt:
     friction_cnstrnt:
       mu_friction_cone: 0.6
 
+    landing_vel: 0.5
+
     weights:
 
       weight_f_contact: 0.01 # cost for penalizing contact forces
@@ -29,7 +31,7 @@ energy_recov_opt:
       weight_q_dot_diff: -1
 
       weight_reg_energy: 1
-      weight_impact_min: 1
+      weight_impact_min: 1000
 
   solver:
 
