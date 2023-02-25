@@ -18,5 +18,6 @@ float64[] pos_ref
 float64[] vel_ref
 float64[] eff_ref
 float64[] f_cont_ref
+float64[] iq_ref
 
 uint16 performed_jumps

@@ -125,7 +125,7 @@ private:
                     _landing_stiffness, _landing_damping,
                     _stiffness_setpoint, _damping_setpoint,
                     _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
-                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_contact_ref,
+                    _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_contact_ref, _i_q_ref,
                     _q_p_safe_cmd,
                     _q_p_init_appr_traj, _q_p_trgt_appr_traj,
                     _auxiliary_vector,
@@ -136,9 +136,10 @@ private:
 
     std::vector<double> _q_p_cmd_vect, _q_p_dot_cmd_vect,
                         _tau_cmd_vect,
-                        _f_contact_ref_vect;
+                        _f_contact_ref_vect,
+                        _i_q_ref_vect;
 
-    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref;
+    Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref, _iq_ref;
 
     PeisekahTrans _peisekah_utils;
     TrajLoader _traj;

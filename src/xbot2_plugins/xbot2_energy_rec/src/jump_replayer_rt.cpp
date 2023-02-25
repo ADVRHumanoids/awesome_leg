@@ -99,8 +99,10 @@ void JumpReplayerRt::init_vars()
     _tau_cmd_vect = std::vector<double>(_n_jnts_robot);
 
     _f_contact_ref = Eigen::VectorXd::Zero(3);
+    _f_contact_ref_vect = std::vector<double>(3);
 
-    _f_contact_ref_vect = std::vector<double>(3);;
+    _i_q_ref = Eigen::VectorXd::Zero(_n_jnts_robot);
+    _i_q_ref_vect = std::vector<double>(_n_jnts_robot);
 
     _landing_config = Eigen::MatrixXd::Zero(_n_jnts_robot, 1);
     _touchdown_damping = Eigen::MatrixXd::Zero(_n_jnts_robot, 1);
@@ -328,6 +330,7 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->create("tau_cmd", _n_jnts_robot, 1, _matlogger_buffer_size);
 
     _dump_logger->create("f_contact_ref", 3, 1, _matlogger_buffer_size);
+    _dump_logger->create("iq_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
 
 }
 
@@ -357,6 +360,7 @@ void JumpReplayerRt::add_data2dump_logger()
     _dump_logger->add("ramp_damping", _ramp_damping);
 
     _dump_logger->add("f_contact_ref", _f_contact_ref);
+    _dump_logger->add("iq_ref", _i_q_ref);
 
 }
 
@@ -626,7 +630,7 @@ void JumpReplayerRt::load_opt_data()
     if (_resample)
     { // resample input data at the plugin frequency (for now it sucks)
 
-        _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
+        _traj.resample(_plugin_dt, _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref, _iq_ref); // just brute for linear interpolation for now (for safety, better to always use the same plugin_dt as the loaded trajectory)
 
     }
     else
@@ -634,7 +638,7 @@ void JumpReplayerRt::load_opt_data()
 
         Eigen::MatrixXd dt_opt;
 
-        _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt, _f_cont_ref);
+        _traj.get_loaded_traj(_q_p_ref, _q_p_dot_ref, _tau_ref, dt_opt, _f_cont_ref, _iq_ref);
 
     }
 
@@ -859,7 +863,8 @@ void JumpReplayerRt::set_cmds()
             _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
             _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
             _f_contact_ref = _f_cont_ref.col(_sample_index);
-            
+            _i_q_ref = _iq_ref.col(_sample_index);
+
             _stiffness_setpoint = _replay_stiffness;
             _damping_setpoint = _replay_damping;
 
@@ -880,6 +885,7 @@ void JumpReplayerRt::set_cmds()
                 _q_p_dot_cmd = _q_p_dot_ref.col(_sample_index).tail(_n_jnts_robot);
                 _tau_cmd = _tau_ref.col(_sample_index).tail(_n_jnts_robot);
                 _f_contact_ref = _f_cont_ref.col(_sample_index);
+                _i_q_ref = _iq_ref.col(_sample_index);
 
                 _stiffness_setpoint = _replay_stiffness; // keep impedance high
                 _damping_setpoint = _replay_damping;
@@ -1025,6 +1031,7 @@ void JumpReplayerRt::pub_replay_status()
         _q_p_cmd_vect[i] = _q_p_cmd(i);
         _q_p_dot_cmd_vect[i] = _q_p_dot_cmd(i);
         _tau_cmd_vect[i]  = _tau_cmd(i);
+        _i_q_ref_vect[i] = _i_q_ref(i);
     }
 
     for(int i = 0; i < 3; i++)
@@ -1037,6 +1044,7 @@ void JumpReplayerRt::pub_replay_status()
     status_msg->msg().eff_ref = _tau_cmd_vect;
 
     status_msg->msg().f_cont_ref = _f_contact_ref_vect;
+    status_msg->msg().iq_ref = _i_q_ref_vect;
 
     _replay_status_pub->publishLoaned(std::move(status_msg));
 }
