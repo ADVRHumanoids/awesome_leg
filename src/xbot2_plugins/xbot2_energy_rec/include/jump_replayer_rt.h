@@ -20,6 +20,7 @@
 #include <awesome_leg/Go2TakeoffConfig.h>
 #include <awesome_leg/PerformTakeoff.h>
 #include <awesome_leg/RampJntImp.h>
+#include <awesome_leg/Go2LandingConfig.h>
 
 #include <cartesian_interface/sdk/rt/LockfreeBufferImpl.h>
 #include <cartesian_interface/ros/RosServerClass.h>
@@ -85,9 +86,11 @@ private:
         _send_whole_traj = true,
         _verbose = false,
         _is_first_imp_ramp_loop = false,
-        _perform_takeoff = false, _go2takeoff_config = false, _ramp_imp = false,
-        _approach_traj_started = false, _traj_started = false, _imp_traj_started = false,
-        _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false;
+        _go2takeoff_config = false, _perform_takeoff = false, _ramp_imp = false, _go2landing_config = false,
+        _approach_traj_started = false, _traj_started = false, _imp_traj_started = false, _landing_config_started = false,
+        _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false, _landing_config_reached = false,
+        _go2touchdown_config_auto = true,
+        _idle = true;
 
     int _n_jnts_robot,
         _sample_index = 0,
@@ -95,17 +98,20 @@ private:
         _jump_phase_state = -1, 
         _performed_jumps = 0;
 
-    std::string _mat_path, _mat_name,
+    std::string _takeoff_traj_path, _takeoff_traj_name,
+                _landing_config_path, _landing_config_name,
                 _dump_mat_suffix = "traj_replay",
                 _hw_type,
-                _dump_path = "/tmp/JumpReplayerRt";
+                _dump_path = "/tmp/JumpReplayerRt",
+                _landing_stiffness_varname = "stiffness", _landing_damping_varname = "damping",
+                _landing_config_varname = "config";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
-        _approach_traj_exec_time = 3.0,
-        _approach_traj_time = 0.0,
-        _imp_ramp_time = 4.0,
-        _smooth_imp_time = 0.0,
+        _approach_traj_exec_time = 3.0, _approach_traj_time = 0.0,
+        _imp_ramp_time = 4.0, _smooth_imp_time = 0.0,
+        _go2takeoff_time = 0.0,
+        _go2touchdown_exec_time = 0.5, _go2touchdown_time = 0.0,
         _matlogger_buffer_size = 1e5,
         _resample_err_tolerance = 1e-2,
         _phase = 0.0;
@@ -115,13 +121,16 @@ private:
                     _meas_stiffness, _meas_damping,
                     _ramp_stiffness, _ramp_damping,
                     _ramp_strt_stiffness, _ramp_strt_damping,
-                    _touchdown_damping, _touchdown_stiffness,
                     _stiffness_setpoint, _damping_setpoint,
                     _q_p_meas, _q_p_dot_meas, _tau_meas, _f_cont_meas,
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_contact_ref,
                     _q_p_safe_cmd,
                     _q_p_init_appr_traj, _q_p_trgt_appr_traj,
-                    _auxiliary_vector;
+                    _auxiliary_vector,
+                    _jnt_vel_limits, _min_ramp_exec_time;
+
+    Eigen::MatrixXd  _touchdown_damping_aux, _touchdown_stiffness_aux, _landing_config_aux;
+    Eigen::VectorXd  _touchdown_damping, _touchdown_stiffness, _landing_config;
 
     std::vector<double> _q_p_cmd_vect, _q_p_dot_cmd_vect,
                         _tau_cmd_vect,
@@ -133,6 +142,8 @@ private:
     TrajLoader _traj;
 
     MatLogger2::Ptr _dump_logger;
+
+    MatLogger2::Ptr _landing_config_logger;
 
    // handle adapting ROS primitives for RT support
     RosSupport::UniquePtr _ros;
@@ -149,6 +160,9 @@ private:
     ServiceServerPtr<awesome_leg::RampJntImpRequest,
                      awesome_leg::RampJntImpResponse> _ramp_jnt_imp_srvr;
 
+    ServiceServerPtr<awesome_leg::Go2LandingConfigRequest,
+                     awesome_leg::Go2LandingConfigResponse> _go2lading_config_srvr;
+
     PublisherPtr<awesome_leg::MatReplayerStatus> _replay_status_pub;
 
     void get_params_from_config();
@@ -164,6 +178,7 @@ private:
     void resample_trajectory();
 
     void ramp_jnt_impedances();
+    void ramp_towards_touchdown_config();
 
     void saturate_cmds();
     
@@ -191,6 +206,8 @@ private:
                                      awesome_leg::Go2TakeoffConfigResponse& res);
     bool on_ramp_jnt_imp_received(const awesome_leg::RampJntImpRequest& req,
                                   awesome_leg::RampJntImpResponse& res);
+    bool on_go2landing_config_received(const awesome_leg::Go2LandingConfigRequest& req,
+                                                  awesome_leg::Go2LandingConfigResponse& res);
                  
 };
 

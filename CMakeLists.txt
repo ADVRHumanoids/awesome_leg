@@ -31,6 +31,7 @@ add_service_files(
   Go2TakeoffConfig.srv
   PerformTakeoff.srv
   RampJntImp.srv
+  Go2LandingConfig.srv
 )
 
 add_message_files(

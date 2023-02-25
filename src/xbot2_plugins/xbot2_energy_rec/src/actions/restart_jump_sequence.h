@@ -13,6 +13,8 @@
 #include <awesome_leg/RampJntImpRequest.h>
 #include <awesome_leg/Go2TakeoffConfigRequest.h>
 #include <awesome_leg/PerformTakeoffRequest.h>
+#include <awesome_leg/PerformTakeoffRequest.h>
+#include <awesome_leg/Go2LandingConfig.h>
 
 using namespace XBot;
 
@@ -42,21 +44,24 @@ namespace BT
             std::string _servername1 = "ramp_jnt_imp_srvr";
             std::string _servername2 = "go2takeoff_srvr";
             std::string _servername3 = "perform_takeoff_srvr";
+            std::string _servername4 = "go2touchdown_config_srvr";
 
             std::string _asynch_servicepath1,
                         _asynch_servicepath2,
-                        _asynch_servicepath3;
+                        _asynch_servicepath3,
+                        _asynch_servicepath4;
 
             NodeStatus tick() override;
 
             awesome_leg::RampJntImpRequest _msg1;
             awesome_leg::Go2TakeoffConfigRequest _msg2;
             awesome_leg::PerformTakeoffRequest _msg3;
+            awesome_leg::Go2LandingConfigRequest _msg4;
 
             PublisherPtr<awesome_leg::RampJntImpRequest> _publisher1;
             PublisherPtr<awesome_leg::Go2TakeoffConfigRequest> _publisher2;
             PublisherPtr<awesome_leg::PerformTakeoffRequest> _publisher3;
-
+            PublisherPtr<awesome_leg::Go2LandingConfigRequest> _publisher4;
 
     };
 
