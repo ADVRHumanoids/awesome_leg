@@ -124,7 +124,7 @@ leg.set_draggable(state = True)
 #     item.set_visible(False)
 ax_sol_t_box.set_ylabel(r"$e_{reg}$ [J]")
 ax_sol_t_box.set_xlabel("configuration n.")
-ax_sol_t_box.set_title(r"Dropdown tests - fixed stiffness", fontdict=None, loc='center')
+ax_sol_t_box.set_title(r"Dropdown tests - fixed impedance", fontdict=None, loc='center')
 ax_sol_t_box.grid()
 
 # same configuration, different stiffnesses
@@ -140,17 +140,22 @@ dropdown_qref2 = np.zeros((n_conf2, n_samples))
 dropdown_reg_energy2 = np.zeros((n_conf2, n_samples))
 dropdown_sev_ratio2 = np.zeros((n_conf2, n_samples))
 
-for i in range(0, n_conf2):
-        
-    dropdown_stiff2[i, :] = data_list2[i].data["dropdown_stiffness"][0:n_samples]
+
+for i in range(0, n_conf2): 
+
     dropdown_damp2[i, :] = data_list2[i].data["dropdown_damping"][0:n_samples]
+    dropdown_stiff2[i, :] = data_list2[i].data["dropdown_stiffness"][0:n_samples]
     dropdown_qref2[i, :] = data_list2[i].data["dropdown_q_ref"][0:n_samples]
     dropdown_reg_energy2[i, :] = data_list2[i].data["dropdown_rec_energy"][0:n_samples] 
     dropdown_sev_ratio2[i, :] = data_list2[i].data["dropdown_impact_severity_ratio"][0:n_samples]
         
 _, ax_sol_t_box2 = plt.subplots(1)
 stiff_values = dropdown_stiff2[0:n_conf2, 0]
-stiff_labels = [str(int(round(x, 0))) for x in list(stiff_values.tolist())]
+# stiff_labels = [str(int(round(x, 0))) for x in list(stiff_values.tolist())]
+stiff_labels = [i for i in range(0, n_conf2)]
+
+impedance_setpoints = [ rf"n.{i}: [{round(dropdown_stiff2[i, 0], 0)} N m/rad, {round(dropdown_damp2[i, 0], 0)} N m/(rad/s)" for i in range(0, n_conf2) ]
+
 ax_sol_t_box2.boxplot(dropdown_reg_energy2.T,
                 flierprops = green_diamond, vert=True, 
                 whis = 1,
@@ -158,10 +163,10 @@ ax_sol_t_box2.boxplot(dropdown_reg_energy2.T,
                 labels = stiff_labels, 
                 showfliers=False, 
                 notch=False)
-leg2 = ax_sol_t_box2.legend(artist["boxes"],  [rf"configuration number: 4",rf"damping setpoint: {damp_setpoint} N m/(rad/s)"], loc='upper right', handlelength=0, handletextpad=0, fancybox=True)           
+leg2 = ax_sol_t_box2.legend(artist["boxes"],  impedance_setpoints, loc='upper right', handlelength=0, handletextpad=0, fancybox=True)           
 leg2.set_draggable(state = True)
 ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]")
-ax_sol_t_box2.set_xlabel("[Nm/rad]")
+ax_sol_t_box2.set_xlabel("impedance setpoint")
 ax_sol_t_box2.set_title(r"Dropdown tests - fixed landing configuration", fontdict=None, loc='center')
 ax_sol_t_box2.grid()
 
