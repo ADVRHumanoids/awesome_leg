@@ -158,7 +158,7 @@ ax_sol_t_box2.boxplot(dropdown_reg_energy2.T,
                 labels = stiff_labels, 
                 showfliers=False, 
                 notch=False)
-leg2 = ax_sol_t_box2.legend(artist["boxes"], "", loc='upper right', handlelength=0, handletextpad=0, fancybox=True)           
+leg2 = ax_sol_t_box2.legend(artist["boxes"],  [rf"configuration number: 4",rf"damping setpoint: {damp_setpoint} N m/(rad/s)"], loc='upper right', handlelength=0, handletextpad=0, fancybox=True)           
 leg2.set_draggable(state = True)
 ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]")
 ax_sol_t_box2.set_xlabel("[Nm/rad]")
