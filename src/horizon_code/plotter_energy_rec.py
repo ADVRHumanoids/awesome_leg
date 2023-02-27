@@ -20,12 +20,18 @@ q_p_ddot_raw = solution_raw["q_p_ddot"]
 # i_q_raw = solution_raw["i_q"]
 GRF_raw = solution_raw["f_contact"]
 tau_raw = solution_raw["tau_sol"]
-dt_raw = solution_raw["dt"].flatten()
+dt_raw = solution_raw["dt_landing"].flatten()
 kp_raw = solution_raw['kp']
 kd_raw = solution_raw['kd']
-q_init_raw = solution_raw['q_init']
+q_init_raw = solution_raw['q_landing']
 
-print(q_init_raw)
+print('q: ', q_init_raw)
+print('kp: \n', kp_raw)
+print('kd: \n', kd_raw)
+print('dt:', dt_raw)
+print('lambda_inv_check: ', solution_raw['lambda_inv_check'][0][0])
+print('impact: ', solution_raw['impact'])
+
 time_vector_raw = np.zeros([n_int + 1])
 for i in range(dt_raw.size):
     time_vector_raw[i + 1] = time_vector_raw[i] + dt_raw[i]

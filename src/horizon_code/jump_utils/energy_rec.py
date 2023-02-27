@@ -122,7 +122,7 @@ class landingEnergyRecover:
         dt_single_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt
         dt = [dt_single_var] * (self.n_int)  # holds the complete time list
         #####PROBLEM HERE: why if I set a variable dt I find symbolic variables in the solution???
-        dt = 0.01
+        # dt = 0.01
 
         self.prb.setDt(dt)
 
@@ -134,7 +134,7 @@ class landingEnergyRecover:
         self.q_p_dot[1:3].setBounds(- v_bounds, v_bounds)
 
         # v0 = np.zeros(self.n_v)
-        # self.q_p_dot.setBounds(v0, v0, nodes=0)
+        # self.q_p_dot[0].setBounds(-1, -1, nodes=0)
 
         # Defining the input/s (joint accelerations)
         self.q_p_ddot = self.prb.createInputVariable("q_p_ddot", self.n_v)
@@ -193,6 +193,8 @@ class landingEnergyRecover:
         self.B = self.urdf_kin_dyn.crba()(q=self.q_p)['B']
         self.B_q_p_dot = self.B @ self.q_p_dot # we assume q_p_dot pre impact = 0
 
+        self.lambda_inv = self.J_tip @ cs.inv(self.B) @ self.J_tip.T
+
         # foot tip vel
         self.dfk_foot = self.urdf_kin_dyn.frameVelocity("tip1", \
                                                         casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED)
@@ -232,30 +234,36 @@ class landingEnergyRecover:
             self.prb.createConstraint('impact_dyn_jnt' + str(i), self.B_q_p_dot[i] - self.JT_i[i], nodes=0) # impact law
 
         # for i in range(0, 6):
-
         #     self.prb.createConstraint(f'post_impact_jnt_vel_{i}', self.delta_chi_impact[i] - self.J_delta_v[i], nodes=0)
-        
+
         # self.prb.createConstraint(f'post_impact_jnt_vel1', - self.delta_chi_impact[0] - self.J_delta_v[0], nodes=0)
+
         self.prb.createConstraint(f'post_impact_jnt_vel2', - self.delta_chi_impact[1] - self.J_delta_v[1], nodes=0)
         self.prb.createConstraint(f'post_impact_jnt_vel3', - self.delta_chi_impact[2] - self.J_delta_v[2], nodes=0)
         self.prb.createConstraint(f'post_impact_jnt_vel4', - self.delta_chi_impact[3] - self.J_delta_v[3], nodes=0)
+
         # self.prb.createConstraint(f'post_impact_jnt_vel5', - self.delta_chi_impact[4] - self.J_delta_v[4], nodes=0)
         # self.prb.createConstraint(f'post_impact_jnt_vel6', - self.delta_chi_impact[6] - self.J_delta_v[6], nodes=0)
 
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2])
         grf_positive.setBounds(0.0001, cs.inf)
         
-        no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
-        no_energy_violation.setBounds(-cs.inf, 0.0)
+        # no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
+        # no_energy_violation.setBounds(-cs.inf, 0.0)
 
         self.prb.createFinalConstraint("braking_q_dot", self.q_p_dot)
         self.prb.createConstraint("braking_q_ddot", self.q_p_ddot, nodes = self.last_node -1 )
+
+        l_cnr = self.prb.createConstraint('lambda_inv_check', (1 / self.lambda_inv[2, 2]))
+        l_cnr.setBounds(-cs.inf, cs.inf)
 
     def __set_costs(self):
 
         if self.weight_impact_min > 0:
 
-            self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * self.delta_ek, nodes = 0) # delta_ek is always <= 0
+            # self.prb.createCost("min_impact_residual_kin_energy_dissipation", self.weight_impact_min * self.delta_ek, nodes = 0) # delta_ek is always <= 0
+            # self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * (1/ (self.delta_ek + 1)), nodes = 0) # delta_ek is always <= 0
+            self.prb.createCost('min_lambda_inv', self.weight_impact_min * (1 / self.lambda_inv[2, 2]), nodes=0)
 
         # regularizations
         if self.weight_f_contact_cost > 0:
@@ -295,8 +303,11 @@ class landingEnergyRecover:
                         **self.cnstr_opt,
                         **self.lambda_cnstrnt,
                         **{'n_int': self.n_int},
-                        **{'tau_sol': self.tau_sol},
-                        **{'dt': self.prb.getDt()}}
+                        **{'tau_sol': self.tau_sol}}
+
+
+
+        # **{'dt': self.prb.getDt()
 
     def __dump_sol2file(self):
 

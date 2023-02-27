@@ -4,7 +4,7 @@ import argparse
 
 import rospkg
 
-from jump_utils.energy_rec import landingEnergyRecover
+# from jump_utils.energy_rec import landingEnergyRecover
 from jump_utils.up2apex import up2ApexGen
 from jump_utils.full_gen import fullJumpGen
 
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser.add_argument('-sol_mat_name', "-matn", type=str, default=sol_mat_basename)
 
     parser.add_argument('--results_dir', '-rdir', type=str, help='where results are saved',
-                        default="/tmp/" + file_name + "_" + unique_id) #
+                        default="/tmp/" + file_name) #
 
     parser.add_argument('--hor_confname', '-hconf', type=str,
                         help='horizon config file name', default=file_name)
