@@ -82,9 +82,9 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            mat_path: {value: /tmp/, type: string}
+            mat_path: {value: /home/embedded/Desktop/jump_generation_24-02-2023-12_13_45/, type: string}
             dump_mat_suffix: {value: bus_power_rt, type: string}
-            matlogger_buffer_size: {value: 1e5, type: double}
+            matlogger_buffer_size: {value: 1e6, type: double}
 
             topic_ns: {value: "iq_model", type: string}
             set_monitor_state_servname: {value: "start_rec_energy_monitor", type: string}
@@ -99,7 +99,7 @@ xbotcore_plugins:
             R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
-            bus_p_leak: {value: 0.0, type: double} # [W]
+            bus_p_leak: {value: 38, type: double} # [W] - battery setup
             # bus_p_leak: {value: 46.0, type: double} # [W]
 
 # global parameters
