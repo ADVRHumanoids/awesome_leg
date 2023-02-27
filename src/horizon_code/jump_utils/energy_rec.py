@@ -158,12 +158,15 @@ class landingEnergyRecover:
 
         self.q_p_dot_pretouchdown = cs.veccat(self.v_ee_param, 0.0, 0.0)
 
-        self.delta_chi_impact = cs.veccat(0.0, 0.0, 0.0 - self.v_ee_param, 0.0, 0.0, 0.0) # total "task" twist vector [[linear], [angular]] @ touchdown
+        self.chi_dot_pretouchdown = cs.veccat(0.0, 0.0, self.v_ee_param, 0.0, 0.0, 0.0)
+        self.delta_chi_impact = cs.veccat(0.0, 0.0, 0.0, 0.0, 0.0, 0.0) - self.chi_dot_pretouchdown # total "task" twist vector [[linear], [angular]] @ touchdown
 
         # self.impact_z = self.prb.createSingleVariable('impact', 1) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
         # self.impact = cs.veccat(0.0, 0.0, self.impact_z, 0.0, 0.0, 0.0) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
         self.impact = self.prb.createSingleVariable('impact', 6) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
-
+        impact_bounds = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        self.impact.setBounds(impact_bounds, impact_bounds)
+        self.impact[2].setBounds(-cs.inf, cs.inf)
         #(vertical impact for simplicity)
 
         return self.prb
@@ -211,6 +214,7 @@ class landingEnergyRecover:
         # impact torques
 
         self.JT_i = self.J_tip.T @ self.impact
+        self.chi_dot_pretouchdown_simb = self.J_tip @ self.q_p_dot_pretouchdown
 
         self.J_delta_v = self.J_tip @ (self.q_p_dot - self.q_p_dot_pretouchdown)
 
@@ -242,11 +246,18 @@ class landingEnergyRecover:
         #     self.prb.createConstraint(f'post_impact_jnt_vel_{i}', self.delta_chi_impact[i] - self.J_delta_v[i], nodes=0)
 
         # self.prb.createConstraint(f'post_impact_jnt_vel0', self.delta_chi_impact[0] - self.J_delta_v[0], nodes=0)
-        self.prb.createConstraint(f'post_impact_jnt_vel1', self.delta_chi_impact[1] - self.J_delta_v[1], nodes=0)
-        self.prb.createConstraint(f'post_impact_jnt_vel2', self.delta_chi_impact[2] - self.J_delta_v[2], nodes=0)
-        self.prb.createConstraint(f'post_impact_jnt_vel3', self.delta_chi_impact[3] - self.J_delta_v[3], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel1', self.delta_chi_impact[1] - self.J_delta_v[1], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel2', self.delta_chi_impact[2] - self.J_delta_v[2], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel3', self.delta_chi_impact[3] - self.J_delta_v[3], nodes=0)
         # self.prb.createConstraint(f'post_impact_jnt_vel4', self.delta_chi_impact[4] - self.J_delta_v[4], nodes=0)
         # self.prb.createConstraint(f'post_impact_jnt_vel5', self.delta_chi_impact[5] - self.J_delta_v[5], nodes=0)
+
+        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[0] - self.chi_dot_pretouchdown_simb[1], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[1] - self.chi_dot_pretouchdown_simb[1], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel1', self.chi_dot_pretouchdown[2] - self.chi_dot_pretouchdown_simb[2], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel2', self.chi_dot_pretouchdown[3] - self.chi_dot_pretouchdown_simb[3], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[4] - self.chi_dot_pretouchdown_simb[0], nodes=0)
+        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[5] - self.chi_dot_pretouchdown_simb[0], nodes=0)
 
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2])
         grf_positive.setBounds(0.0001, cs.inf)
