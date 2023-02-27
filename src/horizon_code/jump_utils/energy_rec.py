@@ -158,9 +158,6 @@ class landingEnergyRecover:
 
         self.q_p_dot_pretouchdown = cs.veccat(self.v_ee_param, 0.0, 0.0)
 
-        self.chi_dot_pretouchdown = cs.veccat(0.0, 0.0, self.v_ee_param, 0.0, 0.0, 0.0)
-        self.delta_chi_impact = cs.veccat(0.0, 0.0, 0.0, 0.0, 0.0, 0.0) - self.chi_dot_pretouchdown # total "task" twist vector [[linear], [angular]] @ touchdown
-
         # self.impact_z = self.prb.createSingleVariable('impact', 1) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
         # self.impact = cs.veccat(0.0, 0.0, self.impact_z, 0.0, 0.0, 0.0) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
         self.impact = self.prb.createSingleVariable('impact', 6) # impact --> lim_{dt->0}{int_{0}^{dt}{f * d_tau}}
@@ -214,13 +211,14 @@ class landingEnergyRecover:
         # impact torques
 
         self.JT_i = self.J_tip.T @ self.impact
-        self.chi_dot_pretouchdown_simb = self.J_tip @ self.q_p_dot_pretouchdown
+
+        self.chi_dot_pretouchdown = self.J_tip @ self.q_p_dot_pretouchdown
 
         self.J_delta_v = self.J_tip @ (self.q_p_dot - self.q_p_dot_pretouchdown)
 
         # variation of kin energy due to impact
 
-        # self.delta_ek = 1/2 * self.impact.T @ (self.delta_chi_impact + 2 * self.J_tip @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for 
+        # self.delta_ek = 1/2 * self.impact.T @ (self.J_tip @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for 
         # energy conservation 
 
         self.delta_ek = 1/2 * (self.q_p_dot.T @ self.B @ self.q_p_dot - self.q_p_dot_pretouchdown.T @ self.B @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for 
@@ -233,43 +231,26 @@ class landingEnergyRecover:
         self.prb.createConstraint("foot_vel_zero", self.v_foot_tip) # we always have contact
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0) # tip starts on ground
 
-        # for i in range(0, self.n_v - 1):
-        #     self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
-        #                 self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1]))
+        for i in range(0, self.n_v - 1):
+            self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
+                        self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1]))
 
         self.prb.createConstraint('q_p_at_touchdown', self.q_p[1:] - self.q_landing, nodes=0)
 
         for i in range(0, self.n_v):
             self.prb.createConstraint('impact_dyn_jnt' + str(i), self.B_Delta_v[i] - self.JT_i[i], nodes=0) # impact law
 
-        # for i in range(0, 6):
-        #     self.prb.createConstraint(f'post_impact_jnt_vel_{i}', self.delta_chi_impact[i] - self.J_delta_v[i], nodes=0)
-
-        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.delta_chi_impact[0] - self.J_delta_v[0], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel1', self.delta_chi_impact[1] - self.J_delta_v[1], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel2', self.delta_chi_impact[2] - self.J_delta_v[2], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel3', self.delta_chi_impact[3] - self.J_delta_v[3], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel4', self.delta_chi_impact[4] - self.J_delta_v[4], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel5', self.delta_chi_impact[5] - self.J_delta_v[5], nodes=0)
-
-        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[0] - self.chi_dot_pretouchdown_simb[1], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[1] - self.chi_dot_pretouchdown_simb[1], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel1', self.chi_dot_pretouchdown[2] - self.chi_dot_pretouchdown_simb[2], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel2', self.chi_dot_pretouchdown[3] - self.chi_dot_pretouchdown_simb[3], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[4] - self.chi_dot_pretouchdown_simb[0], nodes=0)
-        # self.prb.createConstraint(f'post_impact_jnt_vel0', self.chi_dot_pretouchdown[5] - self.chi_dot_pretouchdown_simb[0], nodes=0)
-
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2])
         grf_positive.setBounds(0.0001, cs.inf)
         
-        # no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
-        # no_energy_violation.setBounds(-cs.inf, 0.0)
+        no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
+        no_energy_violation.setBounds(-cs.inf, 0.0)
 
-        self.prb.createFinalConstraint("braking_q_dot", self.q_p_dot)
-        self.prb.createConstraint("braking_q_ddot", self.q_p_ddot, nodes = self.last_node -1)
+        # self.prb.createConstraint("braking_q_dot", self.q_p_dot, nodes = self.last_node)
+        # self.prb.createConstraint("braking_q_ddot", self.q_p_ddot, nodes = self.last_node -1)
 
-        l_cnr = self.prb.createConstraint('impact_ratio_check', (1 / self.lambda_inv[2, 2]))
-        l_cnr.setBounds(-cs.inf, cs.inf)
+        # l_cnr = self.prb.createConstraint('impact_ratio_check', (1 / self.lambda_inv[2, 2]))
+        # l_cnr.setBounds(-cs.inf, cs.inf)
 
         hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
         hip_above_ground.setBounds(0.0, cs.inf)
