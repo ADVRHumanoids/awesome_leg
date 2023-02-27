@@ -96,8 +96,11 @@ xbotcore_plugins:
             go2touchdown_exec_time: {value: 0.05, type: double}
             go2touchdown_config_auto: {value: true, type: bool}
 
-            landing_stiffness: {value: [80.0, 80.0], type: Eigen::VectorXd} # only used if ramp2tpuchdown_config==false
-            landing_damping: {value: [10.0, 10.0], type: Eigen::VectorXd} # only used if ramp2tpuchdown_config==false
+#            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd} # good for eg
+#            landing_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
+
+            landing_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd} # not so good for er
+            landing_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
 
 
     bus_power_rt:
