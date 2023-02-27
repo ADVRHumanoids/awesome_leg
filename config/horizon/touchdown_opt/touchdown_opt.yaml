@@ -8,10 +8,10 @@ energy_recov_opt:
 
   problem:
 
-    n_int: 100
+    n_int: 2
 
-    dt_lb: 0.01
-    dt_ub: 1.
+    dt_lb: 0.0001
+    dt_ub: 1
     
     is_iq_cnstrnt: true # whether to use the iq constraint or not
     is_friction_cone: true # whether to use a friction constraint or not
@@ -19,19 +19,19 @@ energy_recov_opt:
     friction_cnstrnt:
       mu_friction_cone: 0.6
 
-    landing_vel: 0.5
+    landing_vel: -1.0
 
     weights:
 
-      weight_f_contact: 0.01 # cost for penalizing contact forces
+      weight_f_contact: 0.00001 # cost for penalizing contact forces
       weight_f_contact_diff: -1 #0.1 # cost for penalizing differences between successive f_contacts
-      weight_jnt_input: 0.01 # cost for penalizing joint accelerations (which are the input)
+      weight_jnt_input: 0.00001 # cost for penalizing joint accelerations (which are the input)
       weight_jnt_input_diff: -1 #0.05 # cost for penalizing differences between successive inputs
       weight_q_dot: -1 #0.1
       weight_q_dot_diff: -1
 
       weight_reg_energy: -1
-      weight_impact_min: 100
+      weight_impact_min: 10000
 
   solver:
 

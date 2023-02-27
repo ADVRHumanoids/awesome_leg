@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from horizon.utils import kin_dyn
 import numpy as np
 
