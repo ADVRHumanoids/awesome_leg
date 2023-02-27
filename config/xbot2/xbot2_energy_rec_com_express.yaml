@@ -85,21 +85,23 @@ xbotcore_plugins:
             takeoff_traj_name: {value: apex_awesome_jump_ref.mat, type: string}
 
             landing_config_path: {value: /tmp/jump_generation_24-02-2023-12_13_45/, type: string}
-            landing_config_name: {value: landing_config_test.mat, type: string}
+#            landing_config_name: {value: landing_config_test.mat, type: string}
+            landing_config_name: {value: landing_config_12_13_45_hard.mat, type: string}
+#            landing_config_name: {value: landing_config_test.mat, type: string}
 
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
 
             verbose: {value: false, type: bool}
 
-            ramp2touchdown_config: {value: false, type: bool}
+            ramp2touchdown_config: {value: true, type: bool}
             go2touchdown_exec_time: {value: 0.05, type: double}
             go2touchdown_config_auto: {value: true, type: bool}
 
 #            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd} # good for eg
 #            landing_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
-            landing_stiffness: {value: [100.0, 100.0], type: Eigen::VectorXd} # not so good for er
+            landing_stiffness: {value: [150.0, 150.0], type: Eigen::VectorXd} # not so good for er
             landing_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
 
 
