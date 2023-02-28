@@ -8,9 +8,9 @@ energy_recov_opt:
 
   problem:
 
-    n_int: 20
+    n_int: 50
 
-    dt_lb: 0.0001
+    dt_lb: 0.01
     dt_ub: 1
     
     is_iq_cnstrnt: true # whether to use the iq constraint or not

@@ -31,7 +31,7 @@ print('q: ', q_init_raw)
 print('kp: \n', kp_raw)
 print('kd: \n', kd_raw)
 print('dt:', dt_raw)
-print('lambda_inv_check: ', solution_raw['lambda_inv_check'][0][0])
+# print('lambda_inv_check: ', solution_raw['lambda_inv_check'][0][0])
 print('impact: ', solution_raw['impact'])
 
 time_vector_raw = np.zeros([n_int + 1])

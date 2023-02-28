@@ -28,3 +28,5 @@ omega_max_nl_bf: [1067.2, 1067.2] # maximum no-load velocity @ 48 V, before redu
 omega_max_nl_af: [21.3, 21.3] # maximum no-load velocity @ 48 V, after reduction ([rad/s])
 omega_max_nl_af44: [20.3, 20.3] # maximum no-load velocity @ 48 V, @ 44 Nm, after reduction ([rad/s])
 omega_max_nl_af112: [18.8, 18.8] # maximum no-load velocity @ 48 V, @ 112 Nm, after reduction ([rad/s])
+
+L_m: [0.000104, 0.000104]

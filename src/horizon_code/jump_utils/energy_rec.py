@@ -11,6 +11,7 @@ from horizon.ros.replay_trajectory import *
 from horizon.solvers import solver
 from horizon.transcriptions import transcriptor
 from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
+from jump_utils.horizon_utils import compute_required_iq_estimate
 
 
 class landingEnergyRecover:
@@ -63,6 +64,8 @@ class landingEnergyRecover:
                          "ipopt.constr_viol_tol": yaml_info["solver"]["ipopt_cnstr_viol_tol"],
                          }
 
+        self.tanh_coeff =yaml_info["i_q_estimation"]["tanh_coeff"]
+
         yaml_info_weights = yaml_info["problem"]["weights"]
 
         self.landing_vel = yaml_info["problem"]["landing_vel"]
@@ -89,6 +92,11 @@ class landingEnergyRecover:
 
         self.dt_lb = yaml_info["problem"]["dt_lb"]
         self.dt_ub = yaml_info["problem"]["dt_ub"]
+
+        self.R_q = np.array(self.act_yaml_file["R"])
+        self.L_m = self.act_yaml_file["L_m"]
+        self.K_t = self.act_yaml_file["K_t"]
+        self.red_ratio = np.array(self.act_yaml_file['red_ratio'])
 
         self.n_nodes = self.n_int + 1
         self.last_node = self.n_nodes - 1
@@ -216,9 +224,27 @@ class landingEnergyRecover:
 
         self.J_delta_v = self.J_tip @ (self.q_p_dot - self.q_p_dot_pretouchdown)
 
+
+        #  to add
+        self.i_q_estimate = cs.veccat(*compute_required_iq_estimate(self.act_yaml_file, self.q_p_dot, self.q_p_ddot, self.tau, self.tanh_coeff))
+        self.L_q = 3/2 * np.array(self.L_m)
+
+        R_q_mat = np.zeros([2,2])
+        R_q_mat[0,0] = self.R_q[0]
+        R_q_mat[1,1] = self.R_q[1]
+
+        L_q_mat = np.zeros((2,2))
+        L_q_mat[0,0] = self.L_q[0]
+        L_q_mat[1,1] = self.L_q[1]
+
+        self.r_iq_2 = -3 / 2 * self.i_q_estimate.T @ self.R_q @ self.i_q_estimate
+        self.l_iq_i = -3/4 * self.i_q_estimate.T @ self.L_q @ self.i_q_estimate
+        self.l_iq_f = 3/4 * self.i_q_estimate.T @ self.L_q @ self.i_q_estimate
+        self.t_w = - (self.K_t * self.i_q_estimate).T @ (self.q_p_dot[1:] / self.red_ratio)
+
         # variation of kin energy due to impact
 
-        # self.delta_ek = 1/2 * self.impact.T @ (self.J_tip @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for 
+        # self.delta_ek = 1/2 * self.impact.T @ (self.J_tip @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for
         # energy conservation 
 
         self.delta_ek = 1/2 * (self.q_p_dot.T @ self.B @ self.q_p_dot - self.q_p_dot_pretouchdown.T @ self.B @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for 
@@ -243,10 +269,10 @@ class landingEnergyRecover:
         grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2])
         grf_positive.setBounds(0.0001, cs.inf)
         
-        no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
-        no_energy_violation.setBounds(-cs.inf, 0.0)
+        # no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
+        # no_energy_violation.setBounds(-cs.inf, 0.0)
 
-        # self.prb.createConstraint("braking_q_dot", self.q_p_dot, nodes = self.last_node)
+        self.prb.createConstraint("braking_q_dot", self.q_p_dot, nodes = self.last_node)
         # self.prb.createConstraint("braking_q_ddot", self.q_p_ddot, nodes = self.last_node -1)
 
         # l_cnr = self.prb.createConstraint('impact_ratio_check', (1 / self.lambda_inv[2, 2]))
@@ -264,6 +290,13 @@ class landingEnergyRecover:
 
             self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * self.delta_ek, nodes = 0) # delta_ek is always <= 0
 
+        weight_energy = 1e-1
+
+        # self.prb.createIntermediateCost("battery_energy_0", - weight_energy * self.r_iq_2)
+        # self.prb.createCost("battery_energy_1", - weight_energy * self.l_iq_i, nodes=[0])
+        # self.prb.createCost("battery_energy_2", - weight_energy * self.l_iq_f, nodes=self.n_nodes-1)
+        # self.prb.createIntermediateCost("battery_energy_3", - weight_energy * self.t_w)
+        #
         # regularizations
         if self.weight_f_contact_cost > 0:
             self.prb.createIntermediateCost("min_f_contact", \
