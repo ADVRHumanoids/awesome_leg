@@ -8,11 +8,21 @@ energy_recov_opt:
 
   problem:
 
+    # n_int: 100
+
+    # dt_lb: 0.001
+    # dt_ub: 0.05
+
     n_int: 50
 
-    dt_lb: 0.001
-    dt_ub: 1
-    
+    dt_lb: 0.01
+    dt_ub: 0.1
+
+    # n_int: 10
+
+    # dt_lb: 0.01
+    # dt_ub: 0.5
+
     is_iq_cnstrnt: false # whether to use the iq constraint or not
     is_friction_cone: false # whether to use a friction constraint or not
 
@@ -20,6 +30,12 @@ energy_recov_opt:
       mu_friction_cone: 0.6
 
     landing_vel: -1.0
+
+    is_q_ig: True
+
+    q_ig: [1.0, 1.0]
+
+    regularize_around_q_ig: True
 
     weights:
 
@@ -32,10 +48,12 @@ energy_recov_opt:
       weight_q_dot: -1 
       weight_q_dot_diff: -1
 
-      weight_reg_energy: -1
-      weight_impact_min: 10
+      weight_reg_energy: 0.001
+      weight_impact_min: 1000
 
-      weight_stay_far_from_singular: -1
+      weight_q_reg: 0.001
+
+      weight_braking: 1
 
   solver:
 
