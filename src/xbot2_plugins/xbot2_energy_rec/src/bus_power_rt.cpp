@@ -342,6 +342,7 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->create("K_d1", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("rot_MoI", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("red_ratio", _n_jnts_robot, 1, _matlogger_buffer_size);
+    _dump_logger->add("bus_p_leak", _bus_p_leak);
 
     _dump_logger->create("tau_total_rot", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("tau_rot_est", _n_jnts_robot, 1, _matlogger_buffer_size);
