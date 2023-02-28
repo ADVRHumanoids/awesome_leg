@@ -226,13 +226,13 @@ class JumpSolPlotter:
         self.i_q_res=self.solution_res["i_q"]
         self.GRF_res=self.solution_res["f_contact"]
         self.tau_res=self.solution_res["tau"][1:3,:] 
-        self.floating_base_defects=self.solution_res["tau"][0,:]  
+        self.floating_base_defects_res=self.solution_res["tau"][0,:]  
         self.dt_res=self.solution_res["dt_opt"].flatten()
         self.hip_height_res=self.solution_res["hip_height"]
         self.foot_tip_height_res=self.solution_res["foot_tip_height"]
         self.foot_tip_vel_res=self.solution_res["tip_velocity"]
         self.hip_vel_res=self.solution_res["hip_velocity"]
-        self.com_pos_ref=self.solution_ref["com_pos"]
+        self.com_pos_res=self.solution_res["com_pos"][1:]
 
     def __read_ref_opt_sol(self):
 
@@ -242,12 +242,13 @@ class JumpSolPlotter:
         self.i_q_ref=self.solution_ref["i_q"]
         self.GRF_ref=self.solution_ref["f_contact"]
         self.tau_ref=self.solution_ref["tau"][1:3,:] 
+        self.floating_base_defects_ref=self.solution_ref["tau"][0, :] 
         self.dt_ref=self.solution_res["dt_opt"].flatten() # refinement happend @ dt_res
         self.hip_height_ref=self.solution_ref["hip_height"]
         self.foot_tip_height_ref=self.solution_ref["foot_tip_height"]
         self.foot_tip_vel_ref=self.solution_ref["tip_velocity"]
         self.hip_vel_ref=self.solution_ref["hip_velocity"]
-        self.com_pos_ref=self.solution_ref["com_pos"]
+        self.com_pos_ref=self.solution_ref["com_pos"][1:]
 
     def __read_opt_sol(self):
         
@@ -575,7 +576,7 @@ class JumpSolPlotter:
         plt.grid()
 
         f13=plt.figure()
-        plt.plot(self.time_vector_res.flatten()[:-1], self.floating_base_defects,label=r"$\tau_{0}$")
+        plt.plot(self.time_vector_res.flatten()[:-1], self.floating_base_defects_res,label=r"$\tau_{0}$")
         legend =  plt.legend(loc="upper left")
         legend.set_draggable(state = True)
         plt.xlabel(r"time [s]")
@@ -587,19 +588,29 @@ class JumpSolPlotter:
         ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], drawstyle='steps-post')
         ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], drawstyle='steps-post')
         ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[2, :], drawstyle='steps-post')
-        ax[0, 0].set_xlabel('time [s]')
         ax[0, 0].set_ylabel('[$\mathrm{rad}/\mathrm{s}^2$]')
         ax[0, 0].grid()
         ax[0, 0].set_title('Joint accelerations')
+        ax[0, 0].tick_params(
+            axis='x',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            labelbottom=False) # labels along the bottom edge are off
         legend = ax[0, 0].legend([r"$\dot{\mathrm{v}_0}}$", r"$\dot{\mathrm{v}}_1}$", r"$\dot{\mathrm{v}}_2}$"])
         legend.set_draggable(state = True)
         ax[0, 1].plot(self.time_vector_res[:-2].flatten(), self.GRF_res[0, :-1], drawstyle='steps-post')
         ax[0, 1].plot(self.time_vector_res[:-2].flatten(), self.GRF_res[1, :-1], drawstyle='steps-post')
         ax[0, 1].plot(self.time_vector_res[:-2].flatten(), self.GRF_res[2, :-1], drawstyle='steps-post')
-        ax[0, 1].set_xlabel('time [s]')
         ax[0, 1].set_ylabel('[N]')
         ax[0, 1].grid()
         ax[0, 1].set_title('Tip ground reaction force')
+        ax[0, 1].tick_params(
+            axis='x',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            labelbottom=False) # labels along the bottom edge are off
         legend = ax[0, 1].legend([r"$f_x$", r"$f_y$", r"$f_z$"])
         legend.set_draggable(state = True)
         ax[1, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], drawstyle='steps-post')
@@ -611,9 +622,9 @@ class JumpSolPlotter:
         ax[1, 0].set_title('Joint positions')
         legend = ax[1, 0].legend([r"$q_0$", r"$q_1$", r"$q_2$"])
         legend.set_draggable(state = True)
-        ax[1, 1].plot(self.time_vector_res[:-1].flatten(), self.floating_base_defects, drawstyle='steps-post')
+        ax[1, 1].plot(self.time_vector_res[:-1].flatten(), self.floating_base_defects_res, drawstyle='steps-post')
         ax[1, 1].set_xlabel('time [s]')
-        ax[1, 1].set_ylabel('[Nm]')
+        ax[1, 1].set_ylabel('[N]')
         ax[1, 1].grid()
         ax[1, 1].set_title('Dynamics defects on floating base')
         legend = ax[1, 1].legend([r"$\tau_0$"])
@@ -982,45 +993,60 @@ class JumpSolPlotter:
         plt.grid()
 
         f4, ax = plt.subplots(2, 2)
-        ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[0, :], drawstyle='steps-post')
-        ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[1, :], drawstyle='steps-post')
-        ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ddot_res[2, :], drawstyle='steps-post')
-        ax[0, 0].set_xlabel('time [s]')
-        ax[0, 0].set_ylabel('[$\mathrm{rad}/\mathrm{s}^2$]')
-        ax[0, 0].grid()
-        ax[0, 0].set_title('Joint accelerations')
-        legend = ax[0, 0].legend([r"$\dot{\mathrm{v}_0}}$", r"$\dot{\mathrm{v}}_1}$", r"$\dot{\mathrm{v}}_2}$"])
-        legend.set_draggable(state = True)
-        ax[0, 1].plot(self.time_vector_res[:-2].flatten(), self.GRF_res[0, :-1], drawstyle='steps-post')
-        ax[0, 1].plot(self.time_vector_res[:-2].flatten(), self.GRF_res[1, :-1], drawstyle='steps-post')
-        ax[0, 1].plot(self.time_vector_res[:-2].flatten(), self.GRF_res[2, :-1], drawstyle='steps-post')
-        ax[0, 1].set_xlabel('time [s]')
-        ax[0, 1].set_ylabel('[N]')
-        ax[0, 1].grid()
-        ax[0, 1].set_title('Tip ground reaction force')
-        legend = ax[0, 1].legend([r"$f_x$", r"$f_y$", r"$f_z$"])
-        legend.set_draggable(state = True)
-        ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ref[0, :-1], drawstyle='steps-post', linestyle=ref_linestyle)
-        ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ref[1, :-1], drawstyle='steps-post', linestyle=ref_linestyle)
-        ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_ref[2, :-1], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[0, 0].plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[0, :-1], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[0, 0].plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[1, :-1], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[0, 0].plot(self.time_vector_ref[:-1].flatten(), self.q_p_ref[2, :-1], drawstyle='steps-post', linestyle=ref_linestyle)
         ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_res[0, :-1], drawstyle='steps-post', linestyle=res_linestyle)
         ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_res[1, :-1], drawstyle='steps-post', linestyle=res_linestyle)
         ax[0, 0].plot(self.time_vector_res[:-1].flatten(), self.q_p_res[2, :-1], drawstyle='steps-post', linestyle=res_linestyle)
-        ax[0, 0].set_xlabel('time [s]')
-        ax[0, 0].set_ylabel('[N]')
+        ax[0, 0].set_ylabel('[rad]')
         ax[0, 0].grid()
         ax[0, 0].set_title('Joint positions')
-        legend = ax[1, 0].legend([r"$q_0$", r"$q_1$", r"$q_2$"])
+        ax[0, 0].tick_params(
+            axis='x',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            labelbottom=False) # labels along the bottom edge are off
+        legend = ax[0, 0].legend([r"$q_{0,\mathrm{rf}}$", r"$q_{1,\mathrm{rf}}$", r"$q_{2,\mathrm{rf}}$", r"$q_{0,\mathrm{rs}}$", r"$q_{1,\mathrm{rs}}$", r"$q_{2,\mathrm{rs}}$"])
         legend.set_draggable(state = True)
-        ax[1, 1].plot(self.time_vector_res[:-1].flatten(), self.floating_base_defects, drawstyle='steps-post')
+        ax[0, 1].plot(self.time_vector_ref[:-1].flatten(), self.floating_base_defects_ref, drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[0, 1].plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[0, :], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[0, 1].plot(self.time_vector_ref[:-1].flatten(), self.tau_ref[1, :], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[0, 1].plot(self.time_vector_res[:-1].flatten(), self.floating_base_defects_res, drawstyle='steps-post', linestyle=res_linestyle)
+        ax[0, 1].plot(self.time_vector_res[:-1].flatten(), self.tau_res[0, :], drawstyle='steps-post', linestyle=res_linestyle)
+        ax[0, 1].plot(self.time_vector_res[:-1].flatten(), self.tau_res[1, :], drawstyle='steps-post', linestyle=res_linestyle)
+        ax[0, 1].set_ylabel('[N], [Nm]')
+        ax[0, 1].grid()
+        ax[0, 1].set_title('Joint efforts')
+        ax[0, 1].tick_params(
+            axis='x',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            labelbottom=False) # labels along the bottom edge are off
+        legend = ax[0, 1].legend([r"$\tau_{0,\mathrm{rf}}$", r"$\tau_{1,\mathrm{rf}}$", r"$\tau_{2,\mathrm{rf}}$",r"$\tau_{0,\mathrm{rs}}$", r"$\tau_{1,\mathrm{rs}}$", r"$\tau_{2,\mathrm{rs}}$"])
+        legend.set_draggable(state = True)
+        ax[1, 0].plot(self.time_vector_ref.flatten(), self.hip_height_ref, drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[1, 0].plot(self.time_vector_ref.flatten(), self.foot_tip_height_ref, drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[1, 0].plot(self.time_vector_res.flatten(), self.hip_height_res, drawstyle='steps-post', linestyle=res_linestyle)
+        ax[1, 0].plot(self.time_vector_res.flatten(), self.foot_tip_height_res, drawstyle='steps-post', linestyle=res_linestyle)
+        ax[1, 0].set_xlabel('time [s]')
+        ax[1, 0].set_ylabel('[m]')
+        ax[1, 0].grid()
+        ax[1, 0].set_title('Link heights')
+        legend = ax[1, 0].legend([r"hip height - ref.", r"tip height - ref.", r"hip height - res.", r"tip height - res."])
+        legend.set_draggable(state = True)
+        ax[1, 1].plot(self.time_vector_ref.flatten(), self.com_pos_ref[0, :], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[1, 1].plot(self.time_vector_ref.flatten(), self.com_pos_ref[1, :], drawstyle='steps-post', linestyle=ref_linestyle)
+        ax[1, 1].plot(self.time_vector_res.flatten(), self.com_pos_res[0, :], drawstyle='steps-post', linestyle=res_linestyle)
+        ax[1, 1].plot(self.time_vector_res.flatten(), self.com_pos_res[1, :], drawstyle='steps-post', linestyle=res_linestyle)
         ax[1, 1].set_xlabel('time [s]')
-        ax[1, 1].set_ylabel('[Nm]')
+        ax[1, 1].set_ylabel('[m]')
         ax[1, 1].grid()
-        ax[1, 1].set_title('Dynamics defects on floating base')
-        legend = ax[1, 1].legend([r"$\tau_0$"])
+        ax[1, 1].set_title('CoM position')
+        legend = ax[1, 1].legend([r"$y_{\mathrm{CoM}}$", r"$z_{\mathrm{CoM}}$", r"$y_{\mathrm{CoM}}$", r"$z_{\mathrm{CoM}}$"])
         legend.set_draggable(state = True)
-
-        
     
     def __make_rawres_compar_plots(self):
 
