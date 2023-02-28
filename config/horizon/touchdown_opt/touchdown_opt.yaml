@@ -13,15 +13,15 @@ energy_recov_opt:
     # dt_lb: 0.001
     # dt_ub: 0.05
 
+    # n_int: 100
+
+    # dt_lb: 0.001
+    # dt_ub: 0.05
+
     n_int: 100
 
-    dt_lb: 0.001
+    dt_lb: 0.05
     dt_ub: 0.05
-
-    # n_int: 10
-
-    # dt_lb: 0.01
-    # dt_ub: 0.5
 
     is_iq_cnstrnt: false # whether to use the iq constraint or not
     is_friction_cone: false # whether to use a friction constraint or not
@@ -35,29 +35,29 @@ energy_recov_opt:
 
     q_ig: [1.0, 1.0]
 
-    regularize_around_q_ig: True
+    use_soft_imp_cntrl: False
 
-    use_soft_imp_cntrl: True
+    breaking_perc: 0.1 # [0, 1] % from the final node over which the average joint velocity is contrainted to be low
+    q_dot_breaking_thresh: 0.01
+    use_braking_constraint: False
 
     weights:
 
-      weight_f_contact: 0.001 # cost for penalizing contact forces
+      weight_f_contact: -1 # cost for penalizing contact forces
       weight_f_contact_diff: -1 #0.1 # cost for penalizing differences between successive f_contacts
-      weight_jnt_input: 0.001 # cost for penalizing joint accelerations (which are the input)
+      weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
       weight_jnt_input_diff: -1 #0.05 # cost for penalizing differences between successive inputs
-      weight_tau: -1 # cost for penalizing joint accelerations (which are the input)
-      weight_tau_diff: -1 #0.05 # cost for penalizing differences between successive inputs
       weight_q_dot: -1 
       weight_q_dot_diff: -1
 
-      weight_reg_energy: 10
-      weight_impact_min: 100000
+      weight_reg_energy: -1
+      weight_impact_min: 1
 
-      weight_q_reg: 0.001
+      weight_q_reg: -1
 
-      weight_braking: 1
+      weight_braking: -1
 
-      weight_imp_cntrl: 100000000
+      weight_imp_cntrl: -1
 
   solver:
 
