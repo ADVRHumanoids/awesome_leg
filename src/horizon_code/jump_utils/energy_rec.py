@@ -85,6 +85,8 @@ class landingEnergyRecover:
         self.weight_reg_energy  = yaml_info_weights["weight_reg_energy"]
         self.weight_impact_min  = yaml_info_weights["weight_impact_min"]
 
+        self.weight_stay_far_from_singular = yaml_info_weights["weight_stay_far_from_singular"]
+
         self.n_actuators = len(self.act_yaml_file["K_d0"])
         self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
         self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
@@ -98,6 +100,7 @@ class landingEnergyRecover:
         self.K_t = self.act_yaml_file["K_t"]
         self.red_ratio = np.array(self.act_yaml_file['red_ratio'])
 
+        
         self.n_nodes = self.n_int + 1
         self.last_node = self.n_nodes - 1
         self.input_nodes = list(range(0, self.n_nodes - 1))
@@ -229,7 +232,7 @@ class landingEnergyRecover:
         self.i_q_estimate = cs.veccat(*compute_required_iq_estimate(self.act_yaml_file, self.q_p_dot, self.q_p_ddot, self.tau, self.tanh_coeff))
         self.L_q = 3/2 * np.array(self.L_m)
 
-        R_q_mat = np.zeros([2,2])
+        R_q_mat = np.zeros((2,2))
         R_q_mat[0,0] = self.R_q[0]
         R_q_mat[1,1] = self.R_q[1]
 
@@ -237,9 +240,9 @@ class landingEnergyRecover:
         L_q_mat[0,0] = self.L_q[0]
         L_q_mat[1,1] = self.L_q[1]
 
-        self.r_iq_2 = -3 / 2 * self.i_q_estimate.T @ self.R_q @ self.i_q_estimate
-        self.l_iq_i = -3/4 * self.i_q_estimate.T @ self.L_q @ self.i_q_estimate
-        self.l_iq_f = 3/4 * self.i_q_estimate.T @ self.L_q @ self.i_q_estimate
+        self.r_iq_2 = -3/2 * self.i_q_estimate.T @ R_q_mat @ self.i_q_estimate
+        self.l_iq_i = -3/4 * self.i_q_estimate.T @ L_q_mat @ self.i_q_estimate
+        self.l_iq_f = 3/4 * self.i_q_estimate.T @ L_q_mat @ self.i_q_estimate
         self.t_w = - (self.K_t * self.i_q_estimate).T @ (self.q_p_dot[1:] / self.red_ratio)
 
         # variation of kin energy due to impact
@@ -257,9 +260,9 @@ class landingEnergyRecover:
         self.prb.createConstraint("foot_vel_zero", self.v_foot_tip) # we always have contact
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0) # tip starts on ground
 
-        for i in range(0, self.n_v - 1):
-            self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
-                        self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1]))
+        # for i in range(0, self.n_v - 1):
+        #     self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
+        #                 self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1]))
 
         self.prb.createConstraint('q_p_at_touchdown', self.q_p[1:] - self.q_landing, nodes=0)
 
@@ -272,30 +275,46 @@ class landingEnergyRecover:
         # no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes = 0)
         # no_energy_violation.setBounds(-cs.inf, 0.0)
 
-        self.prb.createConstraint("braking_q_dot", self.q_p_dot, nodes = self.last_node)
+        # self.prb.createConstraint("braking_q_dot", self.q_p_dot, nodes = self.last_node)
         # self.prb.createConstraint("braking_q_ddot", self.q_p_ddot, nodes = self.last_node -1)
 
         # l_cnr = self.prb.createConstraint('impact_ratio_check', (1 / self.lambda_inv[2, 2]))
         # l_cnr.setBounds(-cs.inf, cs.inf)
 
-        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
-        hip_above_ground.setBounds(0.0, cs.inf)
+        iq_check = self.prb.createIntermediateConstraint('iq_check', self.i_q_estimate)
+        ub_iq = np.ones((2, 1)) * cs.inf
+        lb_iq = - np.ones((2, 1)) * cs.inf
+        iq_check.setBounds(lb_iq, ub_iq)
 
-        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
-        knee_above_ground.setBounds(0.0, cs.inf)
+        p_joule_check = self.prb.createIntermediateConstraint('p_joule_check', self.r_iq_2)
+        p_joule_check.setBounds(-cs.inf, cs.inf)
+        l_iq_i = self.prb.createIntermediateConstraint('p_induct_check0', self.l_iq_i)
+        l_iq_i.setBounds(-cs.inf, cs.inf)
+        l_iq_f = self.prb.createIntermediateConstraint('p_induct_checkf', self.l_iq_f)
+        l_iq_f.setBounds(-cs.inf, cs.inf)
+        t_w = self.prb.createIntermediateConstraint('p_mech_pow_check', self.t_w)
+        t_w.setBounds(-cs.inf, cs.inf)
+
+        # hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
+        # hip_above_ground.setBounds(0.0, cs.inf)
+
+        # knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
+        # knee_above_ground.setBounds(0.0, cs.inf)
 
     def __set_costs(self):
+
+        if self.weight_stay_far_from_singular:
+
+            self.prb.createCost("stay_far_from_singular", 1/(self.q_p.T @ self.q_p + 1e-6))
 
         if self.weight_impact_min > 0:
 
             self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * self.delta_ek, nodes = 0) # delta_ek is always <= 0
 
-        weight_energy = 1e-1
-
-        # self.prb.createIntermediateCost("battery_energy_0", - weight_energy * self.r_iq_2)
-        # self.prb.createCost("battery_energy_1", - weight_energy * self.l_iq_i, nodes=[0])
-        # self.prb.createCost("battery_energy_2", - weight_energy * self.l_iq_f, nodes=self.n_nodes-1)
-        # self.prb.createIntermediateCost("battery_energy_3", - weight_energy * self.t_w)
+        # self.prb.createIntermediateCost("battery_energy_0", - self.weight_reg_energy * self.r_iq_2)
+        # self.prb.createCost("battery_energy_1", - self.weight_reg_energy * self.l_iq_i, nodes=[0])
+        # self.prb.createCost("battery_energy_2", - self.weight_reg_energy * self.l_iq_f, nodes=self.n_nodes-1)
+        # self.prb.createIntermediateCost("battery_energy_3", - self.weight_reg_energy * self.t_w)
         #
         # regularizations
         if self.weight_f_contact_cost > 0:
@@ -370,6 +389,9 @@ class landingEnergyRecover:
         self.__set_costs()
 
         self.v_ee_param.assign(self.landing_vel)
+
+        q_landing_ig = [1.0, 1.0]
+        self.q_landing.setInitialGuess(q_landing_ig)
 
         return True
 
