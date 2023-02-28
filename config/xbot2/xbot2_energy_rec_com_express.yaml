@@ -130,7 +130,7 @@ xbotcore_plugins:
             R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
-            bus_p_leak: {value: 46, type: double} # [W]
+            bus_p_leak: {value: 38, type: double} # [W] -- calibrated for battery setup
 
     bt_rt:
         thread: bt_root
