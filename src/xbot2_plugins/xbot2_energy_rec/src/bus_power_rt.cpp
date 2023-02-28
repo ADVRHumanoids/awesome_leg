@@ -355,6 +355,7 @@ void BusPowerRt::init_dump_logger()
     _dump_logger->add("mov_avrg_cutoff_freq_tau", _mov_avrg_cutoff_freq_iq);
 
     // power estimation
+    _dump_logger->create("est_er_tot", 1, 1, _matlogger_buffer_size);
     _dump_logger->create("est_er", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("est_pr", _n_jnts_robot, 1, _matlogger_buffer_size);
     _dump_logger->create("est_recov_energy", _n_jnts_robot, 1, _matlogger_buffer_size);
@@ -421,6 +422,7 @@ void BusPowerRt::add_data2dump_logger()
     _dump_logger->add("tau_rot_est", _tau_rot_est);
 
     // power estimation
+    _dump_logger->add("est_pr_tot", _pr);
     _dump_logger->add("est_er", _er_k);
     _dump_logger->add("est_pr", _pr_k);
     _dump_logger->add("est_recov_energy", _recov_energy);
