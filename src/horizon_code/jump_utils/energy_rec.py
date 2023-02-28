@@ -89,12 +89,16 @@ class landingEnergyRecover:
 
         self.weight_q_reg = yaml_info_weights["weight_q_reg"]
 
+        self.weight_imp_cntrl = yaml_info_weights["weight_imp_cntrl"]
+
         self.n_actuators = len(self.act_yaml_file["K_d0"])
         self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
         self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
         self.mu_friction_cone = abs(self.yaml_file[self.yaml_tag]["problem"]["friction_cnstrnt"]["mu_friction_cone"])
 
         self.is_q_ig = self.yaml_file[self.yaml_tag]["problem"]["is_q_ig"]
+
+        self.use_soft_imp_cntrl = yaml_info["problem"]["use_soft_imp_cntrl"]
 
         self.q_ig = np.array(self.yaml_file[self.yaml_tag]["problem"]["q_ig"])
 
@@ -266,9 +270,15 @@ class landingEnergyRecover:
         self.prb.createConstraint("foot_vel_zero", self.v_foot_tip) # we always have contact
         self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0) # tip starts on ground
 
-        # for i in range(0, self.n_v - 1):
-        #     self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
-        #                 self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1]))
+        self.imp_cntrl_cntrnt= []
+        for i in range(0, self.n_v - 1):
+
+            self.imp_cntrl_cntrnt.append(self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
+                        self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1])))
+
+            if self.use_soft_imp_cntrl:
+
+                self.imp_cntrl_cntrnt[i].setBounds(-cs.inf, cs.inf) # we relax the contraint but keep it in the dumped data for debugging
 
         self.prb.createConstraint('q_p_at_touchdown', self.q_p[1:] - self.q_landing, nodes=0)
 
@@ -319,9 +329,9 @@ class landingEnergyRecover:
             self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * self.delta_ek, nodes = [0]) # delta_ek is always <= 0
 
         if self.weight_reg_energy > 0:
-            self.prb.createIntermediateCost("reg_energy_joule", - self.weight_reg_energy * self.r_iq_2)
-            self.prb.createCost("reg_energy_indct_init", - self.weight_reg_energy * self.l_iq_i, nodes=[0])
-            self.prb.createCost("reg_energy_indct_fin", - self.weight_reg_energy * self.l_iq_f, nodes=self.n_nodes-1)
+            # self.prb.createIntermediateCost("reg_energy_joule", - self.weight_reg_energy * self.r_iq_2)
+            # self.prb.createCost("reg_energy_indct_init", - self.weight_reg_energy * self.l_iq_i, nodes=[0])
+            # self.prb.createCost("reg_energy_indct_fin", - self.weight_reg_energy * self.l_iq_f, nodes=self.n_nodes-1)
             self.prb.createIntermediateCost("reg_energy_mech", - self.weight_reg_energy * self.t_w)
         #
         # regularizations
@@ -348,7 +358,14 @@ class landingEnergyRecover:
 
             self.prb.createIntermediateCost("min_jnt_input_diff", \
                 self.weight_jnt_input_diff * jnt_input_diff, nodes = self.input_diff_nodes)  
-            
+        
+        if self.weight_imp_cntrl > 0 and self.use_soft_imp_cntrl:
+
+            for i in range(0, self.n_v - 1):
+
+                self.prb.createIntermediateCost(f'imp_cntrl_jnt{i}', (self.tau[i + 1] - (
+                            self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1]))**2)
+                
     def __get_solution(self):
 
         self.solution = self.slvr.getSolutionDict()  # extracting solution
