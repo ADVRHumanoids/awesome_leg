@@ -104,8 +104,8 @@ private:
                 _dump_mat_suffix = "traj_replay",
                 _hw_type,
                 _dump_path = "/tmp/JumpReplayerRt",
-                _landing_stiffness_varname = "stiffness", _landing_damping_varname = "damping",
-                _landing_config_varname = "config";
+                _landing_stiffness_varname = "kp", _landing_damping_varname = "kd",
+                _landing_config_varname = "q_landing";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
