@@ -69,8 +69,8 @@ def main(args):
     sol_contact_map = dict()
     sol_contact_map["tip1"] = f_contact
 
-    dt_opt = loaded_sol["dt_opt"][0][0]
-    # dt_opt = loaded_sol["dt_landing"][0][0]
+    # dt_opt = loaded_sol["dt_opt"][0][0]
+    dt_opt = loaded_sol["dt_landing"][0][0]
 
     urdf = open(urdf_full_path, "r").read()
     kin_dyn_model = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
