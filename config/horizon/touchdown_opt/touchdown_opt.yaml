@@ -20,11 +20,14 @@ energy_recov_opt:
 
     n_int: 100
 
-    dt_lb: 0.05
-    dt_ub: 0.05
+    dt_lb: 0.01
+    dt_ub: 0.01
 
     is_iq_cnstrnt: false # whether to use the iq constraint or not
     is_friction_cone: false # whether to use a friction constraint or not
+
+    jnt_limit_margin: 0.0 # the actual imposed jnt limit will be reduced by this amount
+    jnt_vel_limit_margin: 0.0
 
     friction_cnstrnt:
       mu_friction_cone: 0.6
@@ -43,27 +46,28 @@ energy_recov_opt:
 
     weights:
 
-      weight_f_contact: -1 # cost for penalizing contact forces
+      weight_f_contact: 0.001 # cost for penalizing contact forces
       weight_f_contact_diff: -1 #0.1 # cost for penalizing differences between successive f_contacts
-      weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
+      weight_jnt_input: 0.001 # cost for penalizing joint accelerations (which are the input)
       weight_jnt_input_diff: -1 #0.05 # cost for penalizing differences between successive inputs
       weight_q_dot: -1 
       weight_q_dot_diff: -1
+      weight_reg_energy: 5
 
-      weight_reg_energy: -1
-      weight_impact_min: 1
+      weight_impact_min: 10
 
       weight_q_reg: -1
+      weight_reg_q_dot: 10
 
-      weight_braking: -1
+      weight_braking: 100
 
       weight_imp_cntrl: -1
 
   solver:
 
-    ipopt_tol: 0.000001
-    ipopt_maxiter: 10000
-    ipopt_cnstr_viol_tol: 0.000001 # 1e-6 is a reasonable value for accurate results
+    ipopt_tol: 0.0001
+    ipopt_maxiter: 1000
+    ipopt_cnstr_viol_tol: 0.0001 # 1e-6 is a reasonable value for accurate results
     name: "ipopt"
 
   transcription:
