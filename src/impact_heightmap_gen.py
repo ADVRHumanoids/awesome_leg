@@ -10,7 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from matplotlib.colors import LightSource, Normalize
+import matplotlib
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
+
+def forceAspect(ax, aspect=1):
+  im = ax.get_images()
+  extent = im[0].get_extent()
+  ax.set_aspect(abs((extent[1] - extent[0]) / (extent[3] - extent[2])) / aspect)
 
 def impact_sev_ratio(q1, q2):
   
@@ -132,8 +139,10 @@ plt.plot(q1, data4[:, 0], label=r"${{q_2 = 2\,q_1}}$")
 
 legend = plt.legend(loc="upper left")
 legend.set_draggable(state = True)
-plt.xlabel(r"$q_1$ [rad]")
-plt.ylabel(r"$\rho$ [$\mathrm{N\,s^2}/\mathrm{m}$]")
-plt.title("Impact ratio VS landing configuration", fontdict=None, loc='center')
+plt.xlabel(r"$q_1$ [rad]", fontsize=14)
+plt.ylabel(r"$\rho$ [$\mathrm{N\,s^2}/\mathrm{m}$]", fontsize=14)
+plt.title("Impact ratio VS landing configuration", fontdict=None, loc='center', fontsize=15)
+ax = plt.gca()
+ax.set_aspect(0.05)
 plt.grid()
 plt.show()
