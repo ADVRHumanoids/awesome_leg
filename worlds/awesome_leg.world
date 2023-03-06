@@ -9,9 +9,9 @@
     <include>
       <uri>model://modified_ground_plane</uri>
     </include>
-    <!-- <include>
+<!--    <include>
       <uri>model://simple_box</uri>
-    </include> -->
+    </include>-->
     <!-- A camera model -->
     <!-- <include>
       <uri>model://my_camera</uri>

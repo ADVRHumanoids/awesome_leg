@@ -14,7 +14,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 import h5py
 
-class LoadDropDownData:
+class LoadFinalTest:
 
     def __init__(self, mat_file_path):
 
@@ -62,80 +62,65 @@ class LoadDropDownData:
 
             self.data[name] = np.array(self.mat_file_h5py[name])[0][0]  # add the pair key-value to the dictionary
         
-        if 'p_batt' in name: # assigns the aux names and their associated codes to a dictionary
+        if 'dropdown_impact_severity_ratio' in name: # assigns the aux names and their associated codes to a dictionary
 
-            self.data[name] = np.array(self.mat_file_h5py[name]).flatten()  # add the pair key-value to the dictionary
+            self.data[name] = np.array(self.mat_file_h5py[name])  # add the pair key-value to the dictionary
 
-        if 'est_pr' in name: # assigns the aux names and their associated codes to a dictionary
+        if 'dropdown_rec_energy' in name: # assigns the aux names and their associated codes to a dictionary
+
+            self.data[name] = np.array(self.mat_file_h5py[name])  # add the pair key-value to the dictionary
+
+        if 'dropdown_stiffness' in name: # assigns the aux names and their associated codes to a dictionary
 
             self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
 
-        if 'iq_meas' in name: # assigns the aux names and their associated codes to a dictionary
+        if 'dropdown_damping' in name: # assigns the aux names and their associated codes to a dictionary
 
             self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
-
-        if 'iq_est' in name: # assigns the aux names and their associated codes to a dictionary
-
-            self.data[name] = np.array(self.mat_file_h5py[name]).T # add the pair key-value to the dictionary
 
         return None # any other value != to None would block the execution of visit() method
     
-path = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/iq_model_tracking_and_reg_pow/reg_pow_tracking/jump_generation_24-02-2023-12_13_45"
-data_name= "test_bus_power_rt__0_2023_02_27__21_58_00"
+path_opt = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/final_jump_energy_recov/sim/jump_generation_24-02-2023-12_13_45/opt"
+path_nonopt = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/final_jump_energy_recov/sim/jump_generation_24-02-2023-12_13_45/not_opt"
+data_nameopt= "sim_bus_power_rt__4_2023_03_02__18_06_34"
+data_namenonopt= "sim_bus_power_rt__4_2023_03_01__18_51_41"
 
-bus_power_leak = - 38 # [W], compensated because missing from logged data
-data_log = LoadDropDownData(path + "/" + data_name + ".mat")
+data_log_opt = LoadFinalTest(path_opt + "/" + data_nameopt + ".mat")
+data_log_nonopt = LoadFinalTest(path_nonopt + "/" + data_namenonopt + ".mat")
 
-n_samples = data_log.data["iq_meas"].shape[1]
+f2, ax_sol_t_box2 = plt.subplots(1)
+stiff_values_nonopt = data_log_nonopt.data["dropdown_stiffness"][:, 0]
+damp_values_nonopt = data_log_nonopt.data["dropdown_damping"][:, 0]
+stiff_values_opt = data_log_opt.data["dropdown_stiffness"][:, 0]
+damp_values_opt = data_log_opt.data["dropdown_damping"][:, 0]
+# print(data_log_opt.data["dropdown_damping"])
+# exit()
+recov_energy_nonopt = np.array(data_log_nonopt.data["dropdown_rec_energy"])[:-1]
+recov_energy_opt = np.array(data_log_opt.data["dropdown_rec_energy"])
+combined_data = np.concatenate((recov_energy_nonopt, recov_energy_opt), axis = 1)
 
-time_vect = np.array([data_log.data["plugin_dt"] * i for i in range(0, n_samples)])
-t_start = 55.0 # [s]
-t_end = 65.0
-data_selector = np.array([False ] * n_samples)
+impedance_setpoints_opt = [f"non opt.: [{round(stiff_values_nonopt[0], 0)}, {round(stiff_values_nonopt[1], 0)}] N m/rad, " + f"[{round(damp_values_nonopt[0], 0)}, {round(damp_values_nonopt[1], 0)}] N m/(rad/s)",
+                           f"opt: [{round(stiff_values_opt[0], 0)}, {round(stiff_values_opt[1], 0)}] N m/rad, " + f"[{round(damp_values_opt[0], 0)}, {round(damp_values_opt[1], 0)}] N m/(rad/s)" 
+                            ]
 
-for i in range(n_samples):
-    data_selector[i] = (time_vect[i] >= t_start and time_vect[i] <= t_end)
+fontzise = 14
+figsizey = 5
+figsizex = 10
+green_diamond = dict(markerfacecolor='g', marker='D')
 
-iq_meas = data_log.data["iq_meas"]
-iq_est = data_log.data["iq_est"]
-p_batt = data_log.data["p_batt"]
-est_pr = data_log.data["est_pr"]
-est_pr_tot = np.sum(est_pr, 0) + bus_power_leak
-
-selected_time = time_vect[data_selector] - time_vect[data_selector][0]
-selected_iq_meas = iq_meas[:, data_selector]
-selected_iq_est = data_log.data["iq_est"][:, data_selector]
-selected_p_meas = data_log.data["p_batt"][data_selector]
-selected_p_est = est_pr_tot[data_selector]
-
-f1, (ax1, ax2) = plt.subplots(2)
-# f1.title()
-ax1.plot(selected_time, selected_iq_est[0, :], drawstyle='steps-post')
-ax1.plot(selected_time, selected_iq_meas[0, :], drawstyle='steps-post')
-# ax1.set_xlabel('time')
-ax1.set_ylabel('[A]')
-ax1.set_title('Hip joint')
-ax1.grid()
-legend = ax1.legend([r"$i_q$ estimate", r"$i_q$ measurement"])
-legend.set_draggable(state = True)
-ax2.plot(selected_time, selected_iq_est[1, :], drawstyle='steps-post')
-ax2.plot(selected_time, selected_iq_meas[1, :], drawstyle='steps-post')
-ax2.set_xlabel('time')
-ax2.set_ylabel('[A]')
-ax2.set_title('Knee joint')
-ax2.grid()
-# legend = ax2.legend([r"$i_q$ estimate", r"$i_q$ measurement"])
-legend.set_draggable(state = True)
-
-f, ax = plt.subplots(1)
-# f1.title()
-ax.plot(selected_time, selected_p_est, drawstyle='steps-post')
-ax.plot(selected_time, selected_p_meas, drawstyle='steps-post')
-ax.set_xlabel('time')
-ax.set_ylabel('$p_r$ [W]')
-ax.grid()
-ax.set_title('Regenerative power model validation')
-legend = ax.legend([r"estimate", r"measurement"])
-legend.set_draggable(state = True)
-
+artist= ax_sol_t_box2.boxplot(combined_data,
+                flierprops = green_diamond, vert=True, 
+                whis = 1,
+                labels = ["non opt.", "opt."],
+                autorange = True, 
+                showfliers=False, 
+                notch=False)
+leg2 = ax_sol_t_box2.legend(artist["boxes"],  impedance_setpoints_opt, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
+leg2.set_draggable(state = True)
+ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]", fontsize = fontzise)
+ax_sol_t_box2.set_xlabel("", fontsize = fontzise)
+ax_sol_t_box2.set_title(r"Post-impact regeneration", fontdict=None, loc='center', fontsize = fontzise)
+ax_sol_t_box2.grid()
+f2.set_figheight(figsizey)
+f2.set_figwidth(figsizex)
 plt.show()

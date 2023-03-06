@@ -109,8 +109,10 @@ damp_setpoint = round(dropdown_damp[0, 0], 0)
 
 green_diamond = dict(markerfacecolor='g', marker='D')
         
-_, ax_sol_t_box = plt.subplots(1)
-
+fig, ax_sol_t_box = plt.subplots(1)
+fontzise = 14
+figsizex = 10
+figsizey = 5
 artist = ax_sol_t_box.boxplot(dropdown_reg_energy.T,
                 flierprops = green_diamond, vert=True, 
                 whis = 1,
@@ -118,15 +120,17 @@ artist = ax_sol_t_box.boxplot(dropdown_reg_energy.T,
                 labels = ["0", "1", "2", "3", "4", "5"], 
                 showfliers=False, 
                 notch=False)
-leg = ax_sol_t_box.legend(artist["boxes"], [rf"stiffness setpoint: {stiff_setpoint} N m/rad",rf"damping setpoint: {damp_setpoint} N m/(rad/s)"], loc='upper right', handlelength=0, handletextpad=0, fancybox=True)           
-leg.set_draggable(state = True)
+leg = ax_sol_t_box.legend(artist["boxes"], [rf"stiffness setpoint: {stiff_setpoint} N m/rad",rf"damping setpoint: {damp_setpoint} N m/(rad/s)"], loc='upper right', 
+                          handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
+leg.set_draggable(state = True, )
 # for item in leg.legendHandles:
 #     item.set_visible(False)
-ax_sol_t_box.set_ylabel(r"$e_{reg}$ [J]")
-ax_sol_t_box.set_xlabel("configuration n.")
-ax_sol_t_box.set_title(r"Dropdown tests - fixed impedance", fontdict=None, loc='center')
+ax_sol_t_box.set_ylabel(r"$e_{reg}$ [J]", fontsize = fontzise)
+ax_sol_t_box.set_xlabel("configuration n.", fontsize = fontzise)
+ax_sol_t_box.set_title(r"Dropdown tests - fixed impedance", fontdict=None, loc='center', fontsize = fontzise)
 ax_sol_t_box.grid()
-
+fig.set_figheight(figsizey)
+fig.set_figwidth(figsizex)
 # same configuration, different stiffnesses
 data_list2 = []
 n_conf2 = 4
@@ -149,7 +153,7 @@ for i in range(0, n_conf2):
     dropdown_reg_energy2[i, :] = data_list2[i].data["dropdown_rec_energy"][0:n_samples] 
     dropdown_sev_ratio2[i, :] = data_list2[i].data["dropdown_impact_severity_ratio"][0:n_samples]
         
-_, ax_sol_t_box2 = plt.subplots(1)
+f2, ax_sol_t_box2 = plt.subplots(1)
 stiff_values = dropdown_stiff2[0:n_conf2, 0]
 # stiff_labels = [str(int(round(x, 0))) for x in list(stiff_values.tolist())]
 stiff_labels = [i for i in range(0, n_conf2)]
@@ -163,11 +167,12 @@ ax_sol_t_box2.boxplot(dropdown_reg_energy2.T,
                 labels = stiff_labels, 
                 showfliers=False, 
                 notch=False)
-leg2 = ax_sol_t_box2.legend(artist["boxes"],  impedance_setpoints, loc='upper right', handlelength=0, handletextpad=0, fancybox=True)           
+leg2 = ax_sol_t_box2.legend(artist["boxes"],  impedance_setpoints, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
 leg2.set_draggable(state = True)
-ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]")
-ax_sol_t_box2.set_xlabel("impedance setpoint")
-ax_sol_t_box2.set_title(r"Dropdown tests - fixed landing configuration", fontdict=None, loc='center')
+ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]", fontsize = fontzise)
+ax_sol_t_box2.set_xlabel("impedance setpoint", fontsize = fontzise)
+ax_sol_t_box2.set_title(r"Dropdown tests - fixed landing configuration", fontdict=None, loc='center', fontsize = fontzise)
 ax_sol_t_box2.grid()
-
+f2.set_figheight(figsizey)
+f2.set_figwidth(figsizex)
 plt.show()

@@ -32,7 +32,7 @@ energy_recov_opt:
     friction_cnstrnt:
       mu_friction_cone: 0.6
 
-    landing_vel: -1.0
+    landing_vel: -2.8
 
     is_q_ig: True
 
@@ -52,7 +52,7 @@ energy_recov_opt:
       weight_jnt_input_diff: -1 #0.05 # cost for penalizing differences between successive inputs
       weight_q_dot: -1 
       weight_q_dot_diff: -1
-      weight_reg_energy: 5
+      weight_reg_energy: 1
 
       weight_impact_min: 10
 

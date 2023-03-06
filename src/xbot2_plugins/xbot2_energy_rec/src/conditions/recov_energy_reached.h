@@ -40,7 +40,7 @@ namespace BT
 
             std::string _rec_energy_pluginname = "bus_power_rt";
 
-            double _recov_energy_thresh = 100.0; // [J]
+            double _recov_energy_thresh = 1000000000000000000.0; // [J]
 
             awesome_leg::EstRegPowStatus _reg_pow_status;
 
@@ -72,7 +72,7 @@ namespace BT
 
             std::string _rec_energy_pluginname = "bus_power_rt";
 
-            double _recov_energy_thresh = 3 * 300.0; // [J]
+            double _recov_energy_thresh = 1000000000000000000.0; // [J]
 
             awesome_leg::MeasRegPowStatus _reg_pow_status;
 

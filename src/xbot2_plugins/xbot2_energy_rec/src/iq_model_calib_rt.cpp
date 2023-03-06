@@ -584,7 +584,7 @@ bool IqModelCalibRt::on_initialize()
     // quadrature current from XBot2 ROS topic (they need to be activated
     // manually)
     _iq_jnt_names = _jnt_names; // we will get (and estimate) the iq
-    _iq_getter.set_jnt_names(_iq_jnt_names);
+    _iq_getter.set_jnt_names(_iq_jnt_names); // iq estimates will be ordered as _jnt_names
 
     // iq estimation model
     _iq_estimator = IqEstimator(_K_t,

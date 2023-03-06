@@ -739,6 +739,41 @@ class JumpSolPlotter:
         plt.title("Hip velocity (cartesian components) - ref solution", fontdict=None, loc='center')
         plt.grid()
 
+        fontsize = 14
+        f32, ax32 = plt.subplots(3)
+        # f1.title()
+        ax32[0].plot(self.time_vector_ref.flatten(), self.q_p_dot_ref[1, :], drawstyle='steps-post')
+        ax32[0].plot(self.time_vector_ref.flatten(), self.q_p_dot_ref[2, :], drawstyle='steps-post')
+
+        # ax1.plot(selected_time_replay, selected_iq_meas[0, :], drawstyle='steps-post')
+        # ax[0].set_xlabel('time',  fontsize=fontsize)
+        ax32[0].set_ylabel('[rad/s]', fontsize=fontsize)
+        ax32[0].set_title('Joint velocities', fontsize=fontsize)
+        ax32[0].grid()
+        legend = ax32[0].legend([r"$v_{1}$", r"$v_{2}$"], fontsize=fontsize)
+        legend.set_draggable(state = True)
+
+        ax32[1].plot(self.time_vector_ref.flatten(), self.i_q_ref[0, :], drawstyle='steps-post')
+        ax32[1].plot(self.time_vector_ref.flatten(), self.i_q_ref[1, :], drawstyle='steps-post')
+        # ax1.plot(selected_time_replay, selected_iq_meas[0, :], drawstyle='steps-post')
+        # ax[1].set_xlabel('time',  fontsize=fontsize)
+        ax32[1].set_ylabel('[A]', fontsize=fontsize)
+        ax32[1].set_title('Quadrature currents', fontsize=fontsize)
+        ax32[1].grid()
+        legend = ax32[1].legend([r"$i_{q0}$", r"$i_{q1}$"], fontsize=fontsize)
+        legend.set_draggable(state = True)
+        ax32[2].plot(self.time_vector_ref.flatten(), self.tau_ref[1, :], drawstyle='steps-post')
+        ax32[2].plot(self.time_vector_ref.flatten(), self.tau_ref[2, :], drawstyle='steps-post')
+        # ax1.plot(selected_time_replay, selected_iq_meas[0, :], drawstyle='steps-post')
+        ax32[2].set_xlabel('time',  fontsize=fontsize)
+        ax32[2].set_ylabel('[Nm]', fontsize=fontsize)
+        ax32[2].set_title('Joint efforts', fontsize=fontsize)
+        ax32[2].grid()
+        legend = ax32[2].legend([r"$\tau_{1}$", r"$\tau_{2}$"], fontsize=fontsize)
+        legend.set_draggable(state = True)
+        f32.set_figheight(5)
+        f32.set_figwidth(10)
+
     def __make_rawref_compar_plots(self):
 
         f1=plt.figure()
@@ -1047,35 +1082,6 @@ class JumpSolPlotter:
         ax[1, 1].set_title('CoM position')
         legend = ax[1, 1].legend([r"$y_{\mathrm{CoM}}$", r"$z_{\mathrm{CoM}}$", r"$y_{\mathrm{CoM}}$", r"$z_{\mathrm{CoM}}$"])
         legend.set_draggable(state = True)
-
-
-        f5, ax2 = plt.subplots(2, 1)
-        ax2[0].plot(self.time_vector_ref.flatten(), self.com_pos_ref[0, :], drawstyle='steps-post', linestyle=ref_linestyle)
-        ax2[0].plot(self.time_vector_ref.flatten(), self.com_pos_ref[1, :], drawstyle='steps-post', linestyle=ref_linestyle)
-        ax2[0].plot(self.time_vector_res.flatten(), self.com_pos_res[0, :], drawstyle='steps-post', linestyle=res_linestyle)
-        ax2[0].plot(self.time_vector_res.flatten(), self.com_pos_res[1, :], drawstyle='steps-post', linestyle=res_linestyle)
-        ax2[0].set_ylabel('[m]', fontsize=10)
-        ax2[0].grid()
-        ax2[0].set_title('CoM position', fontsize=10)
-        legend = ax[1, 1].legend([r"$y_{\mathrm{CoM}}$", r"$z_{\mathrm{CoM}}$", r"$y_{\mathrm{CoM}}$", r"$z_{\mathrm{CoM}}$"])
-        legend.set_draggable(state = True)
-        # ax2[0].set_aspect(1)
-        ax2[1].plot(self.time_vector_ref[:-1].flatten(), self.floating_base_defects_ref, drawstyle='steps-post', linestyle=ref_linestyle)      
-        ax2[1].plot(self.time_vector_res[:-1].flatten(), self.floating_base_defects_res, drawstyle='steps-post', linestyle=res_linestyle)
-        ax2[1].set_ylabel('[N]', fontsize=10)
-        ax2[1].set_xlabel('time [s]', fontsize=10)
-        ax2[1].grid()
-        ax2[1].set_title('Defects on floating base', fontsize=10)
-        ax2[1].tick_params(
-            axis='x',          # changes apply to the x-axis
-            which='both',      # both major and minor ticks are affected
-            bottom=False,      # ticks along the bottom edge are off
-            top=False,         # ticks along the top edge are off
-            labelbottom=False) # labels along the bottom edge are off
-        legend = ax[0, 1].legend([r"$\tau_{0,\mathrm{rf}}$", r"$\tau_{0,\mathrm{rs}}$"])
-        legend.set_draggable(state = True)
-        # ax2[1].set_aspect(1)
-        
     
     def __make_rawres_compar_plots(self):
 

@@ -70,7 +70,8 @@ xbotcore_plugins:
             contact_release_thr: {value: 50.0, type: double}
             contact_attach_thr: {value: 60.0, type: double}
 
-            mat_path: {value: /tmp/, type: string}
+#            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             use_g_during_flight: {value: true, type: bool}
 
@@ -79,12 +80,14 @@ xbotcore_plugins:
         type: jmp_replayer_rt
         params:
 
-            takeoff_traj_path: {value: /tmp/jump_generation_24-02-2023-12_13_45/, type: string}
-            # takeoff_traj_path: {value: /tmp/jump_generation_15-11-2022-17_04_43/, type: string}
-#            takeoff_traj_path: {value: /tmp/jump_generation_24-02-2023-11_00_02/, type: string}
+#            takeoff_traj_path: {value:  /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            takeoff_traj_path: {value:  /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+
             takeoff_traj_name: {value: apex_awesome_jump_ref.mat, type: string}
 
-            landing_config_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_landings/01_02_2023/touchdown_opt_01-03-2023-13_58_58/, type: string}
+#            landing_config_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_landings/01_02_2023/touchdown_opt_01-03-2023-13_58_58/, type: string}
+            landing_config_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_landings/01_02_2023/touchdown_opt_01-03-2023-17_59_11/, type: string}
+
 #            landing_config_name: {value: landing_config_test.mat, type: string}
             landing_config_name: {value: energy_recov.mat, type: string}
 #            landing_config_name: {value: landing_config_test.mat, type: string}
@@ -101,7 +104,7 @@ xbotcore_plugins:
 #            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd} # good for eg
 #            landing_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
-            landing_stiffness: {value: [150.0, 150.0], type: Eigen::VectorXd} # not so good for er
+            landing_stiffness: {value: [150.0, 150.0], type: Eigen::VectorXd} # only used if ramp2touchdown_config == false
             landing_damping: {value: [15.0, 15.0], type: Eigen::VectorXd}
 
 
@@ -113,7 +116,9 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            mat_path: {value: /tmp/, type: string}
+#            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+
             dump_mat_suffix: {value: bus_power_rt, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
 
@@ -130,14 +135,16 @@ xbotcore_plugins:
             R: {value: [0.085, 0.085], type: Eigen::VectorXd} # phase resistance
             L_leak: {value: [0.0, 0.0], type: Eigen::VectorXd}
             L_m: {value: [0.000104, 0.000104], type: Eigen::VectorXd}
-            bus_p_leak: {value: 38, type: double} # [W] -- calibrated for battery setup
+            bus_p_leak: {value: 0, type: double} # [W] -- calibrated for battery setup
+#            bus_p_leak: {value: 38, type: double} # [W] -- calibrated for battery setup
 
     bt_rt:
         thread: bt_root
         type: bt_rt
         params:
 
-            mat_path: {value: /tmp/, type: string}
+#            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             use_zmq_pub: {value: false, type: bool}
             use_bt_log: {value: false, type: bool}
@@ -152,12 +159,14 @@ xbotcore_plugins:
         type: temp_monitor_rt
         params:
 
-            mat_path: {value: "/tmp/", type: string}
+#            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             verbose: {value: false, type: bool}
 
             driver_temp_threshold: {value: 60.0, type: double}
             driver_temp_threshold_cooling: {value: 45.0, type: double}
+
 
     idler_rt:
         thread: rt_main
@@ -171,9 +180,10 @@ xbotcore_plugins:
         type: impact_detector_rt
         params:
 
-            mat_path: {value: /tmp/, type: string}
+#            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
-            use_gz_truth: {value: false, type: bool}
+            use_gz_truth: {value: true, type: bool}
 
             verbose: {value: false, type: bool}
 

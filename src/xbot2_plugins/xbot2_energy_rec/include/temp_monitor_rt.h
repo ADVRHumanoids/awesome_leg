@@ -83,8 +83,8 @@ private:
         _driver_temp_threshold = 55.0,
         _driver_temp_threshold_cooling = 45.0,
         _fake_starting_temp = 40.0,
-        _temp_rise_rate = 1.0,
-        _temp_cooling_rate = 2.0; // deg/s
+        _temp_rise_rate = 0.0,
+        _temp_cooling_rate = 0.0; // deg/s
 
     std::vector<std::string> _jnt_names;
 

@@ -144,6 +144,7 @@ void ImpactDetectorRt::init_communications()
     // regenerative energy monitoring
     _start_monitoring_msg.monitor_energy = true;
     _stop_monitoring_msg.monitor_energy = false;
+    _stop_monitoring_msg.reset_energy = true;
 
     _asynch_servicepath = _async_service_pattern + _pow_monitor_pluginname + "/" + _pow_monitor_servicename + "/request";
 
