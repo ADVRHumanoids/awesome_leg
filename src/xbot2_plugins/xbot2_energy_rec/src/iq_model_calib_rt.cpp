@@ -553,7 +553,7 @@ void IqModelCalibRt::run_iq_estimation()
     _iq_estimator.set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
 
     // we compute and get the iq estimate using the (possibly) updated K_d0 and K_d1 gains
-    _iq_estimator.get_iq_estimate(_iq_est, _K_d0, _K_d1);
+    _iq_estimator.get_iq_estimate(_iq_est, _K_d0, _K_d1, _rot_MoI, _K_t);
 
     // we also get other useful quantities from the estimator
     _iq_estimator.get_tau_friction(_iq_friction_torque);
