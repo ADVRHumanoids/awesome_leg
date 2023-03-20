@@ -10,7 +10,6 @@ find_package(cartesian_interface REQUIRED)
 find_package(awesome_utils REQUIRED)
 find_package(base_estimation REQUIRED)
 find_package(catkin REQUIRED COMPONENTS behaviortree_cpp_v3)
-find_package(pinocchio REQUIRED)
 
 option(USE_ECAT_COMPONENTS "Flag to allow compilation even without low level ecat-packages on the machine" OFF)
 if(USE_ECAT_COMPONENTS)
@@ -59,9 +58,10 @@ target_link_libraries(plugins_mngr_rt PRIVATE ${cartesian_interface_LIBRARIES} a
 
 add_xbot2_plugin(contact_est_rt
     src/contact_est_rt.cpp)
-target_include_directories(contact_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${})
+target_include_directories(contact_est_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} ${awesome_utils_INCLUDE_DIRS})
 add_dependencies(contact_est_rt ${PROJECT_NAME}_generate_messages)
-target_link_libraries(contact_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support pinocchio::pinocchio)
+#target_link_libraries(contact_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support pinocchio::pinocchio)
+target_link_libraries(contact_est_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(temp_monitor_rt
     src/temp_monitor_rt.cpp)
