@@ -90,7 +90,10 @@ class CyclicJumpTrig
 
             _traj_finished = msg.traj_finished;
 
-            print_traj_status();
+            if(verbose)
+            {
+                print_traj_status();
+            }
             
             if(!_approach_traj_finished && !_traj_finished && !_pause_started && !_approach_sign_already_sent)
             { // sending approach trajectory start signal
@@ -173,8 +176,8 @@ int main(int argc, char **argv)
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh; 
     
-    double pause_time = (argc == 1) ? 3.0 : atof(argv[1]); 
-    
+    double pause_time = (argc == 1) ? 0.0 : atof(argv[1]); 
+
     CyclicJumpTrig cyclic_jump_triggerer = CyclicJumpTrig(&nh, pause_time);
     
     cyclic_jump_triggerer.start_client();
