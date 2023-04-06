@@ -805,7 +805,7 @@ void BusPowerRt::run_iq_estimation()
     _iq_estimator->set_current_state(_q_p_dot_meas_filt, _q_p_ddot_est_filt, _tau_meas_filt);
 
     // we compute and get the iq estimate using the (possibly) updated K_d0 and K_d1 gains
-    _iq_estimator->update(_K_d0, _K_d1);
+    _iq_estimator->update(_K_d0, _K_d1, _rot_MoI, _K_t);
 
     // we also get other useful quantities from the estimator
     _iq_estimator->get_tau_friction(_iq_friction_torque);
@@ -890,6 +890,7 @@ bool BusPowerRt::on_initialize()
                                      _plugin_dt,
                                      _use_iq_meas,
                                      _dump_iq_data));
+                                     
     _pow_estimator->enable_rec_energy_monitoring(); // we enable energy recovery monitoring
     // by default
 
