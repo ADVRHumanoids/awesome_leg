@@ -189,7 +189,7 @@ xbotcore_plugins:
         type: plugins_mngr_rt
         params:
 
-            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "impact_detector_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "impact_detector_rt", "base_est_rt"], type: vector<string>}
 
             verbose: {value: false, type: bool}
 
