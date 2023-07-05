@@ -152,11 +152,9 @@ void JumpReplayerRt::get_params_from_config()
 //    _approach_traj_exec_time = getParamOrThrow<double>("~approach_traj_exec_time");
 //    _imp_ramp_time = getParamOrThrow<double>("~imp_ramp_time");
 
-
-
-//    _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
-//    _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
-//    _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
+   _send_pos_ref = getParamOrThrow<bool>("~send_pos_ref");
+   _send_vel_ref = getParamOrThrow<bool>("~send_vel_ref");
+   _send_eff_ref = getParamOrThrow<bool>("~send_eff_ref");
 
 //    _reduce_dumped_sol_size = getParamOrThrow<bool>("~reduce_dumped_sol_size");
 

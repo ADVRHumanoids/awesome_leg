@@ -106,6 +106,10 @@ xbotcore_plugins:
             landing_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
             landing_damping: {value: [20.0, 20.0], type: Eigen::VectorXd}
 
+            send_pos_ref: {value: true, type: bool}
+            send_vel_ref: {value: true, type: bool}
+            send_eff_ref: {value: false, type: bool}
+
 
     bus_power_rt:
         thread: rt_main
