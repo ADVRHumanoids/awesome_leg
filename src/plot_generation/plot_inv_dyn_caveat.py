@@ -77,7 +77,7 @@ class LoadFinalTest:
 
         return None # any other value != to None would block the execution of visit() method
     
-path = "/media/andreap/AP_backup/awesome_leg_IROS23_data/opt_jumps/promising_jumps/refinement_motivation/nonsmooth/jump_generation_24-02-2023-11_00_02"
+path = "/tmp/humanoids_opendata/refinement_motivation/jump_generation_24-02-2023-11_00_02"
 data= "apex_awesome_jump_ref"
 ms_loader_ref = mat_storer.matStorer(path + "/" + data + ".mat")
 opt_data=ms_loader_ref.load() 
@@ -103,7 +103,7 @@ ax[1].plot(time_vect, opt_data["f_contact"][2,:], drawstyle='steps-post')
 # ax1.plot(selected_time_replay, selected_iq_meas[0, :], drawstyle='steps-post')
 ax[1].set_xlabel('time [s]',  fontsize=fontsize)
 ax[1].set_ylabel('[N]', fontsize=fontsize)
-ax[1].set_title(f'$i_q$', fontsize=fontsize)
+ax[1].set_title(f'$f$', fontsize=fontsize)
 ax[1].grid()
 legend = ax[1].legend([r"$f_n$"], fontsize=fontsize)
 legend.set_draggable(state = True)

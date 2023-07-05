@@ -80,30 +80,54 @@ class LoadFinalTest:
 
         return None # any other value != to None would block the execution of visit() method
     
-path_opt = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/final_jump_energy_recov/sim/jump_generation_24-02-2023-12_13_45/opt"
-path_nonopt = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/final_jump_energy_recov/sim/jump_generation_24-02-2023-12_13_45/not_opt"
+path_opt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_24-02-2023-12_13_45/opt"
+path_nonopt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_24-02-2023-12_13_45/not_opt"
 data_nameopt= "sim_bus_power_rt__4_2023_03_02__18_06_34"
-data_namenonopt= "sim_bus_power_rt__4_2023_03_01__18_51_41"
+data_namenonopt0= "trial0/sim_bus_power_rt__4_2023_03_01__18_51_41"
+data_namenonopt1= "trial1/sim_bus_power_rt__2_2023_07_04__17_12_22"
+data_namenonopt2= "trial2/sim_bus_power_rt__2_2023_07_04__17_34_18"
+data_namenonopt3= "trial3/sim_bus_power_rt__2_2023_07_04__19_02_11"
 
 data_log_opt = LoadFinalTest(path_opt + "/" + data_nameopt + ".mat")
-data_log_nonopt = LoadFinalTest(path_nonopt + "/" + data_namenonopt + ".mat")
+data_log_nonopt0 = LoadFinalTest(path_nonopt + "/" + data_namenonopt0 + ".mat")
+data_log_nonopt1 = LoadFinalTest(path_nonopt + "/" + data_namenonopt1 + ".mat")
+data_log_nonopt2 = LoadFinalTest(path_nonopt + "/" + data_namenonopt2 + ".mat")
+data_log_nonopt3 = LoadFinalTest(path_nonopt + "/" + data_namenonopt3 + ".mat")
 
 f2, ax_sol_t_box2 = plt.subplots(1)
-stiff_values_nonopt = data_log_nonopt.data["dropdown_stiffness"][:, 0]
-damp_values_nonopt = data_log_nonopt.data["dropdown_damping"][:, 0]
+stiff_values_nonopt0 = data_log_nonopt0.data["dropdown_stiffness"][:, 0]
+stiff_values_nonopt1 = data_log_nonopt1.data["dropdown_stiffness"][:, 0]
+stiff_values_nonopt2 = data_log_nonopt2.data["dropdown_stiffness"][:, 0]
+stiff_values_nonopt3 = data_log_nonopt3.data["dropdown_stiffness"][:, 0]
+
+damp_values_nonopt0 = data_log_nonopt0.data["dropdown_damping"][:, 0]
+damp_values_nonopt1 = data_log_nonopt1.data["dropdown_damping"][:, 0]
+damp_values_nonopt2 = data_log_nonopt2.data["dropdown_damping"][:, 0]
+damp_values_nonopt3 = data_log_nonopt3.data["dropdown_damping"][:, 0]
+
 stiff_values_opt = data_log_opt.data["dropdown_stiffness"][:, 0]
 damp_values_opt = data_log_opt.data["dropdown_damping"][:, 0]
 # print(data_log_opt.data["dropdown_damping"])
 # exit()
-recov_energy_nonopt = np.array(data_log_nonopt.data["dropdown_rec_energy"])[:-1]
+recov_energy_nonopt0 = np.array(data_log_nonopt0.data["dropdown_rec_energy"])[:-1]
+recov_energy_nonopt1 = np.array(data_log_nonopt1.data["dropdown_rec_energy"])[:-1]
+recov_energy_nonopt2 = np.array(data_log_nonopt2.data["dropdown_rec_energy"])[:-1]
+recov_energy_nonopt3 = np.array(data_log_nonopt3.data["dropdown_rec_energy"])[:-1]
+
 recov_energy_opt = np.array(data_log_opt.data["dropdown_rec_energy"])
-combined_data = np.concatenate((recov_energy_nonopt, recov_energy_opt), axis = 1)
+combined_data = np.concatenate((recov_energy_nonopt0, 
+                            recov_energy_nonopt1, 
+                            recov_energy_nonopt2, 
+                            recov_energy_nonopt3,
+                            recov_energy_opt), axis = 1)
 
-impedance_setpoints_opt = [f"non opt.: [{round(stiff_values_nonopt[0], 0)}, {round(stiff_values_nonopt[1], 0)}] N m/rad, " + f"[{round(damp_values_nonopt[0], 0)}, {round(damp_values_nonopt[1], 0)}] N m/(rad/s)",
-                           f"opt: [{round(stiff_values_opt[0], 0)}, {round(stiff_values_opt[1], 0)}] N m/rad, " + f"[{round(damp_values_opt[0], 0)}, {round(damp_values_opt[1], 0)}] N m/(rad/s)" 
-                            ]
-
-fontzise = 14
+samples_descriptions = [r"$\rightarrow$" + "non opt. " + r"$\hat{q}$" + f"\nn0: " + r"$K_p$ " + f"[{round(stiff_values_nonopt0[0], 0)}, {round(stiff_values_nonopt0[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt0[0], 0)}, {round(damp_values_nonopt0[1], 0)}] N m/(rad/s);",
+                        f"n1: " + r"$K_p$ " + f"[{round(stiff_values_nonopt1[0], 0)}, {round(stiff_values_nonopt1[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt1[0], 0)}, {round(damp_values_nonopt1[1], 0)}] N m/(rad/s);",                       
+                        f"n2: " + r"$K_p$ " + f"[{round(stiff_values_nonopt2[0], 0)}, {round(stiff_values_nonopt2[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt2[0], 0)}, {round(damp_values_nonopt2[1], 0)}] N m/(rad/s);",                      
+                        f"n3: " + r"$K_p$ " + f"[{round(stiff_values_nonopt3[0], 0)}, {round(stiff_values_nonopt3[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt3[0], 0)}, {round(damp_values_nonopt3[1], 0)}] N m/(rad/s);",              
+                        r"$\rightarrow$" + "opt. " + r"$\hat{q}$" + f"\n" + r"$\mathbf{n4}:$ " + r"opt $K_p$ " + f"[{round(stiff_values_opt[0], 0)}, {round(stiff_values_opt[1], 0)}] N m/rad; " + r"opt $K_d$ " + f"[{round(damp_values_opt[0], 0)}, {round(damp_values_opt[1], 0)}] N m/(rad/s);",              
+                        ]
+fontzise = 13
 figsizey = 5
 figsizex = 10
 green_diamond = dict(markerfacecolor='g', marker='D')
@@ -111,11 +135,12 @@ green_diamond = dict(markerfacecolor='g', marker='D')
 artist= ax_sol_t_box2.boxplot(combined_data,
                 flierprops = green_diamond, vert=True, 
                 whis = 1,
-                labels = ["non opt.", "opt."],
+                labels = ["n0", "n1", "n.2", "n.3", r"$\mathbf{n4}$"],
                 autorange = True, 
                 showfliers=False, 
                 notch=False)
-leg2 = ax_sol_t_box2.legend(artist["boxes"],  impedance_setpoints_opt, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
+
+leg2 = ax_sol_t_box2.legend(artist["boxes"],  samples_descriptions, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
 leg2.set_draggable(state = True)
 ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]", fontsize = fontzise)
 ax_sol_t_box2.set_xlabel("", fontsize = fontzise)

@@ -86,7 +86,7 @@ data_name = "power_data"
 
 # different configurations, fixed stiffness
 data_list = []
-base_path1 = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/dropdown_tests/sim/const_stifness"
+base_path1 = "/tmp/humanoids_opendata/dropdown_tests/sim/const_stifness"
 for i in range(0, n_conf):
     data_list.append(LoadDropDownData(base_path1 + "/" + "conf" + str(i) + "/" + data_name + ".mat"))
 
@@ -134,7 +134,7 @@ fig.set_figwidth(figsizex)
 # same configuration, different stiffnesses
 data_list2 = []
 n_conf2 = 4
-base_path2 = "/media/andreap/AP_backup/awesome_leg_IROS23_data/awesome_leg_tests/dropdown_tests/sim/const_conf"
+base_path2 = "/tmp/humanoids_opendata/dropdown_tests/sim/const_conf"
 for i in range(0, n_conf2):
     data_list2.append(LoadDropDownData(base_path2 + "/" + "stiff" + str(i) + "/" + data_name + ".mat"))
 
