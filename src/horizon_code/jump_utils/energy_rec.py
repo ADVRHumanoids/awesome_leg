@@ -425,8 +425,8 @@ class landingEnergyRecover:
             self.r_iq_2_sol[:, i] = -3 / 2 * self.i_q_estimate_sol[:, i].T @ self.R_q_mat @ self.i_q_estimate_sol[:, i]
             self.t_w_sol[:, i] = - (self.K_t * self.i_q_estimate_sol[:, i]).T @ (self.solution['q_p_dot'][1:, i] / self.red_ratio)
 
-        self.l_iq_i_sol = -3 / 4 * self.i_q_estimate_sol[:, 0].T @ self.L_q_mat @ self.i_q_estimate_sol[:, 0]
-        self.l_iq_f_sol = 3 / 4 * self.i_q_estimate_sol[:, -1].T @ self.L_q_mat @ self.i_q_estimate_sol[:, -1]
+        self.l_iq_i_sol = 3 / 4 * self.i_q_estimate_sol[:, 0].T @ self.L_q_mat @ self.i_q_estimate_sol[:, 0]
+        self.l_iq_f_sol = -3 / 4 * self.i_q_estimate_sol[:, -1].T @ self.L_q_mat @ self.i_q_estimate_sol[:, -1]
 
         self.r_iq_2_sol_int = np.sum(self.r_iq_2_sol) * self.solution['dt_landing']
         self.t_w_sol_int = np.sum(self.t_w_sol) * self.solution['dt_landing']
