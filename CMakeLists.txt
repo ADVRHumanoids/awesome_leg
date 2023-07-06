@@ -94,7 +94,3 @@ install(DIRECTORY description/srdf DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATIO
 install(DIRECTORY description/meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
 install(DIRECTORY description/new_meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/description)
 
-install(PROGRAMS 
-        src/plot_horizon_jump.py src/rviz_traj_replayer.py src/horizon_code/jump_generation.py
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-

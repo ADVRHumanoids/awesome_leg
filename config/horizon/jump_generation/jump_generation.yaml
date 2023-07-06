@@ -113,8 +113,8 @@ up2apex_gen:
     ipopt_tol: 0.000001
     ipopt_maxiter: 10000
     ipopt_cnstr_viol_tol: 0.000001 # 1e-6 is a reasonable value for accurate results
-    ipopt_lin_solver: "mumps" 
-    name: "ipopt"
+    ipopt_lin_solver: "ma57"  # "ma57"
+    name: "ipopt" # "ilqr"
 
   transcription:
     name: "multiple_shooting"

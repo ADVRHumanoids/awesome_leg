@@ -3,7 +3,6 @@ import yaml
 import time
 
 import casadi as cs
-from sympy import N
 import casadi_kin_dyn
 import numpy as np
 

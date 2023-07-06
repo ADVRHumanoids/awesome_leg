@@ -70,7 +70,7 @@ xbotcore_plugins:
             contact_release_thr: {value: 50.0, type: double}
             contact_attach_thr: {value: 60.0, type: double}
 
-            mat_path: {value: /tmp/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             use_g_during_flight: {value: true, type: bool}
 
@@ -79,12 +79,12 @@ xbotcore_plugins:
         type: jmp_replayer_rt
         params:
 
-            takeoff_traj_path: {value:  /tmp/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            takeoff_traj_path: {value:  /tmp/humanoids_opendata/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             takeoff_traj_name: {value: apex_awesome_jump_ref.mat, type: string}
 
 #            landing_config_path: {value: /tmp/opt_landings/opt_landings/01_02_2023/touchdown_opt_01-03-2023-13_58_58/, type: string}
-            landing_config_path: {value: /tmp/opt_landings/01_02_2023/touchdown_opt_01-03-2023-17_59_11/, type: string}
+            landing_config_path: {value: /tmp/humanoids_opendata/opt_landings/01_02_2023/touchdown_opt_01-03-2023-17_59_11/, type: string}
 
             landing_config_name: {value: energy_recov.mat, type: string}
 
@@ -119,7 +119,7 @@ xbotcore_plugins:
             urdf_path: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
             srdf_path: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            mat_path: {value: /tmp/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             dump_mat_suffix: {value: bus_power_rt, type: string}
             matlogger_buffer_size: {value: 1e5, type: double}
@@ -145,7 +145,7 @@ xbotcore_plugins:
         type: bt_rt
         params:
 
-            mat_path: {value: /tmp/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             use_zmq_pub: {value: false, type: bool}
             use_bt_log: {value: false, type: bool}
@@ -160,7 +160,7 @@ xbotcore_plugins:
         type: temp_monitor_rt
         params:
 
-            mat_path: {value: /tmp/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             verbose: {value: false, type: bool}
 
@@ -180,7 +180,7 @@ xbotcore_plugins:
         type: impact_detector_rt
         params:
 
-            mat_path: {value: /tmp/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
+            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_24-02-2023-12_13_45/, type: string}
 
             use_gz_truth: {value: true, type: bool}
 

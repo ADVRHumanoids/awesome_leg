@@ -4,9 +4,9 @@ import argparse
 
 import rospkg
 
-from jump_utils.pretakeoff import preTakeoffTO
+# from jump_utils.pretakeoff import preTakeoffTO
 from jump_utils.up2apex import up2ApexGen
-from jump_utils.full_gen import fullJumpGen
+# from jump_utils.full_gen import fullJumpGen
 
 import subprocess
 
@@ -35,23 +35,23 @@ sol_mat_basename = "awesome_jump"
 
 def main(args):
 
-    if args.opt_type == pretakeoff_opt_name:
+    # if args.opt_type == pretakeoff_opt_name:
 
-        jump_generator = preTakeoffTO(horizon_config_fullpath, 
-                    actuators_config_fullpath, 
-                    urdf_full_path,
-                    args.results_dir, 
-                    sol_mat_name = pretakeoff_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = pretakeoff_opt_name + "_" + args.sol_mat_name_res, 
-                    acc_based_formulation = args.is_acc_based_form)
+    #     jump_generator = preTakeoffTO(horizon_config_fullpath, 
+    #                 actuators_config_fullpath, 
+    #                 urdf_full_path,
+    #                 args.results_dir, 
+    #                 sol_mat_name = pretakeoff_opt_name + "_" + args.sol_mat_name, 
+    #                 sol_mat_name_res = pretakeoff_opt_name + "_" + args.sol_mat_name_res, 
+    #                 acc_based_formulation = args.is_acc_based_form)
 
-        jump_generator.init_prb()
+    #     jump_generator.init_prb()
 
-        jump_generator.setup_prb()
+    #     jump_generator.setup_prb()
 
-        jump_generator.solve_prb()
+    #     jump_generator.solve_prb()
 
-        jump_generator.postproc_sol()
+    #     jump_generator.postproc_sol()
 
     if args.opt_type == apex_opt_name:
         
@@ -95,49 +95,47 @@ def main(args):
 
             jump_generator.postproc_sol()
 
-    if args.opt_type == full_opt_name:
+    # if args.opt_type == full_opt_name:
 
-        # raw + resampled solution generation
-        jump_generator = fullJumpGen(horizon_config_fullpath, 
-                    actuators_config_fullpath, 
-                    urdf_full_path,
-                    args.results_dir, 
-                    sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
-                    sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res, 
-                    sol_mat_name_ref = full_opt_name + "_" + args.sol_mat_name_ref,
-                    is_ref_prb = False, 
-                    acc_based_formulation = args.is_acc_based_form)
+    #     # raw + resampled solution generation
+    #     jump_generator = fullJumpGen(horizon_config_fullpath, 
+    #                 actuators_config_fullpath, 
+    #                 urdf_full_path,
+    #                 args.results_dir, 
+    #                 sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
+    #                 sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res, 
+    #                 sol_mat_name_ref = full_opt_name + "_" + args.sol_mat_name_ref,
+    #                 is_ref_prb = False, 
+    #                 acc_based_formulation = args.is_acc_based_form)
 
-        jump_generator.init_prb()
+    #     jump_generator.init_prb()
         
-        jump_generator.setup_prb()
+    #     jump_generator.setup_prb()
 
-        jump_generator.solve_prb()
+    #     jump_generator.solve_prb()
 
-        jump_generator.postproc_sol()
+    #     jump_generator.postproc_sol()
 
-        if args.refine:
-            # refined solution generation
-            jump_generator = fullJumpGen(horizon_config_fullpath, 
-                        actuators_config_fullpath, 
-                        urdf_full_path,
-                        args.results_dir, 
-                        sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
-                        sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res, 
-                        sol_mat_name_ref = full_opt_name + "_" + args.sol_mat_name_ref,
-                        is_ref_prb = True, 
-                        load_ig = args.load_ig, 
-                        acc_based_formulation = args.is_acc_based_form)
+    #     if args.refine:
+    #         # refined solution generation
+    #         jump_generator = fullJumpGen(horizon_config_fullpath, 
+    #                     actuators_config_fullpath, 
+    #                     urdf_full_path,
+    #                     args.results_dir, 
+    #                     sol_mat_name = full_opt_name + "_" + args.sol_mat_name, 
+    #                     sol_mat_name_res = full_opt_name + "_" + args.sol_mat_name_res, 
+    #                     sol_mat_name_ref = full_opt_name + "_" + args.sol_mat_name_ref,
+    #                     is_ref_prb = True, 
+    #                     load_ig = args.load_ig, 
+    #                     acc_based_formulation = args.is_acc_based_form)
 
-            jump_generator.init_prb()
+    #         jump_generator.init_prb()
             
-            jump_generator.setup_prb()
+    #         jump_generator.setup_prb()
 
-            jump_generator.solve_prb()
+    #         jump_generator.solve_prb()
 
-            jump_generator.postproc_sol()
-
-    
+    #         jump_generator.postproc_sol()
 
 if __name__ == '__main__':
     

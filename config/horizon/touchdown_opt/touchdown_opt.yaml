@@ -68,7 +68,8 @@ energy_recov_opt:
     ipopt_tol: 0.0001
     ipopt_maxiter: 1000
     ipopt_cnstr_viol_tol: 0.0001 # 1e-6 is a reasonable value for accurate results
-    name: "ipopt"
+    ipopt_lin_solver: "ma57"  # "ma57"
+    name: "ipopt" # "ilqr"
 
   transcription:
     name: "multiple_shooting"

@@ -60,9 +60,10 @@ class landingEnergyRecover:
         self.n_int = yaml_info['problem']['n_int']
 
         self.slvr_opt = {"ipopt.tol": yaml_info["solver"]["ipopt_tol"],
-                         "ipopt.max_iter": yaml_info["solver"]["ipopt_maxiter"],
-                         "ipopt.constr_viol_tol": yaml_info["solver"]["ipopt_cnstr_viol_tol"],
-                         }
+                        "ipopt.max_iter": yaml_info["solver"]["ipopt_maxiter"],
+                        "ipopt.constr_viol_tol": yaml_info["solver"]["ipopt_cnstr_viol_tol"],
+                        "ipopt.linear_solver": yaml_info["solver"]["ipopt_lin_solver"]
+                        }
 
         self.jnt_limit_margin = abs(self.yaml_file[self.yaml_tag]["problem"]["jnt_limit_margin"])
         self.jnt_vel_limit_margin = abs(self.yaml_file[self.yaml_tag]["problem"]["jnt_vel_limit_margin"])
@@ -394,7 +395,8 @@ class landingEnergyRecover:
             jnt_input_diff = cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1))
 
             self.prb.createIntermediateCost("min_jnt_input_diff", \
-                                            self.weight_jnt_input_diff * jnt_input_diff, nodes=self.input_diff_nodes)
+                                            self.weight_jnt_input_diff * jnt_input_diff, 
+                                            nodes=self.input_diff_nodes)
 
         if self.weight_imp_cntrl > 0 and self.use_soft_imp_cntrl:
 
@@ -404,7 +406,6 @@ class landingEnergyRecover:
 
     def __get_solution(self):
 
-
         self.solution = self.slvr.getSolutionDict()  # extracting solution
         self.cnstr_opt = self.slvr.getConstraintSolutionDict()
         self.lambda_cnstrnt = self.slvr.getCnstrLmbdSolDict()
@@ -412,7 +413,11 @@ class landingEnergyRecover:
 
     def __postproc_sol(self):
 
-        self.i_q_estimate_sol = compute_required_iq_estimate_num(self.act_yaml_file, self.solution['q_p_dot'], self.solution['q_p_ddot'], self.tau_sol, self.tanh_coeff)
+        self.i_q_estimate_sol = compute_required_iq_estimate_num(self.act_yaml_file, 
+                                            self.solution['q_p_dot'], 
+                                            self.solution['q_p_ddot'], 
+                                            self.tau_sol, 
+                                            self.tanh_coeff)
 
         self.r_iq_2_sol = np.zeros([1, self.i_q_estimate_sol.shape[1]])
         self.t_w_sol = np.zeros([1, self.i_q_estimate_sol.shape[1]])
