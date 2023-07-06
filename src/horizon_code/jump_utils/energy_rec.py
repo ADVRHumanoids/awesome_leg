@@ -148,7 +148,7 @@ class landingEnergyRecover:
 
         self.prb = Problem(self.n_int)  # initialization of a problem object
 
-        dt_single_var = self.prb.createSingleVariable("dt_landing", 1)  # dt before the takeoff
+        dt_single_var = self.prb.createSingleVariable("dt_opt", 1) 
         dt_single_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt
         dt = [dt_single_var] * (self.n_int)  # holds the complete time list
         #####PROBLEM HERE: why if I set a variable dt I find symbolic variables in the solution???
@@ -347,9 +347,10 @@ class landingEnergyRecover:
     def __set_costs(self):
 
         if self.weight_reg_q_dot > 0:
-            self.prb.createCost("q_dot_reg_0", self.weight_reg_q_dot * (1 / (self.q_p_dot[0]**2 + 0.001)), nodes=0)
-            self.prb.createCost("q_dot_reg_1", self.weight_reg_q_dot * (1 / (self.q_p_dot[1]**2 + 0.001)), nodes=0)
-            self.prb.createCost("q_dot_reg_2", self.weight_reg_q_dot * (1 / (self.q_p_dot[2]**2 + 0.001)), nodes=0)
+            # self.prb.createCost("q_dot_reg_0", self.weight_reg_q_dot * (1 / (self.q_p_dot[0]**2 + 0.001)), nodes=0)
+            # self.prb.createCost("q_dot_reg_1", self.weight_reg_q_dot * (1 / (self.q_p_dot[1]**2 + 0.001)), nodes=0)
+            # self.prb.createCost("q_dot_reg_2", self.weight_reg_q_dot * (1 / (self.q_p_dot[2]**2 + 0.001)), nodes=0)
+            self.prb.createCost("reg_start_q_dot", self.weight_reg_q_dot * cs.sumsqr(self.q_p_dot), nodes=0)
 
         if self.weight_braking > 0:
             self.prb.createCost("break_at_the_of_the_horizon", self.weight_braking * cs.sumsqr(self.q_p_dot), nodes=self.last_node)
@@ -433,8 +434,8 @@ class landingEnergyRecover:
         self.l_iq_i_sol = 3 / 4 * self.i_q_estimate_sol[:, 0].T @ self.L_q_mat @ self.i_q_estimate_sol[:, 0]
         self.l_iq_f_sol = -3 / 4 * self.i_q_estimate_sol[:, -1].T @ self.L_q_mat @ self.i_q_estimate_sol[:, -1]
 
-        self.r_iq_2_sol_int = np.sum(self.r_iq_2_sol) * self.solution['dt_landing']
-        self.t_w_sol_int = np.sum(self.t_w_sol) * self.solution['dt_landing']
+        self.r_iq_2_sol_int = np.sum(self.r_iq_2_sol) * self.solution['dt_opt']
+        self.t_w_sol_int = np.sum(self.t_w_sol) * self.solution['dt_opt']
 
         self.e_batt = self.r_iq_2_sol_int + self.l_iq_i_sol + self.l_iq_f_sol + self.t_w_sol_int
 

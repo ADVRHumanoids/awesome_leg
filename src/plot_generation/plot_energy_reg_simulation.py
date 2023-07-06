@@ -80,8 +80,8 @@ class LoadFinalTest:
 
         return None # any other value != to None would block the execution of visit() method
     
-path_opt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-12_39_29/opt"
-path_nonopt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-12_39_29/not_opt"
+path_opt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/opt"
+path_nonopt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/not_opt"
 data_nameopt= "sim_bus_power_rt__4_2023_03_02__18_06_34"
 data_namenonopt0= "trial0/sim_bus_power_rt__4_2023_03_01__18_51_41"
 data_namenonopt1= "trial1/sim_bus_power_rt__2_2023_07_04__17_12_22"

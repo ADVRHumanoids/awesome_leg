@@ -52,14 +52,14 @@ energy_recov_opt:
       weight_jnt_input_diff: -1 #0.05 # cost for penalizing differences between successive inputs
       weight_q_dot: -1 
       weight_q_dot_diff: -1
-      weight_reg_energy: 5
+      weight_reg_energy: -1
 
-      weight_impact_min: 10
+      weight_impact_min: 10000
 
       weight_q_reg: -1
-      weight_reg_q_dot: 500
+      weight_reg_q_dot: -1
 
-      weight_braking: 100
+      weight_braking: -1
 
       weight_imp_cntrl: -1
 
@@ -68,7 +68,7 @@ energy_recov_opt:
     ipopt_tol: 0.0001
     ipopt_maxiter: 1000
     ipopt_cnstr_viol_tol: 0.0001 # 1e-6 is a reasonable value for accurate results
-    ipopt_lin_solver: "mumps" # "mumps"
+    ipopt_lin_solver: "ma57" 
     name: "ipopt"
 
   transcription:
