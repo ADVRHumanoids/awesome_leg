@@ -69,8 +69,8 @@ def main(args):
     sol_contact_map = dict()
     sol_contact_map["tip1"] = f_contact
 
-    # dt_opt = loaded_sol["dt_opt"][0][0]
-    dt_opt = loaded_sol["dt_landing"][0][0]
+    dt_opt = loaded_sol["dt_opt"][0][0]
+    # dt_opt = loaded_sol["dt_landing"][0][0]
 
     urdf = open(urdf_full_path, "r").read()
     kin_dyn_model = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(urdf)
@@ -92,8 +92,8 @@ if __name__ == '__main__':
     # adding script arguments
     parser = argparse.ArgumentParser(
         description='just a simple test file for RePAIR co-design')
-    parser.add_argument('--replay_path', '-path', type=str, default = "/tmp/touchdown_opt")
-    parser.add_argument('--replay_filename', '-fname', default ='energy_recov', type=str)
+    parser.add_argument('--replay_path', '-path', type=str, default = "/tmp/humanoids23_opendata/jump_generation_06-07-2023-12_39_29")
+    parser.add_argument('--replay_filename', '-fname', default ='apex_awesome_jump_ref', type=str)
     args = parser.parse_args()
 
     exec_path = rospackage.get_path("awesome_leg") + "/src/horizon_code"

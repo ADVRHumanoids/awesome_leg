@@ -159,10 +159,10 @@ class LoadOptJump:
 
         return None # any other value != to None would block the execution of visit() method
     
-path = "/tmp/humanoids_opendata/final_jump_energy_recov/real_hardware/backup_jump_tests/jump_generation_24-02-2023-12_13_45"
+path = "/tmp/humanoids_opendata/final_jump_energy_recov/real_hardware/backup_jump_tests/jump_generation_06-07-2023-12_39_29"
 power_data = "test_bus_power_rt__4_2023_02_28__14_47_58"
 replay_data = "test_traj_replay__2_2023_02_28__14_47_58"
-path_opt = "/tmp/humanoids_opendata/refinement_motivation/jump_generation_24-02-2023-12_13_45"
+path_opt = "/tmp/humanoids_opendata/refinement_motivation/jump_generation_06-07-2023-12_39_29"
 mat_name = "apex_awesome_jump_ref"
 
 power_data_log = LoadJumpTrial(path + "/" + power_data + ".mat")
