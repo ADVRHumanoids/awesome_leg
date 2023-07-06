@@ -92,7 +92,7 @@ if __name__ == '__main__':
     # adding script arguments
     parser = argparse.ArgumentParser(
         description='just a simple test file for RePAIR co-design')
-    parser.add_argument('--replay_path', '-path', type=str, default = "/tmp/humanoids23_opendata/jump_generation_06-07-2023-12_39_29")
+    parser.add_argument('--replay_path', '-path', type=str, default = "/tmp/humanoids_opendata/jump_generation_06-07-2023-12_39_29")
     parser.add_argument('--replay_filename', '-fname', default ='apex_awesome_jump_ref', type=str)
     args = parser.parse_args()
 
