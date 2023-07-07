@@ -18,9 +18,9 @@ energy_recov_opt:
     # dt_lb: 0.001
     # dt_ub: 0.05
 
-    n_int: 100
+    n_int: 500
 
-    dt_lb: 0.01
+    dt_lb: 0.002
     dt_ub: 0.01
 
     is_iq_cnstrnt: false # whether to use the iq constraint or not
@@ -38,37 +38,40 @@ energy_recov_opt:
 
     q_ig: [1.0, 1.0]
 
+    max_braking_q_dot: 0.05 # [m/s]
+
+    reg_pow_node_offset: 10 # start now from which maximize reg power
+
     use_soft_imp_cntrl: False
 
-    breaking_perc: 0.1 # [0, 1] % from the final node over which the average joint velocity is contrainted to be low
-    q_dot_breaking_thresh: 0.01
-    use_braking_constraint: False
+    use_braking_constraint: True
 
     weights:
 
-      weight_f_contact: 0.001 # cost for penalizing contact forces
+      weight_f_contact: -1 # cost for penalizing contact forces
       weight_f_contact_diff: -1 #0.1 # cost for penalizing differences between successive f_contacts
-      weight_jnt_input: 0.001 # cost for penalizing joint accelerations (which are the input)
+      weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
       weight_jnt_input_diff: -1 #0.05 # cost for penalizing differences between successive inputs
       weight_q_dot: -1 
       weight_q_dot_diff: -1
-      weight_reg_energy: -1
-
-      weight_impact_min: 10000
 
       weight_q_reg: -1
-      weight_reg_q_dot: -1
 
-      weight_braking: -1
+      weight_reg_energy: 1
+      weight_impact_min: 1
 
-      weight_imp_cntrl: -1
+      # weight_reg_q_dot: -1
+
+      # weight_braking: -1
+
+      # weight_imp_cntrl: -1
 
   solver:
 
     ipopt_tol: 0.0001
     ipopt_maxiter: 1000
     ipopt_cnstr_viol_tol: 0.0001 # 1e-6 is a reasonable value for accurate results
-    ipopt_lin_solver: "ma57" 
+    ipopt_lin_solver: "ma57" # "ma57"
     name: "ipopt"
 
   transcription:
