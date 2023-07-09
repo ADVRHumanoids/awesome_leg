@@ -344,10 +344,16 @@ class landingEnergyRecover:
         knee_above_ground.setBounds(0.0, cs.inf)
         
         regenerate_something_please = self.prb.createConstraint("regenerate_something",
-                                                        self.__integrate_pbatt(self.n_nodes), 
+                                                        self.__ebatt(self.n_nodes), 
                                                         nodes = self.last_node)  # no ground penetration on all the horizon
 
         regenerate_something_please.setBounds(-cs.inf, cs.inf)
+
+        # regenerate_everywhere = self.prb.createConstraint("regenerate_everywhere",
+        #                                                 self.p_batt, 
+        #                                                 nodes = self.reg_pow_nodes)  # no ground penetration on all the horizon
+
+        # regenerate_everywhere.setBounds(1e-2, cs.inf)
 
     def __compute_p_batt_fun(self, 
                         q_p_dot, q_p_ddot, tau):
@@ -364,10 +370,10 @@ class landingEnergyRecover:
 
         return p_batt
     
-    def __integrate_pbatt(self, n_nodes):
+    def __ebatt(self, n_nodes):
         
-        pbatt_int  = self.__compute_p_batt_fun(self.q_p, 
-                                self.q_p_dot, 
+        pbatt_int  = self.__compute_p_batt_fun(self.q_p_dot, 
+                                self.q_p_ddot, 
                                 self.tau)
 
         for i in range(0, n_nodes - 1):
@@ -375,14 +381,15 @@ class landingEnergyRecover:
             tau_offset = kin_dyn.InverseDynamics(self.urdf_kin_dyn, self.contact_map.keys(), \
                                            casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(
                             self.q_p.getVarOffset(- (i + 1)), \
-                            self.q_p_dot.getVarOffset(- (i + 1)), self.q_p_ddot.getVarOffset(- (i + 1)),
+                            self.q_p_dot.getVarOffset(- (i + 1)), 
+                            self.q_p_ddot.getVarOffset(- (i + 1)),
                             self.contact_map)
             
-            pbatt_offset = self.__compute_p_batt_fun(self.q_p.getVarOffset(- (i + 1)), 
-                                            self.q_p_dot.getVarOffset(- (i + 1)), 
+            pbatt_offset = self.__compute_p_batt_fun(self.q_p_dot.getVarOffset(- (i + 1)), 
+                                            self.q_p_ddot.getVarOffset(- (i + 1)), 
                                             tau_offset)
             
-            pbatt_int += pbatt_offset
+            pbatt_int = pbatt_int + pbatt_offset
         
         return pbatt_int * self.dt_single_var
 
@@ -421,7 +428,7 @@ class landingEnergyRecover:
             #                             nodes = self.reg_pow_nodes)
             
             
-            # self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy / self.n_nodes * (1e3 - self.__integrate_pbatt(self.n_nodes)), 
+            # self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy / self.n_nodes * (1e3 - self.__ebatt(self.n_nodes)), 
             #                             nodes = self.last_node)
 
         # regularizations
