@@ -18,10 +18,10 @@ energy_recov_opt:
     # dt_lb: 0.001
     # dt_ub: 0.05
 
-    n_int: 500
+    n_int: 300
 
-    dt_lb: 0.002
-    dt_ub: 0.01
+    dt_lb: 0.005
+    dt_ub: 0.005
 
     is_iq_cnstrnt: false # whether to use the iq constraint or not
     is_friction_cone: false # whether to use a friction constraint or not
@@ -58,7 +58,7 @@ energy_recov_opt:
       weight_q_reg: -1
 
       weight_reg_energy: 1
-      weight_impact_min: 1
+      weight_impact_min: -1
 
       # weight_reg_q_dot: -1
 

@@ -276,21 +276,6 @@ class landingEnergyRecover:
 
         self.delta_ek = 1 / 2 * (
                     self.q_p_dot.T @ self.B @ self.q_p_dot - self.q_p_dot_pretouchdown.T @ self.B @ self.q_p_dot_pretouchdown)  # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for
-
-    def __compute_p_batt_fun(self, 
-                        q_p_dot, q_p_ddot, tau):
-
-        i_q_estimate = cs.veccat(
-            *compute_required_iq_estimate(self.act_yaml_file, q_p_dot, q_p_ddot, tau, self.tanh_coeff))
-
-        r_iq_2 = -3 / 2 * i_q_estimate.T @ self.R_q_mat @ i_q_estimate
-        l_iq_i = 3 / 4 * i_q_estimate.T @ self.L_q_mat @ i_q_estimate
-        l_iq_f = -3 / 4 * i_q_estimate.T @ self.L_q_mat @ i_q_estimate
-        t_w = - (self.K_t * i_q_estimate).T @ (q_p_dot[1:] / self.red_ratio)
-
-        p_batt = t_w + r_iq_2 + l_iq_f + l_iq_i
-
-        return p_batt
     
     def __set_constraints(self):
 
@@ -358,15 +343,30 @@ class landingEnergyRecover:
         knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
         knee_above_ground.setBounds(0.0, cs.inf)
         
-        # regenerate_something_please = self.prb.createConstraint("regenerate_something",
-        #                                                 self.__integrate_pbatt(self.n_nodes), 
-        #                                                 nodes = self.last_node)  # no ground penetration on all the horizon
+        regenerate_something_please = self.prb.createConstraint("regenerate_something",
+                                                        self.__integrate_pbatt(self.n_nodes), 
+                                                        nodes = self.last_node)  # no ground penetration on all the horizon
 
-        # regenerate_something_please.setBounds(-cs.inf, cs.inf)
+        regenerate_something_please.setBounds(-cs.inf, cs.inf)
 
+    def __compute_p_batt_fun(self, 
+                        q_p_dot, q_p_ddot, tau):
+
+        i_q_estimate = cs.veccat(
+            *compute_required_iq_estimate(self.act_yaml_file, q_p_dot, q_p_ddot, tau, self.tanh_coeff))
+
+        r_iq_2 = -3 / 2 * i_q_estimate.T @ self.R_q_mat @ i_q_estimate
+        l_iq_i = 3 / 4 * i_q_estimate.T @ self.L_q_mat @ i_q_estimate
+        l_iq_f = -3 / 4 * i_q_estimate.T @ self.L_q_mat @ i_q_estimate
+        t_w = - (self.K_t * i_q_estimate).T @ (q_p_dot[1:] / self.red_ratio)
+
+        p_batt = t_w + r_iq_2 + l_iq_f + l_iq_i
+
+        return p_batt
+    
     def __integrate_pbatt(self, n_nodes):
         
-        pbatt_temp  = self.__compute_p_batt_fun(self.q_p, 
+        pbatt_int  = self.__compute_p_batt_fun(self.q_p, 
                                 self.q_p_dot, 
                                 self.tau)
 
@@ -382,9 +382,9 @@ class landingEnergyRecover:
                                             self.q_p_dot.getVarOffset(- (i + 1)), 
                                             tau_offset)
             
-            pbatt_temp += pbatt_offset
+            pbatt_int += pbatt_offset
         
-        return pbatt_temp
+        return pbatt_int * self.dt_single_var
 
     def __set_costs(self):
 
@@ -401,52 +401,58 @@ class landingEnergyRecover:
             self.prb.createCost("stay_far_from_singular", self.weight_q_reg * cs.sumsqr(self.q_p[1:] - self.q_ig), nodes=[0])
 
         if self.weight_impact_min > 0:
-            self.prb.createCost("min_impact_residual_kin_energy_dissipation", 1e3 -  self.weight_impact_min * self.delta_ek,
+            self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * self.delta_ek,
                                 nodes=[0])  # delta_ek is always <= 0
 
         if self.weight_reg_energy > 0:
             # self.prb.createIntermediateCost("reg_energy_joule", - self.weight_reg_energy * self.r_iq_2)
             # self.prb.createCost("reg_energy_indct_init", - self.weight_reg_energy * self.l_iq_i, nodes=[0])
             # self.prb.createCost("reg_energy_indct_fin", - self.weight_reg_energy * self.l_iq_f, nodes=self.n_nodes - 1)
-            # self.prb.createIntermediateCost("reg_energy_mech", 1 / (self.weight_reg_energy * self.t_w)
+            # self.prb.createIntermediateCost("reg_energy_mech", 1 / (self.weight_reg_energy  * self.t_w)
             
             # self.prb.createIntermediateCost("reg_pow_batt", 1 / (self.p_batt + 0.0001))
       
-            self.prb.createIntermediateCost("reg_pow_batt", self.weight_reg_energy * (1000 - self.p_batt * self.dt_single_var), 
+            self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.p_batt), 
                                         nodes = self.reg_pow_nodes)
             
-            # self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy * (1e3 - self.__integrate_pbatt(self.n_nodes)), 
+            # self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.__compute_p_batt_fun(self.q_p_dot, 
+            #                                                                                                         self.q_p_ddot, 
+            #                                                                                                         self.tau)), 
+            #                             nodes = self.reg_pow_nodes)
+            
+            
+            # self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy / self.n_nodes * (1e3 - self.__integrate_pbatt(self.n_nodes)), 
             #                             nodes = self.last_node)
 
         # regularizations
         if self.weight_f_contact_cost > 0:
             self.prb.createIntermediateCost("min_f_contact", \
-                                            self.weight_f_contact_cost * cs.sumsqr(self.f_contact[0:2]),
+                                            self.weight_f_contact_cost / self.n_nodes * cs.sumsqr(self.f_contact[0:2]),
                                             nodes=self.input_nodes)
 
         if self.weight_f_contact_diff > 0:
             self.prb.createIntermediateCost("min_f_contact_diff", \
-                                            self.weight_f_contact_diff * cs.sumsqr(
+                                            self.weight_f_contact_diff / self.n_nodes * cs.sumsqr(
                                                 self.f_contact - self.f_contact.getVarOffset(-1)),
                                             nodes=self.input_diff_nodes)
 
         if self.weight_q_dot > 0:
-            self.prb.createCost("min_q_dot", self.weight_q_dot * cs.sumsqr(self.q_p_dot),
+            self.prb.createCost("min_q_dot", self.weight_q_dot / self.n_nodes * cs.sumsqr(self.q_p_dot),
                                 nodes=range(1, self.last_node))
 
         if self.weight_q_dot_diff > 0:
-            self.prb.createIntermediateCost("min_q_dot_diff", self.weight_q_dot_diff * cs.sumsqr(
+            self.prb.createIntermediateCost("min_q_dot_diff", self.weight_q_dot_diff / self.n_nodes * cs.sumsqr(
                 self.q_p_dot - self.q_p_dot.getVarOffset(-1)))
 
         if self.weight_jnt_input > 0:
-            self.prb.createIntermediateCost("min_q_ddot", self.weight_jnt_input * cs.sumsqr(self.q_p_ddot[1:]),
+            self.prb.createIntermediateCost("min_q_ddot", self.weight_jnt_input / self.n_nodes * cs.sumsqr(self.q_p_ddot[1:]),
                                             nodes=self.input_nodes)
 
         if self.weight_jnt_input_diff > 0:
             jnt_input_diff = cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1))
 
             self.prb.createIntermediateCost("min_jnt_input_diff", \
-                                            self.weight_jnt_input_diff * jnt_input_diff, 
+                                            self.weight_jnt_input_diff / self.n_nodes * jnt_input_diff, 
                                             nodes=self.input_diff_nodes)
 
         # if self.weight_imp_cntrl > 0 and self.use_soft_imp_cntrl:
