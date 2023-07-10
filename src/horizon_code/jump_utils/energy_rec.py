@@ -19,8 +19,11 @@ class landingEnergyRecover:
                  urdf_path: str,
                  results_path: str,
                  sol_mat_name="energy_recov",
-                 yaml_tag="energy_recov_opt"):
+                 yaml_tag="energy_recov_opt", 
+                 is_ref_prb = False):
 
+        self.is_ref_prb = is_ref_prb
+        
         self.yaml_tag = yaml_tag
 
         self.yaml_path = yaml_path
@@ -33,6 +36,10 @@ class landingEnergyRecover:
         self.sol_mat_name = sol_mat_name
 
         self.__init_sol_dumpers()
+
+        if self.is_ref_prb:
+            
+            self.__load_ig_from_mat()
 
     def __parse_config_yamls(self):
 
@@ -56,13 +63,18 @@ class landingEnergyRecover:
 
         yaml_info = self.yaml_file[self.yaml_tag]
 
-        self.n_int = yaml_info['problem']['n_int']
+        # general parameters
 
         self.slvr_opt = {"ipopt.tol": yaml_info["solver"]["ipopt_tol"],
                         "ipopt.max_iter": yaml_info["solver"]["ipopt_maxiter"],
                         "ipopt.constr_viol_tol": yaml_info["solver"]["ipopt_cnstr_viol_tol"],
                         "ipopt.linear_solver": yaml_info["solver"]["ipopt_lin_solver"]
                         }
+        
+        self.slvr_name = yaml_info["solver"]["name"]
+
+        self.trans_name = yaml_info["transcription"]["name"]
+        self.trans_integrator = yaml_info["transcription"]["integrator_name"]
 
         self.jnt_limit_margin = abs(self.yaml_file[self.yaml_tag]["problem"]["jnt_limit_margin"])
         self.jnt_vel_limit_margin = abs(self.yaml_file[self.yaml_tag]["problem"]["jnt_vel_limit_margin"])
@@ -71,14 +83,48 @@ class landingEnergyRecover:
 
         self.braking_q_dot =  yaml_info["problem"]["max_braking_q_dot"]
 
-        yaml_info_weights = yaml_info["problem"]["weights"]
-
         self.landing_vel = yaml_info["problem"]["landing_vel"]
 
-        self.slvr_name = yaml_info["solver"]["name"]
+        self.n_actuators = len(self.act_yaml_file["K_d0"])
+        self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
+        self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
+        self.mu_friction_cone = abs(self.yaml_file[self.yaml_tag]["problem"]["friction_cnstrnt"]["mu_friction_cone"])
 
-        self.trans_name = yaml_info["transcription"]["name"]
-        self.trans_integrator = yaml_info["transcription"]["integrator_name"]
+        self.use_braking_constraint = yaml_info["problem"]["use_braking_constraint"]
+
+        self.dt_lb = yaml_info["problem"]["dt_lb"]
+        self.dt_ub = yaml_info["problem"]["dt_ub"]
+
+        self.R_q = np.array(self.act_yaml_file["R"])
+        self.L_m = self.act_yaml_file["L_m"]
+        self.K_t = self.act_yaml_file["K_t"]
+        self.red_ratio = np.array(self.act_yaml_file['red_ratio'])
+
+        self.q_ig = np.array(self.yaml_file[self.yaml_tag]["problem"]["q_ig"])
+
+        if not self.is_ref_prb:
+
+            # ig generation
+
+            self.yaml_tag_prb = self.yaml_file[self.yaml_tag]["problem"]["ig_generation"]
+
+            self.is_q_ig = self.yaml_tag_prb["is_q_ig"]
+             
+            self.n_int = self.yaml_tag_prb['n_int']
+
+            self.yaml_tag_ig = self.yaml_file[self.yaml_tag]["problem"]["ref"]
+            
+            self.n_int_ig = self.yaml_tag_ig['n_int']
+        
+        else:
+
+            # actual solution generation
+
+            self.yaml_tag_prb = self.yaml_file[self.yaml_tag]["problem"]["ref"]
+            
+            self.n_int = self.yaml_tag_prb['n_int']
+
+        yaml_info_weights = self.yaml_tag_prb["weights"]
 
         self.weight_f_contact_cost = yaml_info_weights["weight_f_contact"]
         self.weight_f_contact_diff = yaml_info_weights["weight_f_contact_diff"]
@@ -90,46 +136,67 @@ class landingEnergyRecover:
         self.weight_reg_energy = yaml_info_weights["weight_reg_energy"]
         self.weight_impact_min = yaml_info_weights["weight_impact_min"]
 
-        # self.weight_braking = yaml_info_weights["weight_braking"]
-        # self.weight_reg_q_dot = yaml_info_weights['weight_reg_q_dot']
+        # self.weight_braking_ig = yaml_info_weights["weight_braking"]
+        # self.weight_reg_q_dot_ig = yaml_info_weights['weight_reg_q_dot']
 
         self.weight_q_reg = yaml_info_weights["weight_q_reg"]
 
-        # self.weight_imp_cntrl = yaml_info_weights["weight_imp_cntrl"]
-        
-        self.n_actuators = len(self.act_yaml_file["K_d0"])
-        self.is_iq_cnstrnt = self.yaml_file[self.yaml_tag]["problem"]["is_iq_cnstrnt"]
-        self.is_friction_cone = self.yaml_file[self.yaml_tag]["problem"]["is_friction_cone"]
-        self.mu_friction_cone = abs(self.yaml_file[self.yaml_tag]["problem"]["friction_cnstrnt"]["mu_friction_cone"])
-
-        self.is_q_ig = self.yaml_file[self.yaml_tag]["problem"]["is_q_ig"]
-
-        # self.use_soft_imp_cntrl = yaml_info["problem"]["use_soft_imp_cntrl"]
-        self.use_braking_constraint = yaml_info["problem"]["use_braking_constraint"]
-
-        self.reg_pow_node_offset = yaml_info["problem"]["reg_pow_node_offset"]
-
-        self.q_ig = np.array(self.yaml_file[self.yaml_tag]["problem"]["q_ig"])
-
-        self.dt_lb = yaml_info["problem"]["dt_lb"]
-        self.dt_ub = yaml_info["problem"]["dt_ub"]
-
-        self.R_q = np.array(self.act_yaml_file["R"])
-        self.L_m = self.act_yaml_file["L_m"]
-        self.K_t = self.act_yaml_file["K_t"]
-        self.red_ratio = np.array(self.act_yaml_file['red_ratio'])
-
+        # self.weight_imp_cntrl_ig = yaml_info_weights["weight_imp_cntrl"]
+                
         self.n_nodes = self.n_int + 1
         self.last_node = self.n_nodes - 1
-        self.input_nodes = list(range(0, self.n_nodes - 1))
+        self.input_nodes= list(range(0, self.n_nodes - 1))
         self.input_diff_nodes = list(range(1, self.n_nodes - 1))
+        self.reg_pow_node_offset = round(yaml_info["problem"]["reg_pow_node_offset"] * (self.n_int + 1) )
         self.reg_pow_nodes = list(range(self.reg_pow_node_offset, self.n_nodes - 1))
+    
+    def __apply_loaded_ig(self):
+
+        self.q_landing.setInitialGuess(self.q_landing_ig)
+
+        self.q_p.setInitialGuess(self.q_p_ig)
+
+        self.q_p_dot.setInitialGuess(self.q_p_dot_ig)
+
+        self.q_p_ddot.setInitialGuess(self.q_p_ddot_ig)
+
+        self.f_contact.setInitialGuess(self.f_contact_ig)
+
+    def __load_ig_from_mat(self):
+
+        self.__init_loader()
+
+        loaded_sol_ig = self.ig_loader.load()
+        loaded_sol_ig_res = self.ig_res_loader.load()
+
+        self.T_landing = np.sum(loaded_sol_ig["dt_opt"].flatten())
+        self.q_landing_ig = loaded_sol_ig["q_landing"]
+
+        self.q_p_ig = loaded_sol_ig_res["q_p"]
+        self.q_p_dot_ig = loaded_sol_ig_res["q_p_dot"]
+        self.q_p_ddot_ig = loaded_sol_ig_res["q_p_ddot"]
+        self.f_contact_ig = loaded_sol_ig_res["f_contact"]
+
+        self.dt_ref = self.T_landing / self.n_int
+
+    def __init_loader(self):
+
+        self.ig_loader = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + "_ig.mat") 
+        self.ig_res_loader = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + "_ig_res.mat") 
 
     def __init_sol_dumpers(self):
 
-        self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
+        if not self.is_ref_prb:
 
-    def __init_prb(self, n_passive_joints=1):
+            self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + "_ig.mat")  # original opt. sol
+
+            self.ms_resampl = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + "_ig_res.mat")  # resampled opt. sol
+        
+        else:
+
+            self.ms_sol = mat_storer.matStorer(self.results_path + "/" + self.sol_mat_name + ".mat")  # original opt. sol
+
+    def __init_prb_common(self):
 
         self.urdf = open(self.urdf_path, "r").read()
         self.urdf_kin_dyn = casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn(self.urdf)
@@ -149,14 +216,6 @@ class landingEnergyRecover:
         self.tau_lim = np.array([0] + self.act_yaml_file["tau_peak_ar"])  # effort limits (0 on the passive d.o.f.)
 
         self.prb = Problem(self.n_int)  # initialization of a problem object
-
-        self.dt_single_var = self.prb.createSingleVariable("dt_opt", 1) 
-        self.dt_single_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt
-        dt = [self.dt_single_var] * (self.n_int)  # holds the complete time list
-        #####PROBLEM HERE: why if I set a variable dt I find symbolic variables in the solution???
-        # dt = 0.01
-
-        self.prb.setDt(dt)
 
         # Creating the state variables
         self.q_p = self.prb.createStateVariable("q_p", self.n_q)
@@ -184,10 +243,6 @@ class landingEnergyRecover:
         self.kp.setBounds(kp_min, kp_max)
         self.kd.setBounds(kd_min, kd_max)
 
-        self.q_landing = self.prb.createSingleVariable('q_landing', self.n_q - 1)
-        if (self.is_q_ig):
-            self.q_landing.setInitialGuess(self.q_ig)
-
         self.v_ee_param = self.prb.createSingleParameter('v_ee_param', 1)  # vertical vel component of tip @ touchdown
 
         self.q_p_dot_pretouchdown = cs.veccat(self.v_ee_param, 0.0, 0.0)
@@ -200,7 +255,29 @@ class landingEnergyRecover:
         self.impact[2].setBounds(-cs.inf, cs.inf)
         # (vertical impact for simplicity)
 
-        return self.prb
+        self.q_landing = self.prb.createSingleVariable('q_landing', self.n_q - 1)
+    
+    def __init_prb(self):
+        
+        self.__init_prb_common() # initializes stuff which is common between the ig and the ref prbs
+
+        if not self.is_ref_prb:
+            
+            if (self.is_q_ig):
+            
+                self.q_landing.setInitialGuess(self.q_ig)
+
+            self.dt_single_var = self.prb.createSingleVariable("dt_opt", 1) 
+            self.dt_single_var.setBounds(self.dt_lb, self.dt_ub)  # bounds on dt
+            dt = [self.dt_single_var] * (self.n_int)  # holds the complete time list
+
+            self.prb.setDt(dt)
+        
+        else:
+            
+            self.__apply_loaded_ig()
+
+            self.prb.setDt(self.dt_ref)
 
     def __get_quantities_from_urdf(self):
 
@@ -291,7 +368,9 @@ class landingEnergyRecover:
 
             self.imp_cntrl_cntrnt.append(self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', 
                                                     (self.tau[i + 1] - (
-                                                    self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1])) / self.n_nodes
+                                                    - self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) 
+                                                    - self.kd[i] * self.q_p_dot[i + 1])) / self.n_nodes,
+                                                    self.input_nodes[1:] # we don't impose imp control on the first (impact node)
                                                     ))
 
             # if self.use_soft_imp_cntrl:
@@ -320,32 +399,31 @@ class landingEnergyRecover:
             braking_cnstrnt = self.prb.createConstraint("braking_q_dot", self.q_p_dot[0]  / self.n_nodes, nodes = self.last_node)
             braking_cnstrnt.setBounds(-self.braking_q_dot / self.n_nodes, self.braking_q_dot / self.n_nodes)
 
+        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2] / self.n_nodes)  # no ground penetration on all the horizon
+        hip_above_ground.setBounds(0.0, cs.inf)
+
+        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2] / self.n_nodes)  # no ground penetration on all the horizon
+        knee_above_ground.setBounds(0.0, cs.inf)
 
         ### Additional constraints just for debugging (to be removed on the final run)
         # iq_check = self.prb.createIntermediateConstraint('iq_check', self.i_q_estimate)
         # ub_iq = np.ones((2, 1)) * cs.inf
         # lb_iq = - np.ones((2, 1)) * cs.inf
         # iq_check.setBounds(lb_iq, ub_iq)
-        p_joule_check = self.prb.createIntermediateConstraint('p_joule_check', self.r_iq_2)
-        p_joule_check.setBounds(-cs.inf, cs.inf)
         # l_iq_i = self.prb.createIntermediateConstraint('p_induct_check0', self.l_iq_i)
         # l_iq_i.setBounds(-cs.inf, cs.inf)
         # l_iq_f = self.prb.createIntermediateConstraint('p_induct_checkf', self.l_iq_f)
         # l_iq_f.setBounds(-cs.inf, cs.inf)
-        t_w = self.prb.createIntermediateConstraint('p_mech_pow_check', self.t_w)
-        t_w.setBounds(-cs.inf, cs.inf)
-        p_batt_check = self.prb.createIntermediateConstraint('p_batt_check', self.p_batt)
-        p_batt_check.setBounds(-cs.inf, cs.inf)
+        # p_joule_check = self.prb.createIntermediateConstraint('p_joule_check', self.r_iq_2)
+        # p_joule_check.setBounds(-cs.inf, cs.inf)
+        # t_w = self.prb.createIntermediateConstraint('p_mech_pow_check', self.t_w)
+        # t_w.setBounds(-cs.inf, cs.inf)
+        # p_batt_check = self.prb.createIntermediateConstraint('p_batt_check', self.p_batt)
+        # p_batt_check.setBounds(-cs.inf, cs.inf)
 
-        delta_ek_check = self.prb.createIntermediateConstraint('delta_ek_check', self.delta_ek, 
-                                                nodes = 0)
-        delta_ek_check.setBounds(-cs.inf, cs.inf)
-
-        hip_above_ground = self.prb.createConstraint("hip_above_ground", self.hip_position[2])  # no ground penetration on all the horizon
-        hip_above_ground.setBounds(0.0, cs.inf)
-
-        knee_above_ground = self.prb.createConstraint("knee_above_ground", self.knee_position[2])  # no ground penetration on all the horizon
-        knee_above_ground.setBounds(0.0, cs.inf)
+        # delta_ek_check = self.prb.createIntermediateConstraint('delta_ek_check', self.delta_ek, 
+        #                                         nodes = 0)
+        # delta_ek_check.setBounds(-cs.inf, cs.inf)
         
         regenerate_something_please = self.prb.createConstraint("regenerate_something",
                                                         self.__ebatt(len(self.reg_pow_nodes)), 
@@ -355,8 +433,9 @@ class landingEnergyRecover:
         # regenerate_everywhere = self.prb.createConstraint("regenerate_everywhere",
         #                                                 self.p_batt, 
         #                                                 nodes = self.reg_pow_nodes)  # no ground penetration on all the horizon
-
         # regenerate_everywhere.setBounds(1e-2, cs.inf)
+
+        # self.prb.createConstraint("ig", (self.q_landing - self.q_ig) / self.n_nodes, nodes=[0])
 
     def __compute_p_batt_fun(self, 
                         q_p_dot, q_p_ddot, tau):
@@ -394,7 +473,13 @@ class landingEnergyRecover:
             
             pbatt_int = pbatt_int + pbatt_offset
         
-        return pbatt_int * self.dt_single_var
+        if not self.is_ref_prb:
+            
+            return pbatt_int * self.dt_single_var
+        
+        else:
+
+            return pbatt_int * self.dt_ref
 
     def __set_costs(self):
 
@@ -408,13 +493,21 @@ class landingEnergyRecover:
         #     self.prb.createCost("break_at_the_of_the_horizon", self.weight_braking * cs.sumsqr(self.q_p_dot), nodes=self.last_node)
 
         if self.weight_q_reg > 0:
-            self.prb.createCost("stay_far_from_singular", self.weight_q_reg * cs.sumsqr(self.q_p[1:] - self.q_ig), nodes=[0])
+            costname = "stay_far_from_singular"
+            print("ADDING COST: " + costname)
+            self.prb.createCost(costname, 
+                            self.weight_q_reg * cs.sumsqr(self.q_landing[1:] - self.q_ig))
 
         if self.weight_impact_min > 0:
-            self.prb.createCost("min_impact_residual_kin_energy_dissipation", - self.weight_impact_min * self.delta_ek,
+            costname = "min_impact_residual_kin_energy_dissipation"
+            print("ADDING COST: " + costname)
+            self.prb.createCost(costname, - self.weight_impact_min * self.delta_ek,
                                 nodes=[0])  # delta_ek is always <= 0
 
         if self.weight_reg_energy > 0:
+            costname = "max_reg_energy"
+            print("ADDING COST: " + costname)
+
             # self.prb.createIntermediateCost("reg_energy_joule", - self.weight_reg_energy * self.r_iq_2)
             # self.prb.createCost("reg_energy_indct_init", - self.weight_reg_energy * self.l_iq_i, nodes=[0])
             # self.prb.createCost("reg_energy_indct_fin", - self.weight_reg_energy * self.l_iq_f, nodes=self.n_nodes - 1)
@@ -430,38 +523,60 @@ class landingEnergyRecover:
             #                                                                                                         self.tau)), 
             #                             nodes = self.reg_pow_nodes)
             
-            self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy * (1e2 - self.__ebatt(len(self.reg_pow_nodes))), 
+            self.prb.createIntermediateCost(costname, self.weight_reg_energy * (1e2 - self.__ebatt(len(self.reg_pow_nodes))), 
                                         nodes = self.last_node)
 
         # regularizations
         if self.weight_f_contact_cost > 0:
-            self.prb.createIntermediateCost("min_f_contact", \
+
+            costname = "min_f_contact"
+            print("ADDING COST: " + costname)
+
+            self.prb.createIntermediateCost(costname, \
                                             self.weight_f_contact_cost / self.n_nodes * cs.sumsqr(self.f_contact[0:2]),
                                             nodes=self.input_nodes)
 
         if self.weight_f_contact_diff > 0:
-            self.prb.createIntermediateCost("min_f_contact_diff", \
+
+            costname = "min_f_contact_diff"
+            print("ADDING COST: " + costname)
+            
+            self.prb.createIntermediateCost(costname, \
                                             self.weight_f_contact_diff / self.n_nodes * cs.sumsqr(
                                                 self.f_contact - self.f_contact.getVarOffset(-1)),
                                             nodes=self.input_diff_nodes)
 
         if self.weight_q_dot > 0:
-            self.prb.createCost("min_q_dot", self.weight_q_dot / self.n_nodes * cs.sumsqr(self.q_p_dot),
+
+            costname = "min_q_dot"
+            print("ADDING COST: " + costname)
+
+            self.prb.createCost(costname, self.weight_q_dot / self.n_nodes * cs.sumsqr(self.q_p_dot),
                                 nodes=range(1, self.last_node))
 
         if self.weight_q_dot_diff > 0:
-            self.prb.createIntermediateCost("min_q_dot_diff", self.weight_q_dot_diff / self.n_nodes * cs.sumsqr(
+
+            costname = "min_q_dot_diff"
+            print("ADDING COST: " + costname)
+
+            self.prb.createIntermediateCost(costname, self.weight_q_dot_diff / self.n_nodes * cs.sumsqr(
                 self.q_p_dot - self.q_p_dot.getVarOffset(-1)))
 
         if self.weight_jnt_input > 0:
-            self.prb.createIntermediateCost("min_q_ddot", self.weight_jnt_input / self.n_nodes * cs.sumsqr(self.q_p_ddot[1:]),
+
+            costname = "min_q_ddot"
+            print("ADDING COST: " + costname)
+
+            self.prb.createIntermediateCost(costname, self.weight_jnt_input / self.n_nodes * cs.sumsqr(self.q_p_ddot[1:]),
                                             nodes=self.input_nodes)
 
         if self.weight_jnt_input_diff > 0:
-            jnt_input_diff = cs.sumsqr(self.q_p_ddot[1:] - self.q_p_ddot[1:].getVarOffset(-1))
+            
+            costname = "min_jnt_input_diff"
+            print("ADDING COST: " + costname)
 
-            self.prb.createIntermediateCost("min_jnt_input_diff", \
-                                            self.weight_jnt_input_diff / self.n_nodes * jnt_input_diff, 
+            self.prb.createIntermediateCost(costname, \
+                                            self.weight_jnt_input_diff / self.n_nodes * (cs.sumsqr(self.q_p_ddot - self.q_p_ddot.getVarOffset(-1))), 
                                             nodes=self.input_diff_nodes)
 
         # if self.weight_imp_cntrl > 0 and self.use_soft_imp_cntrl:
@@ -499,9 +614,13 @@ class landingEnergyRecover:
         self.l_iq_i_sol = 3 / 4 * self.i_q_estimate_sol[:, 0].T @ self.L_q_mat @ self.i_q_estimate_sol[:, 0]
         self.l_iq_f_sol = -3 / 4 * self.i_q_estimate_sol[:, -1].T @ self.L_q_mat @ self.i_q_estimate_sol[:, -1]
 
+        if self.is_ref_prb:
+
+            self.solution['dt_opt'] = self.dt_ref
+
         self.r_iq_2_sol_int = np.sum(self.r_iq_2_sol) * self.solution['dt_opt']
         self.t_w_sol_int = np.sum(self.t_w_sol) * self.solution['dt_opt']
-
+        
         self.e_batt = self.r_iq_2_sol_int + self.l_iq_i_sol + self.l_iq_f_sol + self.t_w_sol_int
 
         self.sol_dict = {**self.solution,
@@ -520,11 +639,58 @@ class landingEnergyRecover:
                          **{'e_batt': self.e_batt}
                          }
 
-        # **{'dt': self.prb.getDt()
+    def __resample_sol(self):
+
+        q_sym = cs.SX.sym('q', self.n_q)
+        q_dot_sym = cs.SX.sym('q_dot', self.n_v)
+        q_ddot_sym = cs.SX.sym('q_ddot', self.n_v)
+        x = cs.vertcat(q_sym, q_dot_sym)
+        x_dot = utils.double_integrator(q_sym, q_dot_sym, q_ddot_sym)
+
+        # sol_contact_map = dict(tip1 = self.solution["f_contact"])  # creating a contact map for applying the input to the foot
+
+        dt_res = (self.solution['dt_opt'][0][0] * self.n_int) / self.n_int_ig
+
+        x_res = resampler_trajectory.resampler(self.solution["x_opt"], self.solution["u_opt"], \
+                                                self.slvr.getDt().flatten(), 
+                                                dt_res, 
+                                                None, \
+                                                self.prb.getIntegrator())
+                                                                                            
+        self.p_res = x_res[:self.n_q]
+        self.v_res = x_res[self.n_q:]
+
+        self.res_f_contact = resampler_trajectory.resample_input(self.solution["f_contact"],\
+                                                self.slvr.getDt().flatten(), dt_res)
+        self.res_f_contact_map = dict(tip1 = self.res_f_contact)
+        
+        self.a_res = resampler_trajectory.resample_input(self.solution["q_p_ddot"],\
+                                        self.slvr.getDt().flatten(), dt_res)
+
+        from jump_utils.horizon_utils import inv_dyn_from_sol
+        self.tau_res = inv_dyn_from_sol(self.urdf_kin_dyn, 
+                            self.p_res, self.v_res, self.a_res,\
+                            casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED,\
+                            self.res_f_contact_map)
+            
+    def __postproc_res_sol(self):
+
+        self.__resample_sol()
+
+        self.useful_res_data={"q_p":self.p_res,"q_p_dot":self.v_res, "q_p_ddot":self.a_res,
+                        "tau":self.tau_res, 
+                        "f_contact":self.res_f_contact}
 
     def __dump_sol2file(self):
+        
+        if not self.is_ref_prb:
+            
+            self.ms_sol.store(self.sol_dict)  # saving solution data to file
+            self.ms_resampl.store(self.useful_res_data)
 
-        self.ms_sol.store(self.sol_dict)  # saving solution data to file
+        else:
+
+            self.ms_sol.store(self.sol_dict)  # saving solution data to file
 
     def init_prb(self):
 
@@ -567,6 +733,14 @@ class landingEnergyRecover:
 
         self.__get_solution()
 
-        self.__postproc_sol()
+        if not self.is_ref_prb:
+
+            self.__postproc_sol()
+
+            self.__postproc_res_sol() # we also dump resampled solution
+
+        else:
+            
+            self.__postproc_sol()
 
         self.__dump_sol2file()

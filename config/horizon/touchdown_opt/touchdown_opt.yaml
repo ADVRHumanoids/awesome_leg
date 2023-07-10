@@ -8,12 +8,8 @@ energy_recov_opt:
 
   problem:
 
-    n_int: 50
-
-    dt_lb: 0.02
-    dt_ub: 0.02
-
     is_iq_cnstrnt: false # whether to use the iq constraint or not
+
     is_friction_cone: false # whether to use a friction constraint or not
 
     jnt_limit_margin: 0.0 # the actual imposed jnt limit will be reduced by this amount
@@ -24,38 +20,69 @@ energy_recov_opt:
 
     landing_vel: -2.8
 
-    is_q_ig: True
-
-    q_ig: [1.0, 1.0]
-
     max_braking_q_dot: 0.1 # [m/s]
 
-    reg_pow_node_offset: 25 # start now from which maximize reg power
-
+    reg_pow_node_offset: 0.25 # % of nodes to remove from the start of the opt horizon ()
+    # from the renegeration cost
     use_soft_imp_cntrl: False
 
     use_braking_constraint: False
 
-    weights:
+    dt_lb: 0.01
+    dt_ub: 0.01
 
-      weight_f_contact: 1 # cost for penalizing contact forces
-      weight_f_contact_diff: -1 # cost for penalizing differences between successive f_contacts
-      weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
-      weight_jnt_input_diff:  1 # cost for penalizing differences between successive inputs
-      weight_q_dot: -1 
-      weight_q_dot_diff: -1
+    q_ig: [1.0, 1.0]
 
-      weight_q_reg: 10
+    ig_generation: 
 
-      weight_reg_energy: -1
-      weight_impact_min: -1
+      n_int: 300
 
-      # weight_reg_q_dot: -1
+      is_q_ig: True
 
-      # weight_braking: -1
+      weights:
 
-      # weight_imp_cntrl: -1
+        weight_f_contact: -1 # cost for penalizing contact forces
+        weight_f_contact_diff: 1 # cost for penalizing differences between successive f_contacts
+        weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
+        weight_jnt_input_diff:  1 # cost for penalizing differences between successive inputs
+        weight_q_dot: -1 
+        weight_q_dot_diff: -1
 
+        weight_q_reg: 0.01
+
+        weight_reg_energy: 1
+        weight_impact_min: 10
+
+        # weight_reg_q_dot: -1
+
+        # weight_braking: -1
+
+        # weight_imp_cntrl: -1
+
+    ref: 
+
+      n_int: 100
+
+      weights:
+
+        weight_f_contact: -1 # cost for penalizing contact forces
+        weight_f_contact_diff: 1 # cost for penalizing differences between successive f_contacts
+        weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
+        weight_jnt_input_diff:  1 # cost for penalizing differences between successive inputs
+        weight_q_dot: -1 
+        weight_q_dot_diff: -1
+
+        weight_q_reg: 0.01
+
+        weight_reg_energy: -1
+        weight_impact_min: 10
+
+        # weight_reg_q_dot: -1
+
+        # weight_braking: -1
+
+        # weight_imp_cntrl: -1
+        
   solver:
 
     ipopt_tol: 0.0001
