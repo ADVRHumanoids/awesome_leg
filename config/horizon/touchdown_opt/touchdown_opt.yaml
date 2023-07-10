@@ -8,16 +8,6 @@ energy_recov_opt:
 
   problem:
 
-    # n_int: 100
-
-    # dt_lb: 0.001
-    # dt_ub: 0.05
-
-    # n_int: 100
-
-    # dt_lb: 0.001
-    # dt_ub: 0.05
-
     n_int: 50
 
     dt_lb: 0.02
@@ -38,9 +28,9 @@ energy_recov_opt:
 
     q_ig: [1.0, 1.0]
 
-    max_braking_q_dot: 0.05 # [m/s]
+    max_braking_q_dot: 0.1 # [m/s]
 
-    reg_pow_node_offset: 10 # start now from which maximize reg power
+    reg_pow_node_offset: 25 # start now from which maximize reg power
 
     use_soft_imp_cntrl: False
 
@@ -55,10 +45,10 @@ energy_recov_opt:
       weight_q_dot: -1 
       weight_q_dot_diff: -1
 
-      weight_q_reg: 1
+      weight_q_reg: 10
 
-      weight_reg_energy: 0.0001
-      weight_impact_min: 0.001
+      weight_reg_energy: -1
+      weight_impact_min: -1
 
       # weight_reg_q_dot: -1
 
@@ -70,7 +60,7 @@ energy_recov_opt:
 
     ipopt_tol: 0.0001
     ipopt_maxiter: 1000
-    ipopt_cnstr_viol_tol: 0.0001 # 1e-6 is a reasonable value for accurate results
+    ipopt_cnstr_viol_tol: 0.00001 # 1e-6 is a reasonable value for accurate results
     ipopt_lin_solver: "ma57" # "mumps"
     name: "ipopt"
 

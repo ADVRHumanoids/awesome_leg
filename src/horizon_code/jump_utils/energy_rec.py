@@ -279,18 +279,20 @@ class landingEnergyRecover:
     
     def __set_constraints(self):
 
-        self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau)  # torque limits
-        self.tau_limits.setBounds(- self.tau_lim, self.tau_lim)  # setting input limits
+        self.tau_limits = self.prb.createIntermediateConstraint("tau_limits", self.tau / self.n_nodes)  # torque limits
+        self.tau_limits.setBounds(- self.tau_lim / self.n_nodes, self.tau_lim / self.n_nodes)  # setting input limits
 
-        self.prb.createConstraint("foot_vel_zero", self.v_foot_tip)  # we always have contact
-        self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2], nodes=0)  # tip starts on ground
+        self.prb.createConstraint("foot_vel_zero", self.v_foot_tip / self.n_nodes)  # we always have contact
+        self.prb.createConstraint("tip_starts_on_ground", self.foot_tip_position[2] / self.n_nodes, nodes=0)  # tip starts on ground
 
         self.imp_cntrl_cntrnt = []
 
         for i in range(0, self.n_v - 1):
 
-            self.imp_cntrl_cntrnt.append(self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', self.tau[i + 1] - (
-                    self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1])))
+            self.imp_cntrl_cntrnt.append(self.prb.createIntermediateConstraint(f'imp_cntrl_jnt{i}', 
+                                                    (self.tau[i + 1] - (
+                                                    self.kp[i] * (self.q_p[i + 1] - self.q_landing[i]) - self.kd[i] * self.q_p_dot[i + 1])) / self.n_nodes
+                                                    ))
 
             # if self.use_soft_imp_cntrl:
             #
@@ -301,23 +303,25 @@ class landingEnergyRecover:
             #
             #     self.imp_cntrl_cntrnt[i].setBounds(-1., 1.)  # we allow for some error in the constraint
 
-        self.prb.createConstraint('q_p_at_touchdown', self.q_p[1:] - self.q_landing, nodes=0)
+        self.prb.createConstraint('q_p_at_touchdown', (self.q_p[1:] - self.q_landing) / self.n_nodes, nodes=0)
 
         for i in range(0, self.n_v):
-            self.prb.createConstraint('impact_dyn_jnt' + str(i), self.B_Delta_v[i] - self.JT_i[i],
+            self.prb.createConstraint('impact_dyn_jnt' + str(i), (self.B_Delta_v[i] - self.JT_i[i]) / self.n_nodes,
                                       nodes=0)  # impact law
 
-        grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2])
+        grf_positive = self.prb.createIntermediateConstraint("grf_positive", self.f_contact[2] / self.n_nodes)
         grf_positive.setBounds(0., cs.inf)
 
-        no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek, nodes=0)
-        no_energy_violation.setBounds(-cs.inf, 0.0)
+        no_energy_violation = self.prb.createConstraint("we_cannot_create_energy_at_touchdown", self.delta_ek  / self.n_nodes, nodes=0)
+        no_energy_violation.setBounds(-cs.inf / self.n_nodes, 0.0)
         
         if (self.use_braking_constraint):
 
-            braking_cnstrnt = self.prb.createConstraint("braking_q_dot", self.q_p_dot[0], nodes = self.last_node)
-            braking_cnstrnt.setBounds(-self.braking_q_dot, self.braking_q_dot)
+            braking_cnstrnt = self.prb.createConstraint("braking_q_dot", self.q_p_dot[0]  / self.n_nodes, nodes = self.last_node)
+            braking_cnstrnt.setBounds(-self.braking_q_dot / self.n_nodes, self.braking_q_dot / self.n_nodes)
 
+
+        ### Additional constraints just for debugging (to be removed on the final run)
         # iq_check = self.prb.createIntermediateConstraint('iq_check', self.i_q_estimate)
         # ub_iq = np.ones((2, 1)) * cs.inf
         # lb_iq = - np.ones((2, 1)) * cs.inf
@@ -344,9 +348,8 @@ class landingEnergyRecover:
         knee_above_ground.setBounds(0.0, cs.inf)
         
         regenerate_something_please = self.prb.createConstraint("regenerate_something",
-                                                        self.__ebatt(self.n_nodes), 
+                                                        self.__ebatt(len(self.reg_pow_nodes)), 
                                                         nodes = self.last_node)  # no ground penetration on all the horizon
-
         regenerate_something_please.setBounds(-cs.inf, cs.inf)
 
         # regenerate_everywhere = self.prb.createConstraint("regenerate_everywhere",
@@ -419,17 +422,16 @@ class landingEnergyRecover:
             
             # self.prb.createIntermediateCost("reg_pow_batt", 1 / (self.p_batt + 0.0001))
       
-            self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.p_batt), 
-                                        nodes = self.reg_pow_nodes)
+            # self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.p_batt), 
+            #                             nodes = self.reg_pow_nodes)
             
             # self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.__compute_p_batt_fun(self.q_p_dot, 
             #                                                                                                         self.q_p_ddot, 
             #                                                                                                         self.tau)), 
             #                             nodes = self.reg_pow_nodes)
             
-            
-            # self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy / self.n_nodes * (1e3 - self.__ebatt(self.n_nodes)), 
-            #                             nodes = self.last_node)
+            self.prb.createIntermediateCost("max_reg_energy", self.weight_reg_energy * (1e2 - self.__ebatt(len(self.reg_pow_nodes))), 
+                                        nodes = self.last_node)
 
         # regularizations
         if self.weight_f_contact_cost > 0:
@@ -506,6 +508,7 @@ class landingEnergyRecover:
                          **self.cnstr_opt,
                          **self.lambda_cnstrnt,
                          **{'n_int': self.n_int},
+                         **{'reg_pow_nodes': self.reg_pow_nodes},
                          **{'tau_sol': self.tau_sol},
                          **{'i_q_estimate': self.i_q_estimate_sol},
                          **{'r_iq_2_sol': self.r_iq_2_sol},
@@ -538,8 +541,9 @@ class landingEnergyRecover:
 
         self.tau = kin_dyn.InverseDynamics(self.urdf_kin_dyn, self.contact_map.keys(), \
                                            casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(
-            self.q_p, \
-            self.q_p_dot, self.q_p_ddot, self.contact_map)
+            self.q_p, 
+            self.q_p_dot, self.q_p_ddot, 
+            self.contact_map)
 
         self.__get_quantities_from_urdf()
 
