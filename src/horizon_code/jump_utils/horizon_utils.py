@@ -67,7 +67,11 @@ def compute_required_iq_estimate(act_yaml_file, q_p_dot, q_p_ddot,  tau, tanh_co
 
     return i_q_est
 
-def compute_required_iq_estimate_num(act_yaml_file, q_p_dot_sol, q_p_ddot_sol, tau_sol, tanh_coeff):
+def compute_required_iq_estimate_num(act_yaml_file, 
+                                    q_p_dot_sol, 
+                                    q_p_ddot_sol, 
+                                    tau_sol, 
+                                    tanh_coeff):
 
     i_q_n_samples = len(q_p_ddot_sol[0, :])
     n_jnts = len(act_yaml_file["K_d0"])

@@ -22,33 +22,33 @@ energy_recov_opt:
 
     max_braking_q_dot: 0.1 # [m/s]
 
-    reg_pow_node_offset: 0.25 # % of nodes to remove from the start of the opt horizon ()
+    reg_pow_node_offset: 1.0 # % of nodes to remove from the start of the opt horizon ()
     # from the renegeration cost
     use_soft_imp_cntrl: False
 
     use_braking_constraint: False
 
     dt_lb: 0.01
-    dt_ub: 0.01
+    dt_ub: 0.05
 
     q_ig: [1.0, 1.0]
 
     ig_generation: 
 
-      n_int: 300
+      n_int: 100
 
       is_q_ig: True
 
       weights:
 
         weight_f_contact: -1 # cost for penalizing contact forces
-        weight_f_contact_diff: 1 # cost for penalizing differences between successive f_contacts
+        weight_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
         weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff:  1 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff:  0.01 # cost for penalizing differences between successive inputs
         weight_q_dot: -1 
         weight_q_dot_diff: -1
 
-        weight_q_reg: 0.01
+        weight_q_reg: 1.0
 
         weight_reg_energy: 1
         weight_impact_min: 10
@@ -66,15 +66,15 @@ energy_recov_opt:
       weights:
 
         weight_f_contact: -1 # cost for penalizing contact forces
-        weight_f_contact_diff: 1 # cost for penalizing differences between successive f_contacts
+        weight_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
         weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff:  1 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff:  0.01 # cost for penalizing differences between successive inputs
         weight_q_dot: -1 
         weight_q_dot_diff: -1
 
-        weight_q_reg: 0.01
+        weight_q_reg: 1.0
 
-        weight_reg_energy: -1
+        weight_reg_energy: 1
         weight_impact_min: 10
 
         # weight_reg_q_dot: -1
