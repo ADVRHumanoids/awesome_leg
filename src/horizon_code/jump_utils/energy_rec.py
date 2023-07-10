@@ -169,7 +169,7 @@ class landingEnergyRecover:
         loaded_sol_ig = self.ig_loader.load()
         loaded_sol_ig_res = self.ig_res_loader.load()
 
-        self.T_landing = np.sum(loaded_sol_ig["dt_opt"].flatten())
+        self.T_landing = loaded_sol_ig["dt_opt"][0][0] *  loaded_sol_ig["n_int"][0][0]
         self.q_landing_ig = loaded_sol_ig["q_landing"]
 
         self.q_p_ig = loaded_sol_ig_res["q_p"]
@@ -619,6 +619,10 @@ class landingEnergyRecover:
         
         # self.__compute_postproc_sols()
         
+        if self.is_ref_prb:
+
+            self.solution['dt_opt'] = self.dt_ref
+
         self.sol_dict = {**self.solution,
                          **self.cnstr_opt,
                          **self.lambda_cnstrnt,
