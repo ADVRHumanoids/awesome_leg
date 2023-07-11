@@ -127,14 +127,17 @@ combined_data = np.concatenate((recov_energy_nonopt0,
                             recov_energy_nonopt4,
                             recov_energy_opt), axis = 1)
 
-samples_descriptions = [r"$\rightarrow$" + "non opt. " + r"$\hat{q}$" + f"\nn0: " + r"$K_p$ " + f"[{round(stiff_values_nonopt0[0], 0)}, {round(stiff_values_nonopt0[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt0[0], 0)}, {round(damp_values_nonopt0[1], 0)}] N m/(rad/s);",
-                        f"n1: " + r"$K_p$ " + f"[{round(stiff_values_nonopt1[0], 0)}, {round(stiff_values_nonopt1[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt1[0], 0)}, {round(damp_values_nonopt1[1], 0)}] N m/(rad/s);",                       
-                        f"n2: " + r"$K_p$ " + f"[{round(stiff_values_nonopt2[0], 0)}, {round(stiff_values_nonopt2[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt2[0], 0)}, {round(damp_values_nonopt2[1], 0)}] N m/(rad/s);",                      
-                        f"n3: " + r"$K_p$ " + f"[{round(stiff_values_nonopt3[0], 0)}, {round(stiff_values_nonopt3[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt3[0], 0)}, {round(damp_values_nonopt3[1], 0)}] N m/(rad/s);",              
-                        f"n4: " + r"$K_p$ " + f"[{round(stiff_values_nonopt3[0], 0)}, {round(stiff_values_nonopt3[1], 0)}] N m/rad; " + r"$K_d$ " + f"[{round(damp_values_nonopt3[0], 0)}, {round(damp_values_nonopt3[1], 0)}] N m/(rad/s);",              
-                        r"$\rightarrow$" + "opt. " + r"$\hat{q}$" + f"\n" + r"$\mathbf{n5}:$ " + r"opt $K_p$ " + f"[{round(stiff_values_opt[0], 0)}, {round(stiff_values_opt[1], 0)}] N m/rad; " + r"opt $K_d$ " + f"[{round(damp_values_opt[0], 0)}, {round(damp_values_opt[1], 0)}] N m/(rad/s);",              
+samples_descriptions = [
+                        # "Non opt. " + r"$\hat{q}$" + "; not opt. impedances\n "+  \
+                        f"                  Kp" + "              " +  f"    Kd"+  "\n" + \
+                        f"n0" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt0[0], 0)}, {round(stiff_values_nonopt0[1], 0)}]; " + f"[{round(damp_values_nonopt0[0], 0)}, {round(damp_values_nonopt0[1], 0)}]",
+                        f"n1" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt1[0], 0)}, {round(stiff_values_nonopt1[1], 0)}]; " + f"[{round(damp_values_nonopt1[0], 0)}, {round(damp_values_nonopt1[1], 0)}]",
+                        f"n2" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt2[0], 0)}, {round(stiff_values_nonopt2[1], 0)}]; " + f"[{round(damp_values_nonopt2[0], 0)}, {round(damp_values_nonopt2[1], 0)}]",
+                        f"n3" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt3[0], 0)}, {round(stiff_values_nonopt3[1], 0)}];     " + f"[{round(damp_values_nonopt3[0], 0)}, {round(damp_values_nonopt3[1], 0)}]",
+                        f"n4" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt4[0], 0)}, {round(stiff_values_nonopt4[1], 0)}];     " + f"[{round(damp_values_nonopt4[0], 0)}, {round(damp_values_nonopt4[1], 0)}]",
+                        r"$\mathbf{n5}$" + r"$\rightarrow$" + f" [{round(stiff_values_opt[0], 0)}, {round(stiff_values_opt[1], 0)}];     "  + f"[{round(damp_values_opt[0], 0)}, {round(damp_values_opt[1], 0)}]",              
                         ]
-fontzise = 13
+fontzise = 18
 figsizey = 5
 figsizex = 10
 green_diamond = dict(markerfacecolor='g', marker='D')
