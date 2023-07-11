@@ -73,5 +73,4 @@ legend = ax.legend([r"$\mathrm{p}_{\mathrm{batt}}$",
                     r"$\mathrm{p}_{\mathrm{mech}}$"], fontsize=fontsize)
 legend.set_draggable(state = True)
 
-
 plt.show()
