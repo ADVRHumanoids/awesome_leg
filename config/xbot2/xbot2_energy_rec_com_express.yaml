@@ -84,9 +84,9 @@ xbotcore_plugins:
             takeoff_traj_name: {value: apex_awesome_jump_ref.mat, type: string}
 
 #            landing_config_path: {value: /tmp/opt_landings/opt_landings/01_02_2023/touchdown_opt_01-03-2023-13_58_58/, type: string}
-            landing_config_path: {value: /tmp/humanoids_opendata/opt_landings/01_02_2023/touchdown_opt_01-03-2023-17_59_11/, type: string}
+            landing_config_path: {value: /tmp/humanoids_opendata/opt_landings/touchdown_opt_11-07-2023-12_25_45/, type: string}
 
-            landing_config_name: {value: energy_recov.mat, type: string}
+            landing_config_name: {value: energy_recov_ig.mat, type: string}
 
             replay_stiffness: {value: [2000.0, 2000.0], type: Eigen::VectorXd}
             replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
@@ -103,8 +103,8 @@ xbotcore_plugins:
             # only used if ramp2touchdown_config == false; in this case, instead of using the optimal landing config and impedances 
             # provided by landing_config_name, we simply leave the last reference position and land with the impedance
             # setpoints provided below
-            landing_stiffness: {value: [50.0, 50.0], type: Eigen::VectorXd}
-            landing_damping: {value: [20.0, 20.0], type: Eigen::VectorXd}
+            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd}
+            landing_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
 
             send_pos_ref: {value: true, type: bool}
             send_vel_ref: {value: true, type: bool}
