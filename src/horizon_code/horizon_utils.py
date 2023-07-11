@@ -3,10 +3,6 @@ import numpy as np
 
 from horizon.utils import mat_storer
 
-import matplotlib.pyplot as plt
-# from matplotlib import cm
-# from matplotlib.ticker import LinearLocator, FormatStrFormatter
-
 import h5py
 
 import warnings
