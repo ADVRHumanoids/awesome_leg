@@ -45,7 +45,11 @@ def forw_dyn_from_sol(urdf_kin_dyn, q_p, q_p_dot, tau, force_ref_frame, frame_fo
 
     return a_res
 
-def compute_required_iq_estimate(act_yaml_file, q_p_dot, q_p_ddot,  tau, tanh_coeff):
+def compute_required_iq_estimate(act_yaml_file, 
+                                q_p_dot, 
+                                q_p_ddot, 
+                                tau, 
+                                tanh_coeff):
 
     i_q_est = []
     n_jnts = len(act_yaml_file["K_d0"])
@@ -72,6 +76,8 @@ def compute_required_iq_estimate_num(act_yaml_file,
                                     q_p_ddot_sol, 
                                     tau_sol, 
                                     tanh_coeff):
+
+    # BROKEEEEEEENNNNNN -> NOT WORKING
 
     i_q_n_samples = len(q_p_ddot_sol[0, :])
     n_jnts = len(act_yaml_file["K_d0"])

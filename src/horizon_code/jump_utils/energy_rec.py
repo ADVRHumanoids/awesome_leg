@@ -11,7 +11,7 @@ from horizon.ros.replay_trajectory import *
 from horizon.solvers import solver
 from horizon.transcriptions import transcriptor
 from horizon.utils import kin_dyn, mat_storer, resampler_trajectory, utils
-from jump_utils.horizon_utils import compute_required_iq_estimate, compute_required_iq_estimate_num
+from jump_utils.horizon_utils import compute_required_iq_estimate
 
 class landingEnergyRecover:
 
@@ -238,7 +238,7 @@ class landingEnergyRecover:
         self.kd = self.prb.createSingleVariable('kd', self.n_v - 1)
         kp_min = 0. * np.ones(self.n_v - 1)
         kp_max = 4000 * np.ones(self.n_v - 1)
-        kd_min = 1.0 * np.ones(self.n_v - 1)
+        kd_min = 0.0 * np.ones(self.n_v - 1)
         kd_max = 100 * np.ones(self.n_v - 1)
         self.kp.setBounds(kp_min, kp_max)
         self.kd.setBounds(kd_min, kd_max)
@@ -345,11 +345,13 @@ class landingEnergyRecover:
                             self.__compute_p_batt_fun(self.q_p_dot, 
                                     self.q_p_ddot, 
                                     self.tau)
-        # variation of kin energy due to impact
+        
+        # variation of kin energy due to impact (both formulations are math equivalent, but the first turned out to be
+        # more stable numerically)
 
         self.delta_ek = 1/2 * self.impact.T @ (self.J_tip @ self.q_p_dot_pretouchdown) # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for
         # energy conservation 
-
+        
         # self.delta_ek = 1 / 2 * (
         #             self.q_p_dot.T @ self.B @ self.q_p_dot - self.q_p_dot_pretouchdown.T @ self.B @ self.q_p_dot_pretouchdown)  # this is Ek_pst_takeoff - Ek_pre_takeoff <= 0 always for
     
@@ -412,21 +414,21 @@ class landingEnergyRecover:
         # l_iq_i.setBounds(-cs.inf, cs.inf)
         # l_iq_f = self.prb.createIntermediateConstraint('p_induct_checkf', self.l_iq_f)
         # l_iq_f.setBounds(-cs.inf, cs.inf)
-        p_joule_check = self.prb.createIntermediateConstraint('p_joule_check', self.r_iq_2)
-        p_joule_check.setBounds(-cs.inf, cs.inf)
-        t_w = self.prb.createIntermediateConstraint('p_mech_pow_check', self.t_w)
-        t_w.setBounds(-cs.inf, cs.inf)
-        p_batt_check = self.prb.createIntermediateConstraint('p_batt_check', self.p_batt)
-        p_batt_check.setBounds(-cs.inf, cs.inf)
+        # p_joule_check = self.prb.createIntermediateConstraint('p_joule_check', self.r_iq_2)
+        # p_joule_check.setBounds(-cs.inf, cs.inf)
+        # t_w = self.prb.createIntermediateConstraint('p_mech_pow_check', self.t_w)
+        # t_w.setBounds(-cs.inf, cs.inf)
+        # p_batt_check = self.prb.createIntermediateConstraint('p_batt_check', self.p_batt)
+        # p_batt_check.setBounds(-cs.inf, cs.inf)
 
         delta_ek_check = self.prb.createIntermediateConstraint('delta_ek_check', self.delta_ek, 
                                                 nodes = 0)
         delta_ek_check.setBounds(-cs.inf, cs.inf)
         
         # regenerate_something_please = self.prb.createConstraint("regenerate_something",
-        #                                                 self.__ebatt(len(self.reg_pow_nodes)), 
+        #                                                 self.__ebatt(len(self.reg_pow_nodes), self.last_node), 
         #                                                 nodes = self.last_node)  # no ground penetration on all the horizon
-        # regenerate_something_please.setBounds(1e-3, cs.inf)
+        # regenerate_something_please.setBounds(-cs.inf, cs.inf)
 
         # regenerate_everywhere = self.prb.createConstraint("regenerate_everywhere",
         #                                                 self.p_batt, 
@@ -448,25 +450,42 @@ class landingEnergyRecover:
 
         return p_batt, r_iq_2, l_iq_f, l_iq_i, t_w
     
-    def __ebatt(self, n_nodes):
+    def __ebatt(self, 
+            n_nodes, 
+            start_node):
         
-        pbatt_int, _, _, _, _  = self.__compute_p_batt_fun(self.q_p_dot, 
-                                self.q_p_ddot, 
-                                self.tau)
+        if (self.last_node - start_node) < 0 or n_nodes > (self.n_nodes - (self.last_node - start_node)):
+
+            raise Exception("One or both between n_nodes or start_node is not valid!")
         
-        for i in range(0, n_nodes - 1):
+        contact_map_offset = dict(tip1=self.f_contact.getVarOffset(- (self.last_node - start_node)))
+
+        tau_offset = kin_dyn.InverseDynamics(self.urdf_kin_dyn, contact_map_offset.keys(), \
+                                        casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(
+                        self.q_p.getVarOffset(- (self.last_node - start_node)), \
+                        self.q_p_dot.getVarOffset(- (self.last_node - start_node)), 
+                        self.q_p_ddot.getVarOffset(- (self.last_node - start_node)),
+                        contact_map_offset)
+        
+        pbatt_int, _, _, _, _  = self.__compute_p_batt_fun(self.q_p_dot.getVarOffset(- (self.last_node - start_node)), 
+                                self.q_p_ddot.getVarOffset(- (self.last_node - start_node)), 
+                                tau_offset)
+        
+        for i in range(start_node - n_nodes + 1, start_node):
             
-            contact_map_offset = dict(tip1=self.f_contact.getVarOffset(- (i + 1)))
+            offset = - ((self.last_node - start_node) + i + 1)
+
+            contact_map_offset = dict(tip1=self.f_contact.getVarOffset(offset))
 
             tau_offset = kin_dyn.InverseDynamics(self.urdf_kin_dyn, contact_map_offset.keys(), \
                                            casadi_kin_dyn.py3casadi_kin_dyn.CasadiKinDyn.LOCAL_WORLD_ALIGNED).call(
-                            self.q_p.getVarOffset(- (i + 1)), \
-                            self.q_p_dot.getVarOffset(- (i + 1)), 
-                            self.q_p_ddot.getVarOffset(- (i + 1)),
+                            self.q_p.getVarOffset(offset), \
+                            self.q_p_dot.getVarOffset(offset), 
+                            self.q_p_ddot.getVarOffset(offset),
                             contact_map_offset)
             
-            pbatt_offset, _, _, _, _ = self.__compute_p_batt_fun(self.q_p_dot.getVarOffset(- (i + 1)), 
-                                            self.q_p_ddot.getVarOffset(- (i + 1)), 
+            pbatt_offset, _, _, _, _ = self.__compute_p_batt_fun(self.q_p_dot.getVarOffset(offset), 
+                                            self.q_p_ddot.getVarOffset(offset), 
                                             tau_offset)
             
             pbatt_int = pbatt_int + pbatt_offset
@@ -513,8 +532,8 @@ class landingEnergyRecover:
             
             # self.prb.createIntermediateCost("reg_pow_batt", 1 / (self.p_batt + 0.0001))
       
-            # self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.p_batt), 
-            #                             nodes = self.reg_pow_nodes)
+            self.prb.createIntermediateCost("reg_pow_batt",  self.weight_reg_energy / self.n_nodes * (1e2 -  self.p_batt), 
+                                        nodes = self.reg_pow_nodes)
             
             # self.prb.createIntermediateCost(costname, self.weight_reg_energy * (1e2 - self.__ebatt(len(self.reg_pow_nodes))), 
             #                             nodes = self.last_node)
@@ -587,11 +606,13 @@ class landingEnergyRecover:
 
     def __compute_postproc_sols(self):
 
-        self.i_q_estimate_sol = compute_required_iq_estimate_num(self.act_yaml_file, 
-                                            self.solution['q_p_dot'], 
-                                            self.solution['q_p_ddot'], 
-                                            self.tau_sol, 
-                                            self.tanh_coeff) # DO NOT MATCH!!! TO BE FIXED
+        # self.i_q_estimate_sol = compute_required_iq_estimate_num(self.act_yaml_file, 
+        #                                     self.solution['q_p_dot'], 
+        #                                     self.solution['q_p_ddot'], 
+        #                                     self.tau_sol, 
+        #                                     self.tanh_coeff) # DO NOT USE!!! TO BE FIXED
+        
+        self.i_q_estimate_sol = self.cnstr_opt['iq_check'] # we use directly the value from the dummy constraint
 
         self.r_iq_2_sol = np.zeros([1, self.i_q_estimate_sol.shape[1]])
         self.t_w_sol = np.zeros([1, self.i_q_estimate_sol.shape[1]])
@@ -610,6 +631,9 @@ class landingEnergyRecover:
 
         self.l_iq_i_sol = 3 / 4 * self.i_q_estimate_sol[:, 0].T @ self.L_q_mat @ self.i_q_estimate_sol[:, 0] * self.solution['dt_opt']
         self.l_iq_f_sol = -3 / 4 * self.i_q_estimate_sol[:, -1].T @ self.L_q_mat @ self.i_q_estimate_sol[:, -1] * self.solution['dt_opt']
+
+        self.p_batt = self.r_iq_2_sol + self.t_w_sol + self.l_iq_i_sol + self.l_iq_f_sol
+
         self.r_iq_2_sol_int = np.sum(self.r_iq_2_sol) * self.solution['dt_opt']
         self.t_w_sol_int = np.sum(self.t_w_sol) * self.solution['dt_opt']
         
@@ -617,27 +641,27 @@ class landingEnergyRecover:
 
     def __postproc_sol(self):
         
-        # self.__compute_postproc_sols()
+        self.__compute_postproc_sols()
         
         if self.is_ref_prb:
 
             self.solution['dt_opt'] = self.dt_ref
 
         self.sol_dict = {**self.solution,
-                         **self.cnstr_opt,
-                         **self.lambda_cnstrnt,
-                         **{'n_int': self.n_int},
-                         **{'reg_pow_nodes': self.reg_pow_nodes},
-                         **{'tau_sol': self.tau_sol},
-                        #  **{'i_q_estimate': self.i_q_estimate_sol},
-                        #  **{'r_iq_2_sol': self.r_iq_2_sol},
-                        #  **{'l_iq_i_sol': self.l_iq_i_sol},
-                        #  **{'l_iq_f_sol': self.l_iq_f_sol},
-                        #  **{'t_w_sol': self.t_w_sol},
-                        #  **{'r_iq_2_sol_int': self.r_iq_2_sol_int},
-                        #  **{'t_w_sol_int': self.t_w_sol_int},
-                        #  **{'e_batt': self.e_batt}
-                         }
+                        **self.cnstr_opt,
+                        **self.lambda_cnstrnt,
+                        **{'n_int': self.n_int},
+                        **{'reg_pow_nodes': self.reg_pow_nodes},
+                        **{'tau_sol': self.tau_sol},
+                        **{'r_iq_2_sol': self.r_iq_2_sol},
+                        **{'l_iq_i_sol': self.l_iq_i_sol},
+                        **{'l_iq_f_sol': self.l_iq_f_sol},
+                        **{'t_w_sol': self.t_w_sol},
+                        **{'r_iq_2_sol_int': self.r_iq_2_sol_int},
+                        **{'t_w_sol_int': self.t_w_sol_int},
+                        **{'e_batt': self.e_batt}, 
+                        **{'p_batt': self.p_batt}
+                        }
 
     def __resample_sol(self):
 

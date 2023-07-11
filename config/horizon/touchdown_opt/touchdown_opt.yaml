@@ -31,7 +31,7 @@ energy_recov_opt:
     dt_lb: 0.01
     dt_ub: 0.05
 
-    q_ig: [1.0, 1.0]
+    q_ig: [0.8, 1.6]
 
     ig_generation: 
 
@@ -42,9 +42,9 @@ energy_recov_opt:
       weights:
 
         weight_f_contact: -1 # cost for penalizing contact forces
-        weight_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
+        weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
         weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff:  0.01 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff:  0.1 # cost for penalizing differences between successive inputs
         weight_q_dot: -1 
         weight_q_dot_diff: -1
 
@@ -61,14 +61,14 @@ energy_recov_opt:
 
     ref: 
 
-      n_int: 100
+      n_int: 300
 
       weights:
 
         weight_f_contact: -1 # cost for penalizing contact forces
-        weight_f_contact_diff: 0.01 # cost for penalizing differences between successive f_contacts
+        weight_f_contact_diff: 0.1 # cost for penalizing differences between successive f_contacts
         weight_jnt_input: -1 # cost for penalizing joint accelerations (which are the input)
-        weight_jnt_input_diff:  0.01 # cost for penalizing differences between successive inputs
+        weight_jnt_input_diff:  0.1 # cost for penalizing differences between successive inputs
         weight_q_dot: -1 
         weight_q_dot_diff: -1
 

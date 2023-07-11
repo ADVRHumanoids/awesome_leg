@@ -42,17 +42,17 @@ def main(args):
     landing_generator_ig.solve_prb()
     landing_generator_ig.postproc_sol()
 
-    landing_generator = landingEnergyRecover(horizon_config_fullpath,
-                                            actuators_config_fullpath,
-                                            urdf_full_path,
-                                            args.results_dir, 
-                                            is_ref_prb=True)
-    # and then for the final solution
+    # landing_generator = landingEnergyRecover(horizon_config_fullpath,
+    #                                         actuators_config_fullpath,
+    #                                         urdf_full_path,
+    #                                         args.results_dir, 
+    #                                         is_ref_prb=True)
+    # # and then for the final solution
 
-    landing_generator.init_prb()
-    landing_generator.setup_prb()
-    landing_generator.solve_prb()
-    landing_generator.postproc_sol()
+    # landing_generator.init_prb()
+    # landing_generator.setup_prb()
+    # landing_generator.solve_prb()
+    # landing_generator.postproc_sol()
 
 if __name__ == '__main__':
 
