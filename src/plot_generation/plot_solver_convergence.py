@@ -26,11 +26,11 @@ class LoadSolvInfo:
     ## Low-level methods for manipulating the .mat file ##
 
 jump_path = "/tmp/humanoids_opendata/opt_jumps/jump_generation_06-07-2023-14_24_01"
-landing_path = "/tmp/humanoids_opendata/opt_landings/06_07_2023/touchdown_opt_06-07-2023-16_18_52"
+landing_path = "/tmp/humanoids_opendata/opt_landings/touchdown_opt_11-07-2023-12_25_45"
 jump_mat_name = "apex_awesome_jump_ref"
 jump_mat_name_base = "apex_awesome_jump"
 
-landing_mat_name = "energy_recov"
+landing_mat_name = "energy_recov_ig"
 
 jump_data_log = LoadSolvInfo(jump_path + "/" + jump_mat_name + ".mat")
 jump_data_log_base = LoadSolvInfo(jump_path + "/" + jump_mat_name_base + ".mat")
