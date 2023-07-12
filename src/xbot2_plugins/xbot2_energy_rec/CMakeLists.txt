@@ -44,11 +44,11 @@ target_include_directories(bus_power_rt PRIVATE include src ${matlogger2_INCLUDE
 add_dependencies(bus_power_rt ${PROJECT_NAME}_generate_messages)
 target_link_libraries(bus_power_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2_ros_support)
 
-add_xbot2_plugin(cart_imp_cntrl_rt
-    src/cart_imp_cntrl_rt.cpp)
-target_include_directories(cart_imp_cntrl_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
-add_dependencies(cart_imp_cntrl_rt ${PROJECT_NAME}_generate_messages)
-target_link_libraries(cart_imp_cntrl_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2 xbot2::xbot2_ros_support)
+#add_xbot2_plugin(cart_imp_cntrl_rt
+#    src/cart_imp_cntrl_rt.cpp)
+#target_include_directories(cart_imp_cntrl_rt PRIVATE include src ${matlogger2_INCLUDE_DIRS} )
+#add_dependencies(cart_imp_cntrl_rt ${PROJECT_NAME}_generate_messages)
+#target_link_libraries(cart_imp_cntrl_rt PRIVATE ${cartesian_interface_LIBRARIES} awesome_utils::awesome_utils xbot2::xbot2 xbot2::xbot2_ros_support)
 
 add_xbot2_plugin(plugins_mngr_rt
     src/plugins_manager_rt.cpp)
@@ -94,15 +94,27 @@ if(${behaviortree_cpp_v3_FOUND})
 
     set(BT_CUSTOM_NODES_LIB "bt_custom_nodes")
     add_library(${BT_CUSTOM_NODES_LIB} SHARED
-        src/actions/start_plugins.cpp src/actions/stop_plugins.cpp src/actions/set2idle.cpp
-        src/actions/restart_jump_sequence.cpp src/actions/perform_takeoff.cpp src/actions/go2takeoff_config.cpp
-        src/actions/set2safety_stop.cpp  src/actions/ramp_jnt_imp.cpp
+        src/actions/start_plugins.cpp
+        src/actions/stop_plugins.cpp
+        src/actions/set2idle.cpp
+        src/actions/restart_jump_sequence.cpp
+        src/actions/perform_takeoff.cpp
+        src/actions/go2takeoff_config.cpp
+        src/actions/set2safety_stop.cpp
+        src/actions/ramp_jnt_imp.cpp
 
         src/actions/always_running.cpp
 
-        src/conditions/are_plugins_running.cpp src/conditions/are_plugins_closed.cpp src/conditions/temperature_ok.cpp
-        src/conditions/is_idle.cpp src/conditions/pause_expired.cpp src/conditions/recov_energy_reached.cpp src/conditions/takeoff_performed.cpp
-        src/conditions/takeoff_reached.cpp src/conditions/is_safety_stop.cpp src/conditions/is_joint_device_active.cpp
+        src/conditions/are_plugins_running.cpp
+        src/conditions/are_plugins_closed.cpp
+        src/conditions/temperature_ok.cpp
+        src/conditions/is_idle.cpp
+        src/conditions/pause_expired.cpp
+        src/conditions/recov_energy_reached.cpp
+        src/conditions/takeoff_performed.cpp
+        src/conditions/takeoff_reached.cpp
+        src/conditions/is_safety_stop.cpp
+        src/conditions/is_joint_device_active.cpp
         src/conditions/jnt_imp_ramped.cpp
         )
 
@@ -134,7 +146,7 @@ install(
     iq_model_calib_rt
     bus_power_rt
     plugins_mngr_rt
-    cart_imp_cntrl_rt
+#    cart_imp_cntrl_rt
     temp_monitor_rt
     idler_rt
     timer_rt

@@ -10,29 +10,6 @@ IsJointDevActive::IsJointDevActive(const std::string& name, const NodeConfigurat
 
     setRegistrationID(name);
 
-    // lambda to define callback
-    auto dev_info_callback = [this](const Hal::JointMasterInfo& msg)
-    {
-
-        _joint_dev_info.mask = msg.mask;
-
-        _is_joint_master_active = _joint_dev_info.mask == 0 ? false : true; // inactive when mask is 0, active otherwise
-
-        if(_verbose)
-        {
-            std::cout << Colors::kGreen << "Joint master active: " << _is_joint_master_active << Colors::kEndl << std::endl;
-
-        }
-
-
-    };
-
-    _joint_master_sub = subscribe<Hal::JointMasterInfo>(_joint_dev_info_topicname,
-                            dev_info_callback,
-                            _queue_size);
-
-    _joint_dev_info.mask = 0; // for safety reasons, we assume joint device to be deactivated if not otherwise indicated
-
 };
 
 PortsList IsJointDevActive::providedPorts()
@@ -45,12 +22,12 @@ PortsList IsJointDevActive::providedPorts()
 NodeStatus IsJointDevActive::tick()
 {
 
-    _joint_master_sub->run();
-
     if(_verbose)
     {
         std::cout << Colors::kGreen << "ticking IsJointDevActive" << Colors::kEndl << std::endl;
     }
+
+    _is_joint_master_active = ! Hal::JointSafety::get_shared_safety_flag(); // robot not disabled by xbot2 safety
 
     NodeStatus result = _is_joint_master_active? NodeStatus::SUCCESS : NodeStatus::FAILURE;
 

@@ -23,7 +23,7 @@ void CartImpCntrlRt::is_sim(std::string sim_string = "sim")
 {
     XBot::Context ctx;
     auto& pm = ctx.paramManager();
-    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot/hal/hw_type");
 
     size_t sim_found = _hw_type.find(sim_string);
 
@@ -42,7 +42,7 @@ void CartImpCntrlRt::is_dummy(std::string dummy_string = "dummy")
 {
     XBot::Context ctx;
     auto& pm = ctx.paramManager();
-    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot/hal/hw_type");
 
     size_t dummy_found = _hw_type.find(dummy_string);
 

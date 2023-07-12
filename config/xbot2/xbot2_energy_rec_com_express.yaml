@@ -54,25 +54,25 @@ xbotcore_plugins:
             timer_plugin_topicname: {value: "timer", type: string}
             reset_timers_servname: {value: "reset_timers", type: string}
 
-    base_est_rt:
-        thread: rt_main
-        type: base_est_rt
-        params:
+#    base_est_rt:
+#        thread: rt_main
+#        type: base_est_rt
+#        params:
 
-            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
-            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
+#            urdf_path_base_est: {value: $PWD/../../description/urdf/generated/awesome_leg.urdf, type: file} # used by the model interface
+#            srdf_path_base_est: {value: $PWD/../../description/srdf/awesome_leg_test_rig.srdf, type: file}
 
-            ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
+#            # ik_problem_path: {value: $PWD/../cartesio/energy_recovery/awesome_leg_base_estimation.yaml, type: yamlfile}
 
-            obs_bw: {value: 1.0, type: double}
-            svd_thresh: {value: 0.5, type: double}
+#            obs_bw: {value: 1.0, type: double}
+#            svd_thresh: {value: 0.5, type: double}
 
-            contact_release_thr: {value: 50.0, type: double}
-            contact_attach_thr: {value: 60.0, type: double}
+#            contact_release_thr: {value: 50.0, type: double}
+#            contact_attach_thr: {value: 60.0, type: double}
 
-            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_06-07-2023-14_24_01/, type: string}
+#            mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_06-07-2023-14_24_01/, type: string}
 
-            use_g_during_flight: {value: true, type: bool}
+#            use_g_during_flight: {value: true, type: bool}
 
     jmp_replayer_rt:
         thread: traj_replay
@@ -100,7 +100,7 @@ xbotcore_plugins:
 #            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd} # good for eg
 #            landing_damping: {value: [5.0, 5.0], type: Eigen::VectorXd}
 
-            # only used if ramp2touchdown_config == false; in this case, instead of using the optimal landing config and impedances 
+            # only used if ramp2touchdown_config == false; in this case, instead of using the optimal landing config and impedances
             # provided by landing_config_name, we simply leave the last reference position and land with the impedance
             # setpoints provided below
             landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd}
@@ -193,13 +193,13 @@ xbotcore_plugins:
         type: plugins_mngr_rt
         params:
 
-            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "impact_detector_rt", "base_est_rt"], type: vector<string>}
+            plugin_list: {value: ["idler_rt", "temp_monitor_rt", "jmp_replayer_rt", "timer_rt", "bus_power_rt", "impact_detector_rt"], type: vector<string>}
 
             verbose: {value: false, type: bool}
 
 # global parameters
 xbotcore_param:
-    /jm/tx_filter_autostart: {value: true, type: bool}
-    /jm/tx_filter_cutoff: {value: 10.0, type: double}
+    /xbot/hal/joint_device/filter_autostart: {value: true, type: bool}
+    /xbot/hal/joint_device/filter_cutoff_hz: {value: 10.0, type: double}
     # /jm/tx_filter_cutoff: {value: 500.0, type: double}
-    /jm/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+    /xbot/hal/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)

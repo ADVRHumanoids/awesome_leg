@@ -169,7 +169,7 @@ void JumpReplayerRt::is_sim(std::string sim_string = "sim")
 {
     XBot::Context ctx;
     auto& pm = ctx.paramManager();
-    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot/hal/hw_type");
 
     size_t sim_found = _hw_type.find(sim_string);
 
@@ -188,7 +188,7 @@ void JumpReplayerRt::is_dummy(std::string dummy_string = "dummy")
 {
     XBot::Context ctx;
     auto& pm = ctx.paramManager();
-    _hw_type = pm.getParamOrThrow<std::string>("/xbot_internal/hal/hw_type");
+    _hw_type = pm.getParamOrThrow<std::string>("/xbot/hal/hw_type");
 
     size_t dummy_found = _hw_type.find(dummy_string);
 
@@ -1072,6 +1072,9 @@ bool JumpReplayerRt::on_initialize()
     _peisekah_utils = PeisekahTrans();
 
     _q_p_trgt_appr_traj = _q_p_ref.block(1, 0, _n_jnts_robot, 1); // target pos. for the approach traj
+
+    setDefaultControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() +
+                          ControlMode::Damping());
 
     return true;
     
