@@ -24,8 +24,10 @@ namespace BT
 
         private:
 
-            bool _verbose = false;
+            bool _verbose = true;
             bool _is_joint_master_active = false;
+
+            std::shared_ptr<std::atomic_bool> _is_joint_master_active_ptr;
 
             int _queue_size = 1;
 
