@@ -1,4 +1,4 @@
-#include "bt_rt.h"
+﻿#include "bt_rt.h"
 
 void BtRt::init_clocks()
 {
@@ -253,7 +253,7 @@ void BtRt::pub_bt_status()
 void BtRt::init_plugin_manager()
 {
 
-    _plugins_man_strt_req_pubs->publish(Command::Start);
+    _plugins_man_strt_req_pubs->publish(_start_command);
 
     _plugins_man_strt_res_subs->run(); // processes plugins command service feedback
 
@@ -261,7 +261,7 @@ void BtRt::init_plugin_manager()
 
 void BtRt::close_plugin_manager()
 {
-    _plugins_man_close_req_pubs->publish(Command::Stop);
+    _plugins_man_close_req_pubs->publish(_stop_command);
 
     _plugins_man_close_res_subs->run(); // processes plugins command service feedback
 }
@@ -287,34 +287,37 @@ bool BtRt::on_initialize()
     init_bt();
 
     // plugin manager asynchronous starting
-    auto res_start_callback_cmd = [this](const bool& msg)
+    auto res_start_callback_cmd = [this](const XBot::RpcWrapper<bool>& msg)
     {
 
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                            "Received starting command response {} from plugin manager\n",
-                           msg);
+                           msg.obj);
 
     };
 
-    _plugins_man_strt_req_pubs = advertise<Runnable::Command>(_async_service_pattern + _plugin_manager_name + "/command/request");
-    _plugins_man_strt_res_subs = subscribe<bool>(_async_service_pattern + _plugin_manager_name + "/command/response",
+    _plugins_man_strt_req_pubs = advertise< XBot::RpcWrapper<XBot::Runnable::Command>>(_async_service_pattern + _plugin_manager_name + "/command/request");
+    _plugins_man_strt_res_subs = subscribe<XBot::RpcWrapper<bool>>(_async_service_pattern + _plugin_manager_name + "/command/response",
                                 res_start_callback_cmd,
                                 _queue_size);
 
     // plugin manager asynchronous stopping
-    auto res_stop_callback_cmd = [this](const bool& msg)
+    auto res_stop_callback_cmd = [this](const XBot::RpcWrapper<bool>& msg)
     {
 
         jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                            "Received stopping command response {} from plugin manager \n",
-                           msg);
+                           msg.obj);
 
     };
 
-    _plugins_man_close_req_pubs = advertise<Runnable::Command>(_async_service_pattern + _plugin_manager_name + "/command/request");
-    _plugins_man_close_res_subs = subscribe<bool>(_async_service_pattern + _plugin_manager_name + "/command/response",
+    _plugins_man_close_req_pubs = advertise< XBot::RpcWrapper<XBot::Runnable::Command>>(_async_service_pattern + _plugin_manager_name + "/command/request");
+    _plugins_man_close_res_subs = subscribe<XBot::RpcWrapper<bool>>(_async_service_pattern + _plugin_manager_name + "/command/response",
                                 res_stop_callback_cmd,
                                 _queue_size);
+
+    _start_command.obj = XBot::Runnable::Command::Start;
+    _stop_command.obj = XBot::Runnable::Command::Stop;
 
     return true;
 

@@ -43,11 +43,11 @@ bool PluginsManagerRt::on_initialize()
 
     _n_plugins = _plugin_list.size();
 
-    _strt_req_pubs = std::vector<PublisherPtr<Runnable::Command>>(_n_plugins);
-    _strt_res_subs = std::vector<SubscriberPtr<bool>>(_n_plugins);
+    _strt_req_pubs = std::vector<PublisherPtr< XBot::RpcWrapper<XBot::Runnable::Command>>>(_n_plugins);
+    _strt_res_subs = std::vector<SubscriberPtr<XBot::RpcWrapper<bool>>>(_n_plugins);
 
-    _status_req_pubs = std::vector<PublisherPtr<service::Empty>>(_n_plugins);
-    _status_res_subs = std::vector<SubscriberPtr<std::string>>(_n_plugins);
+    _status_req_pubs = std::vector<PublisherPtr<XBot::RpcWrapper<service::Empty>>>(_n_plugins);
+    _status_res_subs = std::vector<SubscriberPtr<XBot::RpcWrapper<std::string>>>(_n_plugins);
 
     _plugins_status = std::vector<std::string>(_n_plugins);
 
@@ -55,40 +55,40 @@ bool PluginsManagerRt::on_initialize()
     {
 
         // plugin starting/stopping
-        auto res_callback_cmd = [i, this](const bool& msg)
+        auto res_callback_cmd = [i, this](const XBot::RpcWrapper<bool>& msg)
         {
 
             if(_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                                    "Received command response {} from plugin: {} \n",
-                                   msg, _plugin_list[i]);
+                                   msg.obj, _plugin_list[i]);
             }
 
 
         };
 
-        _strt_req_pubs[i] = advertise<Runnable::Command>(_async_service_pattern + _plugin_list[i] + "/command/request");
-        _strt_res_subs[i] = subscribe<bool>(_async_service_pattern + _plugin_list[i] + "/command/response",
+        _strt_req_pubs[i] = advertise< XBot::RpcWrapper<XBot::Runnable::Command>>(_async_service_pattern + _plugin_list[i] + "/command/request");
+        _strt_res_subs[i] = subscribe<XBot::RpcWrapper<bool>>(_async_service_pattern + _plugin_list[i] + "/command/response",
                                     res_callback_cmd,
                                     _queue_size);
 
         // plugin state getter
-        auto res_callback_state = [i, this](const std::string& msg)
+        auto res_callback_state = [i, this](const XBot::RpcWrapper<std::string>& msg)
         {
 
-            _plugins_status[i] = msg;
+            _plugins_status[i] = msg.obj;
 
             if(_verbose)
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                                   "Received status response {} from plugin: {} \n",
-                                  msg, _plugin_list[i]);
+                                  msg.obj, _plugin_list[i]);
             }
         };
 
-        _status_req_pubs[i] = advertise<service::Empty>(_async_service_pattern + _plugin_list[i] + "/get_state/request");
-        _status_res_subs[i] = subscribe<std::string>(_async_service_pattern + _plugin_list[i] + "/get_state/response",
+        _status_req_pubs[i] = advertise<XBot::RpcWrapper<service::Empty>>(_async_service_pattern + _plugin_list[i] + "/state/request");
+        _status_res_subs[i] = subscribe<XBot::RpcWrapper<std::string>>(_async_service_pattern + _plugin_list[i] + "/state/response",
                                     res_callback_state,
                                     _queue_size_status);
 
@@ -98,11 +98,14 @@ bool PluginsManagerRt::on_initialize()
 
     init_ros_bridge();
 
+    _start_command.obj = XBot::Runnable::Command::Start;
+    _stop_command.obj = XBot::Runnable::Command::Stop;
+
     return true;
 
 }
 
-bool PluginsManagerRt::on_start_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
+bool PluginsManagerRt::on_start_signal(const SimpleTriggerRequest& req, SimpleTriggerResponse& res)
 {
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
@@ -125,7 +128,7 @@ bool PluginsManagerRt::on_start_signal(const awesome_leg::SimpleTriggerRequest& 
     return res.success;
 }
 
-bool PluginsManagerRt::on_stop_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res)
+bool PluginsManagerRt::on_stop_signal(const SimpleTriggerRequest& req, SimpleTriggerResponse& res)
 {
 
     jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
@@ -165,7 +168,7 @@ void PluginsManagerRt::run()
     for(int i = 0; i < _n_plugins; i++)
     { // we first read the status of the plugins (saved into _plugins_status)
 
-        _status_req_pubs[i]->publish(empty_msg);
+        _status_req_pubs[i]->publish(_empty_msg);
         _status_res_subs[i]->run(); // processes plugins status callbacks
 
     }
@@ -181,7 +184,15 @@ void PluginsManagerRt::run()
 
                 if(_triggered)
                 {
-                    _strt_req_pubs[i]->publish(Command::Start);
+                    if(_verbose)
+                    {
+                        jhigh().jprint(fmt::fg(fmt::terminal_color::green),
+                                           "Trying to start plugin {}\n",
+                                           _plugin_list[i]);
+
+                    }
+
+                    _strt_req_pubs[i]->publish(_start_command);
 
                     _strt_res_subs[i]->run(); // processes plugins command service feedback
                 }
@@ -229,7 +240,7 @@ void PluginsManagerRt::run()
 
                 if(_triggered)
                 {
-                    _strt_req_pubs[i]->publish(Command::Stop);
+                    _strt_req_pubs[i]->publish(_stop_command);
 
                     _strt_res_subs[i]->run(); // processes plugins command service feedback
 

@@ -74,7 +74,7 @@ private:
                 _bt_description_path,
                 _bt_root_topicname = "bt_root",
                 _plugin_manager_name = "plugins_mngr_rt",
-                _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
+                _async_service_pattern = "/xbot/async_service/xbot/task/",
                 _plugins_stat_topicname  = "plugins_manager/plugins_status",
                 _tree_logpath = "/tmp",
                 _tree_logname = "bt_trace",
@@ -103,14 +103,17 @@ private:
     std::unique_ptr<FileLogger> _logger_file;
 
     // internal publisher and subscribers for triggering the plugin manager
-    PublisherPtr<Runnable::Command> _plugins_man_strt_req_pubs;
-    SubscriberPtr<bool> _plugins_man_strt_res_subs;
+    PublisherPtr< XBot::RpcWrapper<XBot::Runnable::Command>> _plugins_man_strt_req_pubs;
+    SubscriberPtr<XBot::RpcWrapper<bool>> _plugins_man_strt_res_subs;
 
     // internal publisher and subscribers for closing the plugin manager
-    PublisherPtr<Runnable::Command> _plugins_man_close_req_pubs;
-    SubscriberPtr<bool> _plugins_man_close_res_subs;
+    PublisherPtr< XBot::RpcWrapper<XBot::Runnable::Command>> _plugins_man_close_req_pubs;
+    SubscriberPtr<XBot::RpcWrapper<bool>> _plugins_man_close_res_subs;
 
 //    SubscriberPtr<awesome_leg::PluginsManStatus> _plugins_status_subs;
+
+    XBot::RpcWrapper<XBot::Runnable::Command> _start_command;
+    XBot::RpcWrapper<XBot::Runnable::Command> _stop_command;
 
     void read_config_from_yaml();
 

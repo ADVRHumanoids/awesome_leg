@@ -147,7 +147,7 @@ xbotcore_plugins:
 
             mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_06-07-2023-14_24_01/, type: string}
 
-            use_zmq_pub: {value: false, type: bool}
+            use_zmq_pub: {value: true, type: bool}
             use_bt_log: {value: false, type: bool}
 
 #            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt_rt_test2.xml, type: file} # used by the model interface

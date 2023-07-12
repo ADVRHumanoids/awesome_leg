@@ -33,7 +33,7 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbotcore/async_service/";
+            std::string _async_service_pattern = "/xbot/async_service/xbot/task/";
 
             std::string _plugin_name = "jmp_replayer_rt";
 

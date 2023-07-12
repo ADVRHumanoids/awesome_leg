@@ -21,7 +21,7 @@ StartPlugins::StartPlugins(const std::string& name) :
 NodeStatus StartPlugins::tick()
 {
 
-    _plugins_starter_pub->publish(_trigger);
+    _plugins_starter_pub->publish(_trigger_request);
 
     if(_verbose)
     {

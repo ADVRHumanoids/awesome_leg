@@ -42,12 +42,12 @@ private:
         _all_plugins_stopped = false,
         _start_plugins = true,
         _status = false,
-        _triggered = false,
+        _triggered = true,
         _verbose = false,
         _is_first_trigger = true;
 
     int _queue_size = 5,
-        _queue_size_status = 1,
+        _queue_size_status = 5,
         _n_plugins = 0,
         _running_plugins_counter = 0,
         _stopped_plugins_counter = 0,
@@ -56,7 +56,7 @@ private:
 
     double _plugin_dt;
 
-    std::string _async_service_pattern = "/xbotcore/async_service/xbot_internal/scheduler/",
+    std::string _async_service_pattern = "/xbot/async_service/xbot/task/",
                 _plugins_stat_topicname = "plugins_manager/plugins_status",
                 _start_plugins_servname = "start_plugins",
                 _stop_plugins_servname = "stop_plugins";
@@ -70,25 +70,31 @@ private:
 
     awesome_leg::PluginsManStatus _plugins_stat_msg;
 
-    service::Empty empty_msg;
+    XBot::RpcWrapper<service::Empty> _empty_msg;
 
     // queue object to handle multiple subscribers/servers at once
     std::vector<CallbackQueue> _queues;
     CallbackQueue _queue;
 
     // internal publisher and subscribers
-    std::vector<PublisherPtr<Runnable::Command>> _strt_req_pubs;
-    std::vector<SubscriberPtr<bool>> _strt_res_subs;
+    std::vector<PublisherPtr< XBot::RpcWrapper<XBot::Runnable::Command>>> _strt_req_pubs;
+    std::vector<SubscriberPtr<XBot::RpcWrapper<bool>>> _strt_res_subs;
 
-    std::vector<PublisherPtr<service::Empty>> _status_req_pubs;
-    std::vector<SubscriberPtr<std::string>> _status_res_subs;
+    std::vector<PublisherPtr<XBot::RpcWrapper<service::Empty>>> _status_req_pubs;
+    std::vector<SubscriberPtr<XBot::RpcWrapper<std::string>>> _status_res_subs;
 
     // topic to publish global plugin status (i.e. all running or not all running)
     PublisherPtr<awesome_leg::PluginsManStatus> _plugins_stat_pub;
 
-    // server for starting or stopping the plugins externally
-    ServiceServerPtr<awesome_leg::SimpleTriggerRequest, awesome_leg::SimpleTriggerResponse> _start_plugins_srvr;
-    ServiceServerPtr<awesome_leg::SimpleTriggerRequest, awesome_leg::SimpleTriggerResponse> _stop_plugins_srvr;
+    using SimpleTriggerRequest = awesome_leg::SimpleTriggerRequest;
+    using SimpleTriggerResponse = awesome_leg::SimpleTriggerResponse;
+
+    // async server for starting or stopping the plugins externally
+    ServiceServerPtr<SimpleTriggerRequest, SimpleTriggerResponse> _start_plugins_srvr;
+    ServiceServerPtr<SimpleTriggerRequest, SimpleTriggerResponse> _stop_plugins_srvr;
+
+    XBot::RpcWrapper<Runnable::Command> _start_command;
+    XBot::RpcWrapper<Runnable::Command> _stop_command;
 
     void read_config_from_yaml();
 
@@ -96,8 +102,8 @@ private:
 
     void init_dump_logger();
 
-    bool on_stop_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res);
-    bool on_start_signal(const awesome_leg::SimpleTriggerRequest& req, awesome_leg::SimpleTriggerResponse& res);
+    bool on_stop_signal(const SimpleTriggerRequest& req, SimpleTriggerResponse& res);
+    bool on_start_signal(const SimpleTriggerRequest& req, SimpleTriggerResponse& res);
 
     void init_ros_bridge();
 
