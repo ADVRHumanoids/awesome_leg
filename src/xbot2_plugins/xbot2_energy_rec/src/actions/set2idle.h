@@ -47,6 +47,7 @@ namespace BT
 
             using SetIdleStateRequest = XBot::RpcWrapper<awesome_leg::SetIdleStateRequest>;
             SetIdleStateRequest _set2idle;
+            
             PublisherPtr<SetIdleStateRequest> _set2idle_pub;
 
     };

@@ -292,7 +292,12 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
     { // impact instant, after replaying jump trajectory -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
 
-        std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
+        if (_verbose)
+        {
+
+            std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
+
+        }
 
     }
 
@@ -300,8 +305,12 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
     { // after landing and just before restarting the jump sequence --> we stop monitoring the power
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
-        std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to stop regenerative power monitoring \n" << Colors::kEndl << std::endl;
+        if (_verbose)
+        {
 
+            std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to stop regenerative power monitoring \n" << Colors::kEndl << std::endl;
+        
+        }
     }
 
     // "acroccata" operation: to trigger the reg pow monitor we look at the contact status (either from Gazebo or the base estimator)
@@ -310,15 +319,19 @@ void ImpactDetectorRt::trigger_reg_pow_monitor()
     { // we suppose that no energy is recovered right after the trajectory replay (more or less an approximation) -> we trigger the monitoring of reg power
         _monitoring_pow_switch_pub->publish(_start_monitoring_msg);
 
-        std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
-
+        if (_verbose)
+        {
+            std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to start regenerative power monitoring \n" << Colors::kEndl << std::endl;
+        }
     }
     if(_jump_replay_status.imp_traj_started && !_jump_replay_status_prev.imp_traj_started && !_use_contact2trigger_pow)
     { // after landing and just before restarting the jump sequence --> we stop monitoring the power
         _monitoring_pow_switch_pub->publish(_stop_monitoring_msg);
 
-        std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to stop regenerative power monitoring \n" << Colors::kEndl << std::endl;
-
+        if (_verbose)
+        {
+            std::cout << Colors::kBlue << "\n ImpactDetectorRt: sending message to stop regenerative power monitoring \n" << Colors::kEndl << std::endl;
+        }
     }
 
 }
