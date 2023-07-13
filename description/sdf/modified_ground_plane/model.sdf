@@ -31,10 +31,10 @@
           </contact>
 
           <friction>
-            <!-- <ode>
-              <mu>1</mu>
-              <mu2>1</mu2>
-            </ode> -->
+            <ode>
+              <mu>2</mu>
+              <mu2>2</mu2>
+            </ode>
             <!-- <bullet>
               <friction>1</friction>
               <friction2>1</friction2>
