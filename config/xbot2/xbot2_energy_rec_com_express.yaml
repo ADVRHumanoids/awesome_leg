@@ -92,7 +92,7 @@ xbotcore_plugins:
 
             verbose: {value: false, type: bool}
 
-            ramp2touchdown_config: {value: false, type: bool}
+            ramp2touchdown_config: {value: true, type: bool}
             go2touchdown_exec_time: {value: 0.05, type: double}
             go2touchdown_config_auto: {value: true, type: bool}
 
@@ -146,7 +146,7 @@ xbotcore_plugins:
 
             mat_path: {value: /tmp/humanoids_opendata/opt_jumps/jump_generation_06-07-2023-14_24_01/, type: string}
 
-            use_zmq_pub: {value: true, type: bool}
+            use_zmq_pub: {value: false, type: bool}
             use_bt_log: {value: false, type: bool}
 
 #            bt_description_path: {value: $PWD/../bt_xml/energy_rec_bt_rt_test2.xml, type: file} # used by the model interface
@@ -198,7 +198,7 @@ xbotcore_plugins:
 
 # global parameters
 xbotcore_param:
-    /xbot/hal/joint_device/filter_autostart: {value: true, type: bool}
-    /xbot/hal/joint_device/filter_cutoff_hz: {value: 10.0, type: double}
-    # /jm/tx_filter_cutoff: {value: 500.0, type: double}
-    /xbot/hal/enable_safety: {value: true, type: bool}  # safety checks (can be disabled in running a simulation. DO NOT DO THIS ON A REAL PROTOTYPE)
+    /xbot/hal/joint_safety/filter_autostart: {value: true, type: bool}
+    /xbot/hal/joint_safety/filter_cutoff_hz: {value: 10.0, type: double}
+    /xbot/hal/enable_safety: {value: true, type: bool}
+    
