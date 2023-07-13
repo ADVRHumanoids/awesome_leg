@@ -5,7 +5,7 @@
 
 using namespace BT;
 
-Set2SafetyStop::Set2SafetyStop(const std::string& name) :
+Set2SafetyStop::Set2SafetyStop(const std::string& name):
     AsyncActionNode(name, {}),
     Task(name + "_bt_leaf", ""),
     _name{name}
@@ -15,9 +15,9 @@ Set2SafetyStop::Set2SafetyStop(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + "/" + _idler_pluginname + "/" + _stop_state_servername + "/request";
 
-    _set2stop_pub = advertise<awesome_leg::SetSafetyStopRequest>(_asynch_servicepath);
+    _set2stop_pub = advertise<SetSafetyStopRequest>(_asynch_servicepath);
 
-    _set2stop.stop = true;
+    _set2stop.obj.stop = true;
 
 }
 

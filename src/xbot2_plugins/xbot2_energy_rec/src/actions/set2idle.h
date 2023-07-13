@@ -33,7 +33,7 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbot/async_service/xbot/task/";
+            std::string _async_service_pattern = "/xbot/async_service/";
 
             std::string _idler_pluginname = "idler_rt";
 
@@ -45,8 +45,9 @@ namespace BT
 
             NodeStatus tick() override;
 
-            awesome_leg::SetIdleStateRequest _set2idle;
-            PublisherPtr<awesome_leg::SetIdleStateRequest> _set2idle_pub;
+            using SetIdleStateRequest = XBot::RpcWrapper<awesome_leg::SetIdleStateRequest>;
+            SetIdleStateRequest _set2idle;
+            PublisherPtr<SetIdleStateRequest> _set2idle_pub;
 
     };
 

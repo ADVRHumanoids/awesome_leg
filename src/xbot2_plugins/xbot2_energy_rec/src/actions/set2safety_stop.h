@@ -33,7 +33,7 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbot/async_service/xbot/task/";
+            std::string _async_service_pattern = "/xbot/async_service/";
 
             std::string _idler_pluginname = "idler_rt";
 
@@ -45,8 +45,10 @@ namespace BT
 
             NodeStatus tick() override;
 
-            awesome_leg::SetSafetyStopRequest _set2stop;
-            PublisherPtr<awesome_leg::SetSafetyStopRequest> _set2stop_pub;
+            using SetSafetyStopRequest = XBot::RpcWrapper<awesome_leg::SetSafetyStopRequest>;
+            SetSafetyStopRequest _set2stop;
+
+            PublisherPtr<SetSafetyStopRequest> _set2stop_pub;
 
     };
 

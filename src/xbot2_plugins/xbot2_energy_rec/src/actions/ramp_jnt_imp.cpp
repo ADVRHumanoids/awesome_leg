@@ -16,9 +16,9 @@ RampJntImp::RampJntImp(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + _plugin_name + "/" +_servername + "/request";
 
-    _publisher = advertise<awesome_leg::RampJntImpRequest>(_asynch_servicepath);
+    _publisher = advertise<RampJntImpRequest>(_asynch_servicepath);
 
-    _msg.ramp_imp = true;
+    _msg.obj.ramp_imp = true;
 
 }
 

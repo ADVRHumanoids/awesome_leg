@@ -16,9 +16,9 @@ Go2TakeoffConfig::Go2TakeoffConfig(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + _plugin_name + "/" +_servername + "/request";
 
-    _publisher = advertise<awesome_leg::Go2TakeoffConfigRequest>(_asynch_servicepath);
+    _publisher = advertise<Go2TakeoffConfigRequest>(_asynch_servicepath);
 
-    _msg.go2takeoff_config = true;
+    _msg.obj.go2takeoff_config = true;
 
 }
 

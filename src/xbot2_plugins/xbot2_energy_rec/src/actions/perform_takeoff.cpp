@@ -16,9 +16,9 @@ PerformTakeoff::PerformTakeoff(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + _plugin_name + "/" +_servername + "/request";
 
-    _publisher = advertise<awesome_leg::PerformTakeoffRequest>(_asynch_servicepath);
+    _publisher = advertise<PerformTakeoffRequest>(_asynch_servicepath);
 
-    _msg.perform_takeoff = true;
+    _msg.obj.perform_takeoff = true;
 
 }
 

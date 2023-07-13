@@ -14,7 +14,7 @@ StartPlugins::StartPlugins(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + "/" + _plugins_manager_name + "/" + _start_plugins_servname + "/request";
 
-    _plugins_starter_pub = advertise<awesome_leg::SimpleTriggerRequest>(_asynch_servicepath);
+    _plugins_starter_pub = advertise<SimpleTriggerRequest>(_asynch_servicepath);
 
 }
 

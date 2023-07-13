@@ -14,7 +14,7 @@ StopPlugins::StopPlugins(const std::string& name) :
 
     _asynch_servicepath = _async_service_pattern + "/" + _plugins_manager_name + "/" + _stop_plugins_servname + "/request";
 
-    _plugins_stopper_pub = advertise<awesome_leg::SimpleTriggerRequest>(_asynch_servicepath);
+    _plugins_stopper_pub = advertise<SimpleTriggerRequest>(_asynch_servicepath);
 
 }
 

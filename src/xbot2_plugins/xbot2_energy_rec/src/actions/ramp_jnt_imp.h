@@ -33,7 +33,7 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbot/async_service/xbot/task/";
+            std::string _async_service_pattern = "/xbot/async_service/";
 
             std::string _plugin_name = "jmp_replayer_rt";
 
@@ -43,9 +43,11 @@ namespace BT
 
             NodeStatus tick() override;
 
-            awesome_leg::RampJntImpRequest _msg;
+            using RampJntImpRequest = XBot::RpcWrapper<awesome_leg::RampJntImpRequest>;
 
-            PublisherPtr<awesome_leg::RampJntImpRequest> _publisher;
+            RampJntImpRequest _msg;
+
+            PublisherPtr<RampJntImpRequest> _publisher;
 
     };
 

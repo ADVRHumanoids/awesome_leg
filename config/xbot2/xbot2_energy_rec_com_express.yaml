@@ -103,7 +103,7 @@ xbotcore_plugins:
             # only used if ramp2touchdown_config == false; in this case, instead of using the optimal landing config and impedances
             # provided by landing_config_name, we simply leave the last reference position and land with the impedance
             # setpoints provided below
-            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd}
+            landing_stiffness: {value: [300.0, 300.0], type: Eigen::VectorXd}
             landing_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
 
             send_pos_ref: {value: true, type: bool}

@@ -37,7 +37,7 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbot/async_service/xbot/task/";
+            std::string _async_service_pattern = "/xbot/async_service/";
 
             std::string _plugin_name = "jmp_replayer_rt";
 
@@ -53,15 +53,20 @@ namespace BT
 
             NodeStatus tick() override;
 
-            awesome_leg::RampJntImpRequest _msg1;
-            awesome_leg::Go2TakeoffConfigRequest _msg2;
-            awesome_leg::PerformTakeoffRequest _msg3;
-            awesome_leg::Go2LandingConfigRequest _msg4;
+            using RampJntImpRequest = XBot::RpcWrapper<awesome_leg::RampJntImpRequest>;
+            using Go2TakeoffConfigRequest = XBot::RpcWrapper<awesome_leg::Go2TakeoffConfigRequest>;
+            using PerformTakeoffRequest = XBot::RpcWrapper<awesome_leg::PerformTakeoffRequest>;
+            using Go2LandingConfigRequest = XBot::RpcWrapper<awesome_leg::Go2LandingConfigRequest>;
 
-            PublisherPtr<awesome_leg::RampJntImpRequest> _publisher1;
-            PublisherPtr<awesome_leg::Go2TakeoffConfigRequest> _publisher2;
-            PublisherPtr<awesome_leg::PerformTakeoffRequest> _publisher3;
-            PublisherPtr<awesome_leg::Go2LandingConfigRequest> _publisher4;
+            RampJntImpRequest _msg1;
+            Go2TakeoffConfigRequest _msg2;
+            PerformTakeoffRequest _msg3;
+            Go2LandingConfigRequest _msg4;
+
+            PublisherPtr<RampJntImpRequest> _publisher1;
+            PublisherPtr<Go2TakeoffConfigRequest> _publisher2;
+            PublisherPtr<PerformTakeoffRequest> _publisher3;
+            PublisherPtr<Go2LandingConfigRequest> _publisher4;
 
     };
 

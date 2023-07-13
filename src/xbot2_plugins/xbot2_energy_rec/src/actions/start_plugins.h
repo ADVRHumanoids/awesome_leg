@@ -32,7 +32,7 @@ namespace BT
 
             int _queue_size = 1;
 
-            std::string _async_service_pattern = "/xbot/async_service/xbot/task/";
+            std::string _async_service_pattern = "/xbot/async_service/";
 
             std::string _plugins_manager_name = "plugins_mngr_rt";
 
@@ -42,10 +42,11 @@ namespace BT
 
             NodeStatus tick() override;
 
-            awesome_leg::SimpleTriggerRequest _trigger_request;
+            using SimpleTriggerRequest = XBot::RpcWrapper<awesome_leg::SimpleTriggerRequest>;
+            SimpleTriggerRequest _trigger_request;
 
             // internal XBot2 publisher to employ asynchronous server exposed by plugins manager
-            PublisherPtr<awesome_leg::SimpleTriggerRequest> _plugins_starter_pub;
+            PublisherPtr<SimpleTriggerRequest> _plugins_starter_pub;
 
     };
 

@@ -77,7 +77,7 @@ public:
 private:
 
     bool _is_first_run = true,
-        _send_pos_ref = true, _send_vel_ref = true,  _send_eff_ref = false,
+        _send_pos_ref = true, _send_vel_ref = false,  _send_eff_ref = false,
         _is_first_jnt_passive = true,
         _resample = false,
         _is_first_trigger = true,

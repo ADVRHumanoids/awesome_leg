@@ -86,6 +86,8 @@ private:
     // topic to publish global plugin status (i.e. all running or not all running)
     PublisherPtr<awesome_leg::PluginsManStatus> _plugins_stat_pub;
 
+//    using SimpleTriggerRequest = XBot::RpcWrapper<awesome_leg::SimpleTriggerRequest>;
+//    using SimpleTriggerResponse = XBot::RpcWrapper<awesome_leg::SimpleTriggerResponse>;
     using SimpleTriggerRequest = awesome_leg::SimpleTriggerRequest;
     using SimpleTriggerResponse = awesome_leg::SimpleTriggerResponse;
 
