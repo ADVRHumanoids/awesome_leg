@@ -93,7 +93,7 @@ xbotcore_plugins:
             verbose: {value: false, type: bool}
 
             ramp2touchdown_config: {value: true, type: bool}
-            go2touchdown_exec_time: {value: 0.05, type: double}
+            go2touchdown_exec_time: {value: 0.025, type: double}
             go2touchdown_config_auto: {value: true, type: bool}
 
 #            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd} # good for eg
@@ -107,7 +107,7 @@ xbotcore_plugins:
 
             send_pos_ref: {value: true, type: bool}
             send_vel_ref: {value: true, type: bool}
-            send_eff_ref: {value: false, type: bool}
+            send_eff_ref: {value: true, type: bool}
 
 
     bus_power_rt:

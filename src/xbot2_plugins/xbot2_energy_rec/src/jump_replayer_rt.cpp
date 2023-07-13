@@ -1068,6 +1068,12 @@ bool JumpReplayerRt::on_initialize()
 
     load_opt_data(); // load trajectory from file (to be placed here in starting because otherwise
     // a seg fault will arise)
+    
+    // _dump_logger->add("q_p_ref", _q_p_ref);
+    // _dump_logger->add("q_p_dot_ref", _q_p_dot_ref);
+    // _dump_logger->add("eff_ref", _tau_ref);
+    // _dump_logger->add("iq_ref", _iq_ref);
+    // _dump_logger->add("f_ref", _f_cont_ref);
 
     _peisekah_utils = PeisekahTrans();
 
