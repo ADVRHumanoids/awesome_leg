@@ -241,11 +241,17 @@ void BaseEstRt::init_ft_sensor()
   if(_is_sim)
   { // fts only available in simulation (for now)
 
-      _ft_sensor = _robot->getDevices<Hal::ForceTorque>().get_device(_tip_fts_name);
+    _ft_sensor = _robot->getDevices<Hal::ForceTorque>().get_device(_tip_fts_name);
 
-      _ft_tip_sensor_found = (!_ft_sensor) ?  false : true; // flag to signal the
-      // presence (or absence) of the tip force torque sensor (calling methods on a nullptr
-      // causes a seg. fault)
+    _ft_tip_sensor_found = (!_ft_sensor) ?  false : true; // flag to signal the
+    // presence (or absence) of the tip force torque sensor (calling methods on a nullptr
+    // causes a seg. fault)
+
+    if (! _ft_tip_sensor_found)
+    {
+        jhigh().jprint(fmt::fg(fmt::terminal_color::yellow),
+        "\n BaseEstRt: FT sensor not found \n");
+    }
 
   }
 
@@ -301,8 +307,6 @@ void BaseEstRt::get_meas_fts_force()
 
 void BaseEstRt::get_base_est()
 {
-
-
 
 
 }

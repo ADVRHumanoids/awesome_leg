@@ -188,7 +188,7 @@ void TempMonRt::init_nrt_ros_bridge()
     _temp_ok_pub = _ros->advertise<awesome_leg::TempOkStatus>(_temp_stat_topicname, 1);
 
     // lambda to define callback
-    auto on_idle_status_received = [this](const awesome_leg::IdleState& msg)
+    auto on_idle_status_received = [this](const IdleState& msg)
     {
         if(_verbose)
         {
@@ -200,11 +200,11 @@ void TempMonRt::init_nrt_ros_bridge()
 
     };
 
-    _idle_status_sub = subscribe<awesome_leg::IdleState>("/" + _idler_pluginname + "/" + _idle_status_topicname,
-                                                            on_idle_status_received,
-                                                           _queue_size);
+    _idle_status_sub = subscribe<IdleState>("/" + _idler_pluginname + "/" + _idle_status_topicname,
+                                                on_idle_status_received,
+                                               _queue_size);
 
-    auto on_safety_msg_status_received = [this](const awesome_leg::SafetyStopState& msg)
+    auto on_safety_msg_status_received = [this](const SafetyStopState& msg)
     {
         if(_verbose)
         {
@@ -216,9 +216,9 @@ void TempMonRt::init_nrt_ros_bridge()
 
     };
 
-    _safety_stop_status_sub = subscribe<awesome_leg::SafetyStopState>("/" + _idler_pluginname + "/" + _safety_stop_topicname,
-                                                            on_safety_msg_status_received,
-                                                           _queue_size);
+    _safety_stop_status_sub = subscribe<SafetyStopState>("/" + _idler_pluginname + "/" + _safety_stop_topicname,
+                                                on_safety_msg_status_received,
+                                               _queue_size);
 }
 
 void TempMonRt::add_data2bedumped()

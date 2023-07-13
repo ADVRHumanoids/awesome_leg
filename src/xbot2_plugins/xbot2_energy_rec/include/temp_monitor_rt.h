@@ -106,8 +106,10 @@ private:
     awesome_leg::IdleState _idle_status_msg;
     awesome_leg::SafetyStopState _safety_status_msg;
 
-    SubscriberPtr<awesome_leg::IdleState> _idle_status_sub; // only used to fake temperature in sim
-    SubscriberPtr<awesome_leg::SafetyStopState> _safety_stop_status_sub; // only used to fake temperature in sim
+    using IdleState = awesome_leg::IdleState;
+    SubscriberPtr<IdleState> _idle_status_sub; // only used to fake temperature in sim
+    using SafetyStopState = awesome_leg::SafetyStopState;
+    SubscriberPtr<SafetyStopState> _safety_stop_status_sub; // only used to fake temperature in sim
 
     void get_params_from_config();
 

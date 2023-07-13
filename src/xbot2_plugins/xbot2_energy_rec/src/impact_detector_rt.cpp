@@ -142,16 +142,16 @@ void ImpactDetectorRt::init_communications()
     _ros = std::make_unique<RosSupport>(nh);
 
     // regenerative energy monitoring
-    _start_monitoring_msg.monitor_energy = true;
-    _stop_monitoring_msg.monitor_energy = false;
-    _stop_monitoring_msg.reset_energy = true;
+    _start_monitoring_msg.obj.monitor_energy = true;
+    _stop_monitoring_msg.obj.monitor_energy = false;
+    _stop_monitoring_msg.obj.reset_energy = true;
 
     _asynch_servicepath = _async_service_pattern + _pow_monitor_pluginname + "/" + _pow_monitor_servicename + "/request";
 
-    _monitoring_pow_switch_pub = advertise<awesome_leg::SetRegEnergyMonitoringStatusRequest>(_asynch_servicepath);
+    _monitoring_pow_switch_pub = advertise<SetRegEnergyMonitoringStatusRequest>(_asynch_servicepath);
 
     // base estimation
-    auto base_est_callback = [this](const awesome_leg::BaseEstStatus& msg)
+    auto base_est_callback = [this](const BaseEstStatus& msg)
     {
 
         if(_verbose)
@@ -212,12 +212,12 @@ void ImpactDetectorRt::init_communications()
 
     };
 
-    _base_est_status_sub = subscribe<awesome_leg::BaseEstStatus>("/" + _base_est_pluginname + "/" + _base_est_status_topicname,
+    _base_est_status_sub = subscribe<BaseEstStatus>("/" + _base_est_pluginname + "/" + _base_est_status_topicname,
                             base_est_callback,
                             _queue_size);
 
     // jump replay status
-    auto jump_replay_callback = [this](const awesome_leg::MatReplayerStatus& msg)
+    auto jump_replay_callback = [this](const MatReplayerStatus& msg)
     {
 
         if(_verbose)
@@ -239,7 +239,7 @@ void ImpactDetectorRt::init_communications()
 
     };
 
-    _jump_replay_status_sub = subscribe<awesome_leg::MatReplayerStatus>("/" + _jump_replay_pluginname + "/" + _jump_replay_topicname,
+    _jump_replay_status_sub = subscribe<MatReplayerStatus>("/" + _jump_replay_pluginname + "/" + _jump_replay_topicname,
                             jump_replay_callback,
                             _queue_size);
 

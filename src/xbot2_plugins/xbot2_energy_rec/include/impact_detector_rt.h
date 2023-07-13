@@ -68,7 +68,7 @@ private:
                 _jump_replay_pluginname = "jmp_replayer_rt",
                 _pow_monitor_pluginname = "bus_power_rt",
                 _pow_monitor_servicename = "start_rec_energy_monitor",
-                _async_service_pattern = "/xbotcore/async_service/",
+                _async_service_pattern = "/xbot/async_service/",
                 _impact_state_topicname = "impact_state",
                 _asynch_servicepath;
 
@@ -85,17 +85,23 @@ private:
     CallbackQueue _queue;
 
     awesome_leg::BaseEstStatus _base_est_status, _base_est_status_prev;
-    awesome_leg::SetRegEnergyMonitoringStatusRequest _start_monitoring_msg;
-    awesome_leg::SetRegEnergyMonitoringStatusRequest _stop_monitoring_msg;
+
+    XBot::RpcWrapper<awesome_leg::SetRegEnergyMonitoringStatusRequest> _start_monitoring_msg;
+    XBot::RpcWrapper<awesome_leg::SetRegEnergyMonitoringStatusRequest> _stop_monitoring_msg;
+
     awesome_leg::ImpactStatus _impact_status_msg;
 
     awesome_leg::MatReplayerStatus _jump_replay_status, _jump_replay_status_prev;
 
-    PublisherPtr<awesome_leg::SetRegEnergyMonitoringStatusRequest> _monitoring_pow_switch_pub;
+    using SetRegEnergyMonitoringStatusRequest = XBot::RpcWrapper<awesome_leg::SetRegEnergyMonitoringStatusRequest>;
+    PublisherPtr<SetRegEnergyMonitoringStatusRequest> _monitoring_pow_switch_pub;
+
     PublisherPtr<awesome_leg::ImpactStatus> _impact_status_pub;
 
-    SubscriberPtr<awesome_leg::MatReplayerStatus> _jump_replay_status_sub;
-    SubscriberPtr<awesome_leg::BaseEstStatus> _base_est_status_sub;
+    using MatReplayerStatus = awesome_leg::MatReplayerStatus;
+    SubscriberPtr<MatReplayerStatus> _jump_replay_status_sub;
+    using BaseEstStatus = awesome_leg::BaseEstStatus;
+    SubscriberPtr<BaseEstStatus> _base_est_status_sub;
 
     void get_params_from_config();
 

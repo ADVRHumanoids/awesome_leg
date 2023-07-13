@@ -37,7 +37,7 @@ namespace BT
 
             std::string _temp_stat_topicname = "temp_monitor/temp_status";
 
-            std::string _async_service_pattern = "/xbotcore/async_service/";
+            std::string _async_service_pattern = "/xbot/async_service/";
 
             std::string _idler_pluginname = "idler_rt";
 
@@ -51,9 +51,10 @@ namespace BT
 
             SubscriberPtr<awesome_leg::TempOkStatus> _temp_stat_subs;
 
-            awesome_leg::SetSafetyStopRequest _release_safety_stop_msg;
+            using SetSafetyStopRequest = XBot::RpcWrapper<awesome_leg::SetSafetyStopRequest>;
+            SetSafetyStopRequest _release_safety_stop_msg;
 
-            PublisherPtr<awesome_leg::SetSafetyStopRequest> _set_not2stop_pub;
+            PublisherPtr<SetSafetyStopRequest> _set_not2stop_pub;
 
             NodeStatus tick() override;
 

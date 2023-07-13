@@ -21,9 +21,9 @@ TemperatureOk::TemperatureOk(const std::string& name, const NodeConfiguration& c
 
     _asynch_servicepath = _async_service_pattern + "/" + _idler_pluginname + "/" + _set2safety_stop_servname + "/request";
 
-    _set_not2stop_pub = advertise<awesome_leg::SetSafetyStopRequest>(_asynch_servicepath);
+    _set_not2stop_pub = advertise<SetSafetyStopRequest>(_asynch_servicepath);
 
-    _release_safety_stop_msg.stop = false;
+    _release_safety_stop_msg.obj.stop = false;
 
     _are_temp_ok.drivers_temp_ok = false; // for safety reasons, if we tick the node without having received an update
     // from the callback, we assume temperatures are NOT ok
