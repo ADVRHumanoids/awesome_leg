@@ -11,7 +11,7 @@
   <arg name="calibrated_urdf" default="false" />
 
   <arg name="dump_video_frames" default="false" />
-  <arg name="add_ft_sensor" default="false" />
+  <arg name="add_ft_sensor" default="true" />
 
   <!-- Launching awesome_leg.world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">

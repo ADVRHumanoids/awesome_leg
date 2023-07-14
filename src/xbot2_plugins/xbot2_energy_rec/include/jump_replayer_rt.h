@@ -26,12 +26,12 @@
 #include <cartesian_interface/ros/RosServerClass.h>
 
 #include <geometry_msgs/Pose.h>
-#include <geometry_msgs/TwistStamped.h>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 
 #include <xbot2/hal/dev_ft.h>
+
 
 using namespace XBot;
 using namespace XBot::Cartesian;
@@ -91,7 +91,8 @@ private:
         _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false, _landing_config_reached = false,
         _go2touchdown_config_auto = true,
         _idle = true,
-        _ramp2touchdown_config = true;
+        _ramp2touchdown_config = true, 
+        _ft_tip_sensor_found = false;
 
     int _n_jnts_robot,
         _sample_index = 0,
@@ -105,7 +106,8 @@ private:
                 _hw_type,
                 _dump_path = "/tmp/JumpReplayerRt",
                 _landing_stiffness_varname = "kp", _landing_damping_varname = "kd",
-                _landing_config_varname = "q_landing";
+                _landing_config_varname = "q_landing", 
+                _tip_fts_name = "tip1_fts";
 
     double _plugin_dt,
         _loop_time = 0.0, _loop_timer_reset_time = 3600.0,
@@ -128,8 +130,10 @@ private:
                     _q_p_cmd, _q_p_dot_cmd, _tau_cmd, _f_contact_ref, _i_q_ref,
                     _q_p_safe_cmd,
                     _q_p_init_appr_traj, _q_p_trgt_appr_traj,
-                    _auxiliary_vector,
-                    _jnt_vel_limits, _min_ramp_exec_time;
+                    _jnt_vel_limits, _min_ramp_exec_time, 
+                    _auxiliary_vector;
+                    
+    Eigen::Vector3d _meas_tip_f_loc, _meas_tip_f_abs;
 
     Eigen::MatrixXd  _touchdown_damping_aux, _touchdown_stiffness_aux, _landing_config_aux;
     Eigen::VectorXd  _touchdown_damping, _touchdown_stiffness, _landing_config;
@@ -138,9 +142,11 @@ private:
                         _tau_cmd_vect,
                         _f_contact_ref_vect,
                         _i_q_ref_vect;
-
+    
     Eigen::MatrixXd _q_p_ref, _q_p_dot_ref, _tau_ref, _f_cont_ref, _iq_ref;
 
+    Eigen::Affine3d _tip_pose_abs, _base_pose_abs;
+    
     PeisekahTrans _peisekah_utils;
     TrajLoader _traj;
 
@@ -167,6 +173,12 @@ private:
                      awesome_leg::Go2LandingConfigResponse> _go2lading_config_srvr;
 
     PublisherPtr<awesome_leg::MatReplayerStatus> _replay_status_pub;
+
+    SubscriberPtr<geometry_msgs::PoseStamped> _base_link_pose_sub;
+    SubscriberPtr<geometry_msgs::PoseStamped> _tip_link_pose_sub;
+
+    std::shared_ptr<XBot::Hal::ForceTorque >_ft_sensor;
+
 
     void get_params_from_config();
 
@@ -211,7 +223,14 @@ private:
                                   awesome_leg::RampJntImpResponse& res);
     bool on_go2landing_config_received(const awesome_leg::Go2LandingConfigRequest& req,
                                                   awesome_leg::Go2LandingConfigResponse& res);
-                 
+    
+    // getting debug info (only is  sim) for validating opt trajectory
+    void on_base_link_pose_received(const geometry_msgs::PoseStamped& msg);
+    void on_tip_link_pose_received(const geometry_msgs::PoseStamped& msg);
+
+    void init_ft_sensor();
+    void get_fts_force();
+
 };
 
 #endif // JUMP_REPLAYER_RT

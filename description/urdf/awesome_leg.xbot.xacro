@@ -26,6 +26,7 @@
         <plugin name="xbot2_link_state_sensor" filename="libxbot2_gz_link_state_sensor.so">
             <links>
                 <link name="base_link"/>
+                <link name="tip1"/>
             </links>
         </plugin>
     </gazebo>

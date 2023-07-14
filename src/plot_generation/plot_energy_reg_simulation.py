@@ -82,12 +82,12 @@ class LoadFinalTest:
     
 path_opt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/opt"
 path_nonopt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/not_opt"
-data_nameopt= "sim_bus_power_rt__4_2023_07_11__14_33_15"
-data_namenonopt0= "trial0/sim_bus_power_rt__4_2023_07_11__13_50_26"
-data_namenonopt1= "trial1/sim_bus_power_rt__4_2023_07_11__14_00_28"
-data_namenonopt2= "trial2/sim_bus_power_rt__4_2023_07_11__14_10_10"
-data_namenonopt3= "trial3/sim_bus_power_rt__4_2023_07_11__14_22_10"
-data_namenonopt4= "trial4/sim_bus_power_rt__4_2023_07_11__14_47_51"
+data_nameopt= "sim_bus_power_rt__4_2023_07_14__16_28_07"
+data_namenonopt0= "trial0/sim_bus_power_rt__4_2023_07_14__15_30_32"
+data_namenonopt1= "trial1/sim_bus_power_rt__4_2023_07_14__15_38_15"
+data_namenonopt2= "trial2/sim_bus_power_rt__4_2023_07_14__15_44_33"
+data_namenonopt3= "trial3/sim_bus_power_rt__4_2023_07_14__15_52_57"
+data_namenonopt4= "trial4/sim_bus_power_rt__4_2023_07_14__16_03_42"
 
 data_log_opt = LoadFinalTest(path_opt + "/" + data_nameopt + ".mat")
 data_log_nonopt0 = LoadFinalTest(path_nonopt + "/" + data_namenonopt0 + ".mat")
@@ -113,11 +113,11 @@ stiff_values_opt = data_log_opt.data["dropdown_stiffness"][:, 0]
 damp_values_opt = data_log_opt.data["dropdown_damping"][:, 0]
 # print(data_log_opt.data["dropdown_damping"])
 # exit()
-recov_energy_nonopt0 = np.array(data_log_nonopt0.data["dropdown_rec_energy"])
-recov_energy_nonopt1 = np.array(data_log_nonopt1.data["dropdown_rec_energy"])
-recov_energy_nonopt2 = np.array(data_log_nonopt2.data["dropdown_rec_energy"])[:-2]
-recov_energy_nonopt3 = np.array(data_log_nonopt3.data["dropdown_rec_energy"])
-recov_energy_nonopt4 = np.array(data_log_nonopt4.data["dropdown_rec_energy"])
+recov_energy_nonopt0 = np.array(data_log_nonopt0.data["dropdown_rec_energy"])[:14]
+recov_energy_nonopt1 = np.array(data_log_nonopt1.data["dropdown_rec_energy"])[:14]
+recov_energy_nonopt2 = np.array(data_log_nonopt2.data["dropdown_rec_energy"])[:14]
+recov_energy_nonopt3 = np.array(data_log_nonopt3.data["dropdown_rec_energy"])[:14]
+recov_energy_nonopt4 = np.array(data_log_nonopt4.data["dropdown_rec_energy"])[:14]
 
 recov_energy_opt = np.array(data_log_opt.data["dropdown_rec_energy"])
 combined_data = np.concatenate((recov_energy_nonopt0, 

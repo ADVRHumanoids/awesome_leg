@@ -115,6 +115,30 @@ void JumpReplayerRt::init_vars()
 
 }
 
+void JumpReplayerRt::init_ft_sensor()
+{
+
+  if(_is_sim)
+  { // fts only available in simulation (for now)
+
+        _ft_sensor = _robot->getDevices<Hal::ForceTorque>().get_device(_tip_fts_name);
+
+        _ft_tip_sensor_found = (!_ft_sensor) ?  false : true; // flag to signal the
+        // presence (or absence) of the tip force torque sensor (calling methods on a nullptr
+        // causes a seg. fault)
+
+        if(! _ft_tip_sensor_found)
+        {
+            jhigh().jprint(fmt::fg(fmt::terminal_color::yellow),
+            "\nJumpReplayerRt: ft sensor not found!!!\n");
+        }
+        
+
+  }
+
+
+}
+
 void JumpReplayerRt::get_params_from_config()
 {
     // Reading some parameters from XBot2 config. YAML file
@@ -216,6 +240,8 @@ void JumpReplayerRt::update_state()
 
     _robot->getStiffness(_meas_stiffness); // used by the smooth imp. transitioner
     _robot->getDamping(_meas_damping);
+
+    get_fts_force();
 
 }
 
@@ -330,6 +356,14 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->create("f_contact_ref", 3, 1, _matlogger_buffer_size);
     _dump_logger->create("iq_ref", _n_jnts_robot, 1, _matlogger_buffer_size);
 
+    if (_is_sim)
+    { // no estimate of base link abs position on the real robot (for now)
+        _dump_logger->create("tip_pos_meas", 3, 1, _matlogger_buffer_size);
+        _dump_logger->create("base_link_abs", 3, 1, _matlogger_buffer_size);
+        _dump_logger->create("meas_tip_f_loc", 3, 1, _matlogger_buffer_size);
+        _dump_logger->create("meas_tip_f_abs", 3, 1, _matlogger_buffer_size);
+    }
+
 }
 
 void JumpReplayerRt::add_data2dump_logger()
@@ -359,6 +393,14 @@ void JumpReplayerRt::add_data2dump_logger()
 
     _dump_logger->add("f_contact_ref", _f_contact_ref);
     _dump_logger->add("iq_ref", _i_q_ref);
+
+    if (_is_sim)
+    { // no estimate of base link abs position on the real robot (for now)
+        _dump_logger->add("tip_pos_meas", _tip_pose_abs.translation());
+        _dump_logger->add("base_link_abs", _base_pose_abs.translation());
+        _dump_logger->add("meas_tip_f_loc", _meas_tip_f_loc);
+        _dump_logger->add("meas_tip_f_abs", _meas_tip_f_abs);
+    }
 
 }
 
@@ -594,6 +636,21 @@ void JumpReplayerRt::init_ros_bridge()
     _replay_status_pub = _ros->advertise<awesome_leg::MatReplayerStatus>(
         "replay_status_node", 1, replay_st_prealloc);
 
+    /* Subscribers */
+    if (_is_sim)
+    {
+        _base_link_pose_sub = _ros->subscribe("/xbotcore/link_state/base_link/pose",
+                                    &JumpReplayerRt::on_base_link_pose_received,
+                                    this,
+                                    1,  // queue size
+                                    &_queue);
+
+        _tip_link_pose_sub = _ros->subscribe("/xbotcore/link_state/tip1/pose",
+                                    &JumpReplayerRt::on_tip_link_pose_received,
+                                    this,
+                                    1,  // queue size
+                                    &_queue);
+    }
 
 }
 
@@ -1047,6 +1104,35 @@ void JumpReplayerRt::pub_replay_status()
     _replay_status_pub->publishLoaned(std::move(status_msg));
 }
 
+void JumpReplayerRt::on_base_link_pose_received(const geometry_msgs::PoseStamped& msg)
+{   
+
+    tf::poseMsgToEigen(msg.pose, _base_pose_abs);
+}
+
+void JumpReplayerRt::on_tip_link_pose_received(const geometry_msgs::PoseStamped& msg)
+{
+
+    tf::poseMsgToEigen(msg.pose, _tip_pose_abs);
+
+}
+
+void JumpReplayerRt::get_fts_force()
+{
+  if(_is_sim && _ft_tip_sensor_found)
+  { // fts only available in simulation (for now)
+
+    _meas_tip_f_loc = _ft_sensor->getWrench().head(3);
+
+  }
+
+  // rotating the force into world frame
+  // then from base to world orientation
+
+  _meas_tip_f_abs = _tip_pose_abs * _meas_tip_f_loc;
+
+}
+
 bool JumpReplayerRt::on_initialize()
 { 
     std::string sim_flagname = "sim";
@@ -1082,7 +1168,10 @@ bool JumpReplayerRt::on_initialize()
     setDefaultControlMode(ControlMode::Position() + ControlMode::Velocity() + ControlMode::Effort() + ControlMode::Stiffness() +
                           ControlMode::Damping());
 
+    init_ft_sensor();
+
     return true;
+    
     
 }
 
@@ -1180,6 +1269,7 @@ void JumpReplayerRt::on_abort()
 //    _robot->move();
 
     // Destroy logger and dump .mat file
+    _dump_logger->add("performed_jumps", _performed_jumps);
     _dump_logger.reset();
 }
 
