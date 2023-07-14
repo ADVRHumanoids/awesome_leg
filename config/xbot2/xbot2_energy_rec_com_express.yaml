@@ -92,7 +92,7 @@ xbotcore_plugins:
 
             verbose: {value: false, type: bool}
 
-            ramp2touchdown_config: {value: false, type: bool}
+            ramp2touchdown_config: {value: true, type: bool}
             go2touchdown_exec_time: {value: 0.025, type: double}
             go2touchdown_config_auto: {value: true, type: bool}
 

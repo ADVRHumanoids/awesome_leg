@@ -27,11 +27,12 @@ class LoadOptLanding:
 
 landing_path = "/tmp/humanoids_opendata/opt_landings/touchdown_opt_11-07-2023-12_25_45"
 landing_name = "energy_recov_ig"
-
+landing_path2 = "/tmp/humanoids_opendata/opt_landings/touchdown_opt_14-07-2023-11_31_13_no_critical_damp"
 
 landing_mat_name = "energy_recov"
 
 landing_data_log = LoadOptLanding(landing_path + "/" + landing_name + ".mat")
+landing_data_log2 = LoadOptLanding(landing_path2 + "/" + landing_name + ".mat")
 
 dt_opt = landing_data_log.opt_data["dt_opt"]
 
@@ -40,6 +41,12 @@ p_joule = landing_data_log.opt_data["r_iq_2_sol"]
 p_mech = landing_data_log.opt_data["t_w_sol"]
 p_ind_f = landing_data_log.opt_data["l_iq_f_sol"]
 p_ind_i = landing_data_log.opt_data["l_iq_i_sol"]
+
+p_batt2 = landing_data_log2.opt_data["p_batt"]
+p_joule2 = landing_data_log2.opt_data["r_iq_2_sol"]
+p_mech2 = landing_data_log2.opt_data["t_w_sol"]
+p_ind_f2 = landing_data_log2.opt_data["l_iq_f_sol"]
+p_ind_i2 = landing_data_log2.opt_data["l_iq_i_sol"]
 
 q_landing = landing_data_log.opt_data["q_landing"]
 cost_vals = landing_data_log.opt_data["cost_values"]
@@ -50,6 +57,16 @@ iq_check = landing_data_log.opt_data["iq_check"]
 tau_so = landing_data_log.opt_data["tau_sol"]
 kd = landing_data_log.opt_data["kd"]
 kp = landing_data_log.opt_data["kp"]
+
+q_landing2 = landing_data_log2.opt_data["q_landing"]
+cost_vals2 = landing_data_log2.opt_data["cost_values"]
+e_batt2 = landing_data_log2.opt_data["e_batt"]
+f_contact2 = landing_data_log2.opt_data["f_contact"]
+impact2 = landing_data_log2.opt_data["impact"]
+iq_check2 = landing_data_log2.opt_data["iq_check"]
+tau_so2 = landing_data_log2.opt_data["tau_sol"]
+kd2 = landing_data_log2.opt_data["kd"]
+kp2 = landing_data_log2.opt_data["kp"]
 
 time_vect = np.zeros((p_batt.shape[1]))
 for i in range(0, len(time_vect) - 1):
@@ -72,5 +89,38 @@ legend = ax.legend([r"$\mathrm{p}_{\mathrm{batt}}$",
                     r"$\mathrm{p}_{\mathrm{joule}}$", 
                     r"$\mathrm{p}_{\mathrm{mech}}$"], fontsize=fontsize)
 legend.set_draggable(state = True)
+
+# critically damped p batt
+
+fontsize = 14
+fig2, ax2 = plt.subplots(2)
+
+ax2[0].plot(time_vect, p_batt.flatten())
+
+# ax2[0].set_xlabel('time', fontsize=fontsize)
+ax2[0].set_ylabel('[W]', fontsize=fontsize)
+ax2[0].set_title('Touchdown opt with energy recovery maximization', fontsize=fontsize)
+ax2[0].grid()
+
+# description1 = [r"$\hat{q}: $[" + f"{round(q_landing[0][0], 2)}, {round(q_landing[1][0], 2)}"  "]" + r"$~\mathrm{rad}$" + "\n" + \
+#             r"$\hat{f}: $" + f"{round(impact[2][0], 2)}" + r"$\mathrm{N\,s}$"]
+description1 = [r"$e_{\mathrm{batt}}: $" + f"{round(e_batt[0][0], 2)}" + r"$~\mathrm{J}$" + 
+                f"\n(final optimal solution)"]
+legend1 = ax2[0].legend(description1, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontsize)
+legend1.set_draggable(state = True)
+
+ax2[1].plot(time_vect, p_batt2.flatten())
+
+ax2[1].set_xlabel('time', fontsize=fontsize)
+ax2[1].set_ylabel('[W]', fontsize=fontsize)
+ax2[1].set_title('Touchdown opt without energy recovery maximization', fontsize=fontsize)
+ax2[1].grid()
+
+# description2 = [r"$\hat{q}: $[" + f"{round(q_landing2[0][0], 2)}, {round(q_landing2[1][0], 2)}"  "]" + r"$~\mathrm{rad}$" + "\n" + \
+#             r"$\hat{f}: $" + f"{round(impact2[2][0], 2)}" + r"$\mathrm{N\,s}$"]
+description2 = [r"$e_{\mathrm{batt}}: $" + f"{round(e_batt2[0][0], 2)}" + r"$~\mathrm{J}$"]
+
+legend2 = ax2[1].legend(description2, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontsize)
+legend2.set_draggable(state = True)
 
 plt.show()
