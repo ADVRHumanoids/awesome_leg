@@ -1,7 +1,9 @@
-### Awesome Leg repository
+### <center>Awesome Leg repository</center> 
+![rationale](docs/images/rationale.png)
 
-This specific branch hosts the code employed for Humanoids23 submission of the paper "_Optimal Design of Agile Jumping Maneuvers for a Single Leg System_".
- 
+<!-- This specific branch hosts the code employed for Humanoids23 submission of the paper "_Optimal Design of Agile Jumping Maneuvers for a Single Leg System_".
+  -->
+
 ##### Take-off 
 |optimization|simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
