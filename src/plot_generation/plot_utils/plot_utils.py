@@ -16,8 +16,8 @@ class JumpSolPlotter:
 
     def __init__(self, 
                 solution_dirpath: str, 
-                save_fullpath = "/tmp", 
-                save_plots = False, 
+                replay_path_sim: str,
+                replay_path_test: str,
                 opt_base_sol_name = "apex_awesome_jump",
                 res_sol_suffix = "_res", 
                 ref_sol_suffix = "_ref", 
@@ -32,13 +32,13 @@ class JumpSolPlotter:
 
         if sim_postproc_filename is not None:
 
-            self.sim_path_full = solution_dirpath + "/" + sim_postproc_filename
+            self.sim_path_full = replay_path_sim + "/" + sim_postproc_filename + ".mat"
 
             self.sim_data_loaded_ok = self.__run_sim_sol_postproc()
         
         if test_postproc_filename is not None:
             
-            self.test_path_full = solution_dirpath + "/" + test_postproc_filename
+            self.test_path_full = replay_path_test + "/" + test_postproc_filename
 
             self.test_data_loaded_ok = self.__run_test_sol_postproc()
         
@@ -202,13 +202,12 @@ class JumpSolPlotter:
             self.sim_replay_stiffness=self.sim_data["replay_stiffness"]
             self.sim_meas_damping=self.sim_data["meas_damping"]
             self.sim_meas_stiffness=self.sim_data["meas_stiffness"]
-            self.sim_stop_stiffness=self.sim_data["stop_stiffness"]
-            self.sim_stop_damping=self.sim_data["stop_damping"]
+            self.sim_stop_stiffness=self.sim_data["touchdown_stiffness"]
+            self.sim_stop_damping=self.sim_data["touchdown_damping"]
             self.sim_tau_meas=self.sim_data["tau_meas"]
             self.sim_tau_cmd=self.sim_data["tau_cmd"]
             self.sim_base_link_abs=self.sim_data["base_link_abs"]
             self.sim_tip_pos_meas=self.sim_data["tip_pos_meas"]
-            self.sim_tip_pos_rel_base_link=self.sim_data["tip_pos_rel_base_link"]
 
             self.sim_f_contact_ref = self.sim_data["f_contact_ref"]
             self.sim_meas_tip_f_loc = self.sim_data["meas_tip_f_loc"]
