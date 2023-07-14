@@ -13,7 +13,7 @@ This specific branch hosts the code employed for Humanoids23 submission of the p
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
 |  ![touchdown_opt](docs/animations/touchdown_opt.gif)| ![opt_landing_gazebo](docs/animations/opt_landing_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/takeoff_replay_hardware.gif) 	
 
-#####What can be found here?
+##### What can be found here?
 - an open access link to all the employed data: [humanoids_opendata](https://drive.google.com/drive/folders/19J7vAJigoIES9niY9HVV40xFMkzh9XZ1).
 - all the code employed to perform the offline generation of the take-off trajectory and optimization of the landing configuration and joint impedances. 
 Specifically, the code for the take-off and touchdown can be found, respectively, at `src/horizon_code/jump_generation.py` and `src/horizon_code/touchdown_opt.py`. 
