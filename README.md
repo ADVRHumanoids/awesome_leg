@@ -2,12 +2,12 @@
 
 This specific branch hosts the code employed for Humanoids23 submission of the paper "_Optimal Design of Agile Jumping Maneuvers for a Single Leg System_".
  
-#####Take-off 
+####Take-off 
 |optimization|simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
 |  ![takeoff_opt](docs/animations/takeoff_opt.gif)| ![takeoff_replay_gazebo](docs/animations/takeoff_replay_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/takeoff_replay_hardware.gif) 	
 
-#####Touchdown 
+####Touchdown 
 
 |optimization|simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
