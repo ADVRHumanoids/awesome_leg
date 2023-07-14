@@ -289,7 +289,7 @@ pretakeoff_gen:
     ipopt_tol: 0.000001
     ipopt_maxiter: 10000
     ipopt_cnstr_viol_tol: 0.0000001
-    ipopt_lin_solver: "ma57" 
+    ipopt_lin_solver: "mumps" # "ma57" if available provides faster evaluations 
     name: "ipopt"
 
   transcription:
