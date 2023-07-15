@@ -80,7 +80,7 @@ class LoadDropDownData:
 
         return None # any other value != to None would block the execution of visit() method
     
-path = "/tmp/humanoids_opendata/iq_model_tracking_and_reg_pow/reg_pow_tracking/jump_generation_06-07-2023-14_24_01"
+path = "/tmp/humanoids_opendata/iq_model_tracking_and_reg_pow/reg_pow_tracking/jump_generation_24-02-2023-12_13_45"
 data_name= "test_bus_power_rt__0_2023_02_27__21_58_00"
 
 bus_power_leak = - 38 # [W], compensated because missing from logged data
