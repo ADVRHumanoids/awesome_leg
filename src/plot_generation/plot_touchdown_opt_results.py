@@ -49,6 +49,7 @@ p_ind_f2 = landing_data_log2.opt_data["l_iq_f_sol"]
 p_ind_i2 = landing_data_log2.opt_data["l_iq_i_sol"]
 
 q_landing = landing_data_log.opt_data["q_landing"]
+tip_vel_impact = landing_data_log.opt_data["q_p_dot"][0, 0]
 cost_vals = landing_data_log.opt_data["cost_values"]
 e_batt = landing_data_log.opt_data["e_batt"]
 f_contact = landing_data_log.opt_data["f_contact"]
@@ -59,6 +60,7 @@ kd = landing_data_log.opt_data["kd"]
 kp = landing_data_log.opt_data["kp"]
 
 q_landing2 = landing_data_log2.opt_data["q_landing"]
+tip_vel_impact2 = landing_data_log2.opt_data["q_p_dot"][0, 0]
 cost_vals2 = landing_data_log2.opt_data["cost_values"]
 e_batt2 = landing_data_log2.opt_data["e_batt"]
 f_contact2 = landing_data_log2.opt_data["f_contact"]
@@ -102,10 +104,12 @@ ax2[0].set_ylabel('[W]', fontsize=fontsize)
 ax2[0].set_title('Touchdown opt with energy recovery maximization', fontsize=fontsize)
 ax2[0].grid()
 
-# description1 = [r"$\hat{q}: $[" + f"{round(q_landing[0][0], 2)}, {round(q_landing[1][0], 2)}"  "]" + r"$~\mathrm{rad}$" + "\n" + \
-#             r"$\hat{f}: $" + f"{round(impact[2][0], 2)}" + r"$\mathrm{N\,s}$"]
-description1 = [r"$e_{\mathrm{batt}}: $" + f"{round(e_batt[0][0], 2)}" + r"$~\mathrm{J}$" + 
-                f"\n(final optimal solution)"]
+impact1_ratio = impact[2][0] / tip_vel_impact
+description1 = [f"(final optimal solution)" + f"\n" + \
+                r"$e_{\mathrm{batt}}: $" + f"{round(e_batt[0][0], 2)}" + r"$~\mathrm{J}$" + f"\n" + \
+                r"$\rho: $" + f"{round(impact1_ratio, 2)}" + r"$~\mathrm{N\,s^2}/\mathrm{m}$" + f"\n" + \
+                r"$K_p: $ " + f"[{round(kp[0, 0], 2)}" + f", {round(kp[1, 0], 2)}]" + r"$~\mathrm{N\,m}/\mathrm{rad}$" + f"\n"+ \
+                r"$K_d: $ " + f"[{round(kd[0, 0], 2)}" + f", {round(kd[1, 0], 2)}]" + r"$~\mathrm{N\,m}/\mathrm{rad}*s$"]
 legend1 = ax2[0].legend(description1, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontsize)
 legend1.set_draggable(state = True)
 
@@ -116,9 +120,11 @@ ax2[1].set_ylabel('[W]', fontsize=fontsize)
 ax2[1].set_title('Touchdown opt without energy recovery maximization', fontsize=fontsize)
 ax2[1].grid()
 
-# description2 = [r"$\hat{q}: $[" + f"{round(q_landing2[0][0], 2)}, {round(q_landing2[1][0], 2)}"  "]" + r"$~\mathrm{rad}$" + "\n" + \
-#             r"$\hat{f}: $" + f"{round(impact2[2][0], 2)}" + r"$\mathrm{N\,s}$"]
-description2 = [r"$e_{\mathrm{batt}}: $" + f"{round(e_batt2[0][0], 2)}" + r"$~\mathrm{J}$"]
+impact2_ratio = impact2[2][0] / tip_vel_impact2
+description2 = [r"$e_{\mathrm{batt}}: $" + f"{round(e_batt2[0][0], 2)}" + r"$ ~\mathrm{J}$" + f"\n" + \
+            r"$\rho: $" + f"{round(impact2_ratio, 2)}" + r"$~\mathrm{N\,s^2}/\mathrm{m}$" + f"\n" + \
+                r"$K_p: $ " + f"[{round(kp2[0, 0], 2)}" + f", {round(kp2[1, 0], 2)}]" + r"$~\mathrm{N\,m}/\mathrm{rad}$" + f"\n"+ \
+                r"$K_d: $ " + f"[{round(kd2[0, 0], 2)}" + f", {round(kd2[1, 0], 2)}]" + r"$~\mathrm{N\,m}/\mathrm{rad}*s$"]
 
 legend2 = ax2[1].legend(description2, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontsize)
 legend2.set_draggable(state = True)
