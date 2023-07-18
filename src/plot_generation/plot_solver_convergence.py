@@ -82,12 +82,12 @@ ax3.plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
 ax3.set_ylabel('', fontsize=fontsize)
 ax3.set_xlabel('iteration n.', fontsize=fontsize)
 
-ax3.set_title('Take-off and landing optimization convergence - Ipopt - ma57', fontsize=fontsize)
+ax3.set_title('Take-off and landing normalized convergence plots - Ipopt - ma57', fontsize=fontsize)
 ax3.grid()
 
-legend = ax3.legend([f"normalized cost - base take-off opt", 
-                    f"normalized cost - refined take-off opt", 
-                    f"normalized cost - landing opt"], fontsize=fontsize)
+legend = ax3.legend([f"base take-off opt", 
+                    f"refined take-off opt", 
+                    f"landing opt"], fontsize=fontsize)
 legend.set_draggable(state = True)
 
 # ax3[1].plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
