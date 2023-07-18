@@ -62,7 +62,7 @@ ax2.plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
 
 ax2.set_xlabel('iteration n.', fontsize=fontsize)
 ax2.set_ylabel('', fontsize=fontsize)
-ax2.set_title('Landing optimizaton convergence - Ipopt - ma57', fontsize=fontsize)
+ax2.set_title('Take-off and landing optimization convergence - Ipopt - ma57', fontsize=fontsize)
 ax2.grid()
 
 legend = ax2.legend([f"normalized cost - landing opt"], fontsize=fontsize)
@@ -72,31 +72,35 @@ f2.set_figheight(5)
 f2.set_figwidth(10)
 
 fontsize = 14
-f3, ax3 = plt.subplots(2)
+f3, ax3 = plt.subplots(1)
 
-ax3[0].plot(jump_data_log_base.opt_costs_norm, drawstyle='steps-post')
-ax3[0].plot(jump_data_log.opt_costs_norm, drawstyle='steps-post')
+ax3.plot(jump_data_log_base.opt_costs_norm, drawstyle='steps-post')
+ax3.plot(jump_data_log.opt_costs_norm, drawstyle='steps-post')
+ax3.plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
 
-ax3[0].set_xlabel('iteration n.', fontsize=fontsize)
-ax3[0].set_ylabel('', fontsize=fontsize)
-ax3[0].set_title('Take-off optimizaton convergence - Ipopt - ma57', fontsize=fontsize)
-ax3[0].grid()
+# ax3[0].set_xlabel('iteration n.', fontsize=fontsize)
+ax3.set_ylabel('', fontsize=fontsize)
+ax3.set_xlabel('iteration n.', fontsize=fontsize)
 
-legend = ax3[0].legend([f"normalized cost - base take-off opt", 
-                    f"normalized cost - refined take-off opt"], fontsize=fontsize)
+ax3.set_title('Take-off and landing optimization convergence - Ipopt - ma57', fontsize=fontsize)
+ax3.grid()
+
+legend = ax3.legend([f"normalized cost - base take-off opt", 
+                    f"normalized cost - refined take-off opt", 
+                    f"normalized cost - landing opt"], fontsize=fontsize)
 legend.set_draggable(state = True)
 
-ax3[1].plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
+# ax3[1].plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
 
-ax3[1].set_xlabel('iteration n.', fontsize=fontsize)
-ax3[1].set_ylabel('', fontsize=fontsize)
-ax3[1].set_title('Landing optimizaton convergence - Ipopt - ma57', fontsize=fontsize)
-ax3[1].grid()
+# ax3[1].set_xlabel('iteration n.', fontsize=fontsize)
+# ax3[1].set_ylabel('', fontsize=fontsize)
+# ax3[1].set_title('Landing optimization convergence - Ipopt - ma57', fontsize=fontsize)
+# ax3[1].grid()
 
-legend = ax3[1].legend([f"normalized cost - landing opt"], fontsize=fontsize)
-legend.set_draggable(state = True)
+# legend = ax3[1].legend([f"normalized cost - landing opt"], fontsize=fontsize)
+# legend.set_draggable(state = True)
 
-f3.set_figheight(5)
-f3.set_figwidth(10)
+# f3.set_figheight(5)
+# f3.set_figwidth(10)
 
 plt.show()
