@@ -3,24 +3,24 @@
 This specific branch hosts the code employed for Humanoids23 submission of the paper "_Optimal Design of Agile Jumping Maneuvers for a Single Leg System_".
  
 
-##### <center> Take-off </center>
+#### <center> Take-off </center>
 |optimization|simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
 |  ![takeoff_opt](docs/animations/takeoff_opt.gif)| ![takeoff_replay_gazebo](docs/animations/takeoff_replay_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/takeoff_replay_hardware.gif) 	
 
-##### <center> Touchdown </center>
+#### <center> Touchdown </center>
 
 |optimization|simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
 |  ![touchdown_opt](docs/animations/touchdown_opt.gif)| ![opt_landing_gazebo](docs/animations/opt_landing_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/opt_landing_hardware.gif) 	
 
-##### <center> Full sequence </center>
+#### <center> Full sequence </center>
 
 |simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
 |  ![touchdown_opt](docs/animations/full_sequence_gazebo.gif)| ![opt_landing_gazebo](docs/animations/full_sequence_hardware.gif) 	
 
-##### What can be found here?
+#### What can be found here?
 - An open access link to all the employed data: [humanoids_opendata](https://drive.google.com/drive/folders/19J7vAJigoIES9niY9HVV40xFMkzh9XZ1).
 - A ready-to-use way of reproducing all the results and plots using the provided [docker_image](https://hub.docker.com/repository/docker/andpatr/awesome_leg_humanoids23/general):
   - Install [Docker](https://docs.docker.com/engine/install/ubuntu/) on you system and create an account if you do not possess one.
