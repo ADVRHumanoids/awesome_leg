@@ -12,7 +12,7 @@ This specific branch hosts the code employed for Humanoids23 submission of the p
 
 |optimization|simulation|hardware|   
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
-|  ![touchdown_opt](docs/animations/touchdown_opt.gif)| ![opt_landing_gazebo](docs/animations/opt_landing_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/takeoff_replay_hardware.gif) 	
+|  ![touchdown_opt](docs/animations/touchdown_opt.gif)| ![opt_landing_gazebo](docs/animations/opt_landing_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/opt_landing_hardware.gif) 	
 
 ##### What can be found here?
 - An open access link to all the employed data: [humanoids_opendata](https://drive.google.com/drive/folders/19J7vAJigoIES9niY9HVV40xFMkzh9XZ1).
@@ -23,4 +23,4 @@ This specific branch hosts the code employed for Humanoids23 submission of the p
   - run the docker with `run-container ${dummy_name} andpatr/awesome_leg_humanoids23`. This will open up a terminal within the container (note both the username and password are "user"). You will find some synthetic instructions on how to play with it at `docs/docker/README_humanoids23.md`.
 - All the code employed to perform the offline generation of the take-off trajectory and optimization of the landing configuration and joint impedances. Specifically, the code for the take-off and touchdown can be found, respectively, at `src/horizon_code/jump_generation.py` and `src/horizon_code/touchdown_opt.py`. 
 - All the code employed to actually replay the optimizations in simulation and on the real robot (at `src/xbot2_plugins/xbot2_energy_rec/`). The code is based on the combination of the real-time middleware for robotics [xbot2](https://advrhumanoids.github.io/xbot2/devel/index.html) and the [BehaviorTree.CPP](https://github.com/BehaviorTree/BehaviorTree.CPP/tree/v3.8) library. Since XBot2 is currently not open-sourced, to be able to run the simulations you will need to use the provided [docker_image](https://hub.docker.com/repository/docker/andpatr/awesome_leg_humanoids23/general), with precompiled versions of all the necessary libraries.
-- Additionally, the code employed to generate the plots in the paper (at `src/xbot2_plugins/plot_generation/`). The data used by the plot is made publicly available [humanoids_opendata](https://drive.google.com/drive/folders/19J7vAJigoIES9niY9HVV40xFMkzh9XZ1). To reproduce the plots, please follow the instructions at `docs/docker/README_humanoids23.md`.
+- Additionally, the code employed to generate the plots in the paper (at `src/xbot2_plugins/plot_generation/`). To reproduce the plots, please follow the instructions at `docs/docker/README_humanoids23.md`.
