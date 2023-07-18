@@ -115,7 +115,7 @@ legend1.set_draggable(state = True)
 
 ax2[1].plot(time_vect, p_batt2.flatten())
 
-ax2[1].set_xlabel('time', fontsize=fontsize)
+ax2[1].set_xlabel('time [s]', fontsize=fontsize)
 ax2[1].set_ylabel('[W]', fontsize=fontsize)
 ax2[1].set_title('Touchdown opt without energy recovery maximization', fontsize=fontsize)
 ax2[1].grid()

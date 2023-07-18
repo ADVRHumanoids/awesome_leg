@@ -162,12 +162,11 @@ class LoadOptJump:
 path = "/tmp/humanoids_opendata/final_jump_energy_recov/real_hardware/backup_jump_tests/jump_generation_06-07-2023-14_24_01"
 power_data = "test_bus_power_rt__4_2023_02_28__14_47_58"
 replay_data = "test_traj_replay__2_2023_02_28__14_47_58"
-path_opt = "/tmp/humanoids_opendata/refinement_motivation/jump_generation_06-07-2023-14_24_01"
 mat_name = "apex_awesome_jump_ref"
 
 power_data_log = LoadJumpTrial(path + "/" + power_data + ".mat")
 replay_data_log = LoadJumpTrial(path + "/" + replay_data + ".mat")
-ms_loader_ref = mat_storer.matStorer(path_opt + "/" + mat_name + ".mat")
+ms_loader_ref = mat_storer.matStorer(path + "/" + mat_name + ".mat")
 opt_data=ms_loader_ref.load() 
 
 n_samples_pow = power_data_log.data["iq_meas"].shape[1]
@@ -256,6 +255,7 @@ f2, ax2 = plt.subplots(2)
 
 ax2[0].plot(selected_time_pow, selected_iq_meas[0, :], drawstyle='steps-post')
 ax2[0].plot(selected_time_pow, selected_iq_est[0, :], drawstyle='steps-post')
+ax2[0].set_xlabel('[t]', fontsize=fontsize)
 ax2[0].set_ylabel('[A]', fontsize=fontsize)
 ax2[0].set_title('iq model tracking - hip', fontsize=fontsize)
 ax2[0].grid()
