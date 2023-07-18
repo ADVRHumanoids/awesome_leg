@@ -14,6 +14,12 @@ This specific branch hosts the code employed for Humanoids23 submission of the p
 |:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
 |  ![touchdown_opt](docs/animations/touchdown_opt.gif)| ![opt_landing_gazebo](docs/animations/opt_landing_gazebo.gif) | ![takeoff_replay_hardware](docs/animations/opt_landing_hardware.gif) 	
 
+##### <center> Full sequence </center>
+
+|simulation|hardware|   
+|:----------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------:|
+|  ![touchdown_opt](docs/animations/full_sequence_gazebo.gif)| ![opt_landing_gazebo](docs/animations/full_sequence_hardware.gif) 	
+
 ##### What can be found here?
 - An open access link to all the employed data: [humanoids_opendata](https://drive.google.com/drive/folders/19J7vAJigoIES9niY9HVV40xFMkzh9XZ1).
 - A ready-to-use way of reproducing all the results and plots using the provided [docker_image](https://hub.docker.com/repository/docker/andpatr/awesome_leg_humanoids23/general):
