@@ -78,11 +78,19 @@ class LoadFinalTest:
 
             self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
 
+        if 'reg_energy' in name: # assigns the aux names and their associated codes to a dictionary
+
+            self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
+
         return None # any other value != to None would block the execution of visit() method
     
 path_opt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/opt"
+path_opt_hardware = "/tmp/humanoids_opendata/final_jump_energy_recov/real_hardware/jump_generation_06-07-2023-14_24_01/opt" + \
+        "/success_but_low_jump_long/"
 path_nonopt = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/not_opt"
+path_nonopt_hardware = "/tmp/humanoids_opendata/final_jump_energy_recov/sim/jump_generation_06-07-2023-14_24_01/opt"
 data_nameopt= "sim_bus_power_rt__4_2023_07_14__16_28_07"
+data_nameopt_hardware= "sim_bus_power_rt__4_2023_07_14__16_28_07"
 data_namenonopt0= "trial0/sim_bus_power_rt__4_2023_07_14__15_30_32"
 data_namenonopt1= "trial1/sim_bus_power_rt__4_2023_07_14__15_38_15"
 data_namenonopt2= "trial2/sim_bus_power_rt__4_2023_07_14__15_44_33"
@@ -90,6 +98,7 @@ data_namenonopt3= "trial3/sim_bus_power_rt__4_2023_07_14__15_52_57"
 data_namenonopt4= "trial4/sim_bus_power_rt__4_2023_07_14__16_03_42"
 
 data_log_opt = LoadFinalTest(path_opt + "/" + data_nameopt + ".mat")
+data_log_opt_hardware = LoadFinalTest(path_opt_hardware + "/" + data_nameopt_hardware + ".mat")
 data_log_nonopt0 = LoadFinalTest(path_nonopt + "/" + data_namenonopt0 + ".mat")
 data_log_nonopt1 = LoadFinalTest(path_nonopt + "/" + data_namenonopt1 + ".mat")
 data_log_nonopt2 = LoadFinalTest(path_nonopt + "/" + data_namenonopt2 + ".mat")
