@@ -40,11 +40,11 @@ landing_data_log = LoadSolvInfo(landing_path + "/" + landing_mat_name + ".mat")
 fontsize = 14
 f1, ax = plt.subplots(1)
 
-ax.plot(jump_data_log_base.opt_costs_norm, drawstyle='steps-post')
-ax.plot(jump_data_log.opt_costs_norm, drawstyle='steps-post')
+ax.plot(jump_data_log_base.opt_costs_norm)
+ax.plot(jump_data_log.opt_costs_norm)
 
 ax.set_xlabel('iteration n.', fontsize=fontsize)
-ax.set_ylabel('', fontsize=fontsize)
+ax.set_ylabel('normalized cost', fontsize=fontsize)
 ax.set_title('Take-off optimizaton convergence - Ipopt - ma57', fontsize=fontsize)
 ax.grid()
 
@@ -58,10 +58,10 @@ f1.set_figwidth(10)
 fontsize = 14
 f2, ax2 = plt.subplots(1)
 
-ax2.plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
+ax2.plot(landing_data_log.opt_costs_norm)
 
 ax2.set_xlabel('iteration n.', fontsize=fontsize)
-ax2.set_ylabel('', fontsize=fontsize)
+ax2.set_ylabel('normalized cost', fontsize=fontsize)
 ax2.set_title('Take-off and landing optimization convergence - Ipopt - ma57', fontsize=fontsize)
 ax2.grid()
 
@@ -74,12 +74,12 @@ f2.set_figwidth(10)
 fontsize = 14
 f3, ax3 = plt.subplots(1)
 
-ax3.plot(jump_data_log_base.opt_costs_norm, drawstyle='steps-post')
-ax3.plot(jump_data_log.opt_costs_norm, drawstyle='steps-post')
-ax3.plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
+ax3.plot(jump_data_log_base.opt_costs_norm)
+ax3.plot(jump_data_log.opt_costs_norm)
+ax3.plot(landing_data_log.opt_costs_norm)
 
 # ax3[0].set_xlabel('iteration n.', fontsize=fontsize)
-ax3.set_ylabel('', fontsize=fontsize)
+ax3.set_ylabel('normalized cost', fontsize=fontsize)
 ax3.set_xlabel('iteration n.', fontsize=fontsize)
 
 ax3.set_title('Take-off and landing normalized convergence plots - Ipopt - ma57', fontsize=fontsize)
@@ -90,7 +90,7 @@ legend = ax3.legend([f"base take-off opt",
                     f"landing opt"], fontsize=fontsize)
 legend.set_draggable(state = True)
 
-# ax3[1].plot(landing_data_log.opt_costs_norm, drawstyle='steps-post')
+# ax3[1].plot(landing_data_log.opt_costs_norm)
 
 # ax3[1].set_xlabel('iteration n.', fontsize=fontsize)
 # ax3[1].set_ylabel('', fontsize=fontsize)

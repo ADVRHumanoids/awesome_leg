@@ -78,7 +78,7 @@ class LoadFinalTest:
 
             self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
 
-        if 'reg_energy' in name: # assigns the aux names and their associated codes to a dictionary
+        if 'dropdown_rec_energy_meas' in name: # assigns the aux names and their associated codes to a dictionary
 
             self.data[name] = np.array(self.mat_file_h5py[name]).T  # add the pair key-value to the dictionary
 
@@ -120,6 +120,10 @@ damp_values_nonopt4 = data_log_nonopt4.data["dropdown_damping"][:, 0]
 
 stiff_values_opt = data_log_opt.data["dropdown_stiffness"][:, 0]
 damp_values_opt = data_log_opt.data["dropdown_damping"][:, 0]
+
+stiff_values_opt_hardware = data_log_opt_hardware.data["dropdown_stiffness"][:, 0]
+damp_values_opt_hardware = data_log_opt_hardware.data["dropdown_damping"][:, 0]
+
 # print(data_log_opt.data["dropdown_damping"])
 # exit()
 recov_energy_nonopt0 = np.array(data_log_nonopt0.data["dropdown_rec_energy"])[:14]
@@ -129,12 +133,15 @@ recov_energy_nonopt3 = np.array(data_log_nonopt3.data["dropdown_rec_energy"])[:1
 recov_energy_nonopt4 = np.array(data_log_nonopt4.data["dropdown_rec_energy"])[:14]
 
 recov_energy_opt = np.array(data_log_opt.data["dropdown_rec_energy"])
+recov_energy_opt_hardware = np.array(data_log_opt.data["dropdown_rec_energy_meas"])
+
 combined_data = np.concatenate((recov_energy_nonopt0, 
                             recov_energy_nonopt1, 
                             recov_energy_nonopt2, 
                             recov_energy_nonopt3,
                             recov_energy_nonopt4,
-                            recov_energy_opt), axis = 1)
+                            recov_energy_opt, 
+                            recov_energy_opt_hardware), axis = 1)
 
 samples_descriptions = [
                         # "Non opt. " + r"$\hat{q}$" + "; not opt. impedances\n "+  \
@@ -144,8 +151,9 @@ samples_descriptions = [
                         f"n2" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt2[0], 2)}, {round(stiff_values_nonopt2[1], 2)}]; " + f"[{round(damp_values_nonopt2[0], 2)}, {round(damp_values_nonopt2[1], 2)}]",
                         f"n3" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt3[0], 2)}, {round(stiff_values_nonopt3[1], 2)}];     " + f"[{round(damp_values_nonopt3[0], 2)}, {round(damp_values_nonopt3[1], 2)}]",
                         f"n4" + r"$\rightarrow$" + f" [{round(stiff_values_nonopt4[0], 2)}, {round(stiff_values_nonopt4[1], 2)}];     " + f"[{round(damp_values_nonopt4[0], 2)}, {round(damp_values_nonopt4[1], 2)}]",
-                        r"$\mathbf{n5}$" + r"$\rightarrow$" + f" [{round(stiff_values_opt[0], 2)}, {round(stiff_values_opt[1], 2)}];     "  + f"[{round(damp_values_opt[0], 2)}, {round(damp_values_opt[1], 2)}]",              
-                        ]
+                        r"$\mathbf{n5}$(sim)" + r"$\rightarrow$" + f" [{round(stiff_values_opt[0], 2)}, {round(stiff_values_opt[1], 2)}];     "  + f"[{round(damp_values_opt[0], 2)}, {round(damp_values_opt[1], 2)}]",              
+                        r"$\mathbf{n5}$(real)" + r"$\rightarrow$" + f" [{round(stiff_values_opt_hardware[0], 2)}, {round(stiff_values_opt_hardware[1], 2)}];     "  + f"[{round(damp_values_opt_hardware[0], 2)}, {round(damp_values_opt_hardware[1], 2)}]"
+                    ]
 fontzise = 18
 figsizey = 5
 figsizex = 10
