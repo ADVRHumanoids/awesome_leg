@@ -15,6 +15,8 @@ from horizon.utils import mat_storer
 
 import h5py
 
+import matplotlib.gridspec as gridspec
+
 class LoadJumpTrial:
 
     def __init__(self, mat_file_path):
@@ -251,36 +253,54 @@ f1.set_figwidth(10)
 ## Optimized trajectory replay on real robot plots ##
 
 fontsize = 14
-f2, ax2 = plt.subplots(2)
+f2 = plt.figure(figsize=(8, 6))
+gs = gridspec.GridSpec(2, 2, height_ratios=[2, 1], width_ratios=[1, 1], hspace=0.4, wspace=0.2)
 
-ax2[0].plot(selected_time_pow, selected_iq_meas[0, :])
-ax2[0].plot(selected_time_pow, selected_iq_est[0, :])
-ax2[0].set_xlabel('time [t]', fontsize=fontsize)
-ax2[0].set_ylabel(r'$i_q$ [A]', fontsize=fontsize)
-ax2[0].set_title(r'$i_q$ model tracking - hip', fontsize=fontsize)
-ax2[0].grid()
-legend = ax2[0].legend(["estimated" , "meas."], fontsize=fontsize)
+ax21 = plt.subplot(gs[0, :])
+ax21.plot(selected_time_pow, selected_iq_meas[0, :])
+ax21.plot(selected_time_pow, selected_iq_est[0, :])
+ax21.set_xlabel('time [t]', fontsize=fontsize)
+ax21.set_ylabel(r'$i_q$ [A]', fontsize=fontsize)
+ax21.set_title(r'$i_q$ model tracking - hip', fontsize=fontsize)
+ax21.grid()
+legend = ax21.legend(["estimated" , "meas."], fontsize=fontsize)
 legend.set_draggable(state = True)
 
-combined_data = np.stack((selected_iq_meas[0, :], 
-                        selected_iq_meas[1, :], 
+combined_data_iq = np.stack((selected_iq_meas[0, :], 
+                        selected_iq_meas[1, :]), axis = 1)
+
+combined_data_tau = np.stack((
                         selected_tau_meas_pow[0, :], 
                         selected_tau_meas_pow[1, :]), axis = 1)
+ax22 = plt.subplot(gs[1, 0])
+ax33 = plt.subplot(gs[1, 1])
 
 green_diamond = dict(markerfacecolor='g', marker='D')
-artist= ax2[1].boxplot(combined_data,
+artist22 = ax22.boxplot(combined_data_tau,
             flierprops = green_diamond, vert=True, 
             whis = 1,
-            labels = [r"$i_q$" + " hip", r"$i_q$" + " knee", r"$\tau$" + " hip", r"$\tau$" + " knee"],
+            labels = ["hip", "knee"],
             autorange = True, 
             showfliers=True, 
             notch=False)
+artist33 = ax33.boxplot(combined_data_iq,
+            flierprops = green_diamond, vert=True, 
+            whis = 1,
+            labels = ["hip", "knee"],
+            autorange = True, 
+            showfliers=True, 
+            notch=False)
+
 # leg2 = ax2[1].legend(artist["boxes"],  [], loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontsize)           
 # leg2.set_draggable(state = True)
-ax2[1].set_ylabel(r"$i_q$ [A]" + " - " +  r"$\tau$ [Nm]", fontsize = fontsize)
-ax2[1].set_xlabel("", fontsize = fontsize)
-ax2[1].set_title(r"Take-off $i_q$ and $\tau$", fontdict=None, loc='center', fontsize = fontsize)
-ax2[1].grid()
+ax33.set_ylabel(r"$i_q$ [A]", fontsize = fontsize)
+ax22.set_ylabel(r"$\tau$ [Nm]", fontsize = fontsize)
+ax33.set_xlabel("", fontsize = fontsize)
+ax22.set_xlabel("", fontsize = fontsize)
+ax33.set_title(r"Take-off $i_q$", fontdict=None, loc='center', fontsize = fontsize)
+ax22.set_title(r"Take-off $\tau$", fontdict=None, loc='center', fontsize = fontsize)
+ax33.grid()
+ax22.grid()
 
 f2.set_figheight(5)
 f2.set_figwidth(10)
