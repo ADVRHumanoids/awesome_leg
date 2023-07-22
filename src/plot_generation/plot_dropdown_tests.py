@@ -113,19 +113,22 @@ fig, ax_sol_t_box = plt.subplots(1)
 fontzise = 16
 figsizex = 10
 figsizey = 5
+labels = ["0", "1", "2", "3", "4", "5"]
 artist = ax_sol_t_box.boxplot(dropdown_reg_energy.T,
                 flierprops = green_diamond, vert=True, 
                 whis = 1,
                 autorange = True, 
-                labels = ["0", "1", "2", "3", "4", "5"], 
+                labels = labels , 
                 showfliers=False, 
                 notch=False)
 leg = ax_sol_t_box.legend(artist["boxes"], [rf"stiffness setpoint: {stiff_setpoint} N m/rad",rf"damping setpoint: {damp_setpoint} N m/(rad/s)"], loc='upper right', 
                           handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
 leg.set_draggable(state = True, )
+ax_sol_t_box.set_xticklabels(labels= labels, rotation = 0, Fontsize=fontzise)
+
 # for item in leg.legendHandles:
 #     item.set_visible(False)
-ax_sol_t_box.set_ylabel(r"$e_{reg}$ [J]", fontsize = fontzise)
+ax_sol_t_box.set_ylabel(r"$e_{\mathrm{batt}}$ [J]", fontsize = fontzise)
 ax_sol_t_box.set_xlabel("configuration n.", fontsize = fontzise)
 ax_sol_t_box.set_title(r"Dropdown tests - fixed impedance", fontdict=None, loc='center', fontsize = fontzise)
 ax_sol_t_box.grid()
@@ -158,7 +161,7 @@ stiff_values = dropdown_stiff2[0:n_conf2, 0]
 # stiff_labels = [str(int(round(x, 0))) for x in list(stiff_values.tolist())]
 stiff_labels = [i for i in range(0, n_conf2)]
 
-impedance_setpoints = [ rf"n.{i}: [{round(dropdown_stiff2[i, 0], 0)}, {round(dropdown_damp2[i, 0], 0)}]" for i in range(0, n_conf2) ]
+impedance_setpoints = [ rf"n.{i}: [{round(dropdown_stiff2[i, 0], 0)} N m/rad, " + f"{round(dropdown_damp2[i, 0], 0)} N m/(rad/s)]" for i in range(0, n_conf2) ]
 
 ax_sol_t_box2.boxplot(dropdown_reg_energy2.T,
                 flierprops = green_diamond, vert=True, 
@@ -169,10 +172,13 @@ ax_sol_t_box2.boxplot(dropdown_reg_energy2.T,
                 notch=False)
 leg2 = ax_sol_t_box2.legend(artist["boxes"],  impedance_setpoints, loc='upper right', handlelength=0, handletextpad=0, fancybox=True, fontsize = fontzise)           
 leg2.set_draggable(state = True)
-ax_sol_t_box2.set_ylabel(r"$e_{reg}$ [J]", fontsize = fontzise)
+ax_sol_t_box2.set_ylabel(r"$e_{\mathrm{batt}}$ [J]", fontsize = fontzise)
 ax_sol_t_box2.set_xlabel("impedance setpoint n.", fontsize = fontzise)
 ax_sol_t_box2.set_title(r"Dropdown tests - fixed landing configuration", fontdict=None, loc='center', fontsize = fontzise)
 ax_sol_t_box2.grid()
+ax_sol_t_box2.set_xticklabels(labels= stiff_labels, rotation = 0, Fontsize=fontzise)
+
 f2.set_figheight(figsizey)
 f2.set_figwidth(figsizex)
+
 plt.show()
