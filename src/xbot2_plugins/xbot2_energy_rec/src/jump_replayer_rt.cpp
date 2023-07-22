@@ -10,7 +10,9 @@ void JumpReplayerRt::init_clocks()
 
     _smooth_imp_time = 0.0;
 
-    _go2touchdown_time = 0.0;
+    _go2touchdown_conf_time = 0.0;
+
+    _go2touchdown_imp_time = 0.0;
 
 }
 
@@ -21,7 +23,9 @@ void JumpReplayerRt::reset_clocks()
 
     _smooth_imp_time = 0.0;
 
-    _go2touchdown_time = 0.0;
+    _go2touchdown_conf_time = 0.0;
+
+    _go2touchdown_imp_time = 0.0;
 
 }
 
@@ -43,7 +47,9 @@ void JumpReplayerRt::update_clocks()
 
     if(_go2landing_config)
     {
-        _go2touchdown_time += _plugin_dt;
+        _go2touchdown_conf_time += _plugin_dt;
+
+        _go2touchdown_imp_time += _plugin_dt;
     }
 
 
@@ -64,7 +70,12 @@ void JumpReplayerRt::update_clocks()
 
     if(_landing_config_reached)
     {
-        _go2touchdown_time = _go2touchdown_exec_time;
+        _go2touchdown_conf_time = _go2touchdown_conf_exec_time;
+    }
+
+    if(_landing_imp_reached)
+    {
+        _go2touchdown_imp_time = _go2touchdown_imp_exec_time;
     }
 }
 
@@ -154,7 +165,8 @@ void JumpReplayerRt::get_params_from_config()
     _replay_stiffness = getParamOrThrow<Eigen::VectorXd>("~replay_stiffness");
     _replay_damping = getParamOrThrow<Eigen::VectorXd>("~replay_damping");
 
-    _go2touchdown_exec_time = getParamOrThrow<double>("~go2touchdown_exec_time");
+    _go2touchdown_conf_exec_time = getParamOrThrow<double>("~go2touchdown_conf_exec_time");
+    _go2touchdown_imp_exec_time = getParamOrThrow<double>("~go2touchdown_imp_exec_time");
 
     _go2touchdown_config_auto = getParamOrThrow<bool>("~go2touchdown_config_auto");
 
@@ -329,7 +341,7 @@ void JumpReplayerRt::init_dump_logger()
     _dump_logger->add("send_vel_ref", int(_send_vel_ref));
     _dump_logger->add("send_eff_ref", int(_send_eff_ref));
 
-    _dump_logger->add("go2touchdown_exec_time", _go2touchdown_exec_time);
+    _dump_logger->add("go2touchdown_exec_time", _go2touchdown_conf_exec_time);
 
     _dump_logger->create("plugin_time", 1);
     _dump_logger->create("jump_replay_times", 1, 1, _matlogger_buffer_size);
@@ -582,6 +594,8 @@ bool JumpReplayerRt::on_go2landing_config_received(const awesome_leg::Go2Landing
         _q_p_init_appr_traj = _q_p_cmd; // we also prepare to ramp the joint reference position
 
         _landing_config_reached = false;
+
+        _landing_imp_reached = false;
     }
     if(!_go2landing_config)
     {
@@ -589,6 +603,9 @@ bool JumpReplayerRt::on_go2landing_config_received(const awesome_leg::Go2Landing
         reset_clocks();
 
         _landing_config_reached = false;
+
+        _landing_imp_reached = false;
+
     }
 
     res.success = result;
@@ -778,14 +795,28 @@ void JumpReplayerRt::ramp_jnt_impedances()
 
 void JumpReplayerRt::ramp_towards_touchdown_config()
 {
-    _phase = _go2touchdown_time / _go2touchdown_exec_time;
+    _phase = _go2touchdown_conf_time / _go2touchdown_conf_exec_time;
+
+    // joint configuration transition
+    _peisekah_utils.compute_peisekah_vect_val(_phase, 
+                        _q_p_init_appr_traj, _landing_config, 
+                        _q_p_cmd);
+
+    _peisekah_utils.compute_peisekah_vect_val_dot(_phase, 
+                        _q_p_init_appr_traj, _landing_config, 
+                        _go2touchdown_conf_exec_time,
+                        _q_p_dot_cmd); // we also compute the velocity associated with the ramp
+
+}
+
+void JumpReplayerRt::ramp_towards_touchdown_imp()
+{
+    _phase = _go2touchdown_imp_time / _go2touchdown_imp_exec_time;
 
     // stiffness transition
     _peisekah_utils.compute_peisekah_vect_val(_phase, _ramp_strt_stiffness, _touchdown_stiffness, _ramp_stiffness);
     // damping transition
     _peisekah_utils.compute_peisekah_vect_val(_phase, _ramp_strt_damping, _touchdown_damping, _ramp_damping);
-    // joint configuration transition
-    _peisekah_utils.compute_peisekah_vect_val(_phase, _q_p_init_appr_traj, _landing_config, _q_p_cmd);
 
     _stiffness_setpoint = _ramp_stiffness;
     _damping_setpoint = _ramp_damping;
@@ -990,6 +1021,7 @@ void JumpReplayerRt::set_cmds()
                 _q_p_init_appr_traj = _q_p_cmd; // we also prepare to ramp the joint reference position
 
                 _landing_config_reached = false;
+                _landing_imp_reached = false;
 
                 _go2landing_config = true; // we directly go to next phase
             }
@@ -1002,6 +1034,8 @@ void JumpReplayerRt::set_cmds()
                 _go2landing_config = false;
                 _landing_config_reached = true;
                 _landing_config_started = false;
+                _landing_imp_reached = true;
+                _landing_imp_started = false;
 
                 _performed_jumps += 1; // incrementing jump counter
 
@@ -1018,30 +1052,24 @@ void JumpReplayerRt::set_cmds()
 
     }
 
-    // fast ramp towards the touchdown configuration and jnt impedance setpoints
-    if (_go2landing_config)
+    // fast ramp towards the touchdown configuration
+    if (_go2landing_config && !_landing_imp_started)
     {
         _idle = false;
 
-        if (_go2touchdown_time > _go2touchdown_exec_time - 0.000001)
-        { // finished ramping impedance
+        if (_go2touchdown_conf_time > _go2touchdown_conf_exec_time - 0.000001)
+        { // finished ramping towards configuration
 
-            _go2landing_config = false; // finished ramping imp.
             _landing_config_reached = true;
             _landing_config_started = false;
 
-            _stiffness_setpoint = _touchdown_stiffness;
-            _damping_setpoint = _touchdown_damping;
-
             reset_clocks();
-
-            _performed_jumps += 1; // this is the end of all the jumping phases --> we consider the jump sequence completed
 
             jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
                    "\n Finished ramping towards touchdown configuration \n");
         }
         else
-        {// ramp impedance
+        {// ramp towards configuration
 
             if(!_landing_config_started)
             {// triggered only the first time
@@ -1054,6 +1082,46 @@ void JumpReplayerRt::set_cmds()
             {
                 jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
                    "\n (ramping towards touchdown config...) \n");
+            }
+        }
+    }
+
+    if (_go2landing_config && _landing_config_reached && !_landing_config_started)
+    {
+        _idle = false;
+
+        if (_go2touchdown_imp_time > _go2touchdown_imp_exec_time - 0.000001)
+        { // finished ramping towards touchdown impedance
+
+            _go2landing_config = false; 
+
+            _landing_imp_reached = true;
+            _landing_imp_started = false;
+
+            _stiffness_setpoint = _touchdown_stiffness;
+            _damping_setpoint = _touchdown_damping;
+
+            reset_clocks();
+
+            _performed_jumps += 1; // this is the end of all the jumping phases --> we consider the jump sequence completed
+
+            jhigh().jprint(fmt::fg(fmt::terminal_color::blue),
+                   "\n Finished ramping towards touchdown impedance \n");
+        }
+        else
+        {// ramp towards touchdown impedance
+
+            if(!_landing_imp_started)
+            {// triggered only the first time
+                _landing_imp_started = true;
+            }
+
+            ramp_towards_touchdown_imp();
+
+            if (_verbose)
+            {
+                jhigh().jprint(fmt::fg(fmt::terminal_color::magenta),
+                   "\n (ramping towards touchdown impedance...) \n");
             }
         }
     }
@@ -1073,7 +1141,8 @@ void JumpReplayerRt::pub_replay_status()
     status_msg->msg().imp_traj_finished = _imp_traj_finished;
     status_msg->msg().approach_traj_finished = _approach_traj_finished;
     status_msg->msg().traj_finished = _traj_finished;
-    status_msg->msg().landing_config_reached = _landing_config_reached;
+    status_msg->msg().landing_config_reached = _landing_imp_reached; // we use landing impedance
+    // since it's the last phase after the ramping towards the touchdown configuration
 
     status_msg->msg().send_pos = _send_pos_ref;
     status_msg->msg().send_vel = _send_vel_ref;

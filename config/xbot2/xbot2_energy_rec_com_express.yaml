@@ -88,12 +88,13 @@ xbotcore_plugins:
             landing_config_name: {value: energy_recov_ig.mat, type: string}
 
             replay_stiffness: {value: [4000.0, 4000.0], type: Eigen::VectorXd}
-            replay_damping: {value: [30.0, 30.0], type: Eigen::VectorXd}
+            replay_damping: {value: [50.0, 150.0], type: Eigen::VectorXd}
 
             verbose: {value: false, type: bool}
 
-            ramp2touchdown_config: {value: false, type: bool}
-            go2touchdown_exec_time: {value: 0.025, type: double}
+            ramp2touchdown_config: {value: true, type: bool}
+            go2touchdown_conf_exec_time: {value: 0.1, type: double}
+            go2touchdown_imp_exec_time: {value: 0.02, type: double}
             go2touchdown_config_auto: {value: true, type: bool}
 
 #            landing_stiffness: {value: [30.0, 30.0], type: Eigen::VectorXd} # good for eg
@@ -102,8 +103,8 @@ xbotcore_plugins:
             # only used if ramp2touchdown_config == false; in this case, instead of using the optimal landing config and impedances
             # provided by landing_config_name, we simply leave the last reference position and land with the impedance
             # setpoints provided below
-            landing_stiffness: {value: [150.0, 150.0], type: Eigen::VectorXd}
-            landing_damping: {value: [10.0, 10.0], type: Eigen::VectorXd}
+            landing_stiffness: {value: [4.0, 4.0], type: Eigen::VectorXd}
+            landing_damping: {value: [3.0, 3.0], type: Eigen::VectorXd}
 
             send_pos_ref: {value: true, type: bool}
             send_vel_ref: {value: true, type: bool}
@@ -198,6 +199,6 @@ xbotcore_plugins:
 # global parameters
 xbotcore_param:
     /xbot/hal/joint_safety/filter_autostart: {value: true, type: bool}
-    /xbot/hal/joint_safety/filter_cutoff_hz: {value: 10.0, type: double}
-    /xbot/hal/enable_safety: {value: true, type: bool}
+    /xbot/hal/joint_safety/filter_cutoff_hz: {value: 50.0, type: double}
+    /xbot/hal/enable_safety: {value: false, type: bool}
     

@@ -87,11 +87,11 @@ private:
         _verbose = false,
         _is_first_imp_ramp_loop = false,
         _go2takeoff_config = false, _perform_takeoff = false, _ramp_imp = false, _go2landing_config = false,
-        _approach_traj_started = false, _traj_started = false, _imp_traj_started = false, _landing_config_started = false,
-        _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false, _landing_config_reached = false,
+        _approach_traj_started = false, _traj_started = false, _imp_traj_started = false, _landing_config_started = false, _landing_imp_started = false,
+        _approach_traj_finished = false, _traj_finished = false, _imp_traj_finished = false, _landing_config_reached = false, _landing_imp_reached = false,
         _go2touchdown_config_auto = true,
         _idle = true,
-        _ramp2touchdown_config = true, 
+        _ramp2touchdown_config = true,
         _ft_tip_sensor_found = false;
 
     int _n_jnts_robot,
@@ -114,7 +114,9 @@ private:
         _approach_traj_exec_time = 3.0, _approach_traj_time = 0.0,
         _imp_ramp_time = 4.0, _smooth_imp_time = 0.0,
         _go2takeoff_time = 0.0,
-        _go2touchdown_exec_time = 0.5, _go2touchdown_time = 0.0,
+        _go2touchdown_conf_exec_time = 0.5, _go2touchdown_conf_time = 0.0,
+        _go2touchdown_imp_exec_time = 0.05, _go2touchdown_imp_time = 0.0,
+
         _matlogger_buffer_size = 1e5,
         _resample_err_tolerance = 1e-2,
         _phase = 0.0;
@@ -194,6 +196,7 @@ private:
 
     void ramp_jnt_impedances();
     void ramp_towards_touchdown_config();
+    void ramp_towards_touchdown_imp();
 
     void saturate_cmds();
     
