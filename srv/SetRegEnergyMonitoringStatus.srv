@@ -1,6 +1,0 @@
-bool monitor_energy
-bool reset_energy
-
----
-
-bool success

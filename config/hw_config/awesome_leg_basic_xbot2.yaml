@@ -1,0 +1,44 @@
+XBotInterface:
+  urdf_path: $(rospack find awesome_leg)/description/urdf/generated/awesome_leg_xbot.urdf
+  srdf_path: $(rospack find awesome_leg)/description/srdf/awesome_leg.srdf
+
+ModelInterface:
+  model_type: RBDL
+  is_model_floating_base: false
+
+# hal
+xbotcore_device_configs:
+    sim: $PWD/hal/awesome_leg_gz.yaml
+    dummy: $PWD/hal/awesome_leg_dummy.yaml
+    ec_pos: $PWD/hal/awesome_leg_ec_all.yaml
+    ec_imp: $PWD/hal/awesome_leg_ec_all.yaml
+    ec_idle: $PWD/hal/awesome_leg_ec_all.yaml
+
+# threads
+xbotcore_threads:
+    rt_main:  {sched: fifo , prio: 60, period: 0.001, core_id: 2}
+    nrt_main: {sched: other, prio: 0 , period: 0.005}
+
+# plugins
+xbotcore_plugins:
+
+    homing:
+        thread: rt_main
+        type: homing_example
+
+    ros_io: {thread: nrt_main, type: ros_io}
+
+    ros_control: {thread: nrt_main, type: ros_control}
+    
+    ec_ros: {thread: nrt_main, type: ec_ros}
+
+# global parameters
+xbotcore_param:
+    /jm/tx_filter_autostart: {value: true, type: bool}
+    /jm/tx_filter_cutoff: {value: 2.0, type: double}
+
+
+
+
+
+

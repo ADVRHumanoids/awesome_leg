@@ -3,58 +3,10 @@ set (CMAKE_CXX_STANDARD 17)
 
 project(awesome_leg)
 
-find_package(catkin REQUIRED roscpp rospy urdf sensor_msgs std_msgs message_generation)
-find_package(XBotInterface REQUIRED)
-find_package(xbot_msgs REQUIRED)
-find_package(matlogger2 REQUIRED)
-find_package(cartesian_interface REQUIRED)
-find_package(xbot2 QUIET)
+find_package(catkin REQUIRED)
 find_package(xacro REQUIRED)
 
-option(XBOT2_ENABLE_XENO OFF "Compile against xenomai")
-
-add_service_files(
-  FILES
-  JumpNow.srv
-  IqModelCalibRt.srv
-  SetIdleState.srv
-  SimpleTrigger.srv
-  SetSafetyStop.srv
-  SetRegEnergyMonitoringStatus.srv
-  Go2TakeoffConfig.srv
-  PerformTakeoff.srv
-  RampJntImp.srv
-  Go2LandingConfig.srv
-)
-
-add_message_files(
-  FILES
-  MatReplayerStatus.msg
-  IqEstStatus.msg
-  IqCalStatus.msg
-  ContactEstStatus.msg
-  EstRegPowStatus.msg
-  MeasRegPowStatus.msg
-  BaseEstStatus.msg
-  BtRootStatus.msg
-  PluginsManStatus.msg
-  IdleState.msg
-  IqMeasStatus.msg
-  TempOkStatus.msg
-  TimerStatus.msg
-  SafetyStopState.msg
-  ImpactStatus.msg
-  PostImpImpStatus.msg
-)
-
-generate_messages(
-  DEPENDENCIES
-  std_msgs
-)
-
-catkin_package(CATKIN_DEPENDS message_runtime)
-
-add_subdirectory(src/xbot2_plugins/xbot2_energy_rec)
+catkin_package()
 
 # Xacro files
 
@@ -84,6 +36,7 @@ list(APPEND URDF_files ${awesome_leg_floating})
 # add an abstract target to actually trigger the builds
 add_custom_target(urdf_files ALL DEPENDS ${URDF_files})
 
+# install stuff
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY worlds DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 install(DIRECTORY config/ DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/config)

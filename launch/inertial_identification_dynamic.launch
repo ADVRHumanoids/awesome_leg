@@ -1,7 +1,0 @@
-<launch>
-
-    <rosparam command="load" file="$(find awesome_leg)/config/inertial_identification_dynamic.yaml" subst_value="true"/> 
-
-    <node name="inertial_identification_dynamic" pkg="awesome_leg" type="inertial_identification_dynamic.py" output = "screen" /> 
-
-</launch>

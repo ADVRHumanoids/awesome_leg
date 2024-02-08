@@ -1,1 +1,0 @@
-bool drivers_temp_ok

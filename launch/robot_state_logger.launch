@@ -1,7 +1,0 @@
-<launch>
-
-    <rosparam command="load" file="$(find awesome_leg)/config/xbot2/xbot_logger.yaml" subst_value="true"/> 
-
-    <node name="robot_state_logger" pkg="awesome_leg" type="robot_state_logger" /> 
-
-</launch>

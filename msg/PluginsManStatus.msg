@@ -1,2 +1,0 @@
-bool all_plugins_running
-bool all_plugins_stopped
