@@ -34,9 +34,8 @@ xbotcore_plugins:
 
 # global parameters
 xbotcore_param:
-    /jm/tx_filter_autostart: {value: true, type: bool}
-    /jm/tx_filter_cutoff: {value: 2.0, type: double}
-
+    /xbot/hal/joint_device/filter_autostart: {value: true, type: bool}
+    /xbot/hal/joint_device/filter_cutoff_hz: {value: 2.0, type: double}
 
 
 
