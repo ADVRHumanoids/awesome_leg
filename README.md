@@ -1,6 +1,6 @@
 ### <center>Awesome Leg repository</center> 
 
-This specific branch hosts the code employed for Humanoids23 submission of the paper "_Optimal Design of Agile Jumping Maneuvers for a Single Leg System_".
+This specific branch hosts the code employed for the IEEE Humanoids2023 paper "_Optimal Design of Agile Jumping Maneuvers for a Single Leg System_".
  
 
 #### <center> Take-off </center>
